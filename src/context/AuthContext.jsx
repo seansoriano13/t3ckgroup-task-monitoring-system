@@ -57,6 +57,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("t3ck_session");
     toast.success("Logged out successfully.");
+
+    window.location.href = "/login";
   };
 
   return (

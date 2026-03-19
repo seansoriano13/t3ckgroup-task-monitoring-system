@@ -1,0 +1,51 @@
+import StatusBadge from "./StatusBadge";
+import { ArrowRight, PencilLine } from "lucide-react";
+
+export default function TaskCard({ task, onView, onEdit }) {
+  return (
+    <div className="bg-gray-2 shadow-lg p-5 rounded-xl grid gap-4 border border-gray-4 hover:border-gray-6 transition-all duration-300 group flex flex-col h-full">
+      {/* Top Row: Category & Status */}
+      <div className="flex-between items-start">
+        <p className="text-xs font-bold text-gray-11 bg-gray-3 px-2 py-1 rounded border border-gray-4">
+          {task.categoryId}
+        </p>
+        <StatusBadge status={task.status} />
+      </div>
+
+      {/* Main Content */}
+      <p className="font-semibold text-gray-12 line-clamp-2 leading-relaxed flex-1">
+        {task.taskDescription}
+      </p>
+
+      {/* Bottom Row: Actions */}
+      <div className="flex justify-between items-center pt-3 border-t border-gray-3 mt-auto">
+        {/* Only show Edit if the prop is passed AND the task isn't complete/verified */}
+        <div className="flex-1">
+          {onEdit && task.status !== "COMPLETE" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevents triggering other click events
+                onEdit();
+              }}
+              className="text-gray-9 hover:text-gray-12 transition-colors flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
+            >
+              <PencilLine size={14} />
+              Edit
+            </button>
+          )}
+        </div>
+
+        <button
+          onClick={onView}
+          className="flex text-primary font-bold items-center gap-2 text-sm group-hover:text-primary-hover transition-colors"
+        >
+          View Task
+          <ArrowRight
+            size={16}
+            className="transform group-hover:translate-x-1 transition-transform"
+          />
+        </button>
+      </div>
+    </div>
+  );
+}
