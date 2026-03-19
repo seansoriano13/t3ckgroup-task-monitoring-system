@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase.js";
 
 export const taskService = {
   // 1. HR/HEAD VIEW: Get everything
@@ -6,9 +6,12 @@ export const taskService = {
     const { data, error } = await supabase
       .from("tasks")
       .select(
-        `*, 
-         employees:logged_by (name, department, sub_department, email),
-         categories:category_id (description)`, // 👈 Added this join so categoryDesc works!
+        `
+        *, 
+        creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
+        editor:employees!tasks_edited_by_fk(name),
+        categories(description)
+      `,
       )
       .order("created_at", { ascending: false });
 
@@ -20,8 +23,12 @@ export const taskService = {
       categoryId: task.category_id,
       categoryDesc: task.categories?.description,
       loggedById: task.logged_by,
-      loggedByName: task.employees?.name, // 👈 Added name for the UI cards
-      loggedByEmail: task.employees?.email,
+      loggedByName: task.creator?.name,
+      loggedByEmail: task.creator?.email,
+      creator: task.creator,
+      editedById: task.edited_by,
+      editedByName: task.editor?.name,
+      editedAt: task.edited_at,
       startAt: task.start_at,
       endAt: task.end_at,
       status: task.status,
@@ -38,8 +45,15 @@ export const taskService = {
   async getMyTasks(userId) {
     const { data, error } = await supabase
       .from("tasks")
-      .select(`*, employees:logged_by (name)`) // Still need the name for the card UI
-      .eq("logged_by", userId) // 👈 The crucial filter to keep it private
+      .select(
+        `
+        *, 
+        creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
+        editor:employees!tasks_edited_by_fk(name),
+        categories(description)
+      `,
+      )
+      .eq("logged_by", userId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -48,8 +62,12 @@ export const taskService = {
       id: task.id,
       taskDescription: task.task_description,
       categoryId: task.category_id,
-      loggedById: task.logged_by,
-      loggedByName: task.employees?.name,
+      loggedById: task.logged_by, // Make sure we keep the ID!
+      loggedByName: task.creator?.name,
+      creator: task.creator,
+      editedById: task.edited_by,
+      editedByName: task.editor?.name,
+      editedAt: task.edited_at,
       startAt: task.start_at,
       endAt: task.end_at,
       status: task.status,
@@ -69,7 +87,6 @@ export const taskService = {
           task_description: payload.taskDescription,
           category_id: payload.categoryId,
           logged_by: payload.loggedById,
-          // 👈 Upgraded to use the modal's date, or fallback to right now
           start_at: payload.startAt
             ? new Date(payload.startAt).toISOString()
             : new Date().toISOString(),
@@ -86,7 +103,6 @@ export const taskService = {
 
   // 4. UPDATE (Used for Employee Edits AND Manager Grading)
   async updateTask(taskId, payload) {
-    // Dynamically build the payload so we only update what changed
     const updateData = {};
 
     // Employee Edit Fields
@@ -95,14 +111,16 @@ export const taskService = {
     if (payload.categoryId !== undefined)
       updateData.category_id = payload.categoryId;
     if (payload.priority !== undefined) updateData.priority = payload.priority;
-    if (payload.startAt !== undefined)
+    if (payload.startAt !== undefined) {
       updateData.start_at = payload.startAt
         ? new Date(payload.startAt).toISOString()
         : null;
-    if (payload.endAt !== undefined)
+    }
+    if (payload.endAt !== undefined) {
       updateData.end_at = payload.endAt
         ? new Date(payload.endAt).toISOString()
         : null;
+    }
 
     // Manager/HR Fields
     if (payload.status !== undefined) updateData.status = payload.status;
@@ -113,6 +131,12 @@ export const taskService = {
       updateData.hr_verified_at = payload.hrVerified
         ? new Date().toISOString()
         : null;
+    }
+
+    // 🔥 The Audit Trail Hookup
+    if (payload.editedBy) {
+      updateData.edited_by = payload.editedBy;
+      updateData.edited_at = new Date().toISOString();
     }
 
     const { data, error } = await supabase

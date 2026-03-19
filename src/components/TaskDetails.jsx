@@ -1,131 +1,262 @@
-import React from "react";
-import StatusBadge from "./StatusBadge";
-import { X } from "lucide-react"; // Using lucide for a cleaner close icon
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useTaskTopology } from "../hooks/useTaskTopology";
+import TaskHeader from "./TaskHeader";
+import ManagementSection from "./ManagementSection";
+import StandardDetailsSection from "./StandardDetailsSection";
+import ManagerEvaluation from "./ManagerEvaluation";
+import { formatDate } from "../utils/formatDate";
+import { PencilLine } from "lucide-react";
+import TaskFooter from "./TaskFooter";
 
-export default function TaskDetails({ isOpen, onClose, task }) {
+export default function TaskDetails({ isOpen, onClose, task, onUpdateTask }) {
+  const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [approvalGrade, setApprovalGrade] = useState(null);
+  const [approvalRemarks, setApprovalRemarks] = useState("");
+
+  const [formData, setFormData] = useState({
+    department: "",
+    subDepartment: "",
+    loggedById: "",
+    categoryId: "",
+    priority: "LOW",
+    status: "INCOMPLETE",
+    startAt: "",
+    endAt: "",
+    taskDescription: "",
+    grade: 0,
+    remarks: "",
+  });
+
+  // 🔥 THE FIX: Pre-hydrate the form data immediately when the modal opens
+  useEffect(() => {
+    if (isOpen && task) {
+      setApprovalGrade(null);
+      setApprovalRemarks("");
+
+      // Grab department from the joined task data (works for Employees too!)
+      const taskDept =
+        task.creator?.department ||
+        task.employees?.department ||
+        task.department ||
+        "";
+      const taskSubDept =
+        task.creator?.sub_department ||
+        task.employees?.sub_department ||
+        task.sub_department ||
+        "";
+
+      setFormData({
+        department: taskDept || user?.department || "",
+        subDepartment:
+          taskSubDept || user?.sub_department || user?.subDepartment || "",
+        loggedById: task.loggedById || "",
+        categoryId: task.categoryId || "",
+        priority: task.priority || "LOW",
+        status: task.status || "INCOMPLETE",
+        startAt: task.startAt ? task.startAt.slice(0, 16) : "",
+        endAt: task.endAt ? task.endAt.slice(0, 16) : "",
+        taskDescription: task.taskDescription || "",
+        grade: task.grade || 0,
+        remarks: task.remarks || "",
+      });
+    }
+  }, [isOpen, task, user]);
+
+  // Role Checks
+  const isHr = user?.is_hr === true || user?.isHr === true;
+  const isHead = user?.is_head === true || user?.isHead === true;
+  const isManagement = isHr || isHead;
+  const isStrictlyHead = isHead && !isHr;
+
+  // Custom Data Hook
+  const topologyData = useTaskTopology(
+    isOpen,
+    formData,
+    task?.categoryId,
+    isEditing,
+  );
+
+  // Reset states when closed
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeout(() => {
+        setIsEditing(false);
+        setIsSubmitting(false);
+      }, 300);
+    }
+  }, [isOpen]);
+
   if (!task) return null;
 
-  const formattedDate = task.createdAt
-    ? new Date(task.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Unknown Date";
+  // Permissions & Handlers
+  const isOwner = user?.id === task.loggedById;
+  const canEdit = isHr || isHead || (isOwner && task.status !== "COMPLETE");
+
+  // 🔥 THE FIX: Since useEffect handles the data now, this just toggles the UI
+  const handleToggleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleDeptChange = (e) =>
+    setFormData({
+      ...formData,
+      department: e.target.value,
+      subDepartment: "",
+      loggedById: "",
+      categoryId: "",
+    });
+  const handleSubDeptChange = (e) =>
+    setFormData({
+      ...formData,
+      subDepartment: e.target.value,
+      loggedById: "",
+      categoryId: "",
+    });
+  const handleAssigneeChange = (e) =>
+    setFormData({ ...formData, loggedById: e.target.value, categoryId: "" });
+
+  const executeUpdate = async (payload) => {
+    setIsSubmitting(true);
+    try {
+      await onUpdateTask(payload);
+      onClose();
+    } catch (error) {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    const { department, subDepartment, ...dbPayload } = formData;
+    dbPayload.grade = dbPayload.grade ? Number(dbPayload.grade) : 0;
+    executeUpdate({ id: task.id, ...dbPayload, editedBy: user.id });
+  };
 
   return (
     <>
-      {/* 1. The Dimmed Backdrop */}
       <div
-        className={`dropdown-backdrop transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`dropdown-backdrop transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         onClick={onClose}
       />
 
-      {/* 2. The Slide-In Panel (Tactical Dark Theme) */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-gray-2 border-l border-gray-4 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-full max-w-[500px] bg-gray-2 border-l border-gray-4 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-4 bg-gray-1">
-          <h2 className="text-lg font-bold text-gray-12">Task Overview</h2>
-          <button
-            onClick={onClose}
-            className="h-8 w-8 flex items-center justify-center rounded-full text-gray-9 hover:bg-gray-3 hover:text-red-9 transition-colors"
-          >
-            <X size={20} />
-          </button>
+        <TaskHeader
+          isEditing={isEditing}
+          isHrVerified={task.hrVerified}
+          onClose={onClose}
+        />
+
+        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-gray-2">
+          <div className="space-y-4">
+            <ManagementSection
+              isEditing={isEditing}
+              isHr={isHr}
+              isHead={isHead}
+              task={task}
+              formData={formData} // 👈 This now holds the correct department immediately
+              taskLoggedByName={task.loggedByName}
+              topologyData={topologyData}
+              handlers={{
+                handleDeptChange,
+                handleSubDeptChange,
+                handleAssigneeChange,
+              }}
+            />
+            <StandardDetailsSection
+              isEditing={isEditing}
+              isManagement={isManagement}
+              formData={formData}
+              handleChange={handleChange}
+              topologyData={topologyData}
+              task={task}
+            />
+
+            <div className="flex flex-col gap-1.5 pt-2">
+              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                Description
+              </label>
+              {isEditing ? (
+                <textarea
+                  name="taskDescription"
+                  value={formData.taskDescription}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 transition-colors h-24 resize-none text-sm"
+                />
+              ) : (
+                <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
+                  {task.taskDescription}
+                </div>
+              )}
+            </div>
+
+            <ManagerEvaluation
+              isEditing={isEditing}
+              isStrictlyHead={isStrictlyHead}
+              formData={formData}
+              handleChange={handleChange}
+              task={task}
+              approvalGrade={approvalGrade}
+              setApprovalGrade={setApprovalGrade}
+              approvalRemarks={approvalRemarks}
+              setApprovalRemarks={setApprovalRemarks}
+            />
+
+            {!isEditing && task.editedById && (
+              <div className="pt-4 border-t border-gray-4 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-gray-8">
+                <p className="flex items-center gap-1.5">
+                  <PencilLine size={12} /> Last Modified By{" "}
+                  <span className="text-gray-10">{task.editedByName}</span>
+                </p>
+                <p>{formatDate(task.editedAt)}</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="p-6 flex-1 overflow-y-auto space-y-8">
-          {/* Top Tags */}
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs font-bold text-gray-9 uppercase tracking-wider mb-2">
-                Project Code
-              </p>
-              <span className="text-sm font-bold text-gray-11 bg-gray-3 px-3 py-1.5 rounded-md border border-gray-4 shadow-sm">
-                {task.categoryId}
-              </span>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-bold text-gray-9 uppercase tracking-wider mb-2">
-                Status
-              </p>
-              <StatusBadge status={task.status} />
-            </div>
-          </div>
-
-          {/* Main Description */}
-          <div>
-            <h3 className="text-xs font-bold text-gray-9 uppercase tracking-wider mb-2">
-              Description
-            </h3>
-            <div className="bg-gray-1 p-5 rounded-xl border border-gray-4 text-gray-12 leading-relaxed text-sm whitespace-pre-wrap shadow-sm">
-              {task.taskDescription}
-            </div>
-          </div>
-
-          {/* Meta Data Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-1 p-4 rounded-xl border border-gray-4 shadow-sm">
-              <p className="text-xs text-gray-9 font-bold uppercase tracking-wider mb-1">
-                Logged By
-              </p>
-              <p className="text-sm font-bold text-gray-12">
-                {task.loggedByName}
-              </p>
-            </div>
-
-            <div className="bg-gray-1 p-4 rounded-xl border border-gray-4 shadow-sm">
-              <p className="text-xs text-gray-9 font-bold uppercase tracking-wider mb-1">
-                Priority
-              </p>
-              <p
-                className={`text-sm font-bold ${
-                  task.priority === "HIGH" ? "text-red-9" : "text-gray-12"
-                }`}
-              >
-                {task.priority || "NORMAL"}
-              </p>
-            </div>
-
-            <div className="bg-gray-1 p-4 rounded-xl border border-gray-4 col-span-2 shadow-sm">
-              <p className="text-xs text-gray-9 font-bold uppercase tracking-wider mb-1">
-                Timestamp
-              </p>
-              <p className="text-sm font-bold text-gray-12">{formattedDate}</p>
-            </div>
-          </div>
-
-          {/* Conditional UI: If task is rejected, show why (TG Red styling) */}
-          {task.status === "REJECTED" && (
-            <div className="bg-red-a2 border border-red-a5 p-5 rounded-xl">
-              <h4 className="text-xs font-bold text-red-9 uppercase tracking-wider mb-2">
-                Manager Remarks
-              </h4>
-              <p className="text-sm text-red-11 leading-relaxed">
-                {task.remarks || "No remarks provided."}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-gray-4 bg-gray-1">
-          <button
-            onClick={onClose}
-            className="w-full bg-gray-3 border border-gray-4 text-gray-12 font-bold py-2.5 rounded-lg hover:bg-gray-4 transition-colors"
-          >
-            Close Details
-          </button>
-        </div>
+        <TaskFooter
+          actions={{
+            onCancel: () => setIsEditing(false),
+            onClose,
+            onSave: handleSaveEdit,
+            onToggleEdit: handleToggleEdit,
+            onMarkComplete: () =>
+              executeUpdate({
+                id: task.id,
+                status: "COMPLETE",
+                endAt: new Date().toISOString(),
+                editedBy: user.id,
+                grade: approvalGrade,
+                remarks: approvalRemarks,
+              }),
+            onHrVerify: () =>
+              executeUpdate({
+                id: task.id,
+                hrVerified: true,
+                hrVerifiedAt: new Date().toISOString(),
+                editedBy: user.id,
+              }),
+          }}
+          permissions={{ canEdit, isStrictlyHead, isHr }}
+          state={{
+            isEditing,
+            isSubmitting,
+            task,
+            formIsValid:
+              !isSubmitting &&
+              !topologyData.isLoadingTop &&
+              !(isManagement && !formData.loggedById) &&
+              formData.categoryId,
+            canApprove: approvalGrade !== null,
+          }}
+        />
       </div>
     </>
   );

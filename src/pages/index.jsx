@@ -7,10 +7,9 @@ import TasksList from "../components/TasksList.jsx";
 import TaskDetails from "../components/TaskDetails.jsx";
 
 import { useState } from "react";
+import DashboardStats from "../components/DashboardStats.jsx";
 
 export default function Dashboard() {
-
-
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false);
     // Optional: wait a few hundred ms before setting selectedTask to null
@@ -32,6 +31,7 @@ export default function Dashboard() {
       <div>
         <div className="grid gap-8">
           <DashboardHeader />
+          <DashboardStats />
           <TasksList />
         </div>
         <TaskDetails

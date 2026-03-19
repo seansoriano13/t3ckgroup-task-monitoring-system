@@ -1,0 +1,20 @@
+
+
+QUESTION:
+
+What if Head created a task for itself? or HR? who will be the one evaluating it?\
+
+Bug:
+
+Core Actions:
+- HR Rejection Flow
+
+Features 
+- Should have a stats (accumulations for this month for ex, boxes that says what data)
+- Can Register employee (by HR)
+
+HR Concerns to ask:
+
+Who Approves HR's task?
+Who Approves Dept Head's Task?
+

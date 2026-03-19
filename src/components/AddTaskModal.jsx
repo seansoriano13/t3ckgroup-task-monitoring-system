@@ -1,9 +1,7 @@
-import { useState } from "react";
-import { X } from "lucide-react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { X, Users, Building2 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { Users } from "lucide-react";
 
 const getCurrentLocalTime = () => {
   const now = new Date();
@@ -12,16 +10,24 @@ const getCurrentLocalTime = () => {
 };
 
 export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
-  const { user } = useAuth(); // 👈 Pull in the logged-in user
+  const { user } = useAuth();
+
+  // Role Checks
+  const isHr = user?.is_hr === true || user?.isHr === true;
+  const isHead = user?.is_head === true || user?.isHead === true;
 
   // Database States
   const [categories, setCategories] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
+  // HR Specific Filter States
+  const [hrDeptFilter, setHrDeptFilter] = useState("");
+  const [hrSubDeptFilter, setHrSubDeptFilter] = useState("");
+
   // Form State
   const [formData, setFormData] = useState({
-    loggedById: user?.id || "", // Defaults to the person logged in
+    loggedById: user?.id || "",
     categoryId: "",
     taskDescription: "",
     startAt: getCurrentLocalTime(),
@@ -29,7 +35,6 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     priority: "LOW",
   });
 
-  // Fetch Data when modal opens
   // Fetch Data when modal opens
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -41,45 +46,33 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         // 1. Fetch Categories
         const { data: catData, error: catError } = await supabase
           .from("categories")
-          .select("category_id, description, sub_department")
+          .select("category_id, description, department, sub_department")
           .order("category_id");
 
         if (catError) console.error("Category Fetch Error:", catError);
         else if (catData) setCategories(catData);
 
-        // --- THE BULLETPROOF ROLE CHECK ---
-        // Safely check for either snake_case (DB) or camelCase (Frontend mapped)
-        const isHr = user.is_hr === true || user.isHr === true;
-        const isHead = user.is_head === true || user.isHead === true;
         const userSubDept = user.sub_department || user.subDepartment;
-
-        console.log("Current User Role Check:", { isHr, isHead, userSubDept });
 
         // 2. Fetch Employees Based on Role
         let empQuery = supabase
           .from("employees")
-          .select("id, name, sub_department");
+          .select("id, name, department, sub_department");
 
         if (!isHr && isHead) {
-          // HEAD: Only fetch employees in their exact sub-department
-          // Fallback to a blank string if userSubDept is undefined so Supabase doesn't crash
           empQuery = empQuery.eq("sub_department", userSubDept || "");
         } else if (!isHr && !isHead) {
-          // STANDARD EMPLOYEE: Only fetch themselves
           empQuery = empQuery.eq("id", user.id);
         }
-        // If HR, we don't add any filters so they get everyone!
 
-        // Execute the query
         const { data: empData, error: empError } = await empQuery.order("name");
 
         if (empError) console.error("Employee Fetch Error:", empError);
-        else if (empData) {
-          console.log("Employees Fetched:", empData);
-          setEmployees(empData);
-        }
+        else if (empData) setEmployees(empData);
 
-        // Reset form data for fresh open
+        // Reset form data and filters for fresh open
+        setHrDeptFilter("");
+        setHrSubDeptFilter("");
         setFormData({
           loggedById: user.id,
           categoryId: "",
@@ -101,15 +94,10 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   // Handle Input Changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => {
       const newData = { ...prev, [name]: value };
-
-      // 🔥 THE MAGIC TRICK: If the manager changes the Assignee,
-      // instantly wipe the category so they don't accidentally submit
-      // an IT category for a Purchasing employee!
       if (name === "loggedById") {
-        newData.categoryId = "";
+        newData.categoryId = ""; // Wipe category if assignee changes
       }
       return newData;
     });
@@ -122,15 +110,43 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
 
   if (!isOpen) return null;
 
-  // --- DYNAMIC FILTERING LOGIC ---
-  // Find the sub-department of whoever is currently selected in the Assignee dropdown
-  const selectedEmployee =
-    employees.find((emp) => emp.id === formData.loggedById) || user;
+  // --- HR CASCADING FILTER LOGIC ---
+  const uniqueDepts = [
+    ...new Set(categories.map((c) => c.department).filter(Boolean)),
+  ].sort();
+  const uniqueSubDepts = [
+    ...new Set(
+      categories
+        .filter((c) => !hrDeptFilter || c.department === hrDeptFilter)
+        .map((c) => c.sub_department)
+        .filter(Boolean),
+    ),
+  ].sort();
 
-  // Filter the categories so we only show ones matching that specific sub-department
-  const filteredCategories = categories.filter(
-    (cat) => cat.sub_department === selectedEmployee?.sub_department,
-  );
+  const filteredEmployees = employees.filter((emp) => {
+    if (!isHr) return true;
+    if (hrDeptFilter && emp.department !== hrDeptFilter) return false;
+    if (hrSubDeptFilter && emp.sub_department !== hrSubDeptFilter) return false;
+    return true;
+  });
+
+  // --- DYNAMIC CATEGORY & DEPARTMENT DISPLAY LOGIC ---
+  // Find the selected employee's full data
+  const selectedEmployeeInfo = employees.find(
+    (emp) => emp.id === formData.loggedById,
+  ) || {
+    department: user?.department || "N/A",
+    sub_department: user?.sub_department || user?.subDepartment || "N/A",
+  };
+
+  const filteredCategories = categories.filter((cat) => {
+    // 1. If HR is actively using the dropdown filters, respect those first
+    if (isHr && hrSubDeptFilter) return cat.sub_department === hrSubDeptFilter;
+    if (isHr && hrDeptFilter) return cat.department === hrDeptFilter;
+
+    // 2. Default behavior: Strictly lock to the Selected Employee's sub-department
+    return cat.sub_department === selectedEmployeeInfo.sub_department;
+  });
 
   return (
     <>
@@ -140,9 +156,9 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       />
 
       <div className="fixed absolute-center w-full max-w-lg z-50 p-4">
-        <div className="bg-gray-2 border border-gray-4 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="bg-gray-2 border border-gray-4 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           {/* Header */}
-          <div className="flex-between p-6 border-b border-gray-3 bg-gray-1">
+          <div className="flex-between p-6 border-b border-gray-3 bg-gray-1 shrink-0">
             <h2 className="text-xl font-bold text-gray-12">Log New Task</h2>
             <button
               onClick={onClose}
@@ -152,140 +168,233 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
-            {/* CONDITIONAL ASSIGNEE DROPDOWN (Only visible if HR or HEAD) */}
-            {(user?.is_hr || user?.isHr || user?.is_head || user?.isHead) && (
-              <div className="bg-gray-1 border border-primary/30 p-4 rounded-xl shadow-inner">
-                <label className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wider mb-2">
-                  <Users size={14} /> Assign Task To
-                </label>
-                <select
-                  name="loggedById"
-                  value={formData.loggedById}
-                  onChange={handleChange}
-                  className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 outline-none focus:border-red-9 transition-all appearance-none font-semibold"
-                >
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.id === user.id ? "Myself" : emp.name} (
-                      {emp.sub_department})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+          <div className="overflow-y-auto p-6 custom-scrollbar">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* --- MANAGEMENT SECTION (Unified Look) --- */}
+              <div className="grid grid-cols-2 gap-4 bg-gray-2 border border-gray-4 p-4 rounded-xl shadow-sm">
+                <div className="col-span-2">
+                  <label className="flex items-center gap-2 text-xs font-bold text-gray-10 uppercase tracking-wider mb-2">
+                    <Building2 size={14} /> Organization Details
+                  </label>
+                </div>
 
-            {/* Category & Priority */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-10 uppercase tracking-wider mb-2">
-                  Category
-                </label>
-                <select
-                  name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleChange}
-                  className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-red-9 transition-all appearance-none"
-                  required
-                >
-                  <option value="" disabled className="text-gray-8">
-                    {isLoadingData ? "Loading..." : `Select Category...`}
-                  </option>
+                {/* Department */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                    Department
+                  </label>
+                  {isHr ? (
+                    <select
+                      value={hrDeptFilter}
+                      onChange={(e) => {
+                        setHrDeptFilter(e.target.value);
+                        setHrSubDeptFilter("");
+                        setFormData((p) => ({
+                          ...p,
+                          loggedById: "",
+                          categoryId: "",
+                        }));
+                      }}
+                      className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus-within:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors text-sm"
+                    >
+                      <option value="">All Departments</option>
+                      {uniqueDepts.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="min-h-[44px] flex items-center w-full bg-gray-1 border border-transparent rounded-lg px-3">
+                      <p className="text-sm font-semibold text-gray-12">
+                        {selectedEmployeeInfo.department}
+                      </p>
+                    </div>
+                  )}
+                </div>
 
-                  {/* Map the dynamically filtered categories */}
-                  {filteredCategories.map((cat) => (
-                    <option key={cat.category_id} value={cat.category_id}>
-                      {cat.category_id} - {cat.description}
-                    </option>
-                  ))}
-                </select>
-                {/* Helpful subtext if the array is empty */}
-                {filteredCategories.length === 0 && !isLoadingData && (
-                  <p className="text-[10px] text-red-500 mt-1 font-bold">
-                    No categories found for this department.
-                  </p>
+                {/* Sub-Department */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                    Sub-Department
+                  </label>
+                  {isHr ? (
+                    <select
+                      value={hrSubDeptFilter}
+                      onChange={(e) => {
+                        setHrSubDeptFilter(e.target.value);
+                        setFormData((p) => ({
+                          ...p,
+                          loggedById: "",
+                          categoryId: "",
+                        }));
+                      }}
+                      disabled={!hrDeptFilter}
+                      className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus-within:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors disabled:opacity-50 text-sm"
+                    >
+                      <option value="">All Sub-Departments</option>
+                      {uniqueSubDepts.map((sub) => (
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="min-h-[44px] flex items-center w-full bg-gray-1 border border-transparent rounded-lg px-3">
+                      <p className="text-sm font-semibold text-gray-12">
+                        {selectedEmployeeInfo.sub_department}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* ASSIGNEE (Visible to HR/HEAD) */}
+                {(isHr || isHead) && (
+                  <div className="col-span-2 pt-2 border-t border-gray-3">
+                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider mb-1 mt-1">
+                      <Users size={12} /> Assign Task To
+                    </label>
+                    <select
+                      name="loggedById"
+                      value={formData.loggedById}
+                      onChange={handleChange}
+                      required
+                      className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors font-semibold text-sm"
+                    >
+                      <option value="" disabled>
+                        Select Employee...
+                      </option>
+                      {filteredEmployees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.id === user.id ? "Myself" : emp.name}
+                        </option>
+                      ))}
+                    </select>
+                    {isHr && filteredEmployees.length === 0 && (
+                      <p className="text-[10px] text-red-500 mt-2 font-bold">
+                        No employees found in this filter.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-10 uppercase tracking-wider mb-2">
-                  Priority
+              {/* --- TASK DETAILS SECTION --- */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1 mb-1.5">
+                    Project Category
+                  </label>
+                  <select
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    disabled={!formData.loggedById}
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors disabled:opacity-50 text-sm"
+                    required
+                  >
+                    <option value="" disabled className="text-gray-8">
+                      {isLoadingData
+                        ? "Loading..."
+                        : !formData.loggedById
+                          ? "Select Assignee First"
+                          : "Select Category..."}
+                    </option>
+                    {filteredCategories.map((cat) => (
+                      <option key={cat.category_id} value={cat.category_id}>
+                        {cat.category_id} - {cat.description}
+                      </option>
+                    ))}
+                  </select>
+                  {filteredCategories.length === 0 &&
+                    !isLoadingData &&
+                    formData.loggedById && (
+                      <p className="text-[10px] text-red-500 mt-1 font-bold">
+                        No categories mapped for this team.
+                      </p>
+                    )}
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1 mb-1.5">
+                    Priority
+                  </label>
+                  <select
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleChange}
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors text-sm font-bold"
+                  >
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH" className="text-red-9">
+                      HIGH
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Time Tracking Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1 mb-1.5">
+                    Start Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="startAt"
+                    value={formData.startAt}
+                    onChange={handleChange}
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors text-sm [color-scheme:dark]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1 mb-1.5">
+                    End Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="endAt"
+                    value={formData.endAt}
+                    onChange={handleChange}
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors text-sm [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                  Description
                 </label>
-                <select
-                  name="priority"
-                  value={formData.priority}
+                <textarea
+                  name="taskDescription"
+                  value={formData.taskDescription}
                   onChange={handleChange}
-                  className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-red-9 transition-all appearance-none"
+                  placeholder="Detail your completed work here..."
+                  className="w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg p-4 outline-none transition-colors h-28 resize-none text-sm placeholder:text-gray-7"
+                  required
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-gray-3 mt-2 pb-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-5 py-2.5 rounded-lg font-bold text-gray-10 hover:text-gray-12 hover:bg-gray-3 transition-colors text-sm"
                 >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH" className="text-red-9 font-bold">
-                    High
-                  </option>
-                </select>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-lg font-bold bg-primary text-gray-12 hover:bg-primary-hover shadow-lg shadow-red-a3 transition-all active:scale-95 disabled:opacity-50 text-sm flex items-center gap-2"
+                  disabled={isLoadingData || !formData.loggedById}
+                >
+                  Submit Task
+                </button>
               </div>
-            </div>
-
-            {/* Time Tracking Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-10 uppercase tracking-wider mb-2">
-                  Start Time
-                </label>
-                <input
-                  type="datetime-local"
-                  name="startAt"
-                  value={formData.startAt}
-                  onChange={handleChange}
-                  className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-red-9 transition-all [color-scheme:dark]"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-10 uppercase tracking-wider mb-2">
-                  End Time
-                </label>
-                <input
-                  type="datetime-local"
-                  name="endAt"
-                  value={formData.endAt}
-                  onChange={handleChange}
-                  className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-red-9 transition-all [color-scheme:dark]"
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-xs font-bold text-gray-10 uppercase tracking-wider mb-2">
-                Task Description
-              </label>
-              <textarea
-                name="taskDescription"
-                value={formData.taskDescription}
-                onChange={handleChange}
-                placeholder="Detail your completed work here..."
-                className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 transition-all h-28 resize-none placeholder:text-gray-7"
-                required
-              />
-            </div>
-
-            <div className="pt-4 flex justify-end gap-3 border-t border-gray-3 mt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-5 py-2.5 rounded-lg font-bold text-gray-11 hover:text-gray-12 hover:bg-gray-3 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2.5 rounded-lg font-bold bg-primary text-gray-12 hover:bg-primary-hover shadow-lg shadow-red-a3 transition-all active:scale-95 disabled:opacity-50"
-                disabled={isLoadingData}
-              >
-                Submit Task
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     </>

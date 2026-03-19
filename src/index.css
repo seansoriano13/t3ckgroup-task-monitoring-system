@@ -201,3 +201,30 @@ summary,
 label[for] {
   cursor: var(--cursor-pointer);
 } */
+
+/* --- React DatePicker Dark Theme Overrides --- */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+.react-datepicker {
+  @apply bg-gray-2 border-gray-4 font-sans text-gray-12 shadow-2xl;
+}
+.react-datepicker__header {
+  @apply bg-gray-1 border-b border-gray-4;
+}
+.react-datepicker__current-month, .react-datepicker-time__header, .react-datepicker-year-header {
+  @apply text-gray-12 font-bold;
+}
+.react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name {
+  @apply text-gray-10 hover:bg-gray-4 hover:text-gray-12 rounded-full;
+}
+.react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range,
+.react-datepicker__month-text--selected, .react-datepicker__month-text--in-selecting-range, .react-datepicker__month-text--in-range {
+  @apply bg-primary text-gray-12 font-bold hover:bg-primary-hover;
+}
+.react-datepicker__day--keyboard-selected, .react-datepicker__month-text--keyboard-selected, .react-datepicker__quarter-text--keyboard-selected, .react-datepicker__year-text--keyboard-selected {
+  @apply bg-red-a3 text-red-11;
+}
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before, .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::after {
+  @apply border-b-gray-4 border-t-transparent;
+}
