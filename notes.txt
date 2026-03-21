@@ -3,26 +3,7 @@ Bug:
 Core Actions:
 
 Features:
+In taskdetails, after head evaluates the task, they should see who's the manager 
 
+Future:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Future Optimization
-- tasks show too long when adding task (because of Real time tanstack in dashboard)
-    - We can insert it instantly for the sake of UI and do it later in backend
-- mobile UI

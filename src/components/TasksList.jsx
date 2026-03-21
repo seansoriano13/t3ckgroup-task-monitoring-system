@@ -285,8 +285,7 @@ export default function TasksList() {
                   Manager Tip
                 </p>
                 <p className="text-sm text-gray-11">
-                  Keep your pipeline clear by reviewing tasks daily. Unverified
-                  tasks delay the payroll export process.
+                  Keep your pipeline clear by reviewing tasks daily.
                 </p>
               </div>
             </div>

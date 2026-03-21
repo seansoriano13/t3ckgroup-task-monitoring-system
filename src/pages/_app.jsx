@@ -14,17 +14,62 @@ export default function AppLayout() {
   const queryClient = useQueryClient();
 
   // 🔥 THE WRITE CONNECTION
+  // ⚡ THE OPTIMISTIC WRITE CONNECTION
   const addTaskMutation = useMutation({
     mutationFn: taskService.createTask,
-    onSuccess: () => {
-      // Magically refresh the task list on the screen!
-      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+
+    // 1. FIRE INSTANTLY: The millisecond the user clicks submit
+    onMutate: async (newTask) => {
+      // Close the modal instantly so the user isn't left waiting
       setIsModalOpen(false);
-      toast.success("Task logged successfully!");
+
+      // Cancel any outgoing refetches so they don't overwrite our optimistic data
+      await queryClient.cancelQueries({ queryKey: ["myTasks"] });
+
+      // Snapshot the current state of myTasks (in case the Wi-Fi drops and we need to roll back)
+      const previousTasks = queryClient.getQueryData(["myTasks"]);
+
+      // Create the "Fake" task to instantly show on screen
+      const optimisticTask = {
+        id: `temp-${Date.now()}`,
+        ...newTask,
+        createdAt: new Date().toISOString(),
+        status: "INCOMPLETE",
+        loggedByName: user?.name,
+        loggedById: user?.id,
+      };
+
+      // Inject the fake task at the very top of the list
+      queryClient.setQueryData(["myTasks"], (old) => {
+        return old ? [optimisticTask, ...old] : [optimisticTask];
+      });
+
+      return { previousTasks };
     },
-    onError: (error) => {
+
+    // 2. IF BACKEND FAILS: Roll back to the snapshot silently
+    onError: (error, newTask, context) => {
       console.error("Failed to add task:", error);
       toast.error("Database error: Could not save task.");
+
+      // Revert the UI back to how it was before they clicked submit
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["myTasks"], context.previousTasks);
+      }
+
+      // Optionally reopen the modal so they don't lose what they typed!
+      setIsModalOpen(true);
+    },
+
+    // 3. CLEANUP: Once Supabase is done (success or fail), fetch the true data
+    onSettled: () => {
+      // This quietly swaps out your "temp" task with the real database row
+      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] }); // Sync the pulse feed!
+    },
+
+    onSuccess: () => {
+      toast.success("Task logged successfully!");
     },
   });
 
