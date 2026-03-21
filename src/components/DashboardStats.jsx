@@ -84,23 +84,27 @@ export default function DashboardStats() {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* CARD 1: My Completed (Everyone sees this) */}
-      <StatCard
-        title="My Completed"
-        value={stats.myCompleted}
-        subtitle="This Month"
-        icon={<CheckCircle2 size={20} className="text-green-500" />}
-        borderColor="border-t-green-500"
-      />
+      {/* CARD 1: My Completed  */}
+      {!isManagement && (
+        <StatCard
+          title="My Completed"
+          value={stats.myCompleted}
+          subtitle="This Month"
+          icon={<CheckCircle2 size={20} className="text-green-500" />}
+          borderColor="border-t-green-500"
+        />
+      )}
 
-      {/* CARD 2: My Pending (Everyone sees this) */}
-      <StatCard
-        title="My Pending"
-        value={stats.myPending}
-        subtitle="In Queue"
-        icon={<Clock size={20} className="text-yellow-500" />}
-        borderColor="border-t-yellow-500"
-      />
+      {/* CARD 2: My Pending  */}
+      {!isManagement && (
+        <StatCard
+          title="My Pending"
+          value={stats.myPending}
+          subtitle="In Queue"
+          icon={<Clock size={20} className="text-yellow-500" />}
+          borderColor="border-t-yellow-500"
+        />
+      )}
 
       {/* CARD 3 & 4: Management vs Standard Employee View */}
       {isManagement ? (

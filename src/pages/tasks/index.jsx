@@ -334,6 +334,7 @@ export default function TasksPage() {
                   <option value="ALL">Status</option>
                   <option value="COMPLETE">Complete</option>
                   <option value="INCOMPLETE">Incomplete</option>
+                  <option value="REJECTED">Rejected</option>
                 </select>
               </div>
               <select
