@@ -28,7 +28,7 @@ export default function SideNav({ onOpenAddTask }) {
   // 2. Conditionally inject Head/HR links based on their Supabase Role
   if (user?.isHead) {
     navLinks.push({
-      label: "Approvals",
+      label: "For Approval",
       link: "/approvals",
       icon: ShieldCheck,
     });

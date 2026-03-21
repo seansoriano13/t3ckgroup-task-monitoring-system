@@ -16,7 +16,7 @@ const StandardDetailsSection = ({
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
-        <FieldBox label="Project Category" isEditing={isEditing}>
+        <FieldBox label="Task Category" isEditing={isEditing}>
           {isEditing ? (
             <select
               name="categoryId"

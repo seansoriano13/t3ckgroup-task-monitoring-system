@@ -283,7 +283,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1 mb-1.5">
-                    Project Category
+                    Task Category
                   </label>
                   <select
                     name="categoryId"

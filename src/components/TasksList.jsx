@@ -173,7 +173,7 @@ export default function TasksList() {
             <div>
               <h2 className="text-xl font-black text-gray-12 flex items-center gap-2">
                 <Activity size={24} className="text-primary" />
-                {isHr ? "Organization Pulse" : "Team Activity Feed"}
+                {isHr ? "Organization Stats" : "Team Activity Feed"}
               </h2>
               <p className="text-sm text-gray-9 mt-1 font-medium">
                 Real-time monitoring for{" "}
