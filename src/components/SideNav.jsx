@@ -17,6 +17,7 @@ export default function SideNav({ onOpenAddTask }) {
 
   // 🔥 The Hover State
   const [isExpanded, setIsExpanded] = useState(false);
+  const toggleSidebar = () => setIsExpanded((prev) => !prev);
 
   // 1. Base links that EVERYONE sees
   const navLinks = [
@@ -35,7 +36,7 @@ export default function SideNav({ onOpenAddTask }) {
   if (user?.isHr) {
     navLinks.push({
       label: "HR Master Log",
-      link: "/hr-dashboard",
+      link: "/hr-master-log",
       icon: Database,
     });
   }
@@ -54,7 +55,13 @@ export default function SideNav({ onOpenAddTask }) {
       onMouseLeave={() => setIsExpanded(false)}
     >
       {/* Pane 1: The Icon Strip (Always visible) */}
-      <aside className="relative z-50 text-gray-12 bg-gray-3 flex flex-col items-center px-4 py-8 gap-6 border-r border-gray-4 w-[72px]">
+      <aside className="relative z-50 text-gray-12 bg-gray-3 flex flex-col items-center w-14 md:w-[72px] px-2 md:px-4 py-8 gap-6 border-r border-gray-4">
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden p-2 text-gray-10 hover:text-gray-12 hover:bg-gray-4 rounded-xl transition-colors"
+        >
+          {isExpanded ? <X size={24} /> : <LayoutList size={24} />}
+        </button>
         <img
           src={user?.picture || "/default-avatar.png"}
           className="w-10 h-10 rounded-full border border-gray-5 shadow-sm object-cover"
@@ -75,9 +82,18 @@ export default function SideNav({ onOpenAddTask }) {
 
       {/* Pane 2: The Expanded Menu (Hidden by default, slides out over content) */}
       <div
-        className={`absolute left-[72px] top-0 h-full bg-gray-1 border-r border-gray-4 shadow-2xl transition-all duration-300 ease-in-out overflow-hidden z-40 ${
-          isExpanded ? "w-64 opacity-100" : "w-0 opacity-0 pointer-events-none"
-        }`}
+        className={`
+    absolute top-0 h-full bg-gray-1 border-r border-gray-4 shadow-2xl transition-all duration-300 ease-in-out overflow-hidden z-40 
+    
+    /* 🔥 THE FIX: Match these to your Aside's width */
+    left-14 md:left-[72px] 
+
+    ${
+      isExpanded
+        ? "w-[calc(100vw-56px)] md:w-64 opacity-100" // 56px is the width of w-14
+        : "w-0 opacity-0 pointer-events-none"
+    }
+  `}
       >
         {/* We fix the inner width so the text doesn't wrap weirdly during the animation */}
         <nav className="w-64 px-6 py-8 flex flex-col gap-8 h-full">

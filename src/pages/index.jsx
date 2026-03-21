@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -8,6 +8,7 @@ import TaskDetails from "../components/TaskDetails.jsx";
 
 import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const handleCloseDrawer = () => {
@@ -26,6 +27,16 @@ export default function Dashboard() {
     setIsDrawerOpen(true);
   };
 
+  const queryClient = useQueryClient();
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId) => taskService.deleteTask(taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      toast.success("Task permanently deleted.");
+    },
+  });
+
   return (
     <ProtectedRoute>
       <div>
@@ -38,6 +49,7 @@ export default function Dashboard() {
           isOpen={isDrawerOpen}
           onClose={handleCloseDrawer}
           task={selectedTask}
+          onDeleteTask={(taskId) => deleteTaskMutation.mutateAsync(taskId)}
         />
       </div>
     </ProtectedRoute>

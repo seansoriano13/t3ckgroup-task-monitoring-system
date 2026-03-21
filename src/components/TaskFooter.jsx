@@ -1,4 +1,6 @@
 import { Edit3 } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { ShieldCheck } from "lucide-react";
 import { CheckCircle } from "lucide-react";
 import { Loader2 } from "lucide-react";
@@ -11,24 +13,41 @@ const TaskFooter = ({ actions, permissions, state }) => {
     onToggleEdit,
     onMarkComplete,
     onHrVerify,
+    onDelete,
+    onUndoVerify,
   } = actions;
-  const { canEdit, isStrictlyHead, isHr } = permissions;
+  const { canEdit, isStrictlyHead, isHr, isManagement } = permissions;
   const { isEditing, isSubmitting, task, formIsValid } = state;
 
   return (
     <div className="p-5 border-t border-gray-4 bg-gray-1 flex justify-between items-center shrink-0">
-      <button
-        onClick={isEditing ? onCancel : onClose}
-        className="text-sm font-bold text-gray-10 hover:text-gray-12 px-4 py-2 rounded-lg hover:bg-gray-3 transition-colors"
-      >
-        {isEditing ? "Cancel" : "Close"}
-      </button>
+      {/* LEFT SIDE: Close/Cancel & Delete */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={isEditing ? onCancel : onClose}
+          className="text-sm font-bold text-gray-10 hover:text-gray-12 px-4 py-2 rounded-lg hover:bg-gray-3 transition-colors"
+        >
+          {isEditing ? "Cancel" : "Close"}
+        </button>
 
+        {/* 🔥 Delete Button (Only for Management when not editing) */}
+        {!isEditing && isManagement && (
+          <button
+            onClick={onDelete}
+            disabled={isSubmitting}
+            className="text-sm font-bold text-red-9 hover:text-red-11 hover:bg-red-a3 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <Trash2 size={16} /> Delete
+          </button>
+        )}
+      </div>
+
+      {/* RIGHT SIDE: Primary Actions */}
       <div className="flex gap-3">
         {isEditing ? (
           <button
             onClick={onSave}
-            disabled={!formIsValid}
+            disabled={!formIsValid || isSubmitting}
             className="bg-primary hover:bg-primary-hover text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-colors shadow-lg shadow-red-a3 active:scale-95 disabled:opacity-50 flex items-center gap-2"
           >
             {isSubmitting ? (
@@ -48,10 +67,11 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 <Edit3 size={16} /> Edit
               </button>
             )}
+
             {isStrictlyHead && task.status !== "COMPLETE" && (
               <button
                 onClick={onMarkComplete}
-                disabled={state.isSubmitting || !state.canApprove}
+                disabled={isSubmitting || !state.canApprove}
                 className="bg-green-600 hover:bg-green-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-lg shadow-green-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
@@ -62,6 +82,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 {isSubmitting ? "Approving..." : "Approve Task"}
               </button>
             )}
+
             {isHr && task.status === "COMPLETE" && !task.hrVerified && (
               <button
                 onClick={onHrVerify}
@@ -74,6 +95,22 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   <ShieldCheck size={16} />
                 )}
                 {isSubmitting ? "Verifying..." : "Verify (HR)"}
+              </button>
+            )}
+
+            {/* 🔥 Undo Verification Button (Only shows if HR verified it) */}
+            {isHr && task.hrVerified && (
+              <button
+                onClick={onUndoVerify}
+                disabled={isSubmitting}
+                className="bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-lg shadow-orange-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <RotateCcw size={16} />
+                )}
+                {isSubmitting ? "Undoing..." : "Undo Verification"}
               </button>
             )}
           </>

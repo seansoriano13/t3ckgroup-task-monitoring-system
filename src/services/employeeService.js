@@ -49,4 +49,24 @@ export const employeeService = {
       subDepartment: category.sub_department,
     }));
   },
+
+  async createEmployee(employeeData) {
+    const { data, error } = await supabase
+      .from("employees")
+      .insert([
+        {
+          email: employeeData.email,
+          name: employeeData.name,
+          department: employeeData.department,
+          sub_department: employeeData.subDepartment,
+          is_head: employeeData.isHead,
+          is_hr: employeeData.isHr,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

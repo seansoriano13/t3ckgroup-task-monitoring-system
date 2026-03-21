@@ -34,6 +34,7 @@ export const taskService = {
       status: task.status,
       priority: task.priority,
       remarks: task.remarks,
+      hrRemarks: task.hr_remarks,
       grade: task.grade,
       hrVerified: task.hr_verified,
       hrVerifiedAt: task.hr_verified_at,
@@ -132,6 +133,8 @@ export const taskService = {
         ? new Date().toISOString()
         : null;
     }
+    if (payload.hrRemarks !== undefined)
+      updateData.hr_remarks = payload.hrRemarks;
 
     // 🔥 The Audit Trail Hookup
     if (payload.editedBy) {
@@ -151,8 +154,15 @@ export const taskService = {
   },
 
   // 5. DELETE
-  async deleteTask(taskId) {
-    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+  async deleteTask(taskId, userId) {
+    const { error } = await supabase
+      .from("tasks")
+      .update({
+        status: "DELETED", // Hides it from normal views
+        edited_by: userId, // Audit trail: Who deleted it?
+        edited_at: new Date().toISOString(),
+      })
+      .eq("id", taskId);
 
     if (error) throw error;
     return true;

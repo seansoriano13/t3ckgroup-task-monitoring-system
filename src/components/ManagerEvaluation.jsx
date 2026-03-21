@@ -10,13 +10,14 @@ export default function ManagerEvaluation({
   approvalRemarks,
   setApprovalRemarks,
 }) {
-  // Grading happens in View Mode
   if (isEditing) return null;
 
   const isComplete = task.status === "COMPLETE";
   const isRejected = task.status === "REJECTED";
 
-  // Use the exact same container style as ManagementSection
+  // 🔥 THE FIX: Both statuses mean the manager is done evaluating
+  const isFinalized = isComplete || isRejected;
+
   const containerClass = `grid grid-cols-2 gap-4 p-4 rounded-xl border ${
     isComplete
       ? "bg-gray-3/50 border-gray-4 border-dashed"
@@ -27,42 +28,51 @@ export default function ManagerEvaluation({
 
   return (
     <div className={containerClass}>
-      {/* Header - Matching ManagementSection exactly */}
       <div
         className={`col-span-2 text-xs font-bold uppercase tracking-wider mb-[-8px] ${isRejected ? "text-red-9" : "text-primary"}`}
       >
-        {isComplete
+        {isFinalized
           ? "Manager Evaluation"
           : isStrictlyHead
             ? "Manager Evaluation (Required for Approval)"
             : "Evaluation Status (Not Yet Evaluated)"}
       </div>
 
-      {isComplete ? (
+      {isFinalized ? (
         /* ========================================= */
-        /* COMPLETED VIEW (The Clean "Data" Layout)  */
+        /* FINALIZED VIEW (Complete OR Rejected)     */
         /* ========================================= */
         <>
           <FieldBox label="Final Grade" isEditing={false}>
             <p className="px-3 text-sm font-bold text-gray-12">
-              {task.grade || "N/A"} / 5
+              {task.grade ? `${task.grade} / 5` : "N/A"}
             </p>
           </FieldBox>
           <div /> {/* Layout Spacer */}
-          <div className="col-span-2 flex flex-col gap-1.5 pt-1">
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
-              Remarks
-            </label>
-            <div
-              className={`bg-gray-1 p-4 rounded-xl border border-transparent text-sm ${task.remarks ? "text-gray-12" : "text-gray-5"} whitespace-pre-wrap min-h-[44px] flex items-center shadow-inner`}
-            >
-              {task.remarks || "No Remarks provided."}
+          {task.remarks && (
+            <div className="col-span-2 flex flex-col gap-1.5 pt-1">
+              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                Manager Remarks
+              </label>
+              <div className="bg-gray-1 p-4 rounded-xl border border-transparent text-sm text-gray-12 whitespace-pre-wrap min-h-[44px] flex items-center shadow-inner">
+                {task.remarks}
+              </div>
             </div>
-          </div>
+          )}
+          {task.hrRemarks && (
+            <div className="col-span-2 flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
+              <label className="text-[10px] font-bold text-red-9 uppercase tracking-wider pl-1 flex items-center gap-1.5">
+                HR Audit Notes / Rejection Reason
+              </label>
+              <div className="bg-red-a2 p-4 rounded-xl border border-red-a5 text-sm text-red-11 whitespace-pre-wrap min-h-[44px] flex items-center shadow-inner font-semibold">
+                {task.hrRemarks}
+              </div>
+            </div>
+          )}
         </>
       ) : (
         /* ========================================= */
-        /* PENDING VIEW (Buttons & Active Input)     */
+        /* PENDING VIEW (Incomplete)                 */
         /* ========================================= */
         <div className="col-span-2 space-y-4 pt-2">
           <div>

@@ -106,7 +106,12 @@ export default function ApprovalsPage() {
                 key={task.id}
                 task={task}
                 isHr={isHr} // 👈 Pass role to the row so UI changes
-                onProcess={(payload) => editTaskMutation.mutateAsync(payload)}
+                onProcess={(payload) =>
+                  editTaskMutation.mutateAsync({
+                    ...payload,
+                    editedBy: user.id,
+                  })
+                }
                 isSubmitting={editTaskMutation.isPending}
               />
             ))}
@@ -127,12 +132,13 @@ export default function ApprovalsPage() {
   );
 }
 
-// --- RAPID APPROVAL COMPONENT ---
 function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
   const [expanded, setExpanded] = useState(false);
   const [grade, setGrade] = useState(null);
   const [remarks, setRemarks] = useState("");
+  const [hrRemarks, setHrRemarks] = useState(""); // 👈 New state for HR
 
+  // --- HEAD HANDLERS ---
   const handleHeadApprove = () => {
     onProcess({
       id: task.id,
@@ -152,37 +158,54 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
     });
   };
 
+  // --- HR HANDLERS ---
   const handleHrVerify = () => {
     onProcess({
       id: task.id,
       hrVerified: true,
       hrVerifiedAt: new Date().toISOString(),
+      hrRemarks: hrRemarks, // Optional: HR can leave a note even when approving
+    });
+  };
+
+  const handleHrReject = () => {
+    onProcess({
+      id: task.id,
+      status: "REJECTED", // Hard reject (Kills the task)
+      hrRemarks: hrRemarks, // Saves HR's specific reason
+      // Notice we don't wipe the Head's grade/remarks. We keep them for the paper trail!
     });
   };
 
   return (
     <div
-      className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${expanded ? "border-primary shadow-lg" : "border-gray-4 hover:border-gray-6"}`}
+      className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${
+        expanded
+          ? "border-gray-8 shadow-lg"
+          : "border-gray-4 hover:border-gray-6"
+      }`}
     >
       {/* COMPACT ROW */}
       <div
-        className="p-4 flex items-center justify-between cursor-pointer"
+        className="p-3 md:p-4 flex items-center justify-between cursor-pointer gap-2"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex items-center gap-4 flex-1">
-          <div className="w-10 h-10 rounded-full bg-gray-3 flex items-center justify-center font-bold text-gray-12 shrink-0 border border-gray-4">
+        <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-3 flex items-center justify-center font-bold text-gray-12 shrink-0 border border-gray-4 text-xs md:text-base">
             {task.loggedByName
               ? task.loggedByName.charAt(0).toUpperCase()
               : "?"}
           </div>
-          <div>
-            <h3 className="font-bold text-gray-12 text-sm">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-gray-12 text-xs md:text-sm truncate">
               {task.loggedByName}
             </h3>
-            <p className="text-[10px] text-gray-9 font-bold uppercase tracking-widest">
+            <p className="text-[9px] md:text-[10px] text-gray-9 font-bold uppercase tracking-widest truncate">
               {task.categoryId}
             </p>
           </div>
+
+          {/* Description Hidden on mobile, visible on tablet/desktop */}
           <div className="hidden md:block ml-4 pl-4 border-l border-gray-4">
             <p className="text-sm font-semibold text-gray-11 line-clamp-1 max-w-md">
               {task.taskDescription}
@@ -190,17 +213,24 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="text-xs font-bold text-gray-9">
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+          <span className="text-[10px] md:text-xs font-bold text-gray-9">
             {formatDate(task.createdAt)}
           </span>
+
           {task.priority === "HIGH" && (
-            <span className="px-2 py-1 rounded bg-red-a3 text-red-11 text-[10px] font-black uppercase tracking-widest border border-red-a5">
-              High Priority
-            </span>
+            <>
+              {/* Desktop Badge */}
+              <span className="hidden sm:block px-2 py-1 rounded bg-red-a3 text-red-11 text-[10px] font-black uppercase tracking-widest border border-red-a5">
+                High Priority
+              </span>
+              {/* Mobile Indicator */}
+              <div className="sm:hidden w-2 h-2 rounded-full bg-red-9 shadow-[0_0_8px_rgba(229,72,77,0.5)]" />
+            </>
           )}
+
           <button className="text-gray-8 hover:text-gray-12 transition-colors p-1">
-            {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
         </div>
       </div>
@@ -210,11 +240,11 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
         <div className="p-4 border-t border-gray-4 bg-gray-2/50 rounded-b-xl animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Col: Full Description */}
-            <div>
+            <div className="flex flex-col">
               <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-2 block">
                 Task Description
               </label>
-              <div className="bg-gray-1 p-4 rounded-lg border border-gray-4 text-sm text-gray-12 whitespace-pre-wrap leading-relaxed shadow-inner">
+              <div className="bg-gray-1 p-3 md:p-4 rounded-lg border border-gray-4 text-xs md:text-sm text-gray-12 whitespace-pre-wrap leading-relaxed shadow-inner">
                 {task.taskDescription}
               </div>
             </div>
@@ -222,52 +252,77 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
             {/* Right Col: Dynamic UI based on Role */}
             <div className="space-y-4">
               {isHr ? (
-                /* --- HR UI: See the grade, verify the task --- */
+                /* --- HR UI --- */
                 <>
-                  <div className="flex gap-4">
-                    <div className="flex-1 bg-gray-1 border border-gray-4 p-4 rounded-xl">
-                      <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1">
-                        Final Grade
-                      </p>
-                      <p className="text-lg font-black text-primary">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1">
+                      Manager's Evaluation
+                    </p>
+                    <div className="flex items-center justify-between bg-gray-1 border border-gray-4 px-4 py-3 rounded-xl">
+                      <span className="text-xs font-bold text-gray-10">
+                        Grade:
+                      </span>
+                      <span className="text-lg font-black text-primary">
                         {task.grade} / 5
-                      </p>
+                      </span>
                     </div>
                   </div>
+
                   {task.remarks && (
-                    <div className="bg-gray-1 border border-gray-4 p-4 rounded-xl">
+                    <div className="bg-gray-1 border border-gray-4 p-3 rounded-xl">
                       <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1">
                         Manager Remarks
                       </p>
-                      <p className="text-sm text-gray-12">{task.remarks}</p>
+                      <p className="text-xs text-gray-12">{task.remarks}</p>
                     </div>
                   )}
-                  <div className="flex justify-end pt-2">
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1 block">
+                      HR Verification Notes
+                    </label>
+                    <input
+                      type="text"
+                      value={hrRemarks}
+                      onChange={(e) => setHrRemarks(e.target.value)}
+                      placeholder="Audit notes..."
+                      className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                    <button
+                      onClick={handleHrReject}
+                      disabled={!hrRemarks || isSubmitting}
+                      className="order-2 sm:order-1 px-4 py-2.5 rounded-lg font-bold text-sm bg-gray-3 border border-gray-4 text-gray-11 hover:text-red-11 transition-colors disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
                     <button
                       onClick={handleHrVerify}
                       disabled={isSubmitting}
-                      className="px-6 py-2.5 rounded-lg font-bold text-sm bg-blue-600 text-white shadow-lg shadow-blue-900/20 hover:bg-blue-500 transition-colors active:scale-95 disabled:opacity-50 w-full md:w-auto"
+                      className="order-1 sm:order-2 px-6 py-2.5 rounded-lg font-bold text-sm bg-green-600 text-white shadow-lg shadow-green-900/20 hover:bg-green-700 transition-colors active:scale-95 disabled:opacity-50"
                     >
-                      Sign & Verify Task
+                      Verify & Sign
                     </button>
                   </div>
                 </>
               ) : (
-                /* --- HEAD UI: Assign Grade & Remarks --- */
+                /* --- HEAD UI --- */
                 <>
                   <div>
                     <label className="text-[10px] font-bold text-primary uppercase tracking-wider mb-2 block">
                       Assign Grade (1-5)
                     </label>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 md:gap-2">
                       {[1, 2, 3, 4, 5].map((num) => (
                         <button
                           key={num}
                           onClick={() => setGrade(num)}
-                          className={`flex-1 py-2 rounded font-bold transition-all border ${
+                          className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
                             grade === num
-                              ? "bg-primary text-gray-12 border-primary shadow-md shadow-red-a3 scale-[1.05]"
-                              : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6 hover:bg-gray-3"
+                              ? "bg-primary text-white border-primary shadow-md shadow-red-a3 scale-[1.05]"
+                              : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6"
                           }`}
                         >
                           {num}
@@ -278,32 +333,29 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
 
                   <div>
                     <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1 block">
-                      Remarks{" "}
-                      <span className="text-gray-7 normal-case font-normal">
-                        (Required for Rejection)
-                      </span>
+                      Evaluation Remarks
                     </label>
                     <input
                       type="text"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
-                      placeholder="Add context to your evaluation..."
-                      className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2 outline-none focus:border-red-9 transition-colors text-sm"
+                      placeholder="Add feedback..."
+                      className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2.5 outline-none focus:border-primary transition-colors text-sm"
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-2">
+                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
                     <button
                       onClick={handleHeadReject}
                       disabled={!remarks || isSubmitting}
-                      className="px-4 py-2 rounded-lg font-bold text-sm bg-gray-3 border border-gray-4 text-gray-11 hover:text-red-11 hover:border-red-a5 transition-colors disabled:opacity-50"
+                      className="order-2 sm:order-1 px-4 py-2.5 rounded-lg font-bold text-sm bg-gray-3 border border-gray-4 text-gray-11 hover:text-red-11 transition-colors disabled:opacity-50"
                     >
                       Reject
                     </button>
                     <button
                       onClick={handleHeadApprove}
                       disabled={grade === null || isSubmitting}
-                      className="px-6 py-2 rounded-lg font-bold text-sm bg-primary text-gray-12 shadow-lg shadow-red-a3 hover:bg-primary-hover transition-colors active:scale-95 disabled:opacity-50"
+                      className="order-1 sm:order-2 px-6 py-2.5 rounded-lg font-bold text-sm bg-green-600 text-white shadow-lg shadow-green-900/20 hover:bg-green-700 transition-colors active:scale-95 disabled:opacity-50"
                     >
                       Approve Task
                     </button>

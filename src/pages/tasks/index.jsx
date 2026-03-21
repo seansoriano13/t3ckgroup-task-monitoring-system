@@ -59,6 +59,14 @@ export default function TasksPage() {
   // 3. UI State (Pop-ups)
   const [viewTask, setViewTask] = useState(null);
 
+  const deleteTaskMutation = useMutation({
+    mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      toast.success("Task deleted.");
+    },
+  });
+
   // 🔥 FETCH DROPDOWN DATA (Topology)
   // We fetch this directly so the dropdowns populate even if no tasks exist yet
   useEffect(() => {
@@ -138,6 +146,7 @@ export default function TasksPage() {
   const sortedAndFilteredTasks = useMemo(() => {
     // 1. First, Filter
     const filtered = rawTasks.filter((task) => {
+      if (task.status === "DELETED") return false;
       const desc = task.taskDescription || "";
       const cat = task.categoryId || "";
 
@@ -183,9 +192,17 @@ export default function TasksPage() {
 
     // 2. Second, Sort (Strict Hierarchy)
     return filtered.sort((a, b) => {
-      // Rule A: Put COMPLETE tasks at the very bottom
-      if (a.status === "COMPLETE" && b.status !== "COMPLETE") return 1;
-      if (a.status !== "COMPLETE" && b.status === "COMPLETE") return -1;
+      // Rule A: Status Hierarchy (Active -> Complete -> Rejected)
+      const getStatusRank = (status) => {
+        if (status === "REJECTED") return 3; // Dead last
+        if (status === "COMPLETE") return 2; // Middle-bottom
+        return 1; // Top (INCOMPLETE, etc.)
+      };
+
+      const rankA = getStatusRank(a.status);
+      const rankB = getStatusRank(b.status);
+
+      if (rankA !== rankB) return rankA - rankB;
 
       // Rule B: Sort by Priority (High > Medium > Low)
       const priorityWeight = { HIGH: 3, MEDIUM: 2, LOW: 1 };
@@ -252,13 +269,13 @@ export default function TasksPage() {
     );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-12">
-          {isManagement ? "Team Task Directory" : "Task Directory"}
+    <div className="max-w-6xl mx-auto space-y-4 md:space-y-6 pb-20 md:pb-10">
+      {/* HEADER - Smaller text on mobile */}
+      <div className="px-1 md:px-0">
+        <h1 className="text-2xl md:text-3xl font-black text-gray-12 tracking-tight">
+          {isManagement ? "Team Directory" : "My Tasks"}
         </h1>
-        <p className="text-gray-9 mt-1">
+        <p className="text-sm md:text-base text-gray-9 mt-1">
           {isManagement
             ? "Monitor and filter employee task logs."
             : "Manage and filter your logged tasks."}
@@ -266,87 +283,89 @@ export default function TasksPage() {
       </div>
 
       {/* FILTER CONTROL BARS */}
-      <div className="grid gap-4">
-        {/* Row 1: The Standard Filters + Date Picker */}
-        <div className="bg-gray-2 border border-gray-4 p-4 rounded-xl flex flex-col xl:flex-row gap-4 shadow-sm relative z-20">
-          <div className="relative flex-1 min-w-[200px]">
+      <div className="grid gap-3 md:gap-4">
+        {/* Row 1: Search & Base Filters */}
+        <div className="bg-gray-2 border border-gray-4 p-3 md:p-4 rounded-xl flex flex-col lg:flex-row gap-3 md:gap-4 shadow-sm relative z-20">
+          {/* Search - Grows to fill space */}
+          <div className="relative flex-1">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
               size={18}
             />
             <input
               type="text"
-              placeholder="Search description or code..."
+              placeholder="Search tasks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-red-9 transition-colors placeholder:text-gray-7"
+              className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-primary transition-colors placeholder:text-gray-7 text-sm md:text-base"
             />
           </div>
 
-          {/* DATE PICKER */}
-          <div className="relative z-50">
-            <div className="flex items-center bg-gray-1 border border-gray-4 rounded-lg px-3 py-2.5 focus-within:border-red-9 transition-colors h-[46px]">
-              <CalendarIcon size={16} className="text-gray-8 mr-2 shrink-0" />
-              <DatePicker
-                selectsRange={true}
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(update) => setDateRange(update)}
-                isClearable={true}
-                placeholderText="Filter Date Range..."
-                className="bg-transparent outline-none text-gray-12 w-[190px] text-sm cursor-pointer"
-              />
+          {/* Date & Selects Group */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* DATE PICKER - Full width on mobile */}
+            <div className="relative flex-1 sm:flex-initial">
+              <div className="flex items-center bg-gray-1 border border-gray-4 rounded-lg px-3 py-2.5 h-[46px]">
+                <CalendarIcon size={16} className="text-gray-8 mr-2 shrink-0" />
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => setDateRange(update)}
+                  isClearable={true}
+                  placeholderText="Date Range"
+                  className="bg-transparent outline-none text-gray-12 w-full sm:w-[150px] text-sm cursor-pointer"
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex gap-4">
-            <div className="relative">
-              <Filter
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-                size={16}
-              />
+            {/* Status & Priority - Side by side on small screens */}
+            <div className="flex gap-2 flex-1 sm:flex-initial">
+              <div className="relative flex-1">
+                <Filter
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+                  size={14}
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-4 py-2.5 outline-none text-xs md:text-sm h-[46px]"
+                >
+                  <option value="ALL">Status</option>
+                  <option value="COMPLETE">Complete</option>
+                  <option value="INCOMPLETE">Incomplete</option>
+                </select>
+              </div>
               <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-9 pr-8 py-2.5 outline-none focus:border-red-9 transition-colors cursor-pointer text-sm h-[46px]"
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="flex-1 appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2.5 outline-none text-xs md:text-sm h-[46px]"
               >
-                <option value="ALL">All Statuses</option>
-                <option value="COMPLETE">Complete</option>
-                <option value="INCOMPLETE">Incomplete</option>
-                <option value="REJECTED">Rejected</option>
+                <option value="ALL">Priority</option>
+                <option value="HIGH">High</option>
+                <option value="LOW">Low</option>
               </select>
             </div>
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-4 py-2.5 outline-none focus:border-red-9 transition-colors cursor-pointer text-sm h-[46px]"
-            >
-              <option value="ALL">All Priorities</option>
-              <option value="HIGH">High Priority</option>
-              <option value="MEDIUM">Medium Priority</option>
-              <option value="LOW">Low Priority</option>
-            </select>
           </div>
         </div>
 
-        {/* Row 2: Management Filters (Only visible to HR & HEAD) */}
+        {/* Row 2: Management Filters - 1 Column on Mobile, 3 on Tablet */}
         {isManagement && (
-          <div className="bg-gray-1 border border-primary/30 p-4 rounded-xl shadow-inner flex flex-col md:flex-row gap-4 relative z-10">
-            <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-wider mb-1">
-                <Building2 size={12} /> Department
+          <div className="bg-gray-1 border border-primary/20 p-4 rounded-xl shadow-inner grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
+            <div className="space-y-1">
+              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
+                <Building2 size={12} /> Dept
               </label>
               <select
                 value={deptFilter}
                 onChange={(e) => {
                   setDeptFilter(e.target.value);
-                  setSubDeptFilter("ALL"); // Cascading reset
-                  setEmployeeFilter("ALL");
+                  setSubDeptFilter("ALL");
                 }}
-                disabled={!isHr} // 👈 HEAD cannot change this!
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 outline-none focus:border-red-9 transition-colors text-sm disabled:opacity-50"
+                disabled={!isHr}
+                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50"
               >
-                <option value="ALL">All Departments</option>
+                <option value="ALL">All Depts</option>
                 {uniqueDepts.map((d) => (
                   <option key={d} value={d}>
                     {d}
@@ -355,20 +374,17 @@ export default function TasksPage() {
               </select>
             </div>
 
-            <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-wider mb-1">
-                <Building2 size={12} /> Sub-Department
+            <div className="space-y-1">
+              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
+                <Building2 size={12} /> Sub-Dept
               </label>
               <select
                 value={subDeptFilter}
-                onChange={(e) => {
-                  setSubDeptFilter(e.target.value);
-                  setEmployeeFilter("ALL");
-                }}
-                disabled={!isHr || deptFilter === "ALL"} // 👈 HEAD cannot change this!
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 outline-none focus:border-red-9 transition-colors text-sm disabled:opacity-50"
+                onChange={(e) => setSubDeptFilter(e.target.value)}
+                disabled={!isHr || deptFilter === "ALL"}
+                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50"
               >
-                <option value="ALL">All Sub-Departments</option>
+                <option value="ALL">All Sub-Depts</option>
                 {uniqueSubDepts.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -377,16 +393,16 @@ export default function TasksPage() {
               </select>
             </div>
 
-            <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
-                <Users size={12} /> Employee
+            <div className="space-y-1 sm:col-span-2 md:col-span-1">
+              <label className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-widest">
+                <Users size={12} /> Team Member
               </label>
               <select
                 value={employeeFilter}
                 onChange={(e) => setEmployeeFilter(e.target.value)}
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 outline-none focus:border-red-9 transition-colors font-semibold text-sm"
+                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 font-semibold text-sm"
               >
-                <option value="ALL">All Team Members</option>
+                <option value="ALL">Everyone</option>
                 {uniqueEmployees.map((emp) => (
                   <option key={emp.id} value={emp.id}>
                     {emp.name}
@@ -398,10 +414,10 @@ export default function TasksPage() {
         )}
       </div>
 
-      {/* THE GRID */}
+      {/* THE GRID - 1 col -> 2 col -> 3 col */}
       {paginatedTasks.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-4 relative z-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 mt-2 md:mt-4">
             {paginatedTasks.map((task) => (
               <TaskCard
                 key={task.id}
@@ -411,47 +427,54 @@ export default function TasksPage() {
             ))}
           </div>
 
-          {/* PAGINATION CONTROLS */}
+          {/* PAGINATION - Stacked buttons on tiny screens */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-10 pb-10">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((prev) => prev - 1)}
-                className="px-4 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 hover:bg-gray-4 transition-colors"
-              >
-                Previous
-              </button>
-              <span className="text-gray-11 font-bold text-sm uppercase tracking-widest">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8 md:mt-10 mb-10">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
+                >
+                  Prev
+                </button>
+                <span className="sm:hidden text-gray-11 font-bold text-xs uppercase">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
+                >
+                  Next
+                </button>
+              </div>
+              <span className="hidden sm:block text-gray-11 font-bold text-sm uppercase tracking-widest">
                 Page {currentPage} of {totalPages}
               </span>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-                className="px-4 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 hover:bg-gray-4 transition-colors"
-              >
-                Next
-              </button>
             </div>
           )}
         </>
       ) : (
-        <div className="text-center py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl mt-4">
-          <p className="text-gray-10 font-bold text-lg">No tasks found.</p>
-          <p className="text-gray-8 text-sm mt-1">
+        /* Empty State */
+        <div className="text-center py-12 md:py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl mt-4 mx-1">
+          <p className="text-gray-10 font-bold text-base md:text-lg">
+            No tasks found.
+          </p>
+          <p className="text-gray-8 text-xs md:text-sm mt-1 px-4">
             Try adjusting your filters or search term.
           </p>
         </div>
       )}
 
-      {/* THE POP-UPS */}
       <TaskDetails
         isOpen={!!viewTask}
         onClose={() => setViewTask(null)}
         task={viewTask}
-        // 👇 Change to mutateAsync so the modal can 'await' the loading state!
         onUpdateTask={(updatedTask) =>
           editTaskMutation.mutateAsync(updatedTask)
         }
+        onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
       />
     </div>
   );

@@ -9,7 +9,13 @@ import { formatDate } from "../utils/formatDate";
 import { PencilLine } from "lucide-react";
 import TaskFooter from "./TaskFooter";
 
-export default function TaskDetails({ isOpen, onClose, task, onUpdateTask }) {
+export default function TaskDetails({
+  isOpen,
+  onClose,
+  task,
+  onUpdateTask,
+  onDeleteTask,
+}) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,7 +140,28 @@ export default function TaskDetails({ isOpen, onClose, task, onUpdateTask }) {
   const handleSaveEdit = () => {
     const { department, subDepartment, ...dbPayload } = formData;
     dbPayload.grade = dbPayload.grade ? Number(dbPayload.grade) : 0;
+
+    if (dbPayload.status === "INCOMPLETE" || dbPayload.status === "REJECTED") {
+      dbPayload.hrVerified = false;
+      dbPayload.hrRemarks = ""; // Wipe any old rejection notes too
+    }
+
     executeUpdate({ id: task.id, ...dbPayload, editedBy: user.id });
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this task? It will be removed from the active queues.",
+    );
+    if (confirmed) {
+      setIsSubmitting(true);
+      try {
+        await onDeleteTask({ id: task.id, userId: user.id });
+        onClose();
+      } catch (error) {
+        setIsSubmitting(false);
+      }
+    }
   };
 
   return (
@@ -227,6 +254,17 @@ export default function TaskDetails({ isOpen, onClose, task, onUpdateTask }) {
             onClose,
             onSave: handleSaveEdit,
             onToggleEdit: handleToggleEdit,
+            onDelete: handleDelete, // 👈 New Delete Action
+
+            // 👈 New Undo Verify Action
+            onUndoVerify: () =>
+              executeUpdate({
+                id: task.id,
+                hrVerified: false,
+                hrRemarks: "", // Wipes the remarks because it's their fault!
+                editedBy: user.id, // Leaves an audit trail of the undo
+              }),
+
             onMarkComplete: () =>
               executeUpdate({
                 id: task.id,
@@ -244,7 +282,7 @@ export default function TaskDetails({ isOpen, onClose, task, onUpdateTask }) {
                 editedBy: user.id,
               }),
           }}
-          permissions={{ canEdit, isStrictlyHead, isHr }}
+          permissions={{ canEdit, isStrictlyHead, isHr, isManagement }} // 👈 Pass isManagement down
           state={{
             isEditing,
             isSubmitting,
