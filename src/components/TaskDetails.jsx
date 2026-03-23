@@ -175,7 +175,7 @@ export default function TaskDetails({
       />
 
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-[500px] bg-gray-2 border-l border-gray-4 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-[600px] bg-gray-2 border-l border-gray-4 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <TaskHeader
           isEditing={isEditing}
@@ -257,16 +257,17 @@ export default function TaskDetails({
             onClose,
             onSave: handleSaveEdit,
             onToggleEdit: handleToggleEdit,
-            onDelete: handleDelete, // 👈 New Delete Action
+            onDelete: handleDelete,
 
-            // 👈 New Undo Verify Action
-            onUndoVerify: () =>
+            onHeadReject: () =>
               executeUpdate({
                 id: task.id,
                 status: "NOT APPROVED", // Global text update applied!
                 endAt: new Date().toISOString(),
-                hrRemarks: "", // Wipes the remarks because it's their fault!
-                editedBy: user.id, // Leaves an audit trail of the undo
+                grade: approvalGrade || 1, // Fallback grade if they didn't click one
+                remarks: approvalRemarks,
+                evaluatedBy: user.id, // 🔥 Accountability Hook
+                editedBy: user.id, // (Optional: you can keep this if you still want the generic audit trail to fire too)
               }),
 
             onMarkComplete: () =>
@@ -274,10 +275,19 @@ export default function TaskDetails({
                 id: task.id,
                 status: "COMPLETE",
                 endAt: new Date().toISOString(),
-                editedBy: user.id,
                 grade: approvalGrade,
                 remarks: approvalRemarks,
+                evaluatedBy: user.id, // 🔥 Accountability Hook
               }),
+
+            onUndoVerify: () =>
+              executeUpdate({
+                id: task.id,
+                hrVerified: false,
+                hrRemarks: "",
+                editedBy: user.id,
+              }),
+
             onHrVerify: () =>
               executeUpdate({
                 id: task.id,
@@ -286,7 +296,7 @@ export default function TaskDetails({
                 editedBy: user.id,
               }),
           }}
-          permissions={{ canEdit, isStrictlyHead, isHr, isManagement }} // 👈 Pass isManagement down
+          permissions={{ canEdit, isStrictlyHead, isHr, isManagement }}
           state={{
             isEditing,
             isSubmitting,
@@ -297,6 +307,7 @@ export default function TaskDetails({
               !(isManagement && !formData.loggedById) &&
               formData.categoryId,
             canApprove: approvalGrade !== null,
+            approvalRemarks: approvalRemarks,
           }}
         />
       </div>

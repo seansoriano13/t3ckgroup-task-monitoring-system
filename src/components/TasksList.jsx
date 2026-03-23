@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { Activity } from "lucide-react";
 import { Clock } from "lucide-react";
 import { TrendingUp } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 function InsightBar({ label, count, total, color }) {
   const percentage = total === 0 ? 0 : Math.round((count / total) * 100);
@@ -219,19 +220,45 @@ export default function TasksList() {
                           {task.taskDescription}
                         </p>
                       </div>
-                      <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                      <div className="text-right shrink-0 flex flex-col items-end justify-between h-full gap-2">
+                        {/* Upper Right: Date */}
                         <span className="text-[10px] font-bold text-gray-8 uppercase tracking-wider">
                           {new Date(task.createdAt).toLocaleDateString(
                             undefined,
                             { month: "short", day: "numeric" },
                           )}
                         </span>
-                        {task.priority === "HIGH" && (
+
+                        {/* Lower Right: Status Indicators */}
+                        <div className="flex items-center gap-1.5 mt-auto">
+                          {/* HR Verified Icon (Only shows if task is Complete AND Verified) */}
+                          {task.status === "COMPLETE" && task.hrVerified && (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">
+                              <CheckCircle2 size={10} />
+                              <span>Verified</span>
+                            </div>
+                          )}
+
+                          {/* Primary Status Dot */}
                           <span
-                            className="w-2 h-2 rounded-full bg-red-500 animate-pulse"
-                            title="High Priority"
+                            className={`w-2.5 h-2.5 rounded-full shadow-sm ${
+                              task.status === "COMPLETE"
+                                ? "bg-green-500"
+                                : task.status === "NOT APPROVED"
+                                  ? "bg-red-500"
+                                  : "bg-amber-500"
+                            }`}
+                            title={`Status: ${task.status}`}
                           />
-                        )}
+
+                          {/* High Priority Pulse */}
+                          {task.priority === "HIGH" && (
+                            <span
+                              className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse ml-1 shadow-[0_0_8px_rgba(220,38,38,0.6)]"
+                              title="High Priority"
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))
