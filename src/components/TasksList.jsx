@@ -61,10 +61,20 @@ export default function TasksList() {
     enabled: !!user?.id,
   });
 
-  // 🔥 THE SEPARATION ENGINE
   const { myTasks, teamTasks } = useMemo(() => {
-    // 🔥 NEW: Instantly scrub all deleted tasks from the pool first!
-    const activeTasks = rawTasks.filter((t) => t.status !== "DELETED");
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // 🔥 NEW: Instantly scrub all deleted tasks and filter by THIS MONTH
+    const activeTasks = rawTasks.filter((t) => {
+      if (t.status === "DELETED") return false;
+      const taskDate = new Date(t.createdAt);
+      return (
+        taskDate.getMonth() === currentMonth &&
+        taskDate.getFullYear() === currentYear
+      );
+    });
 
     // SECTION A: My Private Queue (using activeTasks)
     const my = activeTasks.filter((t) => t.loggedById === user?.id);
@@ -97,8 +107,8 @@ export default function TasksList() {
     }
 
     return {
-      myTasks: my.slice(0, 3),
-      teamTasks: team.slice(0, 6),
+      myTasks: my,
+      teamTasks: team,
     };
   }, [rawTasks, user?.id, isHr, isHead, userSubDept]);
 
@@ -150,7 +160,7 @@ export default function TasksList() {
 
           {myTasks.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myTasks.map((task) => (
+              {myTasks.slice(0, 3).map((task) => (
                 <TaskCard
                   key={task.id}
                   task={task}

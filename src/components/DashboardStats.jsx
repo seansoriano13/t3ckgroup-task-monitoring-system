@@ -1,6 +1,14 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Clock, Activity, AlertCircle } from "lucide-react";
+import { 
+  CheckCircle2, 
+  Clock, 
+  Activity, 
+  AlertCircle, 
+  ShieldAlert, 
+  XCircle, 
+  Database 
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
 
@@ -39,40 +47,58 @@ export default function DashboardStats() {
 
     // 2. Calculate Personal Stats
     const myTasks = thisMonthTasks.filter((t) => t.loggedById === user?.id);
-    const myCompleted = myTasks.filter((t) => t.status === "COMPLETE").length;
-    const myPending = myTasks.filter(
-      (t) => t.status !== "COMPLETE" && t.status !== "NOT APPROVED",
-    ).length;
+    const myPending = myTasks.filter((t) => t.status === "INCOMPLETE" && !t.endAt).length;
+    const myPendingApproval = myTasks.filter((t) => t.status === "INCOMPLETE" && !!t.endAt).length;
+    const myPendingHr = myTasks.filter((t) => t.status === "COMPLETE" && !t.hrVerified).length;
+    // For My Completed, it's tasks that are FULLY completed and verified
+    const myCompleted = myTasks.filter((t) => t.status === "COMPLETE" && t.hrVerified).length;
 
     // 3. Calculate Management Stats (Only if Head or HR)
     let teamPendingApprovals = 0;
     let teamCompleted = 0;
+    let teamPendingHr = 0;
+    let teamRejected = 0;
 
-    if (isManagement) {
+    let hrPendingApprovals = 0;
+    let hrPendingVerification = 0;
+    let hrRejected = 0;
+    let hrAllTasks = 0;
+
+    if (isHr) {
+      hrPendingApprovals = thisMonthTasks.filter((t) => t.status === "INCOMPLETE").length;
+      hrPendingVerification = thisMonthTasks.filter((t) => t.status === "COMPLETE" && !t.hrVerified).length;
+      hrRejected = thisMonthTasks.filter((t) => t.status === "NOT APPROVED").length;
+      hrAllTasks = thisMonthTasks.length;
+    } else if (isHead) {
       let teamTasks = thisMonthTasks.filter((t) => t.loggedById !== user?.id);
 
-      if (isHead && !isHr) {
-        // Head only tracks their sub-department
-        teamTasks = teamTasks.filter(
-          (t) =>
-            (t.sub_department ||
-              t.creator?.sub_department ||
-              t.employees?.sub_department) === userSubDept,
-        );
-      }
+      // Head only tracks their sub-department
+      teamTasks = teamTasks.filter(
+        (t) =>
+          (t.sub_department ||
+            t.creator?.sub_department ||
+            t.employees?.sub_department) === userSubDept,
+      );
 
-      teamPendingApprovals = teamTasks.filter(
-        (t) => t.status === "INCOMPLETE",
-      ).length;
+      teamPendingApprovals = teamTasks.filter((t) => t.status === "INCOMPLETE").length;
       teamCompleted = teamTasks.filter((t) => t.status === "COMPLETE").length;
+      teamRejected = teamTasks.filter((t) => t.status === "NOT APPROVED").length;
+      teamPendingHr = teamTasks.filter((t) => t.status === "COMPLETE" && !t.hrVerified).length;
     }
 
     return {
-      myCompleted,
       myPending,
+      myPendingApproval,
+      myPendingHr,
+      myCompleted,
       teamPendingApprovals,
       teamCompleted,
-      totalMine: myTasks.length,
+      teamRejected,
+      teamPendingHr,
+      hrPendingApprovals,
+      hrPendingVerification,
+      hrRejected,
+      hrAllTasks,
     };
   }, [rawTasks, user?.id, isManagement, isHead, isHr, userSubDept]);
 
@@ -84,58 +110,107 @@ export default function DashboardStats() {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* CARD 1: My Completed  */}
+      {/* --- EMPLOYEE VIEW --- */}
       {!isManagement && (
-        <StatCard
-          title="My Completed"
-          value={stats.myCompleted}
-          subtitle="This Month"
-          icon={<CheckCircle2 size={20} className="text-green-500" />}
-          borderColor="border-t-green-500"
-        />
-      )}
-
-      {/* CARD 2: My Pending  */}
-      {!isManagement && (
-        <StatCard
-          title="My Pending"
-          value={stats.myPending}
-          subtitle="In Queue"
-          icon={<Clock size={20} className="text-yellow-500" />}
-          borderColor="border-t-yellow-500"
-        />
-      )}
-
-      {/* CARD 3 & 4: Management vs Standard Employee View */}
-      {isManagement ? (
         <>
           <StatCard
-            title="Team Pending Approval"
+            title="My Pending"
+            value={stats.myPending}
+            subtitle="Drafting"
+            icon={<Clock size={20} className="text-gray-9" />}
+            borderColor="border-t-gray-500"
+          />
+          <StatCard
+            title="Pending Approval"
+            value={stats.myPendingApproval}
+            subtitle="Head Review"
+            icon={<Clock size={20} className="text-yellow-500" />}
+            borderColor="border-t-yellow-500"
+          />
+          <StatCard
+            title="Pending HR"
+            value={stats.myPendingHr}
+            subtitle="HR Verification"
+            icon={<ShieldAlert size={20} className="text-amber-500" />}
+            borderColor="border-t-amber-500"
+          />
+          <StatCard
+            title="My Completed"
+            value={stats.myCompleted}
+            subtitle="Verified this Month"
+            icon={<CheckCircle2 size={20} className="text-green-500" />}
+            borderColor="border-t-green-500"
+          />
+        </>
+      )}
+
+      {/* --- HEAD VIEW --- */}
+      {isHead && !isHr && (
+        <>
+          <StatCard
+            title="Pending Approval"
             value={stats.teamPendingApprovals}
             subtitle="Requires Review"
             icon={<AlertCircle size={20} className="text-primary" />}
             borderColor="border-t-primary"
-            highlight={stats.teamPendingApprovals > 0} // Glows red if tasks need action!
+            highlight={stats.teamPendingApprovals > 0}
           />
           <StatCard
-            title={isHr ? "Org Output" : "Team Output"}
+            title="Rejected Tasks"
+            value={stats.teamRejected}
+            subtitle="Needs Fixing"
+            icon={<XCircle size={20} className="text-red-500" />}
+            borderColor="border-t-red-500"
+          />
+          <StatCard
+            title="Pending HR"
+            value={stats.teamPendingHr}
+            subtitle="Waiting HR Review"
+            icon={<Clock size={20} className="text-amber-500" />}
+            borderColor="border-t-amber-500"
+          />
+          <StatCard
+            title="Approved Tasks"
             value={stats.teamCompleted}
-            subtitle="Completed this month"
-            icon={<Activity size={20} className="text-blue-500" />}
+            subtitle="Completed this Month"
+            icon={<CheckCircle2 size={20} className="text-blue-500" />}
             borderColor="border-t-blue-500"
           />
         </>
-      ) : (
+      )}
+
+      {/* --- HR VIEW --- */}
+      {isHr && (
         <>
           <StatCard
-            title="Total Logged"
-            value={stats.totalMine}
-            subtitle="Tasks this month"
-            icon={<Activity size={20} className="text-primary" />}
-            borderColor="border-t-primary"
+            title="Pending Approval"
+            value={stats.hrPendingApprovals}
+            subtitle="Head Review"
+            icon={<Clock size={20} className="text-yellow-500" />}
+            borderColor="border-t-yellow-500"
           />
-          <div className="hidden lg:block bg-gray-2/50 rounded-xl border border-gray-4 border-dashed" />
-          {/* Empty spacer for grid alignment on desktop for normal employees */}
+          <StatCard
+            title="Pending Verification"
+            value={stats.hrPendingVerification}
+            subtitle="HR Action Required"
+            icon={<ShieldAlert size={20} className="text-primary" />}
+            borderColor="border-t-primary"
+            highlight={stats.hrPendingVerification > 0}
+          />
+          <StatCard
+            title="Rejected Tasks"
+            value={stats.hrRejected}
+            subtitle="Needs Fixing"
+            icon={<XCircle size={20} className="text-red-500" />}
+            borderColor="border-t-red-500"
+          />
+          <StatCard
+            title="All Tasks"
+            value={stats.hrAllTasks}
+            subtitle="Org Output this Month"
+            icon={<Database size={20} className="text-blue-500" />}
+            borderColor="border-t-blue-500"
+          />
         </>
       )}
     </div>
