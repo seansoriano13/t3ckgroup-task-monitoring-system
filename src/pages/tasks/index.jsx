@@ -17,6 +17,7 @@ import { supabase } from "../../lib/supabase.js";
 // --- DATE PICKER IMPORTS ---
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useTaskFilters } from "../../hooks/useTaskFilters.jsx";
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -143,90 +144,21 @@ export default function TasksPage() {
   }, [allEmployees, deptFilter, subDeptFilter, isManagement]);
 
   // --- THE MASTER FILTER ENGINE ---
-  const sortedAndFilteredTasks = useMemo(() => {
-    // 1. First, Filter
-    const filtered = rawTasks.filter((task) => {
-      if (task.status === "DELETED") return false;
-      const desc = task.taskDescription || "";
-      const cat = task.categoryId || "";
-
-      const matchesSearch =
-        desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cat.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "ALL" || task.status === statusFilter;
-      const matchesPriority =
-        priorityFilter === "ALL" || task.priority === priorityFilter;
-
-      let matchesDate = true;
-      if (startDate && endDate) {
-        const taskDate = new Date(task.createdAt);
-        const filterStart = new Date(startDate).setHours(0, 0, 0, 0);
-        const filterEnd = new Date(endDate).setHours(23, 59, 59, 999);
-        matchesDate = taskDate >= filterStart && taskDate <= filterEnd;
-      }
-
-      let matchesDept = true,
-        matchesSubDept = true,
-        matchesEmployee = true;
-      if (isManagement) {
-        const taskOwner = allEmployees.find((e) => e.id === task.loggedById);
-        if (deptFilter !== "ALL")
-          matchesDept = taskOwner?.department === deptFilter;
-        if (subDeptFilter !== "ALL")
-          matchesSubDept = taskOwner?.sub_department === subDeptFilter;
-        if (employeeFilter !== "ALL")
-          matchesEmployee = task.loggedById === employeeFilter;
-      }
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPriority &&
-        matchesDate &&
-        matchesDept &&
-        matchesSubDept &&
-        matchesEmployee
-      );
-    });
-
-    // 2. Second, Sort (Strict Hierarchy)
-    return filtered.sort((a, b) => {
-      // Rule A: Status Hierarchy (Active -> Complete -> Not Approved)
-      const getStatusRank = (status) => {
-        if (status === "NOT APPROVED") return 3; // Dead last
-        if (status === "COMPLETE") return 2; // Middle-bottom
-        return 1; // Top (INCOMPLETE, etc.)
-      };
-
-      const rankA = getStatusRank(a.status);
-      const rankB = getStatusRank(b.status);
-
-      if (rankA !== rankB) return rankA - rankB;
-
-      // Rule B: Sort by Priority (High > Medium > Low)
-      const priorityWeight = { HIGH: 3, MEDIUM: 2, LOW: 1 };
-      const weightA = priorityWeight[a.priority] || 0;
-      const weightB = priorityWeight[b.priority] || 0;
-
-      if (weightA !== weightB) return weightB - weightA;
-
-      // Rule C: Sort by Newest Created
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
-  }, [
+  const { filteredTasks: sortedAndFilteredTasks } = useTaskFilters(
     rawTasks,
-    searchTerm,
-    statusFilter,
-    priorityFilter,
-    startDate,
-    endDate,
-    deptFilter,
-    subDeptFilter,
-    employeeFilter,
-    allEmployees,
-    isManagement,
-  ]);
+    {
+      searchTerm,
+      statusFilter,
+      priorityFilter,
+      hrFilter: "ALL", // Default to ALL since standard tasks view doesn't use it yet
+      startDate,
+      endDate,
+      deptFilter,
+      subDeptFilter,
+      employeeFilter,
+    },
+    { isManagement, allEmployees },
+  );
 
   // 3. Third, Paginate
   const totalPages = Math.ceil(sortedAndFilteredTasks.length / itemsPerPage);

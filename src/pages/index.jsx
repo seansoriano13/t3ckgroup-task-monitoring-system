@@ -1,24 +1,22 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardHeader from "../components/DashboardHeader.jsx";
 import TasksList from "../components/TasksList.jsx";
 import TaskDetails from "../components/TaskDetails.jsx";
-
-import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
+import { useState } from "react";
 import toast from "react-hot-toast";
+import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
 
 export default function Dashboard() {
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-    // Optional: wait a few hundred ms before setting selectedTask to null
-    // so the data doesn't disappear before the slide-out animation finishes!
-    setTimeout(() => setSelectedTask(null), 300);
-  };
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  // The state for the drawer
+  const isManagement =
+    user?.is_hr || user?.isHr || user?.is_head || user?.isHead;
+
   const [selectedTask, setSelectedTask] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -27,7 +25,10 @@ export default function Dashboard() {
     setIsDrawerOpen(true);
   };
 
-  const queryClient = useQueryClient();
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    setTimeout(() => setSelectedTask(null), 300);
+  };
 
   const deleteTaskMutation = useMutation({
     mutationFn: (taskId) => taskService.deleteTask(taskId),
@@ -44,6 +45,7 @@ export default function Dashboard() {
           <DashboardHeader />
           <DashboardStats />
           <TasksList />
+          {isManagement && <EmployeePipelineMatrix />}
         </div>
         <TaskDetails
           isOpen={isDrawerOpen}

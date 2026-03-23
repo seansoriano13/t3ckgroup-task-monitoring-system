@@ -277,42 +277,141 @@ export default function TasksList() {
                   <TrendingUp size={14} /> Pipeline Status
                 </h3>
 
-                {/* Simple Tailwind Progress Bars calculated from teamTasks */}
-                <div className="space-y-4">
-                  <InsightBar
-                    label="Pending Review"
-                    count={
-                      teamTasks.filter((t) => t.status === "INCOMPLETE").length
-                    }
-                    total={teamTasks.length}
-                    color="bg-yellow-500"
-                  />
-                  <InsightBar
-                    label="Completed & Graded"
-                    count={
-                      teamTasks.filter((t) => t.status === "COMPLETE").length
-                    }
-                    total={teamTasks.length}
-                    color="bg-green-500"
-                  />
-                  {isHr && (
-                    <InsightBar
-                      label="Verified by HR"
-                      count={teamTasks.filter((t) => t.hrVerified).length}
-                      total={teamTasks.length}
-                      color="bg-blue-500"
-                    />
-                  )}
-                </div>
+                {/* Pre-calculate the buckets so the JSX stays perfectly clean */}
+                {(() => {
+                  const total = teamTasks.length || 1; // Fallback to 1 to prevent division by zero errors
+                  const draftCount = teamTasks.filter(
+                    (t) => t.status === "INCOMPLETE",
+                  ).length;
+                  const rejectedCount = teamTasks.filter(
+                    (t) => t.status === "NOT APPROVED",
+                  ).length;
+                  const pendingHrCount = teamTasks.filter(
+                    (t) => t.status === "COMPLETE" && !t.hrVerified,
+                  ).length;
+                  const verifiedCount = teamTasks.filter(
+                    (t) => t.hrVerified,
+                  ).length;
+
+                  const isEmployee = !isHead && !isHr;
+                  const isStrictlyHead = isHead && !isHr;
+
+                  return (
+                    <div className="space-y-4">
+                      {/* ========================================== */}
+                      {/* 1. EMPLOYEE VIEW                             */}
+                      {/* ========================================== */}
+                      {isEmployee && (
+                        <>
+                          <InsightBar
+                            label="Action Required (Rejected)"
+                            count={rejectedCount}
+                            total={total}
+                            color="bg-red-500"
+                          />
+                          <InsightBar
+                            label="Drafts (Working)"
+                            count={draftCount}
+                            total={total}
+                            color="bg-blue-500"
+                          />
+                          <InsightBar
+                            label="Manager Approved (Pending HR)"
+                            count={pendingHrCount}
+                            total={total}
+                            color="bg-amber-500"
+                          />
+                          <InsightBar
+                            label="HR Verified & Finalized"
+                            count={verifiedCount}
+                            total={total}
+                            color="bg-green-500"
+                          />
+                        </>
+                      )}
+
+                      {/* ========================================== */}
+                      {/* 2. HEAD / MANAGER VIEW                       */}
+                      {/* ========================================== */}
+                      {isStrictlyHead && (
+                        <>
+                          <InsightBar
+                            label="Needs My Review"
+                            count={draftCount}
+                            total={total}
+                            color="bg-yellow-500"
+                          />
+                          <InsightBar
+                            label="Rejected by Me"
+                            count={rejectedCount}
+                            total={total}
+                            color="bg-red-400"
+                          />
+                          <InsightBar
+                            label="Approved (Pending HR)"
+                            count={pendingHrCount}
+                            total={total}
+                            color="bg-blue-500"
+                          />
+                          <InsightBar
+                            label="Verified by HR"
+                            count={verifiedCount}
+                            total={total}
+                            color="bg-green-500"
+                          />
+                        </>
+                      )}
+
+                      {/* ========================================== */}
+                      {/* 3. HR ADMIN VIEW                             */}
+                      {/* ========================================== */}
+                      {isHr && (
+                        <>
+                          <InsightBar
+                            label="Needs My Audit"
+                            count={pendingHrCount}
+                            total={total}
+                            color="bg-amber-500"
+                          />
+                          <InsightBar
+                            label="Employees Working"
+                            count={draftCount}
+                            total={total}
+                            color="bg-gray-500"
+                          />
+                          <InsightBar
+                            label="Manager Rejections"
+                            count={rejectedCount}
+                            total={total}
+                            color="bg-red-500"
+                          />
+                          <InsightBar
+                            label="Verified & Locked"
+                            count={verifiedCount}
+                            total={total}
+                            color="bg-green-500"
+                          />
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
-              {/* Quick Help / Action Box */}
+              {/* Dynamic Action Box based on Role */}
               <div className="mt-auto bg-primary/5 border border-primary/20 rounded-lg p-4">
                 <p className="text-xs text-primary font-bold uppercase tracking-wider mb-1">
-                  Manager Tip
+                  System Tip
                 </p>
-                <p className="text-sm text-gray-11">
-                  Keep your pipeline clear by reviewing tasks daily.
+                <p className="text-sm text-gray-11 font-medium leading-relaxed">
+                  {!isHead &&
+                    !isHr &&
+                    "Tasks marked 'Rejected' require your immediate revision to proceed."}
+                  {isHead &&
+                    !isHr &&
+                    "Keep your pipeline clear by reviewing 'Needs My Review' tasks daily."}
+                  {isHr &&
+                    "Focus on 'Needs My Audit' tasks to finalize the company timesheets."}
                 </p>
               </div>
             </div>
