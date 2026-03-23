@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../services/taskService";
 import { Link } from "react-router";
 import { supabase } from "../lib/supabase.js";
+import { ThemeToggle } from "./ThemeToggle";
 
 function DashboardHeader() {
   const { user } = useAuth();
@@ -108,6 +109,8 @@ function DashboardHeader() {
             </span>
           )}
         </div>
+
+        <ThemeToggle />
       </div>
 
       {/* 2. EXPRESS BANNER: Responsive stacking */}

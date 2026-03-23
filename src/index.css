@@ -170,6 +170,65 @@
   --gray-a12: #f7fafff3;
 }
 
+:root[data-theme="light"],
+.light {
+  /* Red Solid */
+  --red-1: #fff0ee;
+  --red-2: #ffe2dd;
+  --red-3: #ffcbc3;
+  --red-4: #ffaba0;
+  --red-5: #ff8576;
+  --red-6: #f76251;
+  --red-7: #e64a39;
+  --red-8: #d13a2a;
+  --red-9: #dc2626;
+  --red-10: #aa1d1d;
+  --red-11: #781212;
+  --red-12: #3f0909;
+
+  /* Red Alpha */
+  --red-a1: #dc262608;
+  --red-a2: #dc262615;
+  --red-a3: #dc262625;
+  --red-a4: #dc262635;
+  --red-a5: #dc262645;
+  --red-a6: #dc262656;
+  --red-a7: #dc262670;
+  --red-a8: #dc26268a;
+  --red-a9: #dc2626b0;
+  --red-a10: #dc2626cc;
+  --red-a11: #dc2626e6;
+  --red-a12: #dc2626ff;
+
+  /* Gray Solid */
+  --gray-1: #ffffff;
+  --gray-2: #f8fafc;
+  --gray-3: #f1f5f9;
+  --gray-4: #e2e8f0;
+  --gray-5: #cbd5e1;
+  --gray-6: #94a3b8;
+  --gray-7: #64748b;
+  --gray-8: #475569;
+  --gray-9: #334155;
+  --gray-10: #1e293b;
+  --gray-11: #0f172a;
+  --gray-12: #020617;
+
+  /* Gray Alpha (using black base with alphas) */
+  --gray-a1: #00000005;
+  --gray-a2: #0000000d;
+  --gray-a3: #00000014;
+  --gray-a4: #00000021;
+  --gray-a5: #00000030;
+  --gray-a6: #00000042;
+  --gray-a7: #00000059;
+  --gray-a8: #00000073;
+  --gray-a9: #0000008f;
+  --gray-a10: #000000a6;
+  --gray-a11: #000000cc;
+  --gray-a12: #000000f2;
+}
+
 /* =========================================
    3. HIGH-END P3 GAMUT SUPPORT (APPLE MONITORS)
 ========================================= */

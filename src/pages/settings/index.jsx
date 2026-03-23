@@ -1,8 +1,10 @@
-import { Bell, Moon, MonitorSmartphone, LogOut } from "lucide-react";
+import { Bell, Moon, Sun, MonitorSmartphone, LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../hooks/useTheme";
 
 export default function SettingsPage() {
   const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -22,22 +24,31 @@ export default function SettingsPage() {
           </div>
 
           <div className="divide-y divide-gray-3">
-            {/* Mock Toggle 1 */}
+            {/* Theme Toggle */}
             <div className="p-5 flex items-center justify-between hover:bg-gray-1/50 transition-colors">
               <div className="flex items-center gap-4">
                 <div className="text-gray-9">
-                  <Moon size={20} />
+                  {theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
                 <div>
-                  <p className="font-bold text-gray-12">Dark Mode</p>
+                  <p className="font-bold text-gray-12">Theme Mode</p>
                   <p className="text-sm text-gray-9">
-                    Tactical Gray theme is locked by default.
+                    Toggle between light and dark themes.
                   </p>
                 </div>
               </div>
-              {/* Fake Toggle Switch - Forced On */}
-              <div className="w-11 h-6 bg-primary rounded-full relative opacity-50 cursor-not-allowed">
-                <div className="absolute right-1 top-1 bg-white w-4 h-4 rounded-full"></div>
+              {/* Actual Toggle Switch */}
+              <div
+                onClick={toggleTheme}
+                className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
+                  theme === "dark" ? "bg-primary" : "bg-gray-4"
+                }`}
+              >
+                <div
+                  className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
+                    theme === "dark" ? "right-1" : "left-1"
+                  }`}
+                ></div>
               </div>
             </div>
 
