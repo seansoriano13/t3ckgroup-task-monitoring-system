@@ -81,7 +81,7 @@ export default function SettingsPage() {
               className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold bg-gray-3 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-gray-4 hover:border-red-500"
             >
               <LogOut size={18} />
-              Sign Out Securely
+              Sign Out
             </button>
           </div>
         </div>
