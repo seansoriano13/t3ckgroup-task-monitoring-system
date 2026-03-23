@@ -10,6 +10,7 @@ export const taskService = {
         *, 
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
         editor:employees!tasks_edited_by_fk(name),
+        evaluator:employees!tasks_evaluated_by_fkey(name),
         categories(description)
       `,
       )
@@ -29,6 +30,9 @@ export const taskService = {
       editedById: task.edited_by,
       editedByName: task.editor?.name,
       editedAt: task.edited_at,
+      evaluatedById: task.evaluated_by,
+      evaluatedByName: task.evaluator?.name,
+      evaluatedAt: task.evaluated_at,
       startAt: task.start_at,
       endAt: task.end_at,
       status: task.status,
@@ -51,6 +55,7 @@ export const taskService = {
         *, 
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
         editor:employees!tasks_edited_by_fk(name),
+        evaluator:employees!tasks_evaluated_by_fkey(name), 
         categories(description)
       `,
       )
@@ -63,17 +68,24 @@ export const taskService = {
       id: task.id,
       taskDescription: task.task_description,
       categoryId: task.category_id,
-      loggedById: task.logged_by, // Make sure we keep the ID!
+      categoryDesc: task.categories?.description,
+      loggedById: task.logged_by,
       loggedByName: task.creator?.name,
       creator: task.creator,
       editedById: task.edited_by,
       editedByName: task.editor?.name,
       editedAt: task.edited_at,
+      evaluatedById: task.evaluated_by,
+      evaluatedByName: task.evaluator?.name,
+      evaluatedAt: task.evaluated_at,
       startAt: task.start_at,
       endAt: task.end_at,
       status: task.status,
       priority: task.priority,
       remarks: task.remarks,
+      hrRemarks: task.hr_remarks,
+      hrVerified: task.hr_verified,
+      hrVerifiedAt: task.hr_verified_at,
       grade: task.grade,
       createdAt: task.created_at,
     }));
@@ -133,6 +145,12 @@ export const taskService = {
         ? new Date().toISOString()
         : null;
     }
+
+    if (payload.evaluatedBy !== undefined) {
+      updateData.evaluated_by = payload.evaluatedBy;
+      updateData.evaluated_at = new Date().toISOString();
+    }
+
     if (payload.hrRemarks !== undefined)
       updateData.hr_remarks = payload.hrRemarks;
 
