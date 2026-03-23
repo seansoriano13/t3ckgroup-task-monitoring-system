@@ -152,7 +152,7 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
   const handleHeadReject = () => {
     onProcess({
       id: task.id,
-      status: "REJECTED",
+      status: "NOT APPROVED",
       grade: 0,
       remarks: remarks,
     });
@@ -171,7 +171,7 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
   const handleHrReject = () => {
     onProcess({
       id: task.id,
-      status: "REJECTED", // Hard reject (Kills the task)
+      status: "NOT APPROVED", // Hard reject (Kills the task)
       hrRemarks: hrRemarks, // Saves HR's specific reason
       // Notice we don't wipe the Head's grade/remarks. We keep them for the paper trail!
     });
@@ -296,7 +296,7 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
                       disabled={!hrRemarks || isSubmitting}
                       className="order-2 sm:order-1 px-4 py-2.5 rounded-lg font-bold text-sm bg-gray-3 border border-gray-4 text-gray-11 hover:text-red-11 transition-colors disabled:opacity-50"
                     >
-                      Reject
+                      Not Approve
                     </button>
                     <button
                       onClick={handleHrVerify}
@@ -350,7 +350,7 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
                       disabled={!remarks || isSubmitting}
                       className="order-2 sm:order-1 px-4 py-2.5 rounded-lg font-bold text-sm bg-gray-3 border border-gray-4 text-gray-11 hover:text-red-11 transition-colors disabled:opacity-50"
                     >
-                      Reject
+                      Not Approve
                     </button>
                     <button
                       onClick={handleHeadApprove}

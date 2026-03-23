@@ -141,7 +141,10 @@ export default function TaskDetails({
     const { department, subDepartment, ...dbPayload } = formData;
     dbPayload.grade = dbPayload.grade ? Number(dbPayload.grade) : 0;
 
-    if (dbPayload.status === "INCOMPLETE" || dbPayload.status === "REJECTED") {
+    if (
+      dbPayload.status === "INCOMPLETE" ||
+      dbPayload.status === "NOT APPROVED"
+    ) {
       dbPayload.hrVerified = false;
       dbPayload.hrRemarks = ""; // Wipe any old rejection notes too
     }
@@ -260,7 +263,8 @@ export default function TaskDetails({
             onUndoVerify: () =>
               executeUpdate({
                 id: task.id,
-                hrVerified: false,
+                status: "NOT APPROVED", // Global text update applied!
+                endAt: new Date().toISOString(),
                 hrRemarks: "", // Wipes the remarks because it's their fault!
                 editedBy: user.id, // Leaves an audit trail of the undo
               }),

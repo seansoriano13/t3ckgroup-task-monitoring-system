@@ -192,9 +192,9 @@ export default function TasksPage() {
 
     // 2. Second, Sort (Strict Hierarchy)
     return filtered.sort((a, b) => {
-      // Rule A: Status Hierarchy (Active -> Complete -> Rejected)
+      // Rule A: Status Hierarchy (Active -> Complete -> Not Approved)
       const getStatusRank = (status) => {
-        if (status === "REJECTED") return 3; // Dead last
+        if (status === "NOT APPROVED") return 3; // Dead last
         if (status === "COMPLETE") return 2; // Middle-bottom
         return 1; // Top (INCOMPLETE, etc.)
       };
@@ -334,7 +334,7 @@ export default function TasksPage() {
                   <option value="ALL">Status</option>
                   <option value="COMPLETE">Complete</option>
                   <option value="INCOMPLETE">Incomplete</option>
-                  <option value="REJECTED">Rejected</option>
+                  <option value="NOT APPROVED">Not Approved</option>
                 </select>
               </div>
               <select

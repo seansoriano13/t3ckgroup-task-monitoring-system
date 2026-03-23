@@ -29,7 +29,7 @@ export default function ReviewTaskModal({
   };
 
   const handleRejectClick = () => {
-    onReject({ ...task, remarks, grade, status: "REJECTED" });
+    onReject({ ...task, remarks, grade, status: "NOT APPROVED" });
     handleCloseAndReset();
   };
 

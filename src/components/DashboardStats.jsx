@@ -41,7 +41,7 @@ export default function DashboardStats() {
     const myTasks = thisMonthTasks.filter((t) => t.loggedById === user?.id);
     const myCompleted = myTasks.filter((t) => t.status === "COMPLETE").length;
     const myPending = myTasks.filter(
-      (t) => t.status !== "COMPLETE" && t.status !== "REJECTED",
+      (t) => t.status !== "COMPLETE" && t.status !== "NOT APPROVED",
     ).length;
 
     // 3. Calculate Management Stats (Only if Head or HR)

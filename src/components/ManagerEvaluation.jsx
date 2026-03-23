@@ -13,34 +13,45 @@ export default function ManagerEvaluation({
   if (isEditing) return null;
 
   const isComplete = task.status === "COMPLETE";
-  const isRejected = task.status === "REJECTED";
+  const isNotApproved = task.status === "NOT APPROVED";
 
   // 🔥 THE FIX: Both statuses mean the manager is done evaluating
-  const isFinalized = isComplete || isRejected;
+  const isFinalized = isComplete || isNotApproved;
 
   const containerClass = `grid grid-cols-2 gap-4 p-4 rounded-xl border ${
     isComplete
       ? "bg-gray-3/50 border-gray-4 border-dashed"
-      : isRejected
+      : isNotApproved
         ? "bg-red-a2 border-red-a5"
         : "bg-primary/5 border-primary/20"
   }`;
 
   return (
     <div className={containerClass}>
-      <div
-        className={`col-span-2 text-xs font-bold uppercase tracking-wider mb-[-8px] ${isRejected ? "text-red-9" : "text-primary"}`}
-      >
-        {isFinalized
-          ? "Manager Evaluation"
-          : isStrictlyHead
-            ? "Manager Evaluation (Required for Approval)"
-            : "Evaluation Status (Not Yet Evaluated)"}
+      <div className="col-span-2 grid gap-1">
+        <div
+          className={` text-xs font-bold uppercase tracking-wider  ${isNotApproved ? "text-red-9" : "text-primary"}`}
+        >
+          {isFinalized
+            ? "Manager Evaluation"
+            : isStrictlyHead
+              ? "Manager Evaluation (Required for Approval)"
+              : "Evaluation Status (Not Yet Evaluated)"}
+        </div>
+
+        {isFinalized && task.evaluatedByName && (
+          <div className="col-span-2 text-[11px] text-gray-8 flex items-center gap-1">
+            Evaluated by:{" "}
+            <span className="font-bold text-gray-11">
+              {task.evaluatedByName}
+            </span>
+          </div>
+        )}
       </div>
 
       {isFinalized ? (
         /* ========================================= */
-        /* FINALIZED VIEW (Complete OR Rejected)     */
+        /* FINALIZED VIEW (Complete OR Not Approved)     */
         /* ========================================= */
         <>
           <FieldBox label="Final Grade" isEditing={false}>
@@ -50,7 +61,7 @@ export default function ManagerEvaluation({
           </FieldBox>
           <div /> {/* Layout Spacer */}
           {task.remarks && (
-            <div className="col-span-2 flex flex-col gap-1.5 pt-1">
+            <div className="col-span-2   pt-1">
               <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
                 Manager Remarks
               </label>

@@ -69,6 +69,20 @@ const TaskFooter = ({ actions, permissions, state }) => {
             )}
 
             {isStrictlyHead && task.status !== "COMPLETE" && (
+              <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
+                <button
+                  onClick={onHeadReject}
+                  // 🔥 Disables if submitting OR if remarks are empty/whitespace
+                  disabled={
+                    isSubmitting ||
+                    !state.approvalRemarks ||
+                    state.approvalRemarks.trim() === ""
+                  }
+                  className="bg-gray-2 border border-gray-4 text-gray-11 hover:text-red-11 hover:border-red-a5 text-sm font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <XCircle size={16} /> Not Approve
+                </button>
+
               <button
                 onClick={onMarkComplete}
                 disabled={isSubmitting || !state.canApprove}
