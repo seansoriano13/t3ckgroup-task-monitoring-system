@@ -4,7 +4,6 @@ const ManagementSection = ({
   isEditing,
   isHr,
   isHead,
-  task,
   formData,
   handlers,
   topologyData,
@@ -12,7 +11,7 @@ const ManagementSection = ({
 }) => {
   const { handleDeptChange, handleSubDeptChange, handleAssigneeChange } =
     handlers;
-  const { uniqueDepts, uniqueSubDepts, filteredEmployees, taskOwnerInfo } =
+  const { uniqueDepts, uniqueSubDepts, filteredEmployees } =
     topologyData;
 
   // Level 3 Access: Only HR can change Dept/Sub-Dept

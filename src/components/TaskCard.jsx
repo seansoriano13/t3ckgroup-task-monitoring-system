@@ -8,7 +8,7 @@ export default function TaskCard({ task, onView, onEdit }) {
   // 🔥 Dynamic styling for the Priority badge
   const priorityStyles = {
     HIGH: "text-red-11 bg-red-a3 border-red-a5",
-    MEDIUM: "text-amber-100 bg-amber-500/10 border-amber-500/20",
+    MEDIUM: "text-amber-700 bg-amber-500/10 border-amber-500/20",
     LOW: "text-gray-10 bg-gray-3 border-gray-4",
   };
 

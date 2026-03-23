@@ -13,7 +13,7 @@ const StandardDetailsSection = ({
   topologyData,
   task,
 }) => {
-  const { filteredCategories, isLoadingTop } = topologyData;
+  const { filteredCategories } = topologyData;
 
   return (
     <>

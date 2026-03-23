@@ -151,12 +151,12 @@ function DashboardHeader() {
             <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
               Hi {user?.name?.split(" ")[0] || "Team"},
             </h1>
-            <p className="text-gray-11 mt-1 font-medium text-base md:text-xl">
+            <p className="text-gray-6 mt-1 font-medium text-base md:text-xl">
               Good to see you back!
             </p>
           </div>
           <div className="hidden sm:block border-t border-white/10 md:border-none pt-4 md:pt-0">
-            <p className="italic text-xs md:text-sm text-left md:text-right text-gray-11 font-medium leading-relaxed">
+            <p className="italic text-xs md:text-sm text-left md:text-right text-gray-6 font-medium leading-relaxed">
               Begin each day with a <br className="hidden md:block" /> Grateful
               Heart.
             </p>

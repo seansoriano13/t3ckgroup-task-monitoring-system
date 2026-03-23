@@ -168,6 +168,7 @@ export default function TasksPage() {
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [
     searchTerm,
@@ -276,6 +277,7 @@ export default function TasksPage() {
               >
                 <option value="ALL">Priority</option>
                 <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
                 <option value="LOW">Low</option>
               </select>
             </div>

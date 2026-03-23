@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import PrimaryButton from "../../components/PrimaryButton";
+import { useTheme } from "../../hooks/useTheme";
 
 // Updated for the dark theme disabled state
 export const INPUT_STYLE =
@@ -12,6 +13,7 @@ export const INPUT_STYLE =
 export default function Login() {
   const { handleLogin } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const handleGoogleSuccess = async (credentialResponse) => {
     const decodedToken = jwtDecode(credentialResponse.credential);
@@ -95,7 +97,7 @@ export default function Login() {
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
                   useOneTap
-                  theme="filled_black" // 👈 Forces the Google button into dark mode!
+                  theme={theme === "light" ? "outline" : "filled_black"} // 👈 Applies theme dynamically
                   shape="rectangular"
                   size="large"
                 />

@@ -52,7 +52,6 @@ export default function TasksList() {
   const {
     data: rawTasks = [],
     isLoading,
-    isError,
   } = useQuery({
     queryKey: ["dashboardTasks", user?.id, isManagement ? "all" : "personal"],
     queryFn: () =>

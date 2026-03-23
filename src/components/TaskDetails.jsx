@@ -40,6 +40,7 @@ export default function TaskDetails({
   // 🔥 THE FIX: Pre-hydrate the form data immediately when the modal opens
   useEffect(() => {
     if (isOpen && task) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setApprovalGrade(null);
       setApprovalRemarks("");
 
@@ -132,12 +133,13 @@ export default function TaskDetails({
     try {
       await onUpdateTask(payload);
       onClose();
-    } catch (error) {
+    } catch {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveEdit = () => {
+    // eslint-disable-next-line no-unused-vars
     const { department, subDepartment, ...dbPayload } = formData;
     dbPayload.grade = dbPayload.grade ? Number(dbPayload.grade) : 0;
 
@@ -161,7 +163,7 @@ export default function TaskDetails({
       try {
         await onDeleteTask({ id: task.id, userId: user.id });
         onClose();
-      } catch (error) {
+      } catch {
         setIsSubmitting(false);
       }
     }

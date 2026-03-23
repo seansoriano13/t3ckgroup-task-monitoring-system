@@ -89,7 +89,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     };
 
     fetchDropdownData();
-  }, [isOpen, user]);
+  }, [isOpen, user, isHr, isHead]);
 
   // Handle Input Changes
   const handleChange = (e) => {
@@ -411,7 +411,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-lg font-bold bg-primary text-gray-12 hover:bg-primary-hover shadow-lg shadow-red-a3 transition-all active:scale-95 disabled:opacity-50 text-sm flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg font-bold bg-red-9 text-gray-1 hover:bg-red-10 shadow-lg shadow-red-a3 transition-all active:scale-95 disabled:opacity-50 text-sm flex items-center gap-2"
                   disabled={isLoadingData || !formData.loggedById}
                 >
                   Submit Task

@@ -3,7 +3,6 @@ import { useState } from "react";
 import { X, CheckCircle, XCircle } from "lucide-react";
 
 export default function ReviewTaskModal({
-  isOpen,
   onClose,
   task,
   onApprove,

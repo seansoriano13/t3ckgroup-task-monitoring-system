@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // eslint-disable-next-line no-unused-vars
   const handleOpenDrawer = (task) => {
     setSelectedTask(task);
     setIsDrawerOpen(true);
