@@ -18,7 +18,7 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN: The ID Card */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 flex flex-col items-center text-center shadow-lg">
+          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 flex flex-col gap-3 items-center text-center shadow-lg">
             <div className="relative">
               <img
                 src={user?.picture || "/default-avatar.png"}
@@ -43,12 +43,14 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <h2 className="text-xl font-bold text-gray-12">
-              {user?.name || "Employee Name"}
-            </h2>
-            <p className="text-gray-9 text-sm mt-1 flex items-center gap-2 justify-center">
-              <Mail size={14} /> {user?.email || "email@t3ckgroup.com"}
-            </p>
+            <div>
+              <h2 className="text-xl font-bold text-gray-12">
+                {user?.name || "Employee Name"}
+              </h2>
+              <p className="text-gray-9 text-sm mt-1 flex items-center gap-2 justify-center">
+                <Mail size={14} /> {user?.email || "email@t3ckgroup.com"}
+              </p>
+            </div>
           </div>
         </div>
 
