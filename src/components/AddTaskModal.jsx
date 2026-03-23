@@ -341,11 +341,23 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     Start Time
                   </label>
                   <input
+                    disabled
                     type="datetime-local"
                     name="startAt"
                     value={formData.startAt}
                     onChange={handleChange}
-                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors text-sm [color-scheme:dark]"
+                    className="min-h-[44px] w-full
+                               bg-gray-1 border border-gray-4
+                               focus:border-red-9 text-gray-12
+                               rounded-lg px-3 outline-none transition-colors text-sm
+                               [color-scheme:dark]
+
+                               disabled:opacity-50
+                               disabled:cursor-not-allowed
+                               disabled:bg-gray-2
+                               disabled:border-gray-3
+                               disabled:text-gray-9
+                             "
                   />
                 </div>
                 <div>
