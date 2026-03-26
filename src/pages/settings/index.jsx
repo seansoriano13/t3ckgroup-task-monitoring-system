@@ -1,10 +1,12 @@
-import { Bell, Moon, Sun, MonitorSmartphone, LogOut } from "lucide-react";
+import { Bell, Moon, Sun, LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
+import HRCategoriesConfig from "../../components/HRCategoriesConfig.jsx";
 
 export default function SettingsPage() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const isHr = user?.is_hr === true || user?.isHr === true;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -72,6 +74,8 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {isHr && <HRCategoriesConfig />}
 
         {/* DANGER ZONE SECTION */}
         <div className="bg-gray-2 border border-red-900/30 rounded-2xl shadow-lg overflow-hidden">

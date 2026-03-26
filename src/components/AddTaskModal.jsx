@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Users, Building2 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import toast from "react-hot-toast";
 
 const getCurrentLocalTime = () => {
   const now = new Date();
@@ -34,6 +35,10 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     endAt: "",
     priority: "LOW",
   });
+
+  // Dynamic Committee/Others State
+  const [committeeRole, setCommitteeRole] = useState("");
+  const [othersRemarks, setOthersRemarks] = useState("");
 
   // Fetch Data when modal opens
   useEffect(() => {
@@ -81,6 +86,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
           endAt: "",
           priority: "LOW",
         });
+        setCommitteeRole("");
+        setOthersRemarks("");
       } catch (err) {
         console.error("Unexpected error fetching dropdowns:", err);
       } finally {
@@ -98,14 +105,51 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       const newData = { ...prev, [name]: value };
       if (name === "loggedById") {
         newData.categoryId = ""; // Wipe category if assignee changes
+        setCommitteeRole("");
+        setOthersRemarks("");
+      }
+      if (name === "categoryId") {
+        setCommitteeRole(""); // Reset chips on category swap
+        setOthersRemarks("");
       }
       return newData;
     });
   };
 
+  const selectedCategoryObj = categories.find(c => c.category_id === formData.categoryId);
+  const isCommittee = selectedCategoryObj?.description?.toUpperCase().includes("COMMITTEE");
+  const isOthersGlobal = selectedCategoryObj?.description?.toUpperCase().includes("OTHERS");
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) onSubmit(formData);
+    
+    // Process complex remarks merging
+    let mergedRemarks = "";
+    if (isCommittee) {
+       if (!committeeRole) {
+          toast?.error("Please select a specific Committee Role.");
+          return;
+       }
+       mergedRemarks = `[COMMITTEE - ${committeeRole}]`;
+       if (committeeRole === 'OTHERS') {
+          if (!othersRemarks.trim()) { toast?.error("Please specify details for 'Others'."); return; }
+          mergedRemarks += ` ${othersRemarks.trim()}`;
+       }
+    } else if (isOthersGlobal) {
+       if (!othersRemarks.trim()) { toast?.error("Please specify details for your 'Others' task."); return; }
+       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
+    }
+
+    const payload = {
+       ...formData,
+       remarks: mergedRemarks
+    };
+
+    if (onSubmit) onSubmit(payload);
+    
+    // Reset secondary states post-submit
+    setCommitteeRole("");
+    setOthersRemarks("");
   };
 
   if (!isOpen) return null;
@@ -140,11 +184,15 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   };
 
   const filteredCategories = categories.filter((cat) => {
-    // 1. If HR is actively using the dropdown filters, respect those first
+    // 1. Universal Override: COMMITTEE and OTHERS must always be selectable by everyone
+    const desc = cat.description?.toUpperCase() || "";
+    if (desc.includes("COMMITTEE") || desc.includes("OTHERS")) return true;
+
+    // 2. If HR is actively using the dropdown filters, respect those first
     if (isHr && hrSubDeptFilter) return cat.sub_department === hrSubDeptFilter;
     if (isHr && hrDeptFilter) return cat.department === hrDeptFilter;
 
-    // 2. Default behavior: Strictly lock to the Selected Employee's sub-department
+    // 3. Default behavior: Strictly lock to the Selected Employee's sub-department
     return cat.sub_department === selectedEmployeeInfo.sub_department;
   });
 
@@ -333,6 +381,40 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                   </select>
                 </div>
               </div>
+
+              {/* DYNAMIC COMMITTEE CHIPS */}
+              {isCommittee && (
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 shadow-inner mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                   <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-3">Select Committee Role</label>
+                   <div className="flex flex-wrap gap-2.5">
+                     {['EVENT', 'CREATIVE', 'DEMO', 'BAC', 'ODOO', 'OTHERS'].map(role => (
+                       <button
+                         key={role}
+                         type="button"
+                         onClick={() => setCommitteeRole(role)}
+                         className={`px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all border shadow-sm ${committeeRole === role ? 'bg-primary text-white border-primary shadow-primary/30 scale-105' : 'bg-gray-1 text-gray-10 border-gray-4 hover:border-primary/50 hover:text-primary'}`}
+                       >
+                         {role}
+                       </button>
+                     ))}
+                   </div>
+                </div>
+              )}
+
+              {/* DYNAMIC OTHERS REMARKS */}
+              {(isOthersGlobal || (isCommittee && committeeRole === 'OTHERS')) && (
+                <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                   <label className="text-[10px] font-bold text-red-500 uppercase tracking-wider pl-1 mb-1.5 block flex items-center gap-1.5">Specify Details (Required)</label>
+                   <input 
+                      type="text" 
+                      required 
+                      value={othersRemarks} 
+                      onChange={e => setOthersRemarks(e.target.value)} 
+                      placeholder="Please elaborate on your exact role or task..."
+                      className="min-h-[44px] w-full bg-gray-1 border border-red-500/50 focus:border-red-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm shadow-inner" 
+                   />
+                </div>
+              )}
 
               {/* Time Tracking Row */}
               <div className="grid grid-cols-2 gap-4">

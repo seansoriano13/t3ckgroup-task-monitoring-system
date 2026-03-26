@@ -4,10 +4,6 @@ import {
   Search,
   CheckSquare,
   XSquare,
-  UserPlus,
-  Loader2,
-  Filter,
-  Users,
   Building2,
   Calendar as CalendarIcon,
   ShieldAlert,
@@ -26,11 +22,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { supabase } from "../../lib/supabase"; // Make sure this path is correct!
 import { useTaskFilters } from "../../hooks/useTaskFilters"; // 🔥 The Custom Hook!
+import { Users } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function HrMasterLogPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isRegistering, setIsRegistering] = useState(false);
 
   // --- 1. THE MEGA FILTER STATES ---
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,8 +133,13 @@ export default function HrMasterLogPage() {
     const csvContent = [
       headers.join(","), // Header row
       ...filteredTasks.map((t) => {
-        // Sanitize fields containing commas or quotes for CSV safety
-        const escapeCSV = (str) => `"${String(str || "").replace(/"/g, '""')}"`;
+        // Escape CSV fields and prevent spreadsheet formula injection (Excel/Sheets).
+        const escapeCSV = (str) => {
+          const s = String(str || "");
+          // If the cell begins with these characters, spreadsheets may treat it as a formula.
+          const formulaSafe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+          return `"${formulaSafe.replace(/"/g, '""')}"`;
+        };
 
         return [
           new Date(t.createdAt).toLocaleDateString(),
@@ -197,12 +199,6 @@ export default function HrMasterLogPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setIsRegistering(true)}
-              className="flex items-center gap-2 bg-gray-1 hover:bg-gray-3 border border-gray-4 text-gray-12 px-4 py-2 rounded-lg font-bold transition-colors"
-            >
-              <UserPlus size={18} /> Allowlist Employee
-            </button>
             <button
               onClick={handleExportCSV}
               className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white shadow-lg shadow-red-a3 px-4 py-2 rounded-lg font-bold transition-colors active:scale-95"
@@ -490,197 +486,7 @@ export default function HrMasterLogPage() {
             </tbody>
           </table>
         </div>
-
-        {/* INLINE REGISTRATION MODAL (Simple) */}
-        {isRegistering && (
-          <RegisterEmployeeModal onClose={() => setIsRegistering(false)} />
-        )}
       </div>
     </ProtectedRoute>
-  );
-}
-
-// Quick Inline Component for the form
-function RegisterEmployeeModal({ onClose }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    department: "",
-    subDepartment: "",
-    role: "EMPLOYEE",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { data: rawCategories = [] } = useQuery({
-    queryKey: ["allCategories"],
-    queryFn: () => employeeService.getAllCategories(),
-  });
-
-  // Extract unique Departments
-  const uniqueDepts = useMemo(() => {
-    return [
-      ...new Set(rawCategories.map((c) => c.department).filter(Boolean)),
-    ].sort();
-  }, [rawCategories]);
-
-  // Extract unique Sub-Departments based on the selected Department
-  const uniqueSubDepts = useMemo(() => {
-    if (!formData.department) return [];
-    const filteredCats = rawCategories.filter(
-      (c) => c.department === formData.department,
-    );
-    return [
-      ...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean)),
-    ].sort();
-  }, [rawCategories, formData.department]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await employeeService.createEmployee({
-        ...formData,
-        isHead: formData.role === "HEAD",
-        isHr: formData.role === "HR",
-      });
-      toast.success("Employee allowlisted successfully!");
-      onClose();
-    } catch (error) {
-      toast.error(error.message || "Failed to add employee.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-1 border border-gray-4 rounded-xl w-full max-w-md shadow-2xl p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-12 flex items-center gap-2">
-            <UserPlus size={20} /> Allowlist Employee
-          </h2>
-          <button onClick={onClose} className="text-gray-8 hover:text-gray-12">
-            <XSquare size={20} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-gray-9 uppercase">
-              Full Name
-            </label>
-            <input
-              required
-              type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-gray-9 uppercase">
-              Google Auth Email
-            </label>
-            <input
-              required
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
-              placeholder="employee@company.com"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-bold text-gray-9 uppercase">
-                Department
-              </label>
-              {/* Replace input with this select */}
-              <select
-                required
-                value={formData.department}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    department: e.target.value,
-                    subDepartment: "",
-                  })
-                }
-                className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
-              >
-                <option value="" disabled>
-                  Select Dept
-                </option>
-                {uniqueDepts.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-gray-9 uppercase">
-                Sub-Dept
-              </label>
-              {/* Replace input with this select */}
-              <select
-                required
-                value={formData.subDepartment}
-                onChange={(e) =>
-                  setFormData({ ...formData, subDepartment: e.target.value })
-                }
-                disabled={!formData.department}
-                className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="" disabled>
-                  Select Sub-Dept
-                </option>
-                {uniqueSubDepts.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-bold text-gray-9 uppercase">
-              System Role
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
-            >
-              <option value="EMPLOYEE">Standard Employee</option>
-              <option value="HEAD">Department Head</option>
-              <option value="HR">HR Administrator</option>
-            </select>
-          </div>
-          <div className="pt-4 flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2.5 bg-gray-3 hover:bg-gray-4 text-gray-12 font-bold rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 py-2.5 bg-green-600 hover:bg-green-800 text-white font-bold rounded-lg transition-colors shadow-lg shadow-blue-900/20 disabled:opacity-50"
-            >
-              {isSubmitting ? "Saving..." : "Add to Allowlist"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   );
 }
