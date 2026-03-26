@@ -106,6 +106,7 @@ export default function ApprovalsPage() {
                 key={task.id}
                 task={task}
                 isHr={isHr} // 👈 Pass role to the row so UI changes
+                currentUserId={user?.id}
                 onProcess={(payload) =>
                   editTaskMutation.mutateAsync({
                     ...payload,
@@ -132,7 +133,7 @@ export default function ApprovalsPage() {
   );
 }
 
-function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
+function ApprovalRow({ task, isHr, onProcess, isSubmitting, currentUserId }) {
   const [expanded, setExpanded] = useState(false);
   const [grade, setGrade] = useState(null);
   const [remarks, setRemarks] = useState("");
@@ -140,21 +141,77 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
 
   // --- HEAD HANDLERS ---
   const handleHeadApprove = () => {
+    // #region agent log (Head approve handler pre-flight)
+    fetch('http://127.0.0.1:7778/ingest/cb6816af-fcbc-4f2b-b75d-0ffdb3c3ab2f', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': 'a4266c',
+      },
+      body: JSON.stringify({
+        sessionId: 'a4266c',
+        runId: 'pre-fix',
+        hypothesisId: 'H1_or_H4',
+        location: 'src/pages/approvals/index.jsx:handleHeadApprove',
+        message: 'Head approve handler entered',
+        data: {
+          taskId: task?.id,
+          grade,
+          remarksLen: remarks?.length,
+          typeofUserInApprovalRow: typeof user,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
     onProcess({
       id: task.id,
       status: "COMPLETE",
       grade: grade,
       remarks: remarks,
       endAt: new Date().toISOString(),
+      evaluatedBy: currentUserId,
+      // Head approval re-opens the HR verification step.
+      hrVerified: false,
+      hrRemarks: "",
     });
   };
 
   const handleHeadReject = () => {
+    // #region agent log (Head reject handler pre-flight)
+    fetch('http://127.0.0.1:7778/ingest/cb6816af-fcbc-4f2b-b75d-0ffdb3c3ab2f', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': 'a4266c',
+      },
+      body: JSON.stringify({
+        sessionId: 'a4266c',
+        runId: 'pre-fix',
+        hypothesisId: 'H1_or_H4',
+        location: 'src/pages/approvals/index.jsx:handleHeadReject',
+        message: 'Head reject handler entered',
+        data: {
+          taskId: task?.id,
+          grade,
+          remarksLen: remarks?.length,
+          typeofUserInApprovalRow: typeof user,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
     onProcess({
       id: task.id,
       status: "NOT APPROVED",
       grade: 0,
       remarks: remarks,
+      evaluatedBy: currentUserId,
+      // Manager rejection should clear HR verification flags/notes.
+      hrVerified: false,
+      hrRemarks: "",
     });
   };
 
@@ -162,6 +219,7 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
   const handleHrVerify = () => {
     onProcess({
       id: task.id,
+      status: "COMPLETE",
       hrVerified: true,
       hrVerifiedAt: new Date().toISOString(),
       hrRemarks: hrRemarks, // Optional: HR can leave a note even when approving
@@ -172,6 +230,8 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting }) {
     onProcess({
       id: task.id,
       status: "NOT APPROVED", // Hard reject (Kills the task)
+      hrVerified: false,
+      hrVerifiedAt: null,
       hrRemarks: hrRemarks, // Saves HR's specific reason
       // Notice we don't wipe the Head's grade/remarks. We keep them for the paper trail!
     });

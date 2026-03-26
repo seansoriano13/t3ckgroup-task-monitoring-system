@@ -148,7 +148,7 @@ export default function TaskDetails({
       dbPayload.status === "NOT APPROVED"
     ) {
       dbPayload.hrVerified = false;
-      dbPayload.hrRemarks = ""; // Wipe any old rejection notes too
+  
     }
 
     executeUpdate({ id: task.id, ...dbPayload, editedBy: user.id });
@@ -232,6 +232,7 @@ export default function TaskDetails({
             <ManagerEvaluation
               isEditing={isEditing}
               isStrictlyHead={isStrictlyHead}
+              isHr={isHr}
               formData={formData}
               handleChange={handleChange}
               task={task}
@@ -266,10 +267,12 @@ export default function TaskDetails({
                 id: task.id,
                 status: "NOT APPROVED", // Global text update applied!
                 endAt: new Date().toISOString(),
-                grade: approvalGrade || 1, // Fallback grade if they didn't click one
+                grade: 0, // 👈 Fix: Rejection grade contaminates analytics
                 remarks: approvalRemarks,
                 evaluatedBy: user.id, // 🔥 Accountability Hook
                 editedBy: user.id, // (Optional: you can keep this if you still want the generic audit trail to fire too)
+                hrVerified: false,
+                hrRemarks: "",
               }),
 
             onMarkComplete: () =>
@@ -280,23 +283,33 @@ export default function TaskDetails({
                 grade: approvalGrade,
                 remarks: approvalRemarks,
                 evaluatedBy: user.id, // 🔥 Accountability Hook
+                editedBy: user.id,
+                hrVerified: false,
+                hrRemarks: "",
               }),
 
             onUndoVerify: () =>
               executeUpdate({
                 id: task.id,
+                status: "COMPLETE",
                 hrVerified: false,
                 hrRemarks: "",
                 editedBy: user.id,
               }),
 
-            onHrVerify: () =>
+            onHrVerify: () => {
+              if (task.status !== "COMPLETE") {
+                alert("Exploit Prevention: Only COMPLETE tasks can be verified.");
+                return;
+              }
               executeUpdate({
                 id: task.id,
+                status: "COMPLETE",
                 hrVerified: true,
                 hrVerifiedAt: new Date().toISOString(),
                 editedBy: user.id,
-              }),
+              });
+            }
           }}
           permissions={{ canEdit, isStrictlyHead, isHr, isManagement }}
           state={{

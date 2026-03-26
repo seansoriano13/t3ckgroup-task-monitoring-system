@@ -14,6 +14,7 @@ export const taskService = {
         categories(description)
       `,
       )
+      .neq("status", "DELETED")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -52,7 +53,23 @@ export const taskService = {
       .from("tasks")
       .select(
         `
-        *, 
+        id,
+        created_at,
+        task_description,
+        category_id,
+        logged_by,
+        edited_by,
+        edited_at,
+        evaluated_by,
+        evaluated_at,
+        start_at,
+        end_at,
+        status,
+        priority,
+        remarks,
+        grade,
+        hr_verified,
+        hr_verified_at,
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name), 
@@ -60,6 +77,7 @@ export const taskService = {
       `,
       )
       .eq("logged_by", userId)
+      .neq("status", "DELETED")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -106,6 +124,7 @@ export const taskService = {
           end_at: payload.endAt ? new Date(payload.endAt).toISOString() : null,
           status: "INCOMPLETE",
           priority: payload.priority || "LOW",
+          remarks: payload.remarks || "",
         },
       ])
       .select();
@@ -117,6 +136,126 @@ export const taskService = {
   // 4. UPDATE (Used for Employee Edits AND Manager Grading)
   async updateTask(taskId, payload) {
     const updateData = {};
+
+    // --- Guard rails for pipeline integrity ---
+    // - If HR verification is being applied, the task must be in COMPLETE.
+    // - If task is being moved back to INCOMPLETE, HR verification must be cleared.
+    // - For COMPLETE/NOT APPROVED transitions, prevent "finalized with no evaluator" if caller didn't provide evaluatedBy.
+    if (payload?.hrVerified === true && payload?.status !== "COMPLETE") {
+      payload = { ...payload, status: "COMPLETE" };
+    }
+
+    if (payload?.status === "INCOMPLETE") {
+      updateData.hr_verified = false;
+      updateData.hr_verified_at = null;
+      updateData.hr_remarks = "";
+    }
+
+    if (payload?.status === "NOT APPROVED") {
+      updateData.hr_verified = false;
+      updateData.hr_verified_at = null;
+      // Preserve existing hr_remarks unless caller explicitly provided hrRemarks.
+      if (payload?.hrRemarks !== undefined) {
+        updateData.hr_remarks = payload.hrRemarks;
+      }
+    }
+
+    // If the caller is attempting to transition workflow state, validate it against the current DB state.
+    const needsTransitionCheck =
+      payload?.status !== undefined || payload?.hrVerified !== undefined;
+
+    let current = null;
+    if (needsTransitionCheck) {
+      const { data: cur, error: curErr } = await supabase
+        .from("tasks")
+        .select("status, hr_verified, evaluated_by")
+        .eq("id", taskId)
+        .single();
+      if (curErr) throw curErr;
+      current = cur;
+    }
+
+    // Prevent approving/rejecting if the task isn't in the expected pre-state.
+    // Head transitions include evaluatedBy; HR transitions do not.
+    const isHeadApprove =
+      payload?.status === "COMPLETE" && payload?.evaluatedBy !== undefined;
+    const isHeadReject =
+      payload?.status === "NOT APPROVED" && payload?.evaluatedBy !== undefined;
+    const isHrReject = payload?.status === "NOT APPROVED" && payload?.evaluatedBy === undefined;
+
+    if (isHeadApprove) {
+      if (current?.status !== "INCOMPLETE") {
+        throw new Error(
+          `Invalid pipeline transition: can only approve tasks from INCOMPLETE`,
+        );
+      }
+    }
+
+    if (isHeadReject) {
+      if (current?.status !== "INCOMPLETE") {
+        throw new Error(
+          `Invalid pipeline transition: can only reject tasks from INCOMPLETE`,
+        );
+      }
+    }
+
+    // If a caller tries to move to COMPLETE/NOT APPROVED without head evaluation metadata,
+    // only HR should be allowed to do it via hrVerified/hrVerified=false paths.
+    if (
+      payload?.status === "COMPLETE" &&
+      payload?.evaluatedBy === undefined &&
+      payload?.hrVerified !== true
+    ) {
+      throw new Error(`Invalid pipeline state: status=COMPLETE requires evaluatedBy`);
+    }
+
+    if (
+      payload?.status === "NOT APPROVED" &&
+      payload?.evaluatedBy === undefined &&
+      payload?.hrVerified !== false
+    ) {
+      throw new Error(`Invalid pipeline state: status=NOT APPROVED requires evaluatedBy`);
+    }
+
+    // HR rejection should only happen while the task is currently COMPLETE and unverified.
+    if (isHrReject) {
+      if (current?.status !== "COMPLETE" || current?.hr_verified !== false) {
+        throw new Error(
+          `Invalid pipeline transition: HR reject requires status=COMPLETE and hrVerified=false`,
+        );
+      }
+      // HR rejection should not require evaluated_by, since manager evaluation may already exist.
+    }
+
+    // Enforce HR verification/undo pre-conditions.
+    if (payload?.hrVerified === true) {
+      if (current?.status !== "COMPLETE" || current?.hr_verified !== false) {
+        throw new Error(
+          `Invalid pipeline transition: HR verify requires status=COMPLETE and hrVerified=false`,
+        );
+      }
+      // HR verification depends on head evaluation existing.
+      if (current?.evaluated_by == null) {
+        throw new Error(
+          `Invalid pipeline state: HR verification requires evaluatedBy`,
+        );
+      }
+    }
+
+    // HR undo verification: HR should only be able to "un-verify" when the row is currently verified.
+    // Head transitions may also set hrVerified=false, so we distinguish HR undo by absence of evaluatedBy.
+    const isHrUndo =
+      payload?.hrVerified === false &&
+      payload?.status === "COMPLETE" &&
+      payload?.evaluatedBy === undefined;
+
+    if (isHrUndo) {
+      if (current?.status !== "COMPLETE" || current?.hr_verified !== true) {
+        throw new Error(
+          `Invalid pipeline transition: HR undo requires status=COMPLETE and hrVerified=true`,
+        );
+      }
+    }
 
     // Employee Edit Fields
     if (payload.taskDescription !== undefined)

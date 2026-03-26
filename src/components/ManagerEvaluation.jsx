@@ -4,6 +4,7 @@ import { FieldBox } from "./FieldBox";
 export default function ManagerEvaluation({
   isEditing,
   isStrictlyHead,
+  isHr = false,
   task,
   approvalGrade,
   setApprovalGrade,
@@ -70,12 +71,12 @@ export default function ManagerEvaluation({
               </div>
             </div>
           )}
-          {task.hrRemarks && (
+          { task.hrRemarks && (
             <div className="col-span-2 flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
               <label className="text-[10px] font-bold text-red-9 uppercase tracking-wider pl-1 flex items-center gap-1.5">
                 HR Audit Notes / Rejection Reason
               </label>
-              <div className="bg-red-a2 p-4 rounded-xl border border-red-a5 text-sm text-red-11 whitespace-pre-wrap min-h-[44px] flex items-center shadow-inner font-semibold">
+              <div className=" p-4 rounded-xl border border-gray-a5 text-sm text-gray-11 whitespace-pre-wrap min-h-[44px] flex items-center shadow-inner font-semibold">
                 {task.hrRemarks}
               </div>
             </div>
