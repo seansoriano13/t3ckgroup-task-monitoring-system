@@ -7,9 +7,15 @@ export type Path =
   | `/`
   | `/approvals`
   | `/hr-master-log`
+  | `/hr/employee-management`
   | `/login`
   | `/profile`
+  | `/sales/daily`
+  | `/sales/log-revenue`
+  | `/sales/records`
+  | `/sales/schedule`
   | `/settings`
+  | `/super-admin`
   | `/tasks`
 
 export type Params = {

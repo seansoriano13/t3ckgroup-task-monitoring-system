@@ -1,9 +1,32 @@
-import { Mail, Building2, Briefcase, Hash } from "lucide-react";
+import { Mail, Building2, Briefcase, Hash, ShieldCheck, Loader2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { ShieldCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "../../lib/supabase";
 
 export default function ProfilePage() {
   const { user } = useAuth();
+
+  const { data: stats, isLoading: isStatsLoading } = useQuery({
+     queryKey: ['profileStats', user?.id],
+     queryFn: async () => {
+         if (user?.isSuperAdmin) return null;
+         
+         if (user?.isHr || user?.is_hr) {
+             const { count: pendingVerifications } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('hrVerified', false).eq('status', 'COMPLETE');
+             const { count: totalVerified } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('hrVerified', true);
+             return { primary: pendingVerifications || 0, primaryLabel: "Pending HR Verifications", secondary: totalVerified || 0, secondaryLabel: "Total Verified" };
+         } else if (user?.isHead || user?.is_head) {
+             const { count: pendingApprovals } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('department', user.department).neq('status', 'COMPLETE').neq('status', 'NOT APPROVED');
+             const { count: totalApproved } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('department', user.department).in('status', ['COMPLETE', 'NOT APPROVED']);
+             return { primary: pendingApprovals || 0, primaryLabel: "Awaiting Your Approval", secondary: totalApproved || 0, secondaryLabel: "Your Evaluated Tasks" };
+         } else {
+             const { count: totalLogged } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('loggedById', user.id);
+             const { count: totalDone } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('loggedById', user.id).eq('status', 'COMPLETE');
+             return { primary: totalLogged || 0, primaryLabel: "Total Tasks Logged", secondary: totalDone || 0, secondaryLabel: "Activities Completed" };
+         }
+     },
+     enabled: !!user?.id
+  });
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -107,31 +130,37 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Quick Stats (Mocked for visual weight) */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
-              <div className="p-3 bg-gray-3 rounded-full text-gray-9">
-                <Hash size={20} />
+          {/* Live Dynamic Stats */}
+          {!user?.isSuperAdmin && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
+                <div className="p-3 bg-gray-3 rounded-full text-gray-9">
+                  <Hash size={20} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-12">
+                     {isStatsLoading ? <Loader2 size={16} className="animate-spin mt-1 mb-2" /> : stats?.primary}
+                  </p>
+                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                    {stats?.primaryLabel || 'Metrics'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-12">42</p>
-                <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
-                  Total Tasks Logged
-                </p>
+              <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
+                <div className="p-3 bg-green-900/20 rounded-full text-green-500">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-green-400">
+                     {isStatsLoading ? <Loader2 size={16} className="animate-spin mt-1 mb-2" /> : stats?.secondary}
+                  </p>
+                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                    {stats?.secondaryLabel || 'Completed'}
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
-              <div className="p-3 bg-green-900/20 rounded-full text-green-500">
-                <ShieldCheck size={20} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-400">38</p>
-                <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
-                  HR Verified Tasks
-                </p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

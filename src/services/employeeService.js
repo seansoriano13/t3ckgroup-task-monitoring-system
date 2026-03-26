@@ -18,6 +18,7 @@ export const employeeService = {
       subDepartment: data.sub_department,
       isHead: data.is_head,
       isHr: data.is_hr,
+      isSuperAdmin: data.is_super_admin,
     };
   },
 
@@ -33,6 +34,7 @@ export const employeeService = {
       subDepartment: employee.sub_department,
       isHead: employee.is_head,
       isHr: employee.is_hr,
+      isSuperAdmin: employee.is_super_admin,
     }));
   },
 
@@ -50,6 +52,57 @@ export const employeeService = {
     }));
   },
 
+  async createCategory(categoryData) {
+    const { data, error } = await supabase
+      .from("categories")
+      .insert([
+        {
+          category_id: categoryData.categoryId,
+          description: categoryData.description,
+          department: categoryData.department,
+          sub_department: categoryData.subDepartment,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async updateCategory(id, categoryData) {
+    const { data, error } = await supabase
+      .from("categories")
+      .update({
+        description: categoryData.description,
+        department: categoryData.department,
+        sub_department: categoryData.subDepartment,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async isCategoryInUse(categoryId) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("id")
+      .eq("category_id", categoryId)
+      .limit(1);
+
+    if (error) throw error;
+    return Array.isArray(data) && data.length > 0;
+  },
+
+  async deleteCategory(id) {
+    const { error } = await supabase.from("categories").delete().eq("id", id);
+    if (error) throw error;
+    return true;
+  },
+
   async createEmployee(employeeData) {
     const { data, error } = await supabase
       .from("employees")
@@ -61,6 +114,7 @@ export const employeeService = {
           sub_department: employeeData.subDepartment,
           is_head: employeeData.isHead,
           is_hr: employeeData.isHr,
+          is_super_admin: employeeData.isSuperAdmin,
         },
       ])
       .select()
@@ -68,5 +122,31 @@ export const employeeService = {
 
     if (error) throw error;
     return data;
+  },
+
+  async updateEmployee(id, employeeData) {
+    const { data, error } = await supabase
+      .from("employees")
+      .update({
+        email: employeeData.email,
+        name: employeeData.name,
+        department: employeeData.department,
+        sub_department: employeeData.subDepartment,
+        is_head: employeeData.isHead,
+        is_hr: employeeData.isHr,
+        is_super_admin: employeeData.isSuperAdmin,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteEmployee(id) {
+    const { error } = await supabase.from("employees").delete().eq("id", id);
+    if (error) throw error;
+    return true;
   },
 };

@@ -4,48 +4,74 @@ import PrimaryButton from "./PrimaryButton";
 import { Notebook } from "lucide-react";
 import { LayoutList } from "lucide-react";
 import { UserRound } from "lucide-react";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router";
 import { ListCheck } from "lucide-react";
 import { Bolt } from "lucide-react";
 import { ShieldCheck } from "lucide-react";
 import { Database } from "lucide-react";
+import { Users } from "lucide-react";
+import { Crown } from "lucide-react";
+import { CalendarDays } from "lucide-react";
+import { CheckSquare } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { useState } from "react";
 import { X } from "lucide-react";
 
 export default function SideNav({ onOpenAddTask }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // 🔥 The Hover State
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleSidebar = () => setIsExpanded((prev) => !prev);
 
-  // 1. Base links that EVERYONE sees
-  const navLinks = [
-    { label: "Dashboard", link: "/", icon: LayoutList },
-    { label: "Tasks", link: "/tasks", icon: ListCheck },
-  ];
+  const isSales = user?.department?.toLowerCase().includes("sales") || user?.subDepartment?.toLowerCase().includes("sales");
 
-  // 2. Conditionally inject Head/HR links based on their Supabase Role
-  if (user?.isHead) {
-    navLinks.push({
-      label: "For Approval",
-      link: "/approvals",
-      icon: ShieldCheck,
-    });
-  }
-  if (user?.isHr) {
-    navLinks.push({
-      label: "HR Master Log",
-      link: "/hr-master-log",
-      icon: Database,
-    });
-  }
+  // 1. Regular Employees Links
+  let navLinks = [];
 
-  // 3. Append the universal bottom links
-  navLinks.push(
-    { label: "Profile", link: "/profile", icon: UserRound },
-    { label: "Settings", link: "/settings", icon: Bolt },
-  );
+  if (user?.isSuperAdmin) {
+     // STRICT SUPER ADMIN LAYOUT
+     navLinks = [
+       { label: "Dashboard", link: "/", icon: LayoutList },
+       { label: "Tasks", link: "/tasks", icon: ListCheck },
+       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
+       { label: "Super Admin", link: "/super-admin", icon: Crown },
+       { label: "Profile", link: "/profile", icon: UserRound },
+       {label: "Settings", link: "/settings", icon: Bolt}
+     ];
+  } else {
+     // STANDARD & SALES LAYOUT
+     navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
+     
+     if (!isSales) {
+       navLinks.push({ label: "Tasks", link: "/tasks", icon: ListCheck });
+     } else {
+       navLinks.push(
+         { label: "Sales Planner", link: "/sales/schedule", icon: CalendarDays },
+         { label: "Daily Execution", link: "/sales/daily", icon: CheckSquare },
+         { label: "Log Revenue", link: "/sales/log-revenue", icon: DollarSign },
+         { label: "Sales Records", link: "/sales/records", icon: ListCheck }
+       );
+     }
+
+     if (user?.isHead) {
+       navLinks.push({ label: "For Approval", link: "/approvals", icon: ShieldCheck });
+     }
+     
+     if (user?.isHr) {
+       navLinks.push(
+         { label: "HR Master Log", link: "/hr-master-log", icon: Database },
+         { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users }
+       );
+     }
+
+     // Universal bottom links
+     navLinks.push(
+       { label: "Profile", link: "/profile", icon: UserRound },
+       { label: "Settings", link: "/settings", icon: Bolt }
+     );
+  }
 
   return (
     // The main wrapper listens for mouse enter and leave
@@ -68,16 +94,24 @@ export default function SideNav({ onOpenAddTask }) {
           alt="Profile"
           referrerPolicy="no-referrer"
         />
-        <div>
-          <PrimaryButton
-            onClick={() => {
-              setIsExpanded(false); // Close sidebar when opening modal
-              onOpenAddTask();
-            }}
-            className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all"
-            label={<Plus size={20} />}
-          />
-        </div>
+        {!user?.isSuperAdmin && (
+          <div>
+            <PrimaryButton
+              onClick={() => {
+                setIsExpanded(false); // Close sidebar when opening modal
+                if (isSales && !user?.isSuperAdmin) {
+                   navigate('/sales/schedule');
+                } else if (user?.is_hr || user?.isHr || user?.is_head || user?.isHead) {
+                   navigate('/approvals');
+                } else {
+                   onOpenAddTask();
+                }
+              }}
+              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all"
+              label={<Plus size={20} />}
+            />
+          </div>
+        )}
       </aside>
 
       {/* Pane 2: The Expanded Menu (Hidden by default, slides out over content) */}

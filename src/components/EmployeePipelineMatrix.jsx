@@ -33,6 +33,11 @@ export default function EmployeePipelineMatrix() {
         if (task.creator?.department !== userDepartment) return; // 🔥 Use the variable here
       }
 
+      // If Super Admin, exclude tasks/stats belonging to other Heads or HR
+      if (user?.isSuperAdmin) {
+        if (task.creator?.is_head || task.creator?.is_hr) return;
+      }
+
       if (!empMap[task.loggedById]) {
         empMap[task.loggedById] = {
           id: task.loggedById,
@@ -59,7 +64,8 @@ export default function EmployeePipelineMatrix() {
       if (task.hrVerified) emp.verified++;
 
       // Grade Logic
-      if (task.grade > 0) {
+      // Only count finalized "COMPLETE" tasks toward average grade.
+      if (task.status === "COMPLETE" && task.grade > 0) {
         emp.totalGrade += task.grade;
         emp.gradedCount++;
       }
@@ -175,7 +181,7 @@ export default function EmployeePipelineMatrix() {
               <div className="flex justify-between text-[10px] font-semibold text-gray-8 pt-1">
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  {emp.draft} Draft
+                  {emp.draft} Incomplete
                 </span>
                 {emp.rejected > 0 && (
                   <span className="flex items-center gap-1 text-red-500">

@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
+import { useTheme } from "./hooks/useTheme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,44 +40,51 @@ function GlobalErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
+function ThemeApplier({ children }) {
+  useTheme();
+  return children;
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
    <ErrorBoundary FallbackComponent={GlobalErrorFallback}>
      <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId="657214572650-l21fq9k3kp078k343go0o22toagqgirs.apps.googleusercontent.com">
         <AuthProvider>
-          <Toaster
-            position="bottom-center"
-            reverseOrder={false}
-            gutter={12}
-            containerStyle={{ zIndex: 9999 }}
-            toastOptions={{
-              duration: 3000, // default duration
-              style: {
-                background: "#1f1f1f",
-                color: "#fff",
-                borderRadius: "12px",
-                fontWeight: "600",
-                padding: "14px 18px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
-                fontFamily: "'Inter', sans-serif",
-              },
-              success: {
-                duration: 2500,
-                iconTheme: { primary: "#22c55e", secondary: "#fff" },
-                style: { background: "#22c55e", color: "#fff" },
-              },
-              error: {
-                duration: 4000,
-                iconTheme: { primary: "#ef4444", secondary: "#fff" },
-                style: { background: "#ef4444", color: "#fff" },
-              },
-              loading: {
-                style: { background: "#facc15", color: "#000" },
-              },
-            }}
-          />
-          <Routes />
+          <ThemeApplier>
+            <Toaster
+              position="bottom-center"
+              reverseOrder={false}
+              gutter={12}
+              containerStyle={{ zIndex: 9999 }}
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: "#1f1f1f",
+                  color: "#fff",
+                  borderRadius: "12px",
+                  fontWeight: "600",
+                  padding: "14px 18px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+                  fontFamily: "'Inter', sans-serif",
+                },
+                success: {
+                  duration: 2500,
+                  iconTheme: { primary: "#22c55e", secondary: "#fff" },
+                  style: { background: "#22c55e", color: "#fff" },
+                },
+                error: {
+                  duration: 4000,
+                  iconTheme: { primary: "#ef4444", secondary: "#fff" },
+                  style: { background: "#ef4444", color: "#fff" },
+                },
+                loading: {
+                  style: { background: "#facc15", color: "#000" },
+                },
+              }}
+            />
+            <Routes />
+          </ThemeApplier>
         </AuthProvider>
       </GoogleOAuthProvider>
     </QueryClientProvider>

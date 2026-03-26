@@ -5,6 +5,7 @@ export default function ProtectedRoute({
   children,
   requireHead = false,
   requireHr = false,
+  requireSuperAdmin = false,
 }) {
   const { user, isAuthLoading } = useAuth();
 
@@ -19,6 +20,11 @@ export default function ProtectedRoute({
   //   If not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Super Admin barrier
+  if (requireSuperAdmin && !user.isSuperAdmin && !user.is_super_admin) {
+    return <Navigate to="/" replace />;
   }
 
   //   If not HR and not Head
