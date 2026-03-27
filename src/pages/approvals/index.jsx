@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService.js";
@@ -21,6 +22,18 @@ export default function ApprovalsPage() {
     queryFn: () => taskService.getAllTasks(),
     enabled: !!user?.id,
   });
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [autoOpenId, setAutoOpenId] = useState(null);
+
+  // 🔥 DEEP LINKING HOOK
+  useEffect(() => {
+     if (location.state?.openTaskId && rawTasks.length > 0) {
+        setAutoOpenId(location.state.openTaskId);
+        navigate(location.pathname, { replace: true, state: {} });
+     }
+  }, [location.state, rawTasks, navigate, location.pathname]);
 
   // 2. THE FORKED QUEUE LOGIC
   const pendingTasks = useMemo(() => {
@@ -107,6 +120,7 @@ export default function ApprovalsPage() {
                 task={task}
                 isHr={isHr} // 👈 Pass role to the row so UI changes
                 currentUserId={user?.id}
+                defaultExpanded={task.id === autoOpenId}
                 onProcess={(payload) =>
                   editTaskMutation.mutateAsync({
                     ...payload,
@@ -133,11 +147,15 @@ export default function ApprovalsPage() {
   );
 }
 
-function ApprovalRow({ task, isHr, onProcess, isSubmitting, currentUserId }) {
-  const [expanded, setExpanded] = useState(false);
+function ApprovalRow({ task, isHr, onProcess, isSubmitting, currentUserId, defaultExpanded }) {
+  const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(null);
   const [remarks, setRemarks] = useState("");
   const [hrRemarks, setHrRemarks] = useState(""); // 👈 New state for HR
+
+  useEffect(() => {
+     if (defaultExpanded) setExpanded(true);
+  }, [defaultExpanded]);
 
   // --- HEAD HANDLERS ---
   const handleHeadApprove = () => {

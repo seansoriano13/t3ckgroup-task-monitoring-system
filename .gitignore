@@ -26,4 +26,6 @@ dist-ssr
 *.sw?
 *.sql
 
+notes.txt
+
 t3ckgroup.sql

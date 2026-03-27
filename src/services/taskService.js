@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase.js";
+import { notificationService } from "./notificationService.js";
 
 export const taskService = {
   // 1. HR/HEAD VIEW: Get everything
@@ -130,6 +131,20 @@ export const taskService = {
       .select();
 
     if (error) throw error;
+
+    // Trigger Notification: New Task Submitted -> Head
+    // We need to fetch the creator's department to notify the correct Head
+    const { data: creator } = await supabase.from('employees').select('name, sub_department').eq('id', payload.loggedById).single();
+    if (creator) {
+       notificationService.notifyHeadByDepartment(creator.sub_department, {
+          sender_id: payload.loggedById,
+          type: 'NEW_TASK_SUBMITTED',
+          title: 'New Task Submitted',
+          message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
+          reference_id: data[0].id
+       });
+    }
+
     return data[0];
   },
 
@@ -168,7 +183,7 @@ export const taskService = {
     if (needsTransitionCheck) {
       const { data: cur, error: curErr } = await supabase
         .from("tasks")
-        .select("status, hr_verified, evaluated_by")
+        .select("status, hr_verified, evaluated_by, logged_by, task_description, creator:employees!tasks_logged_by_fk(name, department)")
         .eq("id", taskId)
         .single();
       if (curErr) throw curErr;
@@ -307,6 +322,69 @@ export const taskService = {
       .single();
 
     if (error) throw error;
+
+    // 🔥 NOTIFICATION TRIGGERS 🔥
+    if (current && payload.editedBy) {
+       const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? '...' : ''}"`;
+       const empDept = current.creator?.department;
+       
+       if (isHeadApprove) {
+          notificationService.broadcastToRole(['HR'], {
+             sender_id: payload.editedBy,
+             type: 'TASK_APPROVED_BY_HEAD',
+             title: 'Task Ready for HR',
+             message: `A Head approved task ${taskNameSnippet} from ${current.creator?.name}. Ready for Verification.`,
+             reference_id: taskId
+          });
+       }
+
+       if (isHeadReject || isHrReject) {
+          notificationService.createNotification({
+             recipient_id: current.logged_by,
+             sender_id: payload.editedBy,
+             type: 'TASK_REJECTED',
+             title: 'Task Revision Required',
+             message: `Your task ${taskNameSnippet} was rejected for revision. Check the remarks.`,
+             reference_id: taskId
+          });
+       }
+
+       if (payload.hrVerified === true && current.hr_verified === false) {
+          // Notify the owner
+          notificationService.createNotification({
+             recipient_id: current.logged_by,
+             sender_id: payload.editedBy,
+             type: 'TASK_VERIFIED',
+             title: 'Task HR Verified',
+             message: `Your task ${taskNameSnippet} has been officially verified by HR!`,
+             reference_id: taskId
+          });
+
+          // Also keep the Head in the loop
+          const empSubDept = current.creator?.sub_department;
+          if (empSubDept) {
+             notificationService.notifyHeadByDepartment(empSubDept, {
+                sender_id: payload.editedBy,
+                type: 'TASK_VERIFIED',
+                title: 'Staff Task Verified by HR',
+                message: `Task ${taskNameSnippet} by ${current.creator?.name} under your department was verified by HR.`,
+                reference_id: taskId
+             });
+          }
+       }
+
+       if (payload.grade !== undefined && payload.grade > 0 && payload.status === 'COMPLETE' && current.evaluated_by == null) {
+          notificationService.createNotification({
+             recipient_id: current.logged_by,
+             sender_id: payload.editedBy,
+             type: 'TASK_GRADED',
+             title: 'Task Successfully Graded',
+             message: `You earned a grade of ${payload.grade} for ${taskNameSnippet}!`,
+             reference_id: taskId
+          });
+       }
+    }
+
     return data;
   },
 

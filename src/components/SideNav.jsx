@@ -1,5 +1,8 @@
-import { Plus } from "lucide-react";
+import { Plus, Bell } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { notificationService } from "../services/notificationService";
+import NotificationDrawer from "./NotificationDrawer";
 import PrimaryButton from "./PrimaryButton";
 import { Notebook } from "lucide-react";
 import { LayoutList } from "lucide-react";
@@ -24,6 +27,15 @@ export default function SideNav({ onOpenAddTask }) {
   // 🔥 The Hover State
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleSidebar = () => setIsExpanded((prev) => !prev);
+
+  // 🔥 Notification State
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const { data: notifications = [] } = useQuery({
+     queryKey: ['notifications', user?.id],
+     queryFn: () => notificationService.getMyNotifications(user?.id),
+     enabled: !!user?.id,
+  });
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const isSales = user?.department?.toLowerCase().includes("sales") || user?.subDepartment?.toLowerCase().includes("sales");
 
@@ -64,6 +76,9 @@ export default function SideNav({ onOpenAddTask }) {
          { label: "HR Master Log", link: "/hr-master-log", icon: Database },
          { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users }
        );
+       if (!isSales) {
+         navLinks.push({ label: "Sales Records", link: "/sales/records", icon: ListCheck });
+       }
      }
 
      // Universal bottom links
@@ -94,6 +109,19 @@ export default function SideNav({ onOpenAddTask }) {
           alt="Profile"
           referrerPolicy="no-referrer"
         />
+
+        {/* Global Notification Hub Trigger */}
+        <button
+          onClick={() => { setIsNotifOpen(true); setIsExpanded(false); }}
+          className="relative text-gray-10 hover:text-primary transition-colors p-2 rounded-xl hover:bg-red-a3 flex items-center justify-center group"
+          title="Notifications"
+        >
+           <Bell size={24} className="group-hover:scale-110 transition-transform" />
+           {unreadCount > 0 && (
+              <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-primary border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+           )}
+        </button>
+
         {!user?.isSuperAdmin && (
           <div>
             <PrimaryButton
@@ -176,6 +204,12 @@ export default function SideNav({ onOpenAddTask }) {
           </ul>
         </nav>
       </div>
+
+      {/* Global Notification Drawer */}
+      <NotificationDrawer 
+         isOpen={isNotifOpen} 
+         onClose={() => setIsNotifOpen(false)} 
+      />
     </div>
   );
 }

@@ -6,11 +6,11 @@ import DashboardHeader from "../components/DashboardHeader.jsx";
 import TasksList from "../components/TasksList.jsx";
 import TaskDetails from "../components/TaskDetails.jsx";
 import toast from "react-hot-toast";
-import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
 import SalesDashboard from "../components/SalesDashboard.jsx";
 import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
 import { Activity } from "lucide-react";
+import SalesPerformanceMetrics from "../components/SalesPerformanceMetrics.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -61,7 +61,6 @@ export default function Dashboard() {
                <div className="grid gap-8 relative z-10">
                  <DashboardStats />
                  <TasksList />
-                 <EmployeePipelineMatrix />
                </div>
              </div>
 
@@ -70,6 +69,7 @@ export default function Dashboard() {
                <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-green-500/5 blur-3xl rounded-full pointer-events-none -ml-40 -mt-20"></div>
                <div className="relative z-10 w-full overflow-hidden">
                   <SalesDashboard />
+                  <SalesPerformanceMetrics />
                </div>
              </div>
              
@@ -89,7 +89,12 @@ export default function Dashboard() {
   if (isSales) {
     return (
       <ProtectedRoute>
-        <SalesDashboard />
+        <div className="pb-10">
+           <SalesDashboard />
+           <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 -mt-4">
+              <SalesPerformanceMetrics />
+           </div>
+        </div>
       </ProtectedRoute>
     );
   }
@@ -101,7 +106,6 @@ export default function Dashboard() {
           <DashboardHeader />
           <DashboardStats />
           <TasksList />
-          {isManagement && <EmployeePipelineMatrix />}
         </div>
         <TaskDetails
           isOpen={isDrawerOpen}

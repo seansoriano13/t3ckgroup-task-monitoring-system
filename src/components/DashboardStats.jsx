@@ -36,9 +36,16 @@ export default function DashboardStats() {
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    // 1. Filter tasks for ONLY this month
+    // 1. Filter tasks for ONLY this month, EXCLUDING Super Admin
     const thisMonthTasks = rawTasks.filter((t) => {
       const taskDate = new Date(t.createdAt);
+      
+      const roleStr = (t.creator?.role || '').toLowerCase();
+      const deptStr = (t.creator?.department || '').toLowerCase();
+      if (t.creator?.isSuperAdmin || roleStr.includes('admin') || deptStr.includes('super admin') || deptStr.includes('management')) {
+         return false;
+      }
+
       return (
         taskDate.getMonth() === currentMonth &&
         taskDate.getFullYear() === currentYear

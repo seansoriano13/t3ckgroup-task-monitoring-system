@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
@@ -31,15 +31,24 @@ export default function LogRevenuePage() {
     onError: (err) => toast.error(err.message)
   });
 
+  const { data: appSettings } = useQuery({
+     queryKey: ["appSettings"],
+     queryFn: () => salesService.getAppSettings()
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const num = parseFloat(formData.revenue_amount);
     if (isNaN(num)) return toast.error("Invalid revenue amount");
 
+    // Magician Security Lock - If verification is globally flipped ON, force the row into an unverified state
+    const isVerifiedPayload = appSettings?.require_revenue_verification ? false : true;
+
     mutation.mutate({
        ...formData,
        employee_id: user.id,
-       revenue_amount: num
+       revenue_amount: num,
+       is_verified: isVerifiedPayload
     });
   }
 
@@ -63,10 +72,22 @@ export default function LogRevenuePage() {
 
               <div>
                 <label className="text-xs font-bold text-gray-9 uppercase block mb-1">Status</label>
-                <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 font-bold">
-                   <option value="COMPLETED SALES">COMPLETED SALES</option>
-                   <option value="LOST SALES">LOST SALES</option>
-                </select>
+                <div className="flex bg-gray-2 border border-gray-4 rounded-lg p-1">
+                   <button 
+                     type="button"
+                     onClick={() => setFormData({...formData, status: 'COMPLETED SALES'})}
+                     className={`flex-1 py-2 px-3 text-xs font-black uppercase tracking-widest rounded-md transition-all ${formData.status === 'COMPLETED SALES' ? 'bg-green-600 text-white shadow-md' : 'text-gray-9 hover:text-gray-12'}`}
+                   >
+                     COMPLETED
+                   </button>
+                   <button 
+                     type="button"
+                     onClick={() => setFormData({...formData, status: 'LOST SALES'})}
+                     className={`flex-1 py-2 px-3 text-xs font-black uppercase tracking-widest rounded-md transition-all ${formData.status === 'LOST SALES' ? 'bg-red-500 text-white shadow-md' : 'text-gray-9 hover:text-gray-12'}`}
+                   >
+                     LOST
+                   </button>
+                </div>
               </div>
 
               <div className="sm:col-span-2">
@@ -75,7 +96,7 @@ export default function LogRevenuePage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="text-xs font-bold text-gray-9 uppercase block mb-1">Product / Item Sold</label>
+                <label className="text-xs font-bold text-gray-9 uppercase block mb-1">Product / Item</label>
                 <input required type="text" placeholder="e.g. Heavy Duty Double Jacketed Hose" value={formData.product_item_sold} onChange={e => setFormData({...formData, product_item_sold: e.target.value})} className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500" />
               </div>
 

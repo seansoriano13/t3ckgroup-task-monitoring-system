@@ -5,6 +5,9 @@ import { useAuth } from "../../context/AuthContext";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
 import { Crown, Save, DollarSign, Loader2 } from "lucide-react";
+import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
+import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
+import DatePicker from "react-datepicker";
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
@@ -26,6 +29,12 @@ export default function SuperAdminDashboard() {
   const { data: quotas = [], isLoading: loadingQuotas } = useQuery({
     queryKey: ["quotas", selectedMonth],
     queryFn: () => salesService.getQuotasByMonth(selectedMonth),
+  });
+
+  // 3. Fetch all activities for Stats
+  const { data: allActivities = [], isLoading: loadingAct } = useQuery({
+    queryKey: ['allSalesActivitiesAdmin'],
+    queryFn: () => salesService.getAllSalesActivities(),
   });
 
   const mutation = useMutation({
@@ -65,7 +74,7 @@ export default function SuperAdminDashboard() {
 
   return (
     <ProtectedRoute requireSuperAdmin={true}>
-      <div className="max-w-7xl mx-auto space-y-6 pb-10 px-2 sm:px-0">
+      <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
           <div>
             <h1 className="text-3xl font-black text-gray-12 flex items-center gap-2">
@@ -76,18 +85,24 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
           
-          <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
-             <span className="text-xs font-bold text-gray-9 mr-3 uppercase">Target Month:</span>
-             <input
-               type="month"
-               value={selectedMonth.substring(0, 7)}
-               onChange={(e) => setSelectedMonth(`${e.target.value}-01`)}
-               className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer"
+          <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner w-full sm:w-auto overflow-hidden">
+             <span className="text-xs font-bold text-gray-9 mr-3 uppercase shrink-0">Target Month:</span>
+             <DatePicker
+               selected={new Date(selectedMonth)}
+               onChange={(date) => {
+                  if (date) {
+                     const m = String(date.getMonth() + 1).padStart(2, '0');
+                     setSelectedMonth(`${date.getFullYear()}-${m}-01`);
+                  }
+               }}
+               showMonthYearPicker
+               dateFormat="MMMM yyyy"
+               className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer flex-1 min-w-[120px] w-full"
              />
           </div>
         </div>
 
-        <div className="bg-gray-1 border border-primary/20 p-6 rounded-xl shadow-lg border-t-4 border-t-purple-600">
+        <div className="bg-gray-1 border border-primary/20 p-4 sm:p-6 rounded-xl shadow-lg border-t-4 border-t-purple-600">
           <h2 className="text-xl font-bold text-gray-12 mb-4">Set Sales Quotas</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -107,6 +122,11 @@ export default function SuperAdminDashboard() {
           {salesEmployees.length === 0 && (
             <p className="text-gray-9 italic">No employees found matching 'Sales' department criteria.</p>
           )}
+        </div>
+
+        <SalesPerformanceMetrics />
+        <div className="pt-6">
+           <EmployeePipelineMatrix />
         </div>
       </div>
     </ProtectedRoute>
@@ -136,7 +156,7 @@ function QuotaCard({ employee, currentQuota, onSave, isSaving }) {
          <button 
            onClick={() => onSave(val)}
            disabled={isSaving || val == currentQuota}
-           className="bg-purple-600 hover:bg-purple-800 disabled:bg-gray-5 disabled:text-gray-8 text-white p-2 rounded-lg transition-colors font-bold flex items-center"
+           className="bg-purple-600 hover:bg-purple-800 disabled:bg-gray-5 disabled:text-gray-8 text-white p-2 rounded-lg transition-colors font-bold flex items-center shrink-0"
          >
            <Save size={18} />
          </button>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router";
 import {
   Search,
   Filter,
@@ -101,6 +102,20 @@ export default function TasksPage() {
         : taskService.getMyTasks(user?.id),
     enabled: !!user?.id,
   });
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // 🔥 DEEP LINKING NOTIFICATION HOOK
+  useEffect(() => {
+     if (location.state?.openTaskId && rawTasks.length > 0) {
+        const targetTask = rawTasks.find(t => t.id === location.state.openTaskId);
+        if (targetTask) {
+           setViewTask(targetTask);
+           navigate(location.pathname, { replace: true, state: {} });
+        }
+     }
+  }, [location.state, rawTasks, navigate, location.pathname]);
 
   // THE WRITE ENGINE
   const editTaskMutation = useMutation({

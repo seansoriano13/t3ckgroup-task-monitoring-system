@@ -5,6 +5,7 @@ import { Trophy, TrendingUp, TrendingDown, Download, AlertCircle, FileText, Layo
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import StatusBadge from "./StatusBadge.jsx";
+import DatePicker from "react-datepicker";
 
 function formatDateToYMD(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -56,6 +57,12 @@ export default function SalesDashboard() {
      queryFn: () => salesService.getLeaderboardData(selectedMonth),
      refetchInterval: 3000
   });
+
+  const { data: appSettings } = useQuery({
+     queryKey: ["appSettings"],
+     queryFn: () => salesService.getAppSettings()
+  });
+  const isVerificationEnforced = appSettings?.require_revenue_verification === true;
 
   const { data: overviewLogs = [], isLoading: isOverviewLogsLoading } = useQuery({
     queryKey: ['salesRevenueLogs', selectedMonth],
@@ -147,7 +154,7 @@ export default function SalesDashboard() {
            </button>
            <button 
              onClick={() => setActiveTab("ANALYTICS")}
-             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeTab === 'ANALYTICS' ? 'bg-blue-600 text-white shadow' : 'text-gray-9 hover:text-gray-12'}`}
+             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeTab === 'ANALYTICS' ? 'bg-red-9 text-white shadow' : 'text-gray-9 hover:text-gray-12'}`}
            >
              <PieChart size={16} /> Advanced Analytics
            </button>
@@ -165,14 +172,20 @@ export default function SalesDashboard() {
               <div className="flex gap-4 items-center">
                   <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
                      <span className="text-xs font-bold text-gray-9 mr-3 uppercase tracking-wider">Target Month:</span>
-                     <input
-                       type="month"
-                       value={selectedMonth}
-                       onChange={(e) => setSelectedMonth(e.target.value)}
-                       className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer text-sm"
-                     />
+                      <DatePicker
+                        selected={new Date(selectedMonth)}
+                        onChange={(date) => {
+                           if (date) {
+                              const m = String(date.getMonth() + 1).padStart(2, '0');
+                              setSelectedMonth(`${date.getFullYear()}-${m}`);
+                           }
+                        }}
+                        showMonthYearPicker
+                        dateFormat="MMMM yyyy"
+                        className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer flex-1 min-w-[120px] w-full"
+                      />
                   </div>
-                  <button onClick={printMonthlyReport} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-lg shadow-blue-500/20">
+                  <button onClick={printMonthlyReport} className="bg-red-9 hover:bg-red-10 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-lg shadow-blue-500/20">
                      <Download size={16} /> Export PDF
                   </button>
               </div>
@@ -180,16 +193,16 @@ export default function SalesDashboard() {
 
            {/* DEPARTMENT AGGREGATES */}
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gray-1 border border-green-900/30 p-6 rounded-2xl shadow-lg border-b-4 border-b-green-500 transition-transform hover:-translate-y-1">
+              <div className="bg-gray-1 border border-gray-4 p-6 rounded-2xl shadow-lg border-b-4 transition-transform hover:-translate-y-1">
                  <h3 className="text-xs font-bold text-gray-9 uppercase tracking-widest flex items-center gap-2 mb-2"><TrendingUp size={14} className="text-green-500" /> Total Completed Sales</h3>
                  <p className="text-4xl font-black text-gray-12">₱{totalWon.toLocaleString()}</p>
 
               </div>
-              <div className="bg-gray-1 border border-red-900/30 p-6 rounded-2xl shadow-lg border-b-4 border-b-red-500 transition-transform hover:-translate-y-1">
+              <div className="bg-gray-1 border border-gray-4 p-6 rounded-2xl shadow-lg border-b-4 transition-transform hover:-translate-y-1">
                  <h3 className="text-xs font-bold text-gray-9 uppercase tracking-widest flex items-center gap-2 mb-2"><TrendingDown size={14} className="text-red-500" /> Total Lost Sales</h3>
                  <p className="text-4xl font-black text-gray-12">₱{totalLost.toLocaleString()}</p>
               </div>
-              <div className="bg-gray-1 border border-blue-900/30 p-6 rounded-2xl shadow-lg border-b-4 border-b-blue-500 relative overflow-hidden transition-transform hover:-translate-y-1">
+              <div className="bg-gray-1 border border-gray-4 p-6 rounded-2xl shadow-lg border-b-4 relative overflow-hidden transition-transform hover:-translate-y-1">
                  <h3 className="text-xs font-bold text-gray-9 uppercase tracking-widest flex items-center gap-2 mb-2"><Trophy size={14} className="text-blue-500" /> Quota Percentage</h3>
                  <p className="text-4xl font-black text-gray-12">{companyPct}%</p>
                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
@@ -215,8 +228,8 @@ export default function SalesDashboard() {
                               <th className="p-4 w-12 text-center">Rank</th>
                               <th className="p-4">Employee</th>
                               <th className="p-4 text-right">Quota Target</th>
-                              <th className="p-4 text-right text-green-500">Completed Sales</th>
-                              <th className="p-4 text-right text-red-500">Lost Sales</th>
+                              <th className="p-4 text-right">Completed Sales</th>
+                              <th className="p-4 text-right">Lost Sales</th>
                               <th className="p-4 text-center">Percentage</th>
                            </tr>
                         </thead>
@@ -230,9 +243,9 @@ export default function SalesDashboard() {
                               return (
                                  <tr key={emp.name} className={`hover:bg-gray-3 transition-colors ${isTop ? 'bg-yellow-500/5' : ''}`}>
                                     <td className="p-4 text-center font-black">
-                                       {isTop ? <Trophy size={18} className="mx-auto text-yellow-500 drop-shadow" /> : <span className="text-gray-9">#{idx + 1}</span>}
+                                       {isTop ? <Trophy size={18} className="mx-auto drop-shadow" /> : <span className="text-gray-9">#{idx + 1}</span>}
                                     </td>
-                                    <td className="p-4 font-bold text-gray-12 text-sm">{emp.name} {isSelf && <span className="ml-2 text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">You</span>}</td>
+                                    <td className="p-4 font-bold text-gray-12 text-sm">{emp.name} {isSelf && <span className="ml-2 text-[10px] bg-gray-12 text-gray-1 px-2 py-0.5 rounded-full uppercase tracking-widest">You</span>}</td>
                                     <td className="p-4 text-right font-mono text-gray-11 text-sm">
                                        {canSeeNumbers ? `₱${Number(emp.quota).toLocaleString()}` : <span className="text-gray-8 italic font-sans">{pct}% Quota</span>}
                                     </td>
@@ -260,14 +273,15 @@ export default function SalesDashboard() {
            </div>
 
            {/* REVENUE LOGS SECTION */}
-           <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-xl overflow-hidden mt-8">
-             <div className="flex justify-between items-center mb-6">
-                <div>
-                   <h2 className="text-xs font-black uppercase tracking-widest text-gray-12 flex items-center gap-2">
-                      <FileText className="text-primary" size={16} /> Approved Revenue Logs
-                   </h2>
-                </div>
-             </div>
+           {isVerificationEnforced && (
+             <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-xl overflow-hidden mt-8">
+               <div className="flex justify-between items-center mb-6">
+                  <div>
+                     <h2 className="text-xs font-black uppercase tracking-widest text-gray-12 flex items-center gap-2">
+                        <FileText className="text-primary" size={16} /> Approved Revenue Logs
+                     </h2>
+                  </div>
+               </div>
 
              <div className="overflow-x-auto rounded-xl border border-gray-4">
                 <table className="w-full text-left border-collapse">
@@ -302,6 +316,7 @@ export default function SalesDashboard() {
                 </table>
              </div>
            </div>
+           )}
         </div>
       )}
 
@@ -331,7 +346,7 @@ export default function SalesDashboard() {
                     <button onClick={() => handleAnalyticPreset('THIS_YEAR')} className={`px-4 py-2 text-xs font-bold uppercase tracking-wider whitespace-nowrap rounded-lg transition-colors ${activePreset === 'THIS_YEAR' ? 'bg-gray-4 text-gray-12 shadow-sm' : 'text-gray-9 hover:text-gray-12 hover:bg-gray-3'}`}>This Year</button>
                  </div>
                  
-                 <button onClick={printMonthlyReport} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                 <button onClick={printMonthlyReport} className="bg-red-9 hover:bg-red-10 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-lg shadow-blue-500/20 whitespace-nowrap">
                    <Download size={16} /> Export View
                  </button>
               </div>
@@ -339,12 +354,12 @@ export default function SalesDashboard() {
 
            {/* ANALYTICS AGGREGATES */}
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-blue-900/10 border border-blue-500/30 p-8 rounded-2xl shadow-lg border-b-4 border-b-blue-500 flex flex-col justify-center">
-                 <h3 className="text-xs font-black text-blue-500 uppercase tracking-widest flex items-center gap-2 mb-2"><TrendingUp size={16} /> Period Closed Revenue</h3>
+              <div className="border border-gray-4 p-8 rounded-2xl shadow-lg flex flex-col justify-center">
+                 <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 mb-2 "><TrendingUp className="text-green-600" size={16} /> Period Closed Revenue</h3>
                  <p className="text-5xl font-black text-gray-12">₱{anAggs.won.toLocaleString()}</p>
               </div>
-              <div className="bg-gray-2 border border-gray-4 p-8 rounded-2xl shadow-sm border-b-4 border-b-red-500 flex flex-col justify-center">
-                 <h3 className="text-xs font-bold text-gray-8 uppercase tracking-widest flex items-center gap-2 mb-2"><TrendingDown size={14} className="text-red-500" /> Period Lost Revenue</h3>
+              <div className="border border-gray-4 p-8 rounded-2xl shadow-lg flex flex-col justify-center">
+                 <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-2"><TrendingDown size={14} className="text-red-500" /> Period Lost Revenue</h3>
                  <p className="text-4xl font-black text-gray-11">₱{anAggs.lost.toLocaleString()}</p>
                  <span className="text-xs text-gray-8 mt-2 block italic">Lost opportunities inside query boundary.</span>
               </div>
@@ -355,13 +370,13 @@ export default function SalesDashboard() {
               
               {/* By REP */}
               <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-lg">
-                 <h3 className="text-sm font-black uppercase tracking-widest text-gray-12 flex items-center gap-2 border-b border-gray-4 pb-4 mb-4"><Trophy size={16} className="text-yellow-500" /> Representative Payouts</h3>
+                 <h3 className="text-sm font-black uppercase tracking-widest text-gray-12 flex items-center gap-2 border-b border-gray-4 pb-4 mb-4"><Trophy size={16}/> Representative Payouts</h3>
                  <div className="space-y-4">
                     {anAggs.empArr.length === 0 ? (
                        <p className="text-sm text-gray-8 text-center py-4 italic">No revenue recorded in this exact date range.</p>
                     ) : (
                        anAggs.empArr.map((emp, i) => (
-                          <div key={emp.name} className="flex justify-between items-center bg-gray-2 p-3 rounded-xl border border-gray-3 hover:border-blue-500/50 transition-colors">
+                          <div key={emp.name} className="flex justify-between items-center bg-gray-2 p-3 rounded-xl border border-gray-3 hover:border-gray-4 transition-colors">
                              <div className="flex items-center gap-3">
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${i === 0 ? 'bg-yellow-500/20 text-yellow-600' : 'bg-gray-4 text-gray-10'}`}>{i + 1}</span>
                                 <div>
@@ -370,7 +385,7 @@ export default function SalesDashboard() {
                                 </div>
                              </div>
                              <div className="text-right">
-                                <p className="font-mono font-black text-green-500 text-lg">₱{emp.won.toLocaleString()}</p>
+                                <p className="font-mono font-black  text-lg">₱{emp.won.toLocaleString()}</p>
                              </div>
                           </div>
                        ))
@@ -380,7 +395,7 @@ export default function SalesDashboard() {
 
               {/* By PRODUCT */}
               <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-lg">
-                 <h3 className="text-sm font-black uppercase tracking-widest text-gray-12 flex items-center gap-2 border-b border-gray-4 pb-4 mb-4"><Package size={16} className="text-purple-500" /> Top Selling Products</h3>
+                 <h3 className="text-sm font-black uppercase tracking-widest text-gray-12 flex items-center gap-2 border-b border-gray-4 pb-4 mb-4"><Package size={16} className="" /> Top </h3>
                  <div className="space-y-4">
                     {anAggs.prodArr.length === 0 ? (
                        <p className="text-sm text-gray-8 text-center py-4 italic">No products matched query.</p>
@@ -392,8 +407,8 @@ export default function SalesDashboard() {
                                 <span className="text-[10px] bg-gray-4 text-gray-11 px-2 py-0.5 rounded font-black tracking-widest uppercase shrink-0">Qty: {prod.count}</span>
                              </div>
                              <div className="flex justify-between text-xs font-mono font-black">
-                                <span className="text-green-500">Completed Sales: ₱{prod.won.toLocaleString()}</span>
-                                <span className="text-red-500/80">Lost Sales: ₱{prod.lost.toLocaleString()}</span>
+                                <span className="">Completed Sales: ₱{prod.won.toLocaleString()}</span>
+                                <span className="">Lost Sales: ₱{prod.lost.toLocaleString()}</span>
                              </div>
                           </div>
                        ))

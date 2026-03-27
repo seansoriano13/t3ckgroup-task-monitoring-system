@@ -29,7 +29,7 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
       {/* HEADER */}
       <div>
         <h1 className="text-3xl font-bold text-gray-12">My Profile</h1>
@@ -53,12 +53,12 @@ export default function ProfilePage() {
               {(user?.isHead || user?.isHr) && (
                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                   {user?.isHead && (
-                    <span className="bg-amber-900/40 text-amber-400 border border-amber-700/50 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-amber-900 text-amber-400 border border-amber-700/50 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                       Head
                     </span>
                   )}
                   {user?.isHr && (
-                    <span className="bg-purple-900/40 text-purple-400 border border-purple-700/50 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-purple-900 text-purple-400 border border-purple-700/50 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                       HR
                     </span>
                   )}
@@ -122,7 +122,7 @@ export default function ProfilePage() {
                   <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
                     System ID
                   </p>
-                  <p className="text-gray-10 font-mono text-xs mt-1">
+                  <p className="text-gray-10 font-mono text-xs mt-1 break-all">
                     {user?.id || "UUID_PENDING"}
                   </p>
                 </div>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
 
           {/* Live Dynamic Stats */}
           {!user?.isSuperAdmin && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
                 <div className="p-3 bg-gray-3 rounded-full text-gray-9">
                   <Hash size={20} />

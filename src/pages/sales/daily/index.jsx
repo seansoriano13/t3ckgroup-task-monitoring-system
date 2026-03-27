@@ -23,12 +23,39 @@ export default function DailyExecutionPage() {
   const queryClient = useQueryClient();
 
   const [currentDateObj, setCurrentDateObj] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => formatDateToYMD(new Date()));
+
+  // Pull weekly plan so we know which days actually have tasks for the dot indicator
+  const weekStartStr = formatDateToYMD(getStartOfWeek(currentDateObj));
+  const { data: planWrapper } = useQuery({
+    queryKey: ["weeklyPlanLoc", user?.id, weekStartStr],
+    queryFn: () => salesService.getWeeklyPlan(user?.id, weekStartStr),
+    enabled: !!user?.id,
+  });
+  const weeklyActivities = planWrapper?.sales_activities || [];
+  const planStatus = planWrapper?.status || 'DRAFT';
+  const isGreen = planStatus === 'SUBMITTED' || planStatus === 'APPROVED';
+
+  // Future week lock
+  const currentWeekStart = formatDateToYMD(getStartOfWeek(new Date()));
+  const isFutureWeek = weekStartStr > currentWeekStart;
+  const isLockedUI = isFutureWeek || planStatus === 'DRAFT';
+
+  const hasTasksOnSaturday = useMemo(() => {
+     return weeklyActivities.some(a => {
+        const d = new Date(a.scheduled_date);
+        // getDay() === 6 is Saturday
+        return d.getDay() === 6 && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== ''));
+     });
+  }, [weeklyActivities]);
   
-  // Calculate the dates for the week (Mon-Sat)
+  const daysToShow = hasTasksOnSaturday ? 6 : 5;
+  
+  // Calculate the dates for the week (Mon-Sat or Mon-Fri)
   const weekDates = useMemo(() => {
      const start = getStartOfWeek(currentDateObj);
      const dates = [];
-     for (let i = 0; i < 6; i++) {
+     for (let i = 0; i < daysToShow; i++) {
         const d = new Date(start);
         d.setDate(d.getDate() + i);
         dates.push({
@@ -37,9 +64,7 @@ export default function DailyExecutionPage() {
         });
      }
      return dates;
-  }, [currentDateObj]);
-
-  const [selectedDate, setSelectedDate] = useState(() => formatDateToYMD(new Date()));
+  }, [currentDateObj, daysToShow]);
 
   const { data: activities = [], isLoading } = useQuery({
     queryKey: ["dailyActivities", user?.id, selectedDate],
@@ -56,6 +81,7 @@ export default function DailyExecutionPage() {
     mutationFn: ({ id, details }) => salesService.markActivityDone(id, details),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dailyActivities", user?.id, selectedDate] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPlanLoc", user?.id, weekStartStr] });
       toast.success("Task Checked!");
     },
     onError: (err) => toast.error(err.message)
@@ -74,17 +100,6 @@ export default function DailyExecutionPage() {
     },
     onError: (err) => toast.error(err.message)
   });
-
-  // Pull weekly plan so we know which days actually have tasks for the dot indicator
-  const weekStartStr = formatDateToYMD(getStartOfWeek(currentDateObj));
-  const { data: planWrapper } = useQuery({
-    queryKey: ["weeklyPlanLoc", user?.id, weekStartStr],
-    queryFn: () => salesService.getWeeklyPlan(user?.id, weekStartStr),
-    enabled: !!user?.id,
-  });
-  const weeklyActivities = planWrapper?.sales_activities || [];
-  const planStatus = planWrapper?.status || 'DRAFT';
-  const isGreen = planStatus === 'SUBMITTED' || planStatus === 'APPROVED';
 
   const handleAddUnplanned = (payload) => {
     addUnplannedMutation.mutate({
@@ -133,34 +148,49 @@ export default function DailyExecutionPage() {
           </div>
         </div>
 
-        {/* WEEK VIEW TABS (Mon-Sat) */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-           {weekDates.map(wd => {
-             const hasTasks = weeklyActivities.some(a => a.scheduled_date === wd.dateStr && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== '')));
-             return (
-               <button
-                  key={wd.dateStr}
-                  onClick={() => setSelectedDate(wd.dateStr)}
-                  className={`flex flex-col items-center justify-center min-w-[64px] h-16 rounded-2xl border transition-all ${selectedDate === wd.dateStr ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-gray-1 border-gray-4 text-gray-10 hover:border-gray-6'}`}
-               >
-                  <span className={`text-[10px] items-center justify-center flex font-bold uppercase tracking-widest ${selectedDate === wd.dateStr ? 'text-white/80' : 'text-gray-8'}`}>
-                     {wd.label} {hasTasks && <div className={`w-1.5 h-1.5 rounded-full ${isGreen ? 'bg-green-500' : 'bg-yellow-500 shadow-yellow-500/50'} inline-block mb-1 ml-1 shadow-sm`} />}
-                  </span>
-                  <span className="text-xl font-black">{wd.dateStr.split('-')[2]}</span>
-               </button>
-             )
-           })}
-        </div>
+         {/* WEEK VIEW TABS (Mon-Sat) */}
+         <div className="flex gap-2 overflow-x-auto pb-2">
+            {weekDates.map(wd => {
+              const todaysTasks = weeklyActivities.filter(a => a.scheduled_date === wd.dateStr && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== '')));
+              const hasTasks = todaysTasks.length > 0;
+              const allTasksDone = hasTasks && todaysTasks.every(a => a.status === 'DONE');
+
+              return (
+                <button
+                   key={wd.dateStr}
+                   onClick={() => setSelectedDate(wd.dateStr)}
+                   className={`flex flex-col items-center justify-center min-w-[64px] h-16 rounded-2xl border transition-all ${
+                     selectedDate === wd.dateStr 
+                       ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105' 
+                       : allTasksDone 
+                       ? 'bg-green-500/10 border-green-500/30 text-green-700 hover:bg-green-500/20 shadow-sm'
+                       : 'bg-gray-1 border-gray-4 text-gray-10 hover:border-gray-6'
+                   }`}
+                >
+                   <span className={`text-[10px] items-center justify-center flex font-bold uppercase tracking-widest ${selectedDate === wd.dateStr ? 'text-white/80' : allTasksDone ? 'text-green-600/80' : 'text-gray-8'}`}>
+                      {wd.label} {hasTasks && !allTasksDone && <div className={`w-1.5 h-1.5 rounded-full ${isGreen ? 'bg-green-500' : 'bg-yellow-500 shadow-yellow-500/50'} inline-block mb-1 ml-1 shadow-sm`} />}
+                   </span>
+                   <span className="text-xl font-black">{wd.dateStr.split('-')[2]}</span>
+                </button>
+              )
+            })}
+         </div>
 
         {/* IPHONE NOTES STYLE: 2 COLUMNS AM/PM */}
-        {planStatus === 'DRAFT' ? (
-           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-10 text-center mt-8 shadow-sm">
-             <AlertCircle size={48} className="text-yellow-500 mx-auto mb-4 opacity-80" />
-             <h2 className="text-2xl font-black text-yellow-600 dark:text-yellow-500 mb-2">Plan Execution Locked</h2>
-             <p className="text-gray-10 font-medium">Your schedule for this week is still in <strong>DRAFT</strong> mode. You must formally submit the plan in your Sales Planner before you can check off activities.</p>
+        {isFutureWeek && (
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
+              <h2 className="text-lg font-black text-blue-600 dark:text-blue-500 mb-1 flex items-center justify-center gap-2"><AlertCircle size={20} /> Future Week Locked</h2>
+              <p className="text-gray-10 font-medium text-sm">Execution is currently locked because this week hasn't officially begun. The schedule is viewed in read-only mode.</p>
+            </div>
+        )}
+        {planStatus === 'DRAFT' && !isFutureWeek && (
+           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
+             <h2 className="text-lg font-black text-yellow-600 dark:text-yellow-500 mb-1 flex items-center justify-center gap-2"><AlertCircle size={20} /> Plan Execution Locked</h2>
+             <p className="text-gray-10 font-medium text-sm">Your schedule for this week is still in <strong>DRAFT</strong> mode. Submit your plan to enable execution triggers.</p>
            </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
               
               {/* AM COLUMN */}
               <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm">
@@ -172,15 +202,17 @@ export default function DailyExecutionPage() {
                        <p className="p-6 text-center text-sm text-gray-8 italic">No morning tasks</p>
                     )}
                     {plannedAM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} />
+                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
                     ))}
                     {unplannedAM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} />
+                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
                     ))}
                  </div>
-                 <div className="p-3 bg-gray-2 border-t border-gray-4">
-                   <AddUnplannedForm timeOfDay="AM" onSave={handleAddUnplanned} />
-                 </div>
+                 {!isLockedUI && (
+                    <div className="p-3 bg-gray-2 border-t border-gray-4">
+                      <AddUnplannedForm timeOfDay="AM" onSave={handleAddUnplanned} />
+                    </div>
+                 )}
               </div>
 
               {/* PM COLUMN */}
@@ -193,19 +225,20 @@ export default function DailyExecutionPage() {
                        <p className="p-6 text-center text-sm text-gray-8 italic">No afternoon tasks</p>
                     )}
                     {plannedPM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} />
+                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
                     ))}
                     {unplannedPM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} />
+                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
                     ))}
                  </div>
-                 <div className="p-3 bg-gray-2 border-t border-gray-4">
-                   <AddUnplannedForm timeOfDay="PM" onSave={handleAddUnplanned} />
-                 </div>
+                 {!isLockedUI && (
+                    <div className="p-3 bg-gray-2 border-t border-gray-4">
+                      <AddUnplannedForm timeOfDay="PM" onSave={handleAddUnplanned} />
+                    </div>
+                 )}
               </div>
 
           </div>
-        )}
 
       </div>
     </ProtectedRoute>
@@ -213,20 +246,32 @@ export default function DailyExecutionPage() {
 }
 
 // Checklist Item mapping to iPhone notes style
-function ChecklistItem({ data, onToggle }) {
+function ChecklistItem({ data, onToggle, disabledUI }) {
   const isDone = data.status === 'DONE';
   const [details, setDetails] = useState(data.details_daily || "");
   const [isEditing, setIsEditing] = useState(false);
 
+  let isLate = false;
+  if (isDone && data.completed_at) {
+     const scheduledDateObj = new Date(data.scheduled_date);
+     const completedAtObj = new Date(data.completed_at);
+     // Add 24 hours to scheduled date for a grace period
+     scheduledDateObj.setDate(scheduledDateObj.getDate() + 1);
+     if (completedAtObj > scheduledDateObj) {
+        isLate = true;
+     }
+  }
+
   return (
     <div className={`p-4 flex gap-4 transition-all ${isDone ? 'bg-gray-2/50 opacity-60' : 'bg-gray-1 hover:bg-gray-2/50'}`}>
-       <button disabled={isDone} onClick={() => onToggle(data.id, details)} className="mt-1 shrink-0 text-primary transition-transform active:scale-90 disabled:cursor-not-allowed">
+       <button disabled={isDone || disabledUI} onClick={() => !disabledUI && onToggle(data.id, details)} className="mt-1 shrink-0 text-primary transition-transform active:scale-90 disabled:cursor-not-allowed">
          {isDone ? <CheckCircle2 size={24} /> : <Circle size={24} className="text-gray-6" />}
        </button>
        <div className="flex-1 min-w-0">
-          <p className={`font-bold text-base truncate transition-all ${isDone ? 'line-through text-gray-8' : 'text-gray-12'}`}>
-            {data.account_name} 
-            {data.is_unplanned && <span className="ml-2 text-[10px] bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full not-italic no-underline">EXTRA</span>}
+          <p className={`font-bold text-base truncate transition-all flex items-center flex-wrap gap-2 ${isDone ? 'line-through text-gray-8' : 'text-gray-12'}`}>
+            <span>{data.account_name}</span>
+            {data.is_unplanned && <span className="text-[10px] bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full not-italic no-underline border border-blue-500/20">EXTRA</span>}
+            {isLate && <span className="text-[10px] bg-orange-500/10 text-orange-600 px-2 py-0.5 rounded-full not-italic no-underline font-black tracking-widest border border-orange-500/20">LATE</span>}
           </p>
           {!isDone && (
             <p className="text-xs text-gray-9 mt-0.5 truncate">{data.activity_type} - {data.contact_person || 'No Contact'}</p>

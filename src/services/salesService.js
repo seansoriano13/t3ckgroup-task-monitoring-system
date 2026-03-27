@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { notificationService } from "./notificationService";
 
 export const salesService = {
   // === QUOTAS ===
@@ -77,8 +78,7 @@ export const salesService = {
     if (error) throw error;
     return data;
   },
-
-  async submitPlan(planId) {
+  async submitPlan(planId, userObj) {
     const { data, error } = await supabase
       .from("sales_weekly_plans")
       .update({ status: 'SUBMITTED' })
@@ -87,6 +87,17 @@ export const salesService = {
       .single();
 
     if (error) throw error;
+
+    if (userObj) {
+       notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
+          sender_id: userObj.id,
+          type: 'SALES_PLAN_SUBMITTED',
+          title: 'Sales Plan Submitted',
+          message: `${userObj.name || 'A Sales Rep'} just submitted their weekly sales execution plan.`,
+          reference_id: data.id
+       });
+    }
+
     return data;
   },
 
@@ -104,9 +115,22 @@ export const salesService = {
       const { data: inserted, error: iErr } = await supabase
         .from("sales_activities")
         .insert(toInsert)
-        .select();
+        .select('*, employees(name)');
       if (iErr) throw iErr;
       results = [...results, ...inserted];
+
+      // Broadcast Unplanned injection
+      const unplannedCount = inserted.filter(a => a.is_unplanned).length;
+      if (unplannedCount > 0) {
+         const firstUnplanned = inserted.find(a => a.is_unplanned);
+         await notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
+            sender_id: firstUnplanned?.employee_id,
+            type: 'UNPLANNED_ACTIVITY',
+            title: 'Unplanned Action Logged',
+            message: `${inserted[0].employees?.name || 'A Sales Rep'} dynamically injected ${unplannedCount} unplanned activit${unplannedCount > 1 ? 'ies' : 'y'} into their tracker.`,
+            reference_id: firstUnplanned?.id
+         });
+      }
     }
 
     if (toUpdate.length > 0) {
@@ -134,15 +158,30 @@ export const salesService = {
   },
 
   async markActivityDone(activityId, details_daily) {
-     const { data, error } = await supabase
+     const { data: activity, error } = await supabase
        .from("sales_activities")
-       .update({ status: 'DONE', details_daily })
+       .update({ status: 'DONE', details_daily, completed_at: new Date().toISOString() })
        .eq("id", activityId)
-       .select()
+       .select('*, employees(name)')
        .single();
 
      if (error) throw error;
-     return data;
+
+     // Calculate if Day/Week is conquered (Fire & forget)
+     if (activity) {
+        supabase.from('sales_activities').select('id').eq('employee_id', activity.employee_id).eq('scheduled_date', activity.scheduled_date).neq('status', 'DONE').then(({ data: pendingDay }) => {
+           if (pendingDay && pendingDay.length === 0) {
+              notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
+                 sender_id: activity.employee_id,
+                 type: 'SALES_DAY_CONQUERED',
+                 title: 'Day Conquered!',
+                 message: `${activity.employees?.name} just conquered their entire daily pipeline!`,
+              });
+           }
+        });
+     }
+
+     return activity;
   },
 
   // === REVENUE TRACKING ===
@@ -169,11 +208,100 @@ export const salesService = {
      return data;
   },
 
+  async updateRevenueLog(id, payload) {
+     // Pre-fetch if we are locking it
+     let oldLog = null;
+     if (payload.is_verified === true) {
+        const { data: old } = await supabase.from('sales_revenue_logs').select('is_verified').eq('id', id).single();
+        oldLog = old;
+     }
+
+     const { data, error } = await supabase.from('sales_revenue_logs').update(payload).eq('id', id).select().single();
+     if (error) throw error;
+
+     if (payload.is_verified === true && oldLog && !oldLog.is_verified) {
+        notificationService.createNotification({
+           recipient_id: data.employee_id,
+           type: 'REVENUE_LOCKED',
+           title: 'Revenue Audit Passed',
+           message: `Your revenue log for ${data.account || 'an account'} was globally verified.`,
+           reference_id: data.id
+        });
+     }
+
+     return data;
+  },
+
+  async requestRevenueEdit(id, amount, reason, userId) {
+     const payload = {
+         edit_request_amount: amount,
+         edit_request_reason: reason,
+         edit_request_status: 'PENDING',
+         edit_requested_at: new Date().toISOString()
+     };
+     const { data, error } = await supabase.from('sales_revenue_logs').update(payload).eq('id', id).select('*, employees(name)').single();
+     if (error) throw error;
+
+     notificationService.broadcastToRole(['SUPER_ADMIN'], {
+         sender_id: userId,
+         type: 'REVENUE_EDIT_REQUESTED',
+         title: 'Incoming Edit Protocol',
+         message: `${data.employees?.name} requested permission to change a locked log to ₱${Number(amount).toLocaleString()}.`,
+         reference_id: id
+     });
+
+     return data;
+  },
+
+  async resolveEditRequest(id, isApproved, newAmount, adminId) {
+     const payload = {};
+     if (isApproved) {
+         payload.revenue_amount = newAmount; // Overwrite actual baseline
+         payload.edit_request_status = null;
+         payload.edit_request_amount = null;
+         payload.edit_request_reason = null;
+         payload.last_edited_by = adminId;
+         payload.last_edited_at = new Date().toISOString();
+     } else {
+         payload.edit_request_status = 'REJECTED';
+     }
+     const { data, error } = await supabase.from('sales_revenue_logs').update(payload).eq('id', id).select().single();
+     if (error) throw error;
+
+     notificationService.createNotification({
+         recipient_id: data.employee_id,
+         sender_id: adminId,
+         type: 'REVENUE_EDIT_RESULT',
+         title: isApproved ? 'Edit Protocol Approved' : 'Edit Protocol Denied',
+         message: isApproved ? `Your requested change for ${data.account || 'an account'} was accepted. Values were updated.` : `Your request to change ${data.account || 'an account'} was declined. Log remains strictly locked.`,
+         reference_id: id
+     });
+
+     return data;
+  },
+
+  // === GLOBAL APP SETTINGS ===
+  async getAppSettings() {
+     const { data, error } = await supabase.from('app_settings').select('*').single();
+     if (error || !data) {
+        // Fallback initialized row
+        const { data: d } = await supabase.from('app_settings').upsert({ id: true, require_revenue_verification: false }).select().single();
+        return d;
+     }
+     return data;
+  },
+
+  async updateAppSettings(payload) {
+     const { data, error } = await supabase.from('app_settings').update(payload).eq('id', true).select().single();
+     if (error) throw error;
+     return data;
+  },
+
   // === ADMIN & REPORTS ===
   async getAllSalesActivities() {
      const { data, error } = await supabase
        .from('sales_activities')
-       .select('*, employees(name, department)')
+       .select('*, employees(name, department, is_super_admin)')
        .order('scheduled_date', { ascending: false });
      if (error) throw error;
      return data;
@@ -182,7 +310,7 @@ export const salesService = {
   async getAllRevenueLogs() {
      const { data, error } = await supabase
        .from('sales_revenue_logs')
-       .select('*, employees(name, department)')
+       .select('*, employees!sales_revenue_logs_employee_id_fkey(name, department), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)')
        .order('date', { ascending: false });
      if (error) throw error;
      return data;
@@ -191,7 +319,7 @@ export const salesService = {
   async getRevenueAnalysis(startDate, endDate) {
      const { data, error } = await supabase
        .from('sales_revenue_logs')
-       .select('*, employees(name)')
+       .select('*, employees!sales_revenue_logs_employee_id_fkey(name)')
        .gte('date', startDate)
        .lte('date', endDate)
        .order('date', { ascending: false });
@@ -204,7 +332,7 @@ export const salesService = {
     // 1. Get Quotas for the month
     const { data: quotas, error: qErr } = await supabase
        .from('sales_quotas')
-       .select('*, employees(name)')
+       .select('*, employees(name, is_super_admin)')
        .eq('month_year', `${monthYearStr}-01`);
     if (qErr) throw qErr;
 
@@ -217,7 +345,7 @@ export const salesService = {
 
     const { data: revenues, error: rErr } = await supabase
        .from('sales_revenue_logs')
-       .select('*')
+       .select('*, employees!sales_revenue_logs_employee_id_fkey(name, is_super_admin)')
        .gte('date', startDate)
        .lt('date', endDate);
     if (rErr) throw rErr;
@@ -225,6 +353,7 @@ export const salesService = {
     // 3. Combine
     const agg = {};
     quotas.forEach(q => {
+       if (q.employees?.is_super_admin) return;
        agg[q.employee_id] = { 
           employee_id: q.employee_id, 
           name: q.employees?.name || 'Unknown', 
@@ -235,6 +364,7 @@ export const salesService = {
     });
     
     revenues.forEach(r => {
+       if (r.employees?.is_super_admin) return;
        if (!agg[r.employee_id]) {
            // If they have revenue but no quota, we should probably still show them or skip.
            // Let's create a placeholder so they don't disappear.

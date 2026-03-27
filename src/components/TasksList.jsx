@@ -4,8 +4,8 @@ import TaskDetails from "./TaskDetails";
 import { useAuth } from "../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../services/taskService.js";
-import { useMemo } from "react";
-import { Link } from "react-router";
+import { useMemo, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 import { User } from "lucide-react";
 import { Users } from "lucide-react";
@@ -60,6 +60,22 @@ export default function TasksList() {
         : taskService.getMyTasks(user?.id),
     enabled: !!user?.id,
   });
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // 🔥 DEEP LINKING NOTIFICATION HOOK
+  useEffect(() => {
+     if (location.state?.openTaskId && rawTasks.length > 0) {
+        const targetTask = rawTasks.find(t => t.id === location.state.openTaskId);
+        if (targetTask) {
+           setSelectedTask(targetTask);
+           setIsDrawerOpen(true);
+           // Clear state to prevent re-firing on hot reload
+           navigate(location.pathname, { replace: true, state: {} });
+        }
+     }
+  }, [location.state, rawTasks, navigate, location.pathname]);
 
   const { myTasks, teamTasks } = useMemo(() => {
     const now = new Date();
