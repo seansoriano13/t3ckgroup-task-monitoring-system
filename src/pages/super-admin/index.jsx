@@ -8,6 +8,7 @@ import { Crown, Save, DollarSign, Loader2 } from "lucide-react";
 import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import DatePicker from "react-datepicker";
+import { PhilippinePeso } from "lucide-react";
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ export default function SuperAdminDashboard() {
 
   // Ensure it defaults to the 1st of the current month in 'YYYY-MM-DD' formatting for Supabase
   const currentDate = new Date();
-  const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-01`;
+  const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
 
@@ -33,12 +34,13 @@ export default function SuperAdminDashboard() {
 
   // 3. Fetch all activities for Stats
   const { data: allActivities = [], isLoading: loadingAct } = useQuery({
-    queryKey: ['allSalesActivitiesAdmin'],
+    queryKey: ["allSalesActivitiesAdmin"],
     queryFn: () => salesService.getAllSalesActivities(),
   });
 
   const mutation = useMutation({
-    mutationFn: ({ employeeId, amount }) => salesService.upsertQuota(employeeId, amount, selectedMonth),
+    mutationFn: ({ employeeId, amount }) =>
+      salesService.upsertQuota(employeeId, amount, selectedMonth),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotas", selectedMonth] });
       toast.success("Quota updated successfully!");
@@ -78,55 +80,62 @@ export default function SuperAdminDashboard() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
           <div>
             <h1 className="text-3xl font-black text-gray-12 flex items-center gap-2">
-               <Crown size={32} className="text-purple-500" /> Super Admin Control
+              Admin Control
             </h1>
             <p className="text-gray-9 mt-1 font-medium">
-              Manage Sales Quotas, configure tracking rules, and review department activities.
+              Manage Sales Quotas, configure tracking rules, and review
+              department activities.
             </p>
           </div>
-          
+
           <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner w-full sm:w-auto overflow-hidden">
-             <span className="text-xs font-bold text-gray-9 mr-3 uppercase shrink-0">Target Month:</span>
-             <DatePicker
-               selected={new Date(selectedMonth)}
-               onChange={(date) => {
-                  if (date) {
-                     const m = String(date.getMonth() + 1).padStart(2, '0');
-                     setSelectedMonth(`${date.getFullYear()}-${m}-01`);
-                  }
-               }}
-               showMonthYearPicker
-               dateFormat="MMMM yyyy"
-               className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer flex-1 min-w-[120px] w-full"
-             />
+            <span className="text-xs font-bold text-gray-9 mr-3 uppercase shrink-0">
+              Target Month:
+            </span>
+            <DatePicker
+              selected={new Date(selectedMonth)}
+              onChange={(date) => {
+                if (date) {
+                  const m = String(date.getMonth() + 1).padStart(2, "0");
+                  setSelectedMonth(`${date.getFullYear()}-${m}-01`);
+                }
+              }}
+              showMonthYearPicker
+              dateFormat="MMMM yyyy"
+              className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer flex-1 min-w-[120px] w-full"
+            />
           </div>
         </div>
 
-        <div className="bg-gray-1 border border-primary/20 p-4 sm:p-6 rounded-xl shadow-lg border-t-4 border-t-purple-600">
-          <h2 className="text-xl font-bold text-gray-12 mb-4">Set Sales Quotas</h2>
-          
+        <div className="bg-gray-1 border border-gray-4 p-4 sm:p-6 rounded-xl shadow-lg ">
+          <h2 className="text-xl font-bold text-gray-12 mb-4">
+            Set Sales Quotas
+          </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {salesEmployees.map(emp => {
-               const target = quotaMap[emp.id] || 0;
-               return (
-                 <QuotaCard 
-                   key={emp.id} 
-                   employee={emp} 
-                   currentQuota={target}
-                   onSave={(val) => handleUpdateQuota(emp.id, val)}
-                   isSaving={mutation.isPending}
-                 />
-               );
+            {salesEmployees.map((emp) => {
+              const target = quotaMap[emp.id] || 0;
+              return (
+                <QuotaCard
+                  key={emp.id}
+                  employee={emp}
+                  currentQuota={target}
+                  onSave={(val) => handleUpdateQuota(emp.id, val)}
+                  isSaving={mutation.isPending}
+                />
+              );
             })}
           </div>
           {salesEmployees.length === 0 && (
-            <p className="text-gray-9 italic">No employees found matching 'Sales' department criteria.</p>
+            <p className="text-gray-9 italic">
+              No employees found matching 'Sales' department criteria.
+            </p>
           )}
         </div>
 
         <SalesPerformanceMetrics />
         <div className="pt-6">
-           <EmployeePipelineMatrix />
+          <EmployeePipelineMatrix />
         </div>
       </div>
     </ProtectedRoute>
@@ -139,27 +148,34 @@ function QuotaCard({ employee, currentQuota, onSave, isSaving }) {
   return (
     <div className="bg-gray-2 border border-gray-4 p-4 rounded-xl flex flex-col justify-between">
       <div>
-         <p className="font-bold text-gray-12 text-lg truncate">{employee.name}</p>
-         <p className="text-xs text-gray-9 font-bold uppercase tracking-wide mb-4 truncate">{employee.sub_department || employee.department || 'Sales Rep'}</p>
+        <p className="font-bold text-gray-12 text-lg truncate">
+          {employee.name}
+        </p>
+        <p className="text-xs text-gray-9 font-bold uppercase tracking-wide mb-4 truncate">
+          {employee.sub_department || employee.department || "Sales Rep"}
+        </p>
       </div>
-      
+
       <div className="flex gap-2 items-center">
-         <div className="relative flex-1">
-            <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8" />
-            <input 
-              type="number" 
-              value={val}
-              onChange={e => setVal(e.target.value)}
-              className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-3 py-2 text-sm font-bold outline-none focus:border-purple-500 transition-colors"
-            />
-         </div>
-         <button 
-           onClick={() => onSave(val)}
-           disabled={isSaving || val == currentQuota}
-           className="bg-purple-600 hover:bg-purple-800 disabled:bg-gray-5 disabled:text-gray-8 text-white p-2 rounded-lg transition-colors font-bold flex items-center shrink-0"
-         >
-           <Save size={18} />
-         </button>
+        <div className="relative flex-1">
+          <PhilippinePeso
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+          />
+          <input
+            type="number"
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-3 py-2 text-sm font-bold outline-none focus:border-purple-500 transition-colors"
+          />
+        </div>
+        <button
+          onClick={() => onSave(val)}
+          disabled={isSaving || val == currentQuota}
+          className="bg-purple-600 hover:bg-purple-800 disabled:bg-gray-5 disabled:text-gray-8 text-white p-2 rounded-lg transition-colors font-bold flex items-center shrink-0"
+        >
+          <Save size={18} />
+        </button>
       </div>
     </div>
   );

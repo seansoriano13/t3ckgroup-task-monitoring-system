@@ -15,7 +15,6 @@ import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService";
-import { employeeService } from "../../services/employeeService";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
@@ -281,7 +280,7 @@ export default function HrMasterLogPage() {
           </div>
 
           {/* ROW 2: Hierarchy Filters */}
-          <div className="bg-gray-1 border border-primary/20 p-4 rounded-xl shadow-inner grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
+          <div className="bg-gray-1 border border-gray-4 p-4 rounded-xl shadow-inner grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
             <div className="space-y-1">
               <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
                 <Building2 size={12} /> Department
@@ -325,7 +324,7 @@ export default function HrMasterLogPage() {
               </select>
             </div>
             <div className="space-y-1 sm:col-span-2 md:col-span-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-widest">
+              <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
                 <Users size={12} /> Team Member
               </label>
               <select
