@@ -12,7 +12,7 @@ import {
 import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
 
-export default function DashboardStats() {
+export default function DashboardStats({ selectedMonth }) {
   const { user } = useAuth();
 
   const isHr = user?.is_hr || user?.isHr;
@@ -32,9 +32,9 @@ export default function DashboardStats() {
   });
 
   const stats = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
+    const currentMonth = selDate.getMonth();
+    const currentYear = selDate.getFullYear();
 
     // 1. Filter tasks for ONLY this month, EXCLUDING Super Admin
     const thisMonthTasks = rawTasks.filter((t) => {
@@ -107,7 +107,7 @@ export default function DashboardStats() {
       hrRejected,
       hrAllTasks,
     };
-  }, [rawTasks, user?.id, isManagement, isHead, isHr, userSubDept]);
+  }, [rawTasks, user?.id, isManagement, isHead, isHr, userSubDept, selectedMonth]);
 
   if (isLoading) {
     return (

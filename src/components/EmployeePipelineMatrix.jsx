@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 
-export default function EmployeePipelineMatrix() {
+export default function EmployeePipelineMatrix({ selectedMonth }) {
   const { user } = useAuth();
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isHead = user?.is_head === true || user?.isHead === true;
@@ -22,11 +22,24 @@ export default function EmployeePipelineMatrix() {
   const employeeStats = useMemo(() => {
     if (!rawTasks.length) return [];
 
+    const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
+    const currentMonth = selDate.getMonth();
+    const currentYear = selDate.getFullYear();
+
     // 1. Group all tasks by Employee
     const empMap = {};
 
     rawTasks.forEach((task) => {
       if (!task.loggedById || task.status === "DELETED") return;
+
+      // 🔥 Month Filtering
+      const taskDate = new Date(task.createdAt);
+      if (
+        taskDate.getMonth() !== currentMonth ||
+        taskDate.getFullYear() !== currentYear
+      ) {
+        return;
+      }
 
       // If they are a Head (but NOT HR), strictly filter out tasks from other departments
       if (!isHr && isHead) {
@@ -83,7 +96,7 @@ export default function EmployeePipelineMatrix() {
           Math.round(((emp.pendingHr + emp.verified) / emp.total) * 100) || 0,
       }))
       .sort((a, b) => b.total - a.total); // Sort by most active employees first
-  }, [rawTasks, isHr, isHead, userDepartment]); // 🔥 And use the variable here
+  }, [rawTasks, isHr, isHead, userDepartment, selectedMonth]); // 🔥 And use the variable here
 
   if (isLoading || employeeStats.length === 0) return null;
 
@@ -96,8 +109,15 @@ export default function EmployeePipelineMatrix() {
           </h2>
           <p className="text-sm text-gray-9 mt-0.5 font-medium">
             {isHr
-              ? "Company-wide performance metrics."
-              : "Performance metrics for your department."}
+              ? "Organization-wide metrics for "
+              : "Performance metrics for "}
+            {selectedMonth
+              ? new Date(selectedMonth).toLocaleDateString(undefined, {
+                  month: "long",
+                  year: "numeric",
+                })
+              : "this month"}
+            .
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 bg-gray-2 border border-gray-4 px-3 py-1.5 rounded-lg">
