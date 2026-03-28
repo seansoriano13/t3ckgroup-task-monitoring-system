@@ -44,6 +44,11 @@ export default function SalesRecordsPage() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [editingRevenue, setEditingRevenue] = useState(null);
 
+  // --- PAGINATION STATES ---
+  const [activitiesPage, setActivitiesPage] = useState(1);
+  const [revenuePage, setRevenuePage] = useState(1);
+  const itemsPerPage = 15;
+
   const queryClient = useQueryClient();
 
   const updateRevMutation = useMutation({
@@ -255,6 +260,12 @@ export default function SalesRecordsPage() {
     }
     return filtered;
   }, [allowedRevenue, filterEmp, filterStatus, searchTerm]);
+
+  // --- PAGINATION RESETS ---
+  useEffect(() => {
+    setActivitiesPage(1);
+    setRevenuePage(1);
+  }, [searchTerm, filterEmp, filterStatus, filterType, selectedDateFilter]);
 
   // Group activities for BOARD view: (Employee) -> (Date/Month/Year) -> AM/PM/All
   const boardData = useMemo(() => {
@@ -530,10 +541,7 @@ export default function SalesRecordsPage() {
                 <tbody className="divide-y divide-gray-4">
                   {isActLoading ? (
                     <tr>
-                      <td
-                        colSpan="6"
-                        className="p-10 text-center text-gray-9 font-bold"
-                      >
+                      <td colSpan="6" className="p-10 text-center text-gray-9 font-bold">
                         Loading Activities...
                       </td>
                     </tr>
@@ -547,79 +555,107 @@ export default function SalesRecordsPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredActivities.map((act) => (
-                      <tr
-                        key={act.id}
-                        onClick={() => setSelectedActivity(act)}
-                        className="hover:bg-gray-3/50 cursor-pointer transition-colors"
-                      >
-                        <td className="p-4 flex flex-col items-start gap-1">
-                          <span className="font-mono text-sm font-bold text-gray-12">
-                            {act.scheduled_date}
-                          </span>
-                          <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
-                            {act.time_of_day}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <p className="font-bold text-sm text-gray-12">
-                            {act.employees?.name || "Unknown"}
-                          </p>
-                          <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
-                            {act.employees?.department}
-                          </p>
-                        </td>
-                        <td
-                          className="p-4 font-bold text-sm text-gray-12 max-w-[200px] truncate"
-                          title={act.account_name}
+                    filteredActivities
+                      .slice(
+                        (activitiesPage - 1) * itemsPerPage,
+                        activitiesPage * itemsPerPage,
+                      )
+                      .map((act) => (
+                        <tr
+                          key={act.id}
+                          onClick={() => setSelectedActivity(act)}
+                          className="hover:bg-gray-3/50 cursor-pointer transition-colors"
                         >
-                          {act.account_name || (
-                            <span className="text-gray-8 italic font-normal">
-                              No Account
+                          <td className="p-4 flex flex-col items-start gap-1">
+                            <span className="font-mono text-sm font-bold text-gray-12">
+                              {act.scheduled_date}
                             </span>
-                          )}
-                        </td>
-                        <td className="p-4">
-                          <span className="text-xs font-semibold text-gray-11">
-                            {act.activity_type}
-                          </span>
-                          {act.is_unplanned && (
-                            <span className="block mt-1 text-[10px] text-blue-500 bg-blue-500/10 w-max px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
-                              Unplanned
+                            <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
+                              {act.time_of_day}
                             </span>
-                          )}
-                        </td>
-                        <td
-                          className="p-4 text-xs text-gray-11 max-w-[250px] truncate"
-                          title={act.details_daily}
-                        >
-                          {act.details_daily || act.remarks_plan || (
-                            <span className="text-gray-7 italic">Blank</span>
-                          )}
-                        </td>
-                        <td className="p-4 text-center">
-                          {act.status === "DONE" ? (
-                            <div className="flex flex-col items-center gap-1 text-green-500">
-                              <CheckCircle2 size={18} />
-                              <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded">
-                                DONE
+                          </td>
+                          <td className="p-4">
+                            <p className="font-bold text-sm text-gray-12">
+                              {act.employees?.name || "Unknown"}
+                            </p>
+                            <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+                              {act.employees?.department}
+                            </p>
+                          </td>
+                          <td
+                            className="p-4 font-bold text-sm text-gray-12 max-w-[200px] truncate"
+                            title={act.account_name}
+                          >
+                            {act.account_name || (
+                              <span className="text-gray-8 italic font-normal">
+                                No Account
                               </span>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center gap-1 text-gray-8">
-                              <Circle size={18} />
-                              <span className="text-[10px] font-bold uppercase tracking-widest">
-                                Incomplete
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <span className="text-xs font-semibold text-gray-11">
+                              {act.activity_type}
+                            </span>
+                            {act.is_unplanned && (
+                              <span className="block mt-1 text-[10px] text-blue-500 bg-blue-500/10 w-max px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
+                                Unplanned
                               </span>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                            )}
+                          </td>
+                          <td
+                            className="p-4 text-xs text-gray-11 max-w-[250px] truncate"
+                            title={act.details_daily}
+                          >
+                            {act.details_daily || act.remarks_plan || (
+                              <span className="text-gray-7 italic">Blank</span>
+                            )}
+                          </td>
+                          <td className="p-4 text-center">
+                            {act.status === "DONE" ? (
+                              <div className="flex flex-col items-center gap-1 text-green-500">
+                                <CheckCircle2 size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded">
+                                  DONE
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-1 text-gray-8">
+                                <Circle size={18} />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">
+                                  Incomplete
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))
                   )}
                 </tbody>
               </table>
             </div>
+
+            {/* ACTIVITIES PAGINATION */}
+            {filteredActivities.length > itemsPerPage && (
+              <div className="p-4 border-t border-gray-4 bg-gray-2 flex items-center justify-center gap-4">
+                <button
+                  disabled={activitiesPage === 1}
+                  onClick={() => setActivitiesPage((p) => p - 1)}
+                  className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
+                >
+                  Prev
+                </button>
+                <span className="text-xs font-black text-gray-12 uppercase tracking-tighter">
+                  Page {activitiesPage} of {Math.ceil(filteredActivities.length / itemsPerPage)}
+                </span>
+                <button
+                  disabled={activitiesPage === Math.ceil(filteredActivities.length / itemsPerPage)}
+                  onClick={() => setActivitiesPage((p) => p + 1)}
+                  className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -785,68 +821,91 @@ export default function SalesRecordsPage() {
                 <tbody className="divide-y divide-gray-4">
                   {isRevLoading ? (
                     <tr>
-                      <td
-                        colSpan="6"
-                        className="p-10 text-center text-gray-9 font-bold"
-                      >
+                      <td colSpan="6" className="p-10 text-center text-gray-9 font-bold">
                         Loading Revenue Logs...
                       </td>
                     </tr>
                   ) : filteredRevenue.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan="6"
-                        className="p-10 text-center text-gray-9 font-bold flex justify-center gap-2 items-center"
-                      >
+                      <td colSpan="6" className="p-10 text-center text-gray-9 font-bold flex justify-center gap-2 items-center">
                         <AlertCircle /> No log entries match the filters.
                       </td>
                     </tr>
                   ) : (
-                    filteredRevenue.map((log) => (
-                      <tr
-                        key={log.id}
-                        onClick={() => setEditingRevenue(log)}
-                        className="hover:bg-gray-3/50 transition-colors cursor-pointer"
-                        title="Click to Edit Revenue Log"
-                      >
-                        <td className="p-4 font-mono text-sm font-bold text-gray-12 whitespace-nowrap">
-                          {log.date}
-                        </td>
-                        <td className="p-4 font-bold text-sm text-gray-12">
-                          {log.employees?.name || "Unknown"}
-                        </td>
-                        <td className="p-4 font-bold text-sm text-gray-12">
-                          {log.account}
-                        </td>
-                        <td className="p-4 text-sm text-gray-11 max-w-[200px] truncate">
-                          {log.product_item_sold}
-                        </td>
-                        <td className="p-4 font-mono text-right font-black text-gray-12">
-                          {Number(log.revenue_amount).toLocaleString()}
-                        </td>
-                        <td className="p-4 text-center">
-                          {isVerificationEnforced &&
-                          log.is_verified === false ? (
-                            <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
-                              PENDING
+                    filteredRevenue
+                      .slice((revenuePage - 1) * itemsPerPage, revenuePage * itemsPerPage)
+                      .map((log) => (
+                        <tr
+                          key={log.id}
+                          onClick={() => setEditingRevenue(log)}
+                          className="hover:bg-gray-3/50 cursor-pointer transition-colors"
+                        >
+                          <td className="p-4">
+                            <span className="font-mono text-sm font-bold text-gray-12">
+                              {log.date}
                             </span>
-                          ) : log.status === "COMPLETED SALES" ||
-                            log.status === "Won" ? (
-                            <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
-                              COMPLETED
-                            </span>
-                          ) : (
-                            <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
-                              LOST
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                          </td>
+                          <td className="p-4 text-sm">
+                            <p className="font-bold text-gray-12">
+                              {log.employees?.name || "Unknown"}
+                            </p>
+                            <p className="text-[10px] font-bold text-gray-9 uppercase">
+                              {log.creator_sub_dept}
+                            </p>
+                          </td>
+                          <td className="p-4 font-bold text-sm text-gray-12">
+                            {log.account}
+                          </td>
+                          <td className="p-4 text-xs font-semibold text-gray-11">
+                            {log.product_item_sold}
+                          </td>
+                          <td className="p-4 text-right font-black text-green-600">
+                            ₱{log.revenue_amount?.toLocaleString() || "0"}
+                          </td>
+                          <td className="p-4 text-center">
+                            {isVerificationEnforced && log.is_verified === false ? (
+                              <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+                                PENDING
+                              </span>
+                            ) : log.status === "COMPLETED SALES" || log.status === "Won" ? (
+                              <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+                                COMPLETED
+                              </span>
+                            ) : (
+                              <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+                                LOST
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
                   )}
                 </tbody>
               </table>
             </div>
+
+            {/* REVENUE PAGINATION */}
+            {filteredRevenue.length > itemsPerPage && (
+              <div className="p-4 border-t border-gray-4 bg-gray-2 flex items-center justify-center gap-4">
+                <button
+                  disabled={revenuePage === 1}
+                  onClick={() => setRevenuePage((p) => p - 1)}
+                  className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
+                >
+                  Prev
+                </button>
+                <span className="text-xs font-black text-gray-12 uppercase tracking-tighter">
+                  Page {revenuePage} of {Math.ceil(filteredRevenue.length / itemsPerPage)}
+                </span>
+                <button
+                  disabled={revenuePage === Math.ceil(filteredRevenue.length / itemsPerPage)}
+                  onClick={() => setRevenuePage((p) => p + 1)}
+                  className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
