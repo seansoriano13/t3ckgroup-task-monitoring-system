@@ -62,9 +62,18 @@ export function useTaskTopology(isOpen, formData, taskCategoryId, isEditing) {
   const filteredCategories = useMemo(() => {
     const targetSubDept = isEditing
       ? formData.subDepartment
-      : topology.cats.find((c) => c.category_id === taskCategoryId)
-          ?.sub_department;
-    return topology.cats.filter((cat) => cat.sub_department === targetSubDept);
+      : topology.cats.find((c) => c.category_id === taskCategoryId)?.sub_department;
+
+    return topology.cats.filter((cat) => {
+      // 1. Does it match the currently selected sub-department?
+      const isNormalMatch = cat.sub_department === targetSubDept;
+      
+      // 2. Is it one of your universal committee categories?
+      const isUniversal = cat.department === "ALL" && cat.sub_department === "ALL";
+
+      // Keep the category if it passes either test
+      return isNormalMatch || isUniversal;
+    });
   }, [topology.cats, formData.subDepartment, taskCategoryId, isEditing]);
 
   const taskOwnerInfo = useMemo(
