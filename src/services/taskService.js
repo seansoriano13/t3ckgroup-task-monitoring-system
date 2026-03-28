@@ -70,6 +70,7 @@ export const taskService = {
         remarks,
         grade,
         hr_verified,
+        hr_remarks,
         hr_verified_at,
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
         editor:employees!tasks_edited_by_fk(name),
@@ -134,15 +135,19 @@ export const taskService = {
 
     // Trigger Notification: New Task Submitted -> Head
     // We need to fetch the creator's department to notify the correct Head
-    const { data: creator } = await supabase.from('employees').select('name, sub_department').eq('id', payload.loggedById).single();
+    const { data: creator } = await supabase
+      .from("employees")
+      .select("name, sub_department")
+      .eq("id", payload.loggedById)
+      .single();
     if (creator) {
-       notificationService.notifyHeadByDepartment(creator.sub_department, {
-          sender_id: payload.loggedById,
-          type: 'NEW_TASK_SUBMITTED',
-          title: 'New Task Submitted',
-          message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
-          reference_id: data[0].id
-       });
+      notificationService.notifyHeadByDepartment(creator.sub_department, {
+        sender_id: payload.loggedById,
+        type: "NEW_TASK_SUBMITTED",
+        title: "New Task Submitted",
+        message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
+        reference_id: data[0].id,
+      });
     }
 
     return data[0];
@@ -183,7 +188,9 @@ export const taskService = {
     if (needsTransitionCheck) {
       const { data: cur, error: curErr } = await supabase
         .from("tasks")
-        .select("status, hr_verified, evaluated_by, logged_by, task_description, creator:employees!tasks_logged_by_fk(name, department)")
+        .select(
+          "status, hr_verified, evaluated_by, logged_by, task_description, creator:employees!tasks_logged_by_fk(name, department)",
+        )
         .eq("id", taskId)
         .single();
       if (curErr) throw curErr;
@@ -196,7 +203,8 @@ export const taskService = {
       payload?.status === "COMPLETE" && payload?.evaluatedBy !== undefined;
     const isHeadReject =
       payload?.status === "NOT APPROVED" && payload?.evaluatedBy !== undefined;
-    const isHrReject = payload?.status === "NOT APPROVED" && payload?.evaluatedBy === undefined;
+    const isHrReject =
+      payload?.status === "NOT APPROVED" && payload?.evaluatedBy === undefined;
 
     if (isHeadApprove) {
       if (current?.status !== "INCOMPLETE") {
@@ -221,7 +229,9 @@ export const taskService = {
       payload?.evaluatedBy === undefined &&
       payload?.hrVerified !== true
     ) {
-      throw new Error(`Invalid pipeline state: status=COMPLETE requires evaluatedBy`);
+      throw new Error(
+        `Invalid pipeline state: status=COMPLETE requires evaluatedBy`,
+      );
     }
 
     if (
@@ -229,7 +239,9 @@ export const taskService = {
       payload?.evaluatedBy === undefined &&
       payload?.hrVerified !== false
     ) {
-      throw new Error(`Invalid pipeline state: status=NOT APPROVED requires evaluatedBy`);
+      throw new Error(
+        `Invalid pipeline state: status=NOT APPROVED requires evaluatedBy`,
+      );
     }
 
     // HR rejection should only happen while the task is currently COMPLETE and unverified.
@@ -325,64 +337,80 @@ export const taskService = {
 
     // 🔥 NOTIFICATION TRIGGERS 🔥
     if (current && payload.editedBy) {
-       const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? '...' : ''}"`;
-       const empDept = current.creator?.department;
-       
-       if (isHeadApprove) {
-          notificationService.broadcastToRole(['HR'], {
-             sender_id: payload.editedBy,
-             type: 'TASK_APPROVED_BY_HEAD',
-             title: 'Task Ready for HR',
-             message: `A Head approved task ${taskNameSnippet} from ${current.creator?.name}. Ready for Verification.`,
-             reference_id: taskId
-          });
-       }
+      const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? "..." : ""}"`;
+      const empDept = current.creator?.department;
 
-       if (isHeadReject || isHrReject) {
-          notificationService.createNotification({
-             recipient_id: current.logged_by,
-             sender_id: payload.editedBy,
-             type: 'TASK_REJECTED',
-             title: 'Task Revision Required',
-             message: `Your task ${taskNameSnippet} was rejected for revision. Check the remarks.`,
-             reference_id: taskId
-          });
-       }
+      if (isHeadApprove) {
+        // Notify HR only (not Super Admin — they have HR access already and get a richer signal on full completion)
+        notificationService.broadcastToRole(["HR"], {
+          sender_id: payload.editedBy,
+          type: "TASK_APPROVED_BY_HEAD",
+          title: "Task Ready for HR",
+          message: `A Head approved task ${taskNameSnippet} from ${current.creator?.name}. Ready for Verification.`,
+          reference_id: taskId,
+          excludeSuperAdmin: true,
+        });
+      }
 
-       if (payload.hrVerified === true && current.hr_verified === false) {
-          // Notify the owner
-          notificationService.createNotification({
-             recipient_id: current.logged_by,
-             sender_id: payload.editedBy,
-             type: 'TASK_VERIFIED',
-             title: 'Task HR Verified',
-             message: `Your task ${taskNameSnippet} has been officially verified by HR!`,
-             reference_id: taskId
-          });
+      if (isHeadReject || isHrReject) {
+        notificationService.createNotification({
+          recipient_id: current.logged_by,
+          sender_id: payload.editedBy,
+          type: "TASK_REJECTED",
+          title: "Task Revision Required",
+          message: `Your task ${taskNameSnippet} was rejected for revision. Check the remarks.`,
+          reference_id: taskId,
+        });
+      }
 
-          // Also keep the Head in the loop
-          const empSubDept = current.creator?.sub_department;
-          if (empSubDept) {
-             notificationService.notifyHeadByDepartment(empSubDept, {
-                sender_id: payload.editedBy,
-                type: 'TASK_VERIFIED',
-                title: 'Staff Task Verified by HR',
-                message: `Task ${taskNameSnippet} by ${current.creator?.name} under your department was verified by HR.`,
-                reference_id: taskId
-             });
-          }
-       }
+      if (payload.hrVerified === true && current.hr_verified === false) {
+        // Notify the owner
+        notificationService.createNotification({
+          recipient_id: current.logged_by,
+          sender_id: payload.editedBy,
+          type: "TASK_VERIFIED",
+          title: "Task HR Verified",
+          message: `Your task ${taskNameSnippet} has been officially verified by HR!`,
+          reference_id: taskId,
+        });
 
-       if (payload.grade !== undefined && payload.grade > 0 && payload.status === 'COMPLETE' && current.evaluated_by == null) {
-          notificationService.createNotification({
-             recipient_id: current.logged_by,
-             sender_id: payload.editedBy,
-             type: 'TASK_GRADED',
-             title: 'Task Successfully Graded',
-             message: `You earned a grade of ${payload.grade} for ${taskNameSnippet}!`,
-             reference_id: taskId
+        // Also keep the Head in the loop
+        const empSubDept = current.creator?.sub_department;
+        if (empSubDept) {
+          notificationService.notifyHeadByDepartment(empSubDept, {
+            sender_id: payload.editedBy,
+            type: "TASK_VERIFIED",
+            title: "Staff Task Verified by HR",
+            message: `Task ${taskNameSnippet} by ${current.creator?.name} under your department was verified by HR.`,
+            reference_id: taskId,
           });
-       }
+        }
+
+        // Notify Super Admin: Task is now fully completed (HR-verified)
+        notificationService.broadcastToRole(["SUPER_ADMIN"], {
+          sender_id: payload.editedBy,
+          type: "TASK_COMPLETED",
+          title: "Task Completed",
+          message: `Task ${taskNameSnippet} by ${current.creator?.name} has been verified by HR and is now marked as complete.`,
+          reference_id: taskId,
+        });
+      }
+
+      if (
+        payload.grade !== undefined &&
+        payload.grade > 0 &&
+        payload.status === "COMPLETE" &&
+        current.evaluated_by == null
+      ) {
+        notificationService.createNotification({
+          recipient_id: current.logged_by,
+          sender_id: payload.editedBy,
+          type: "TASK_GRADED",
+          title: "Task Successfully Graded",
+          message: `You earned a grade of ${payload.grade} for ${taskNameSnippet}!`,
+          reference_id: taskId,
+        });
+      }
     }
 
     return data;

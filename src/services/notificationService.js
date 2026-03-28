@@ -90,7 +90,7 @@ export const notificationService = {
   /**
    * Broadcast a notification to entire functional roles (e.g. ['HR', 'SUPER_ADMIN'])
    */
-  async broadcastToRole(rolesArray, { sender_id = null, type, title, message, reference_id = null }) {
+  async broadcastToRole(rolesArray, { sender_id = null, type, title, message, reference_id = null, excludeSuperAdmin = false }) {
      try {
        const { data: emps } = await supabase.from('employees').select('id, department, is_super_admin, is_hr');
        if (!emps) return;
@@ -100,6 +100,9 @@ export const notificationService = {
           let shouldInclude = false;
           if (rolesArray.includes('SUPER_ADMIN') && emp.is_super_admin) shouldInclude = true;
           if (rolesArray.includes('HR') && emp.is_hr) shouldInclude = true;
+
+          // Optionally exclude Super Admins (e.g. for HR-only signals they don't need)
+          if (excludeSuperAdmin && emp.is_super_admin) shouldInclude = false;
 
           if (shouldInclude) {
              inserts.push({
