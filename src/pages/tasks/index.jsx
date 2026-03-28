@@ -108,13 +108,15 @@ export default function TasksPage() {
 
   // 🔥 DEEP LINKING NOTIFICATION HOOK
   useEffect(() => {
-     if (location.state?.openTaskId && rawTasks.length > 0) {
-        const targetTask = rawTasks.find(t => t.id === location.state.openTaskId);
-        if (targetTask) {
-           setViewTask(targetTask);
-           navigate(location.pathname, { replace: true, state: {} });
-        }
-     }
+    if (location.state?.openTaskId && rawTasks.length > 0) {
+      const targetTask = rawTasks.find(
+        (t) => t.id === location.state.openTaskId,
+      );
+      if (targetTask) {
+        setViewTask(targetTask);
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
   }, [location.state, rawTasks, navigate, location.pathname]);
 
   // THE WRITE ENGINE
@@ -221,7 +223,7 @@ export default function TasksPage() {
       {/* HEADER - Smaller text on mobile */}
       <div className="px-1 md:px-0">
         <h1 className="text-2xl md:text-3xl font-black text-gray-12 tracking-tight">
-          {isManagement ? "Team Directory" : "My Tasks"}
+          {isManagement ? "All tasks" : "My Tasks"}
         </h1>
         <p className="text-sm md:text-base text-gray-9 mt-1">
           {isManagement
@@ -233,7 +235,7 @@ export default function TasksPage() {
       {/* FILTER CONTROL BARS */}
       <div className="grid gap-3 md:gap-4">
         {/* Row 1: Search & Base Filters */}
-        <div className="bg-gray-2 border border-gray-4 p-3 md:p-4 rounded-xl flex flex-col lg:flex-row gap-3 md:gap-4 shadow-sm relative z-20">
+        <div className="border border-gray-4 p-3 md:p-4 rounded-xl flex flex-col lg:flex-row gap-3 md:gap-4  relative z-20">
           {/* Search - Grows to fill space */}
           <div className="relative flex-1">
             <Search
@@ -301,7 +303,7 @@ export default function TasksPage() {
 
         {/* Row 2: Management Filters - 1 Column on Mobile, 3 on Tablet */}
         {isManagement && (
-          <div className="bg-gray-1 border border-primary/20 p-4 rounded-xl shadow-inner grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
+          <div className="bg-gray-1 border border-gray-4 p-4 rounded-xl  grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
             <div className="space-y-1">
               <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
                 <Building2 size={12} /> Dept
@@ -344,7 +346,7 @@ export default function TasksPage() {
             </div>
 
             <div className="space-y-1 sm:col-span-2 md:col-span-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-widest">
+              <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
                 <Users size={12} /> Team Member
               </label>
               <select
