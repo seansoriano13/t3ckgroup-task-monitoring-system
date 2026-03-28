@@ -38,7 +38,8 @@ export default function SalesRecordsPage() {
   const [filterEmp, setFilterEmp] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterType, setFilterType] = useState("ALL");
-  const [timeframe, setTimeframe] = useState("DAILY");
+  const [timeframe, setTimeframe] = useState("MONTHLY");
+  const [isInitialized, setIsInitialized] = useState(false);
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
 
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -63,6 +64,34 @@ export default function SalesRecordsPage() {
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  // 🔥 ROLE-BASED DEFAULT DATE HOOK
+  useEffect(() => {
+    // Wait until the user object is ready and we haven't initialized yet
+    if (user?.id && !isInitialized) {
+      setIsInitialized(true); // Lock it down so it only runs once
+      // Stop here if they came from a notification (let the deep link hook handle it)
+
+      if (location.state?.eventType || location.state?.openRevenueId) {
+        return;
+      }
+
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+
+      if (user.isSuperAdmin || user.isHr) {
+        // HR & Admins: Default to current Month & Year
+        setTimeframe("MONTHLY");
+        setSelectedDateFilter(`${y}-${m}`);
+      } else {
+        // Standard Employees: Default to strictly Today
+        setTimeframe("DAILY");
+        setSelectedDateFilter(`${y}-${m}-${d}`);
+      }
+    }
+  }, [user, isInitialized, location.state]);
 
   // Fetch all activities
   const { data: rawActivities = [], isLoading: isActLoading } = useQuery({
@@ -541,7 +570,10 @@ export default function SalesRecordsPage() {
                 <tbody className="divide-y divide-gray-4">
                   {isActLoading ? (
                     <tr>
-                      <td colSpan="6" className="p-10 text-center text-gray-9 font-bold">
+                      <td
+                        colSpan="6"
+                        className="p-10 text-center text-gray-9 font-bold"
+                      >
                         Loading Activities...
                       </td>
                     </tr>
@@ -645,10 +677,14 @@ export default function SalesRecordsPage() {
                   Prev
                 </button>
                 <span className="text-xs font-black text-gray-12 uppercase tracking-tighter">
-                  Page {activitiesPage} of {Math.ceil(filteredActivities.length / itemsPerPage)}
+                  Page {activitiesPage} of{" "}
+                  {Math.ceil(filteredActivities.length / itemsPerPage)}
                 </span>
                 <button
-                  disabled={activitiesPage === Math.ceil(filteredActivities.length / itemsPerPage)}
+                  disabled={
+                    activitiesPage ===
+                    Math.ceil(filteredActivities.length / itemsPerPage)
+                  }
                   onClick={() => setActivitiesPage((p) => p + 1)}
                   className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
                 >
@@ -678,7 +714,7 @@ export default function SalesRecordsPage() {
                   </h2>
                   <div className="flex overflow-x-auto gap-4 sm:gap-6 pb-4 custom-scrollbar snap-x">
                     {empGroup.dates.map((dateBlock) => {
-                      if (timeframe === "MONTHLY" || timeframe === "YEARLY") {
+                      if (timeframe !== "DAILY") {
                         const total = dateBlock.all.length;
                         const done = dateBlock.all.filter(
                           (a) => a.status === "DONE",
@@ -821,19 +857,28 @@ export default function SalesRecordsPage() {
                 <tbody className="divide-y divide-gray-4">
                   {isRevLoading ? (
                     <tr>
-                      <td colSpan="6" className="p-10 text-center text-gray-9 font-bold">
+                      <td
+                        colSpan="6"
+                        className="p-10 text-center text-gray-9 font-bold"
+                      >
                         Loading Revenue Logs...
                       </td>
                     </tr>
                   ) : filteredRevenue.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="p-10 text-center text-gray-9 font-bold flex justify-center gap-2 items-center">
+                      <td
+                        colSpan="6"
+                        className="p-10 text-center text-gray-9 font-bold flex justify-center gap-2 items-center"
+                      >
                         <AlertCircle /> No log entries match the filters.
                       </td>
                     </tr>
                   ) : (
                     filteredRevenue
-                      .slice((revenuePage - 1) * itemsPerPage, revenuePage * itemsPerPage)
+                      .slice(
+                        (revenuePage - 1) * itemsPerPage,
+                        revenuePage * itemsPerPage,
+                      )
                       .map((log) => (
                         <tr
                           key={log.id}
@@ -863,11 +908,13 @@ export default function SalesRecordsPage() {
                             ₱{log.revenue_amount?.toLocaleString() || "0"}
                           </td>
                           <td className="p-4 text-center">
-                            {isVerificationEnforced && log.is_verified === false ? (
+                            {isVerificationEnforced &&
+                            log.is_verified === false ? (
                               <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
                                 PENDING
                               </span>
-                            ) : log.status === "COMPLETED SALES" || log.status === "Won" ? (
+                            ) : log.status === "COMPLETED SALES" ||
+                              log.status === "Won" ? (
                               <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
                                 COMPLETED
                               </span>
@@ -895,10 +942,14 @@ export default function SalesRecordsPage() {
                   Prev
                 </button>
                 <span className="text-xs font-black text-gray-12 uppercase tracking-tighter">
-                  Page {revenuePage} of {Math.ceil(filteredRevenue.length / itemsPerPage)}
+                  Page {revenuePage} of{" "}
+                  {Math.ceil(filteredRevenue.length / itemsPerPage)}
                 </span>
                 <button
-                  disabled={revenuePage === Math.ceil(filteredRevenue.length / itemsPerPage)}
+                  disabled={
+                    revenuePage ===
+                    Math.ceil(filteredRevenue.length / itemsPerPage)
+                  }
                   onClick={() => setRevenuePage((p) => p + 1)}
                   className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
                 >
