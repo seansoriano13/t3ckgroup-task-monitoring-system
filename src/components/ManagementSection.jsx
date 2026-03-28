@@ -11,8 +11,7 @@ const ManagementSection = ({
 }) => {
   const { handleDeptChange, handleSubDeptChange, handleAssigneeChange } =
     handlers;
-  const { uniqueDepts, uniqueSubDepts, filteredEmployees } =
-    topologyData;
+  const { uniqueDepts, uniqueSubDepts, filteredEmployees } = topologyData;
 
   // Level 3 Access: Only HR can change Dept/Sub-Dept
   const canEditOrg = isHr;
@@ -21,7 +20,7 @@ const ManagementSection = ({
 
   return (
     <div className="grid grid-cols-2 gap-4 bg-gray-3/50 p-4 rounded-xl border border-gray-4 border-dashed">
-      <div className="col-span-2 text-xs font-bold text-primary uppercase tracking-wider mb-[-8px]">
+      <div className="col-span-2 text-xs font-bold uppercase tracking-wider mb-[-8px]">
         Management Details
       </div>
 

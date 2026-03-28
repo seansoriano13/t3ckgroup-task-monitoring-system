@@ -228,7 +228,7 @@ export default function DashboardStats() {
 function StatCard({ title, value, subtitle, icon, borderColor, highlight }) {
   return (
     <div
-      className={`bg-gray-1 rounded-xl p-5 border border-gray-4 border-t-4 ${borderColor} shadow-sm relative overflow-hidden transition-all ${highlight ? "bg-primary/5 border-primary/30" : ""}`}
+      className={`bg-gray-1 rounded-xl p-5 border border-gray-4 shadow-sm relative overflow-hidden transition-all ${highlight ? "bg-primary/5 border-primary/30" : ""}`}
     >
       <div className="flex justify-between items-start mb-4">
         <div>

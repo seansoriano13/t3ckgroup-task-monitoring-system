@@ -118,9 +118,9 @@ function DashboardHeader() {
           </div>
           <Link
             to="/approvals"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-gray-12 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-red-a3"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-gray-1 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-red-a3"
           >
-            Go to Inbox <ArrowRight size={16} />
+            Approvals <ArrowRight size={16} />
           </Link>
         </div>
       )}

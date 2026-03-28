@@ -21,18 +21,16 @@ export default function ManagerEvaluation({
 
   const containerClass = `grid grid-cols-2 gap-4 p-4 rounded-xl border ${
     isComplete
-      ? "bg-gray-3/50 border-gray-4 border-dashed"
+      ? "bg-gray-3/50 border-gray-4"
       : isNotApproved
         ? "bg-red-a2 border-red-a5"
-        : "bg-primary/5 border-primary/20"
+        : "border-gray-6"
   }`;
 
   return (
     <div className={containerClass}>
       <div className="col-span-2 grid gap-1">
-        <div
-          className={` text-xs font-bold uppercase tracking-wider  ${isNotApproved ? "text-red-9" : "text-primary"}`}
-        >
+        <div className={` text-xs font-bold uppercase tracking-wider`}>
           {isFinalized
             ? "Manager Evaluation"
             : isStrictlyHead
@@ -61,17 +59,7 @@ export default function ManagerEvaluation({
             </p>
           </FieldBox>
           <div /> {/* Layout Spacer */}
-          {task.remarks && (
-            <div className="col-span-2   pt-1">
-              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
-                Manager Remarks
-              </label>
-              <div className="bg-gray-1 p-4 rounded-xl border border-transparent text-sm text-gray-12 whitespace-pre-wrap min-h-[44px] flex items-center shadow-inner">
-                {task.remarks}
-              </div>
-            </div>
-          )}
-          { task.hrRemarks && (
+          {task.hrRemarks && (
             <div className="col-span-2 flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
               <label className="text-[10px] font-bold text-red-9 uppercase tracking-wider pl-1 flex items-center gap-1.5">
                 HR Audit Notes / Rejection Reason
