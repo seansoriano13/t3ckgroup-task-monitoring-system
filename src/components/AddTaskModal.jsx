@@ -116,37 +116,49 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     });
   };
 
-  const selectedCategoryObj = categories.find(c => c.category_id === formData.categoryId);
-  const isCommittee = selectedCategoryObj?.description?.toUpperCase().includes("COMMITTEE");
-  const isOthersGlobal = selectedCategoryObj?.description?.toUpperCase().includes("OTHERS");
+  const selectedCategoryObj = categories.find(
+    (c) => c.category_id === formData.categoryId,
+  );
+  const isCommittee = selectedCategoryObj?.description
+    ?.toUpperCase()
+    .includes("COMMITTEE");
+  const isOthersGlobal = selectedCategoryObj?.description
+    ?.toUpperCase()
+    .includes("OTHERS");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Process complex remarks merging
     let mergedRemarks = "";
     if (isCommittee) {
-       if (!committeeRole) {
-          toast?.error("Please select a specific Committee Role.");
+      if (!committeeRole) {
+        toast?.error("Please select a specific Committee Role.");
+        return;
+      }
+      mergedRemarks = `[COMMITTEE - ${committeeRole}]`;
+      if (committeeRole === "OTHERS") {
+        if (!othersRemarks.trim()) {
+          toast?.error("Please specify details for 'Others'.");
           return;
-       }
-       mergedRemarks = `[COMMITTEE - ${committeeRole}]`;
-       if (committeeRole === 'OTHERS') {
-          if (!othersRemarks.trim()) { toast?.error("Please specify details for 'Others'."); return; }
-          mergedRemarks += ` ${othersRemarks.trim()}`;
-       }
+        }
+        mergedRemarks += ` ${othersRemarks.trim()}`;
+      }
     } else if (isOthersGlobal) {
-       if (!othersRemarks.trim()) { toast?.error("Please specify details for your 'Others' task."); return; }
-       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
+      if (!othersRemarks.trim()) {
+        toast?.error("Please specify details for your 'Others' task.");
+        return;
+      }
+      mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
 
     const payload = {
-       ...formData,
-       remarks: mergedRemarks
+      ...formData,
+      remarks: mergedRemarks,
     };
 
     if (onSubmit) onSubmit(payload);
-    
+
     // Reset secondary states post-submit
     setCommitteeRole("");
     setOthersRemarks("");
@@ -307,7 +319,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                       value={formData.loggedById}
                       onChange={handleChange}
                       required
-                      className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors font-semibold text-sm"
+                      className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg px-3 outline-none transition-colors font-semibold text-sm"
                     >
                       <option value="" disabled>
                         Select Employee...
@@ -338,7 +350,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     value={formData.categoryId}
                     onChange={handleChange}
                     disabled={!formData.loggedById}
-                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors disabled:opacity-50 text-sm"
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg px-3 outline-none transition-colors disabled:opacity-50 text-sm"
                     required
                   >
                     <option value="" disabled className="text-gray-8">
@@ -371,7 +383,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     name="priority"
                     value={formData.priority}
                     onChange={handleChange}
-                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg px-3 outline-none transition-colors text-sm font-bold"
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg px-3 outline-none transition-colors text-sm font-bold"
                   >
                     <option value="LOW">LOW</option>
                     <option value="MEDIUM">MEDIUM</option>
@@ -384,35 +396,42 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
 
               {/* DYNAMIC COMMITTEE CHIPS */}
               {isCommittee && (
-                <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 shadow-inner mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                   <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-3">Select Committee Role</label>
-                   <div className="flex flex-wrap gap-2.5">
-                     {['EVENT', 'CREATIVE', 'DEMO', 'BAC', 'ODOO', 'OTHERS'].map(role => (
-                       <button
-                         key={role}
-                         type="button"
-                         onClick={() => setCommitteeRole(role)}
-                         className={`px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all border shadow-sm ${committeeRole === role ? 'bg-primary text-white border-primary shadow-primary/30 scale-105' : 'bg-gray-1 text-gray-10 border-gray-4 hover:border-primary/50 hover:text-primary'}`}
-                       >
-                         {role}
-                       </button>
-                     ))}
-                   </div>
+                <div className="bg-gray-a2 p-4 rounded-xl border border-gray-a3 mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="block text-[10px] font-black uppercase tracking-widest mb-3">
+                    Select Committee Role
+                  </label>
+                  <div className="flex flex-wrap gap-2.5">
+                    {["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"].map(
+                      (role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => setCommitteeRole(role)}
+                          className={`px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all border shadow-sm ${committeeRole === role ? "bg-primary text-white border-primary shadow-primary/30 scale-105" : "bg-gray-1 text-gray-10 border-gray-4 hover:border-primary/50 hover:text-primary"}`}
+                        >
+                          {role}
+                        </button>
+                      ),
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* DYNAMIC OTHERS REMARKS */}
-              {(isOthersGlobal || (isCommittee && committeeRole === 'OTHERS')) && (
+              {(isOthersGlobal ||
+                (isCommittee && committeeRole === "OTHERS")) && (
                 <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                   <label className="text-[10px] font-bold text-red-500 uppercase tracking-wider pl-1 mb-1.5 block flex items-center gap-1.5">Specify Details (Required)</label>
-                   <input 
-                      type="text" 
-                      required 
-                      value={othersRemarks} 
-                      onChange={e => setOthersRemarks(e.target.value)} 
-                      placeholder="Please elaborate on your exact role or task..."
-                      className="min-h-[44px] w-full bg-gray-1 border border-red-500/50 focus:border-red-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm shadow-inner" 
-                   />
+                  <label className="text-[10px] font-bold text-red-500 uppercase tracking-wider pl-1 mb-1.5 block flex items-center gap-1.5">
+                    Specify Details (Required)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={othersRemarks}
+                    onChange={(e) => setOthersRemarks(e.target.value)}
+                    placeholder="Please elaborate on your exact role or task..."
+                    className="min-h-11 w-full bg-gray-1 border border-gray-6 focus:border-red-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm shadow-inner"
+                  />
                 </div>
               )}
 
@@ -430,7 +449,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     onChange={handleChange}
                     className="min-h-[44px] w-full
                                bg-gray-1 border border-gray-4
-                               focus:border-red-9 text-gray-12
+                               focus:border-gray-6 text-gray-12
                                rounded-lg px-3 outline-none transition-colors text-sm
                                [color-scheme:dark]
 
@@ -454,7 +473,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     onChange={handleChange}
                     className="min-h-[44px] w-full
                                bg-gray-1 border border-gray-4
-                               focus:border-red-9 text-gray-12
+                               focus:border-gray-6 text-gray-12
                                rounded-lg px-3 outline-none transition-colors text-sm
                                [color-scheme:dark]
 
@@ -478,7 +497,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                   value={formData.taskDescription}
                   onChange={handleChange}
                   placeholder="Detail your completed work here..."
-                  className="w-full bg-gray-1 border border-gray-4 focus:border-red-9 text-gray-12 rounded-lg p-4 outline-none transition-colors h-28 resize-none text-sm placeholder:text-gray-7"
+                  className="w-full bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg p-4 outline-none transition-colors h-28 resize-none text-sm placeholder:text-gray-7"
                   required
                 />
               </div>
