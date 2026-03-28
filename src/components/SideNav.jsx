@@ -19,6 +19,7 @@ import { CheckSquare } from "lucide-react";
 import { DollarSign } from "lucide-react";
 import { useState } from "react";
 import { X } from "lucide-react";
+import { Eye } from "lucide-react";
 
 export default function SideNav({ onOpenAddTask }) {
   const { user } = useAuth();
@@ -31,61 +32,75 @@ export default function SideNav({ onOpenAddTask }) {
   // 🔥 Notification State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { data: notifications = [] } = useQuery({
-     queryKey: ['notifications', user?.id],
-     queryFn: () => notificationService.getMyNotifications(user?.id),
-     enabled: !!user?.id,
+    queryKey: ["notifications", user?.id],
+    queryFn: () => notificationService.getMyNotifications(user?.id),
+    enabled: !!user?.id,
   });
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const isSales = user?.department?.toLowerCase().includes("sales") || user?.subDepartment?.toLowerCase().includes("sales");
+  const isSales =
+    user?.department?.toLowerCase().includes("sales") ||
+    user?.subDepartment?.toLowerCase().includes("sales");
 
   // 1. Regular Employees Links
   let navLinks = [];
 
   if (user?.isSuperAdmin) {
-     // STRICT SUPER ADMIN LAYOUT
-     navLinks = [
-       { label: "Dashboard", link: "/", icon: LayoutList },
-       { label: "Tasks", link: "/tasks", icon: ListCheck },
-       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
-       { label: "Super Admin", link: "/super-admin", icon: Crown },
-       { label: "Profile", link: "/profile", icon: UserRound },
-       {label: "Settings", link: "/settings", icon: Bolt}
-     ];
+    // STRICT SUPER ADMIN LAYOUT
+    navLinks = [
+      { label: "Dashboard", link: "/", icon: LayoutList },
+      { label: "Tasks", link: "/tasks", icon: ListCheck },
+      { label: "Sales Records", link: "/sales/records", icon: ListCheck },
+      { label: "Super Admin", link: "/super-admin", icon: Crown },
+      { label: "Profile", link: "/profile", icon: UserRound },
+      { label: "Settings", link: "/settings", icon: Bolt },
+    ];
   } else {
-     // STANDARD & SALES LAYOUT
-     navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
-     
-     if (!isSales) {
-       navLinks.push({ label: "Tasks", link: "/tasks", icon: ListCheck });
-     } else {
-       navLinks.push(
-         { label: "Sales Planner", link: "/sales/schedule", icon: CalendarDays },
-         { label: "Daily Execution", link: "/sales/daily", icon: CheckSquare },
-         { label: "Log Revenue", link: "/sales/log-revenue", icon: DollarSign },
-         { label: "Sales Records", link: "/sales/records", icon: ListCheck }
-       );
-     }
+    // STANDARD & SALES LAYOUT
+    navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
 
-     if (user?.isHead) {
-       navLinks.push({ label: "For Approval", link: "/approvals", icon: ShieldCheck });
-     }
-     
-     if (user?.isHr) {
-       navLinks.push(
-         { label: "HR Master Log", link: "/hr-master-log", icon: Database },
-         { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users }
-       );
-       if (!isSales) {
-         navLinks.push({ label: "Sales Records", link: "/sales/records", icon: ListCheck });
-       }
-     }
+    if (!isSales) {
+      navLinks.push({ label: "Tasks", link: "/tasks", icon: ListCheck });
+    } else {
+      navLinks.push(
+        { label: "Sales Planner", link: "/sales/schedule", icon: CalendarDays },
+        { label: "Daily Execution", link: "/sales/daily", icon: CheckSquare },
+        { label: "Log Revenue", link: "/sales/log-revenue", icon: DollarSign },
+        { label: "Sales Records", link: "/sales/records", icon: ListCheck },
+      );
+    }
 
-     // Universal bottom links
-     navLinks.push(
-       { label: "Profile", link: "/profile", icon: UserRound },
-       { label: "Settings", link: "/settings", icon: Bolt }
-     );
+    if (user?.isHead) {
+      navLinks.push({
+        label: "For Approval",
+        link: "/approvals",
+        icon: ShieldCheck,
+      });
+    }
+
+    if (user?.isHr) {
+      navLinks.push(
+        { label: "HR Master Log", link: "/hr-master-log", icon: Database },
+        {
+          label: "Employee Mgmt",
+          link: "/hr/employee-management",
+          icon: Users,
+        },
+      );
+      if (!isSales) {
+        navLinks.push({
+          label: "Sales Records",
+          link: "/sales/records",
+          icon: ListCheck,
+        });
+      }
+    }
+
+    // Universal bottom links
+    navLinks.push(
+      { label: "Profile", link: "/profile", icon: UserRound },
+      { label: "Settings", link: "/settings", icon: Bolt },
+    );
   }
 
   return (
@@ -112,14 +127,20 @@ export default function SideNav({ onOpenAddTask }) {
 
         {/* Global Notification Hub Trigger */}
         <button
-          onClick={() => { setIsNotifOpen(true); setIsExpanded(false); }}
+          onClick={() => {
+            setIsNotifOpen(true);
+            setIsExpanded(false);
+          }}
           className="relative text-gray-10 hover:text-primary transition-colors p-2 rounded-xl hover:bg-red-a3 flex items-center justify-center group"
           title="Notifications"
         >
-           <Bell size={24} className="group-hover:scale-110 transition-transform" />
-           {unreadCount > 0 && (
-              <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-primary border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
-           )}
+          <Bell
+            size={24}
+            className="group-hover:scale-110 transition-transform"
+          />
+          {unreadCount > 0 && (
+            <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-primary border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+          )}
         </button>
 
         {!user?.isSuperAdmin && (
@@ -128,15 +149,26 @@ export default function SideNav({ onOpenAddTask }) {
               onClick={() => {
                 setIsExpanded(false); // Close sidebar when opening modal
                 if (isSales && !user?.isSuperAdmin) {
-                   navigate('/sales/schedule');
-                } else if (user?.is_hr || user?.isHr || user?.is_head || user?.isHead) {
-                   navigate('/approvals');
+                  navigate("/sales/schedule");
+                } else if (
+                  user?.is_hr ||
+                  user?.isHr ||
+                  user?.is_head ||
+                  user?.isHead
+                ) {
+                  navigate("/approvals");
                 } else {
-                   onOpenAddTask();
+                  onOpenAddTask();
                 }
               }}
               className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all"
-              label={<Plus size={20} />}
+              label={
+                user?.isHr || user?.isHead ? (
+                  <Eye size={20} />
+                ) : (
+                  <Plus size={20} />
+                )
+              }
             />
           </div>
         )}
@@ -206,9 +238,9 @@ export default function SideNav({ onOpenAddTask }) {
       </div>
 
       {/* Global Notification Drawer */}
-      <NotificationDrawer 
-         isOpen={isNotifOpen} 
-         onClose={() => setIsNotifOpen(false)} 
+      <NotificationDrawer
+        isOpen={isNotifOpen}
+        onClose={() => setIsNotifOpen(false)}
       />
     </div>
   );
