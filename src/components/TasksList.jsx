@@ -37,7 +37,7 @@ function InsightBar({ label, count, total, color }) {
   );
 }
 
-export default function TasksList() {
+export default function TasksList({ selectedMonth }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -77,9 +77,9 @@ export default function TasksList() {
   }, [location.state, rawTasks, navigate, location.pathname]);
 
   const { myTasks, teamTasks } = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
+    const currentMonth = selDate.getMonth();
+    const currentYear = selDate.getFullYear();
 
     // 🔥 NEW: Instantly scrub all deleted tasks and filter by THIS MONTH
     const activeTasks = rawTasks.filter((t) => {
@@ -125,7 +125,7 @@ export default function TasksList() {
       myTasks: my,
       teamTasks: team,
     };
-  }, [rawTasks, user?.id, isHr, isHead, userSubDept]);
+  }, [rawTasks, user?.id, isHr, isHead, userSubDept, selectedMonth]);
 
   const editTaskMutation = useMutation({
     mutationFn: (updatedData) =>
@@ -159,7 +159,7 @@ export default function TasksList() {
     <div className="space-y-10">
       {/* SECTION 1: MY PERSONAL TASKS (Visible to Everyone) */}
       {!isManagement && (
-        <section className="space-y-4">
+        <section className="space-y-6">
           <div className="flex justify-between items-end">
             <div className="flex items-center gap-2">
               <User size={18} className="text-primary" />
@@ -174,18 +174,45 @@ export default function TasksList() {
           </div>
 
           {myTasks.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myTasks.slice(0, 3).map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onView={() => handleOpenDrawer(task)}
-                />
-              ))}
+            <div className="space-y-8">
+              {/* Categorized Containers */}
+              {["INCOMPLETE", "COMPLETE"].map((status) => {
+                const filtered = myTasks.filter((t) =>
+                  status === "COMPLETE"
+                    ? t.status === "COMPLETE"
+                    : t.status !== "COMPLETE",
+                );
+
+                if (filtered.length === 0) return null;
+
+                return (
+                  <div key={status} className="space-y-3">
+                    <div className="flex items-center gap-2 px-1">
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${status === "COMPLETE" ? "bg-green-500" : "bg-amber-500"}`}
+                      />
+                      <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
+                        {status === "COMPLETE"
+                          ? "Finalized & Verified"
+                          : "Active / Pending Action"}
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filtered.slice(0, 3).map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onView={() => handleOpenDrawer(task)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="p-10 text-center border border-dashed border-gray-4 rounded-xl text-gray-9 text-sm">
-              You haven't logged any personal tasks today.
+              You haven't logged any personal tasks for this month.
             </div>
           )}
         </section>
@@ -442,6 +469,8 @@ export default function TasksList() {
           </div>
         </section>
       )}
+
+    
 
       <TaskDetails
         isOpen={isDrawerOpen}

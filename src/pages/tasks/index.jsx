@@ -366,22 +366,64 @@ export default function TasksPage() {
         )}
       </div>
 
-      {/* THE GRID - 1 col -> 2 col -> 3 col */}
-      {paginatedTasks.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 mt-2 md:mt-4">
-            {paginatedTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onView={() => setViewTask(task)}
-              />
-            ))}
+      {/* THE CATEGORIZED GRID */}
+      <div className="space-y-12 pb-10">
+        {["INCOMPLETE", "COMPLETE", "NOT APPROVED"].map((status) => {
+          const statusTasks = paginatedTasks.filter((t) => t.status === status);
+          if (statusTasks.length === 0) return null;
+
+          return (
+            <div key={status} className="space-y-4">
+              <div className="flex items-center gap-3 border-b border-gray-4 pb-2 px-1">
+                <div
+                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${
+                    status === "COMPLETE"
+                      ? "bg-green-500"
+                      : status === "NOT APPROVED"
+                        ? "bg-red-500"
+                        : "bg-amber-500"
+                  }`}
+                />
+                <h2 className="text-sm font-black text-gray-12 uppercase tracking-[0.2em]">
+                  {status === "COMPLETE"
+                    ? "Verified & Completed"
+                    : status === "NOT APPROVED"
+                      ? "Revision Required"
+                      : "Pending / In Progress"}
+                </h2>
+                <span className="text-[10px] font-bold text-gray-8 bg-gray-2 px-2 py-0.5 rounded-full border border-gray-4 ml-auto">
+                  {statusTasks.length} {statusTasks.length === 1 ? "Task" : "Tasks"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
+                {statusTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onView={() => setViewTask(task)}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        {paginatedTasks.length === 0 && (
+          <div className="text-center py-12 md:py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl mt-4 mx-1">
+            <p className="text-gray-10 font-bold text-base md:text-lg">
+              No tasks found.
+            </p>
+            <p className="text-gray-8 text-xs md:text-sm mt-1 px-4">
+              Try adjusting your filters or search term.
+            </p>
           </div>
+        )}
+      </div>
 
           {/* PAGINATION - Stacked buttons on tiny screens */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8 md:mt-10 mb-10">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4 mb-10">
               <div className="flex items-center gap-4 w-full sm:w-auto">
                 <button
                   disabled={currentPage === 1}
@@ -406,19 +448,6 @@ export default function TasksPage() {
               </span>
             </div>
           )}
-        </>
-      ) : (
-        /* Empty State */
-        <div className="text-center py-12 md:py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl mt-4 mx-1">
-          <p className="text-gray-10 font-bold text-base md:text-lg">
-            No tasks found.
-          </p>
-          <p className="text-gray-8 text-xs md:text-sm mt-1 px-4">
-            Try adjusting your filters or search term.
-          </p>
-        </div>
-      )}
-
       <TaskDetails
         isOpen={!!viewTask}
         onClose={() => setViewTask(null)}

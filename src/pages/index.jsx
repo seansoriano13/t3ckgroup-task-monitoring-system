@@ -92,7 +92,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="grid gap-8 relative z-10">
+            <div className="grid gap-8 relative">
               <DashboardStats selectedMonth={selectedMonth} />
               <EmployeePipelineMatrix selectedMonth={selectedMonth} />
               <TasksList selectedMonth={selectedMonth} />

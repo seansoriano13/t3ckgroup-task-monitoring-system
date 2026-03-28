@@ -670,7 +670,7 @@ export default function SalesRecordsPage() {
                             >
                               {label}
                             </h3>
-                            <p className="text-4xl font-black text-primary my-3">
+                            <p className="text-4xl font-black my-3">
                               {total}{" "}
                               <span className="text-[10px] text-gray-9 uppercase tracking-widest block font-bold mt-1">
                                 Total Operations

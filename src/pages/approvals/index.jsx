@@ -29,10 +29,10 @@ export default function ApprovalsPage() {
 
   // 🔥 DEEP LINKING HOOK
   useEffect(() => {
-     if (location.state?.openTaskId && rawTasks.length > 0) {
-        setAutoOpenId(location.state.openTaskId);
-        navigate(location.pathname, { replace: true, state: {} });
-     }
+    if (location.state?.openTaskId && rawTasks.length > 0) {
+      setAutoOpenId(location.state.openTaskId);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
   }, [location.state, rawTasks, navigate, location.pathname]);
 
   // 2. THE FORKED QUEUE LOGIC
@@ -75,12 +75,12 @@ export default function ApprovalsPage() {
       taskService.updateTask(updatedData.id, updatedData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      
+
       if (variables.status === "NOT APPROVED") {
         toast.success("Task has been rejected.");
       } else {
         toast.success(
-          isHr ? "Task verified by HR." : "Task approved successfully."
+          isHr ? "Task verified by HR." : "Task approved successfully.",
         );
       }
     },
@@ -138,7 +138,7 @@ export default function ApprovalsPage() {
           </div>
         ) : (
           <div className="text-center py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl shadow-sm">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-900/20 text-green-500 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-400 mb-4">
               <CheckCircle2 size={32} />
             </div>
             <p className="text-gray-12 font-bold text-xl">Inbox Zero!</p>
@@ -152,14 +152,21 @@ export default function ApprovalsPage() {
   );
 }
 
-function ApprovalRow({ task, isHr, onProcess, isSubmitting, currentUserId, defaultExpanded }) {
+function ApprovalRow({
+  task,
+  isHr,
+  onProcess,
+  isSubmitting,
+  currentUserId,
+  defaultExpanded,
+}) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(null);
   const [remarks, setRemarks] = useState("");
   const [hrRemarks, setHrRemarks] = useState(""); // 👈 New state for HR
 
   useEffect(() => {
-     if (defaultExpanded) setExpanded(true);
+    if (defaultExpanded) setExpanded(true);
   }, [defaultExpanded]);
 
   // --- HEAD HANDLERS ---
