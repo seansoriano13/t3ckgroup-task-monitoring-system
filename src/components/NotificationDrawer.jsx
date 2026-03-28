@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
-import { Bell, X, CheckCheck, ShieldAlert, CheckCircle2, Clock, XCircle, FileText, Briefcase, TrendingUp } from 'lucide-react';
+import { Bell, X, CheckCheck, ShieldAlert, CheckCircle2, Clock, XCircle, FileText, Briefcase, TrendingUp, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 export default function NotificationDrawer({ isOpen, onClose }) {
@@ -53,6 +53,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         case 'TASK_GRADED': return <CheckCircle2 size={18} className="text-green-500" />;
         case 'TASK_REJECTED': return <XCircle size={18} className="text-red-500" />;
         case 'TASK_VERIFIED': return <ShieldAlert size={18} className="text-blue-500" />;
+        case 'TASK_COMPLETED': return <Trophy size={18} className="text-emerald-500" />;
         case 'NEW_TASK_SUBMITTED': return <Clock size={18} className="text-amber-500" />;
         case 'TASK_APPROVED_BY_HEAD': return <CheckCircle2 size={18} className="text-amber-600" />;
         case 'REVENUE_LOCKED': return <ShieldAlert size={18} className="text-green-500" />;
