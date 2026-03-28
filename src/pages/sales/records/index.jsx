@@ -421,13 +421,13 @@ export default function SalesRecordsPage() {
               }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-12 outline-none focus:border-primary transition-colors"
+              className="w-full bg-gray-2 border border-gray-4 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-12 outline-none focus-within:gray-6 transition-colors"
             />
           </div>
 
           <div className="flex gap-2 flex-wrap sm:flex-nowrap">
             {viewMode === "BOARD" && activeTab === "ACTIVITIES" && (
-              <div className="flex bg-gray-2 border border-gray-4 rounded-lg overflow-hidden flex-1 sm:flex-none shadow-sm focus-within:border-primary transition-colors">
+              <div className="flex bg-gray-2 border border-gray-4 rounded-lg overflow-hidden flex-1 sm:flex-none shadow-sm focus-within:gray-6 transition-colors">
                 <select
                   value={timeframe}
                   onChange={(e) => {
@@ -488,7 +488,7 @@ export default function SalesRecordsPage() {
               value={user?.isSuperAdmin ? filterEmp : user?.id}
               onChange={(e) => setFilterEmp(e.target.value)}
               disabled={!user?.isSuperAdmin}
-              className={`bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary font-semibold flex-1 sm:flex-none ${!user?.isSuperAdmin ? "opacity-70 cursor-not-allowed" : ""}`}
+              className={`bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-gray-6 font-semibold flex-1 sm:flex-none ${!user?.isSuperAdmin ? "opacity-70 cursor-not-allowed" : ""}`}
             >
               {user?.isSuperAdmin ? (
                 <option value="ALL">All Representatives</option>
@@ -506,7 +506,7 @@ export default function SalesRecordsPage() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary font-semibold flex-1 sm:flex-none"
+              className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-semibold flex-1 sm:flex-none"
             >
               <option value="ALL">All Statuses</option>
               {activeTab === "ACTIVITIES" ? (
@@ -529,7 +529,7 @@ export default function SalesRecordsPage() {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary font-semibold flex-1 sm:flex-none"
+                className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-semibold flex-1 sm:flex-none"
               >
                 <option value="ALL">All Types</option>
                 <option value="Sales Call">Sales Call</option>
@@ -1197,7 +1197,7 @@ const EditRevenueModal = ({
 
           {/* SALES REP REQUEST OVERLAY */}
           {isVerifiedAndLocked && !requestMode && !hasPendingRequest && (
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center mb-6 shadow-sm">
+            <div className="bg-primary/5 border focus:border-gray-6 rounded-xl p-4 text-center mb-6 shadow-sm">
               <Lock
                 size={28}
                 className="mx-auto text-primary mb-2 opacity-80"
@@ -1324,7 +1324,7 @@ const EditRevenueModal = ({
                   onChange={(e) =>
                     setFormData({ ...formData, date: e.target.value })
                   }
-                  className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary font-bold"
+                  className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-bold"
                 />
               </div>
               <div>
@@ -1337,7 +1337,7 @@ const EditRevenueModal = ({
                   onChange={(e) =>
                     setFormData({ ...formData, status: e.target.value })
                   }
-                  className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary font-bold"
+                  className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-bold"
                 >
                   <option value="COMPLETED SALES">COMPLETED SALES</option>
                   <option value="LOST SALES">LOST SALES</option>
@@ -1356,7 +1356,7 @@ const EditRevenueModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, account: e.target.value })
                 }
-                className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary"
+                className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6"
               />
             </div>
 
@@ -1374,7 +1374,7 @@ const EditRevenueModal = ({
                     product_item_sold: e.target.value,
                   })
                 }
-                className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary"
+                className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6"
               />
             </div>
 
@@ -1465,7 +1465,7 @@ const EditRevenueModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, remarks: e.target.value })
                 }
-                className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary resize-none h-20 placeholder:text-gray-7"
+                className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 resize-none h-20 placeholder:text-gray-7"
                 placeholder="Add optional details..."
               />
             </div>

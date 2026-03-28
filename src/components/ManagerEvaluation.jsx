@@ -82,19 +82,33 @@ export default function ManagerEvaluation({
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((num) => {
                 const isActive = approvalGrade === num;
+
+                // 1. Define the dynamic color scheme for each grade
+                const activeColorMap = {
+                  1: "bg-red-500 text-gray-1 hover:bg-red-600 border-red-500 shadow-red-500/40",
+                  2: "bg-orange-500 text-gray-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
+                  3: "bg-yellow-500 text-gray-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
+                  4: "bg-lime-500 text-gray-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
+                  5: "bg-green-500 text-gray-1 hover:bg-green-600 border-green-500 shadow-green-500/40",
+                };
+
                 return (
                   <button
                     key={num}
                     disabled={!isStrictlyHead}
                     onClick={() => setApprovalGrade(num)}
                     className={`flex-1 py-2.5 rounded-lg font-bold transition-all border ${
-                      isActive
-                        ? "bg-primary text-gray-12 border-primary shadow-lg shadow-red-a3 scale-[1.02]"
-                        : "bg-gray-2 text-gray-10 border-gray-4"
+                      !isStrictlyHead ? "opacity-50 cursor-not-allowed" : ""
                     } ${
-                      isStrictlyHead
-                        ? "hover:border-gray-6 hover:bg-gray-3"
-                        : "opacity-50 cursor-not-allowed"
+                      isActive
+                        ? // 2. Apply the specific color from the map if active
+                          `${activeColorMap[num]} shadow-lg scale-[1.02]`
+                        : // 3. Otherwise, apply default inactive styles
+                          `bg-gray-2 text-gray-10 border-gray-4 ${
+                            isStrictlyHead
+                              ? "hover:border-gray-6 hover:bg-gray-3"
+                              : ""
+                          }`
                     }`}
                   >
                     {num}

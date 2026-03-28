@@ -164,8 +164,8 @@ export default function SalesDashboard() {
       {/* HEADER & TABS */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4 print:hidden">
         <div>
-          <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3">
-            <Trophy size={32} /> Sales Performance
+          <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3 uppercase">
+            Monthly Accomplishment Report
           </h1>
           <p className="text-gray-9 mt-1 font-medium text-sm">
             Monitor real-time pipeline, quotas, and granular date-ranged
@@ -178,13 +178,13 @@ export default function SalesDashboard() {
             onClick={() => setActiveTab("OVERVIEW")}
             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeTab === "OVERVIEW" ? "bg-primary text-white shadow" : "text-gray-9 hover:text-gray-12"}`}
           >
-            <LayoutDashboard size={16} /> Quota Overview
+            <LayoutDashboard size={16} /> Monthly Overview
           </button>
           <button
             onClick={() => setActiveTab("ANALYTICS")}
             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeTab === "ANALYTICS" ? "bg-red-9 text-white shadow" : "text-gray-9 hover:text-gray-12"}`}
           >
-            <PieChart size={16} /> Advanced Analytics
+            <PieChart size={16} />  Analytics
           </button>
         </div>
       </div>
@@ -450,7 +450,7 @@ export default function SalesDashboard() {
           {/* DATE FILTERS */}
           <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-sm print:hidden">
             <h2 className="text-xs font-black uppercase tracking-widest text-gray-10 mb-4 flex items-center gap-2">
-              <Calendar size={14} /> Custom Date Boundary
+              <Calendar size={14} /> Date Range
             </h2>
 
             <div className="flex flex-col lg:flex-row gap-6 lg:items-end justify-between">
