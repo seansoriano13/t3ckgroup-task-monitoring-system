@@ -73,11 +73,16 @@ export default function ApprovalsPage() {
   const editTaskMutation = useMutation({
     mutationFn: (updatedData) =>
       taskService.updateTask(updatedData.id, updatedData),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      toast.success(
-        isHr ? "Task verified by HR." : "Task evaluated successfully.",
-      );
+      
+      if (variables.status === "NOT APPROVED") {
+        toast.success("Task has been rejected.");
+      } else {
+        toast.success(
+          isHr ? "Task verified by HR." : "Task approved successfully."
+        );
+      }
     },
   });
 
@@ -159,30 +164,6 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting, currentUserId, defau
 
   // --- HEAD HANDLERS ---
   const handleHeadApprove = () => {
-    // #region agent log (Head approve handler pre-flight)
-    fetch('http://127.0.0.1:7778/ingest/cb6816af-fcbc-4f2b-b75d-0ffdb3c3ab2f', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': 'a4266c',
-      },
-      body: JSON.stringify({
-        sessionId: 'a4266c',
-        runId: 'pre-fix',
-        hypothesisId: 'H1_or_H4',
-        location: 'src/pages/approvals/index.jsx:handleHeadApprove',
-        message: 'Head approve handler entered',
-        data: {
-          taskId: task?.id,
-          grade,
-          remarksLen: remarks?.length,
-          typeofUserInApprovalRow: typeof user,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-
     onProcess({
       id: task.id,
       status: "COMPLETE",
@@ -197,30 +178,6 @@ function ApprovalRow({ task, isHr, onProcess, isSubmitting, currentUserId, defau
   };
 
   const handleHeadReject = () => {
-    // #region agent log (Head reject handler pre-flight)
-    fetch('http://127.0.0.1:7778/ingest/cb6816af-fcbc-4f2b-b75d-0ffdb3c3ab2f', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': 'a4266c',
-      },
-      body: JSON.stringify({
-        sessionId: 'a4266c',
-        runId: 'pre-fix',
-        hypothesisId: 'H1_or_H4',
-        location: 'src/pages/approvals/index.jsx:handleHeadReject',
-        message: 'Head reject handler entered',
-        data: {
-          taskId: task?.id,
-          grade,
-          remarksLen: remarks?.length,
-          typeofUserInApprovalRow: typeof user,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-
     onProcess({
       id: task.id,
       status: "NOT APPROVED",
