@@ -101,7 +101,14 @@ export default function TaskDetails({
 
   // Permissions & Handlers
   const isOwner = user?.id === task.loggedById;
-  const canEdit = isHr || isHead || (isOwner && task.status !== "COMPLETE");
+  // Employees can only edit their own tasks when INCOMPLETE or Head-rejected (NOT APPROVED + grade=0).
+  // HR-rejected tasks (NOT APPROVED + grade>0) must NOT be editable by the employee.
+  const isHrRejected =
+    task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
+  const canEdit =
+    isHr ||
+    isHead ||
+    (isOwner && task.status !== "COMPLETE" && !isHrRejected);
 
   // 🔥 THE FIX: Since useEffect handles the data now, this just toggles the UI
   const handleToggleEdit = () => {
@@ -148,7 +155,6 @@ export default function TaskDetails({
       dbPayload.status === "NOT APPROVED"
     ) {
       dbPayload.hrVerified = false;
-  
     }
 
     executeUpdate({ id: task.id, ...dbPayload, editedBy: user.id });
@@ -299,7 +305,9 @@ export default function TaskDetails({
 
             onHrVerify: () => {
               if (task.status !== "COMPLETE") {
-                alert("Exploit Prevention: Only COMPLETE tasks can be verified.");
+                alert(
+                  "Exploit Prevention: Only COMPLETE tasks can be verified.",
+                );
                 return;
               }
               executeUpdate({
@@ -309,7 +317,7 @@ export default function TaskDetails({
                 hrVerifiedAt: new Date().toISOString(),
                 editedBy: user.id,
               });
-            }
+            },
           }}
           permissions={{ canEdit, isStrictlyHead, isHr, isManagement }}
           state={{

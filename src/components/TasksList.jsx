@@ -49,10 +49,7 @@ export default function TasksList() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const {
-    data: rawTasks = [],
-    isLoading,
-  } = useQuery({
+  const { data: rawTasks = [], isLoading } = useQuery({
     queryKey: ["dashboardTasks", user?.id, isManagement ? "all" : "personal"],
     queryFn: () =>
       isManagement
@@ -66,15 +63,17 @@ export default function TasksList() {
 
   // 🔥 DEEP LINKING NOTIFICATION HOOK
   useEffect(() => {
-     if (location.state?.openTaskId && rawTasks.length > 0) {
-        const targetTask = rawTasks.find(t => t.id === location.state.openTaskId);
-        if (targetTask) {
-           setSelectedTask(targetTask);
-           setIsDrawerOpen(true);
-           // Clear state to prevent re-firing on hot reload
-           navigate(location.pathname, { replace: true, state: {} });
-        }
-     }
+    if (location.state?.openTaskId && rawTasks.length > 0) {
+      const targetTask = rawTasks.find(
+        (t) => t.id === location.state.openTaskId,
+      );
+      if (targetTask) {
+        setSelectedTask(targetTask);
+        setIsDrawerOpen(true);
+        // Clear state to prevent re-firing on hot reload
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
   }, [location.state, rawTasks, navigate, location.pathname]);
 
   const { myTasks, teamTasks } = useMemo(() => {
@@ -198,7 +197,7 @@ export default function TasksList() {
           <div className="flex justify-between items-end mb-6">
             <div>
               <h2 className="text-xl font-black text-gray-12 flex items-center gap-2">
-                <Activity size={24} className="text-primary" />
+                <Activity size={24} />
                 {isHr ? "Organization Stats" : "Team Activity Feed"}
               </h2>
               <p className="text-sm text-gray-9 mt-1 font-medium">
@@ -258,10 +257,10 @@ export default function TasksList() {
                         <div className="flex items-center gap-1.5 mt-auto">
                           {/* HR Verified Icon (Only shows if task is Complete AND Verified) */}
                           {task.status === "COMPLETE" && task.hrVerified && (
-                            <div className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">
-                              <CheckCircle2 size={10} />
-                              <span>Verified</span>
-                            </div>
+                            <CheckCircle2
+                              className="text-green-700"
+                              size={13}
+                            />
                           )}
 
                           {/* Primary Status Dot */}
