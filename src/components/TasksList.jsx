@@ -45,6 +45,7 @@ export default function TasksList({ selectedMonth }) {
   const isHead = user?.is_head || user?.isHead;
   const isManagement = isHr || isHead;
   const userSubDept = user?.sub_department || user?.subDepartment;
+  const userDept = user?.department;
 
   const [selectedTask, setSelectedTask] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -115,7 +116,14 @@ export default function TasksList({ selectedMonth }) {
           t.employees?.subDepartment ||
           "";
 
-        const inMyDept = taskSubDept === userSubDept;
+        const taskDept = t.creator?.department || t.employees?.department || "";
+        
+        let inMyDept = false;
+        if(userSubDept) {
+           inMyDept = taskSubDept === userSubDept;
+        } else {
+           inMyDept = taskDept === userDept;
+        }
 
         return isNotMe && inMyDept;
       });
@@ -125,7 +133,7 @@ export default function TasksList({ selectedMonth }) {
       myTasks: my,
       teamTasks: team,
     };
-  }, [rawTasks, user?.id, isHr, isHead, userSubDept, selectedMonth]);
+  }, [rawTasks, user?.id, isHr, isHead, userSubDept, userDept, selectedMonth]);
 
   const editTaskMutation = useMutation({
     mutationFn: (updatedData) =>

@@ -51,6 +51,7 @@ export default function SideNav({ onOpenAddTask }) {
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
+      { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
       { label: "Profile", link: "/profile", icon: UserRound },
       { label: "Settings", link: "/settings", icon: Bolt },
@@ -143,32 +144,70 @@ export default function SideNav({ onOpenAddTask }) {
           )}
         </button>
 
-        {!user?.isSuperAdmin && (
-          <div>
+        {user?.isSuperAdmin ? (
+          <div className="flex flex-col gap-2 w-full mt-2">
+            <PrimaryButton
+              onClick={() => {
+                setIsExpanded(false);
+                onOpenAddTask();
+              }}
+              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
+              label={<Plus size={20} />}
+              title="Add Task"
+            />
+            <PrimaryButton
+              onClick={() => {
+                setIsExpanded(false);
+                navigate("/super-admin");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
+              label={<Crown size={20} />}
+              title="Set Quotas"
+            />
+          </div>
+        ) : user?.isHr ? (
+          <div className="flex flex-col gap-2 w-full mt-2">
+            <PrimaryButton
+              onClick={() => {
+                setIsExpanded(false);
+                onOpenAddTask();
+              }}
+              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
+              label={<Plus size={20} />}
+              title="Add Task"
+            />
+            <PrimaryButton
+              onClick={() => {
+                setIsExpanded(false);
+                navigate("/approvals");
+              }}
+              className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
+              label={<Eye size={20} />}
+              title="For Approval"
+            />
+          </div>
+        ) : (
+          <div className="w-full mt-2">
             <PrimaryButton
               onClick={() => {
                 setIsExpanded(false); // Close sidebar when opening modal
-                if (isSales && !user?.isSuperAdmin) {
+                if (isSales) {
                   navigate("/sales/schedule");
-                } else if (
-                  user?.is_hr ||
-                  user?.isHr ||
-                  user?.is_head ||
-                  user?.isHead
-                ) {
+                } else if (user?.is_head || user?.isHead) {
                   navigate("/approvals");
                 } else {
                   onOpenAddTask();
                 }
               }}
-              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all"
+              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
               label={
-                user?.isHr || user?.isHead ? (
+                user?.isHead ? (
                   <Eye size={20} />
                 ) : (
                   <Plus size={20} />
                 )
               }
+              title={user?.isHead ? "For Approval" : "Add Task"}
             />
           </div>
         )}

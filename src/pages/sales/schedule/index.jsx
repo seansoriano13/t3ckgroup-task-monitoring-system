@@ -5,7 +5,7 @@ import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
-import { Calendar as CalendarIcon, Save, Send, Loader2, ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { Calendar as CalendarIcon, Save, Send, Loader2, ChevronDown, ChevronRight, Copy, Trash2, Settings, Plus } from "lucide-react";
 
 // Utility to get the next Monday
 function getNextMonday() {
@@ -33,6 +33,7 @@ export default function SalesSchedulePage() {
   const [activeTab, setActiveTab] = useState(0); // 0=Mon, 1=Tue...
   const [weekStartDate, setWeekStartDate] = useState(() => formatDateToYMD(getNextMonday()));
   const [includeSaturday, setIncludeSaturday] = useState(false);
+  const [includeSunday, setIncludeSunday] = useState(false);
 
   const { data: planWrapper, isLoading } = useQuery({
     queryKey: ["weeklyPlan", user?.id, weekStartDate],
@@ -45,13 +46,12 @@ export default function SalesSchedulePage() {
   const planStatus = plan?.status || 'DRAFT';
   const isGreen = planStatus === 'SUBMITTED' || planStatus === 'APPROVED';
 
-  // State to hold form data spanning all 5 days * 10 slots (50 slots total)
+  // State to hold form data spanning all days
   const [activitiesData, setActivitiesData] = useState([]);
+  const [slotCounts, setSlotCounts] = useState({});
 
   useEffect(() => {
     if (planWrapper && planWrapper.sales_activities) {
-      // Re-assign _slot_index by sequentially mapping them within each day/time bucket.
-      // This prevents the data from vanishing on draft refetch.
       const bucketCounts = {};
       const reconstructed = planWrapper.sales_activities.map(act => {
          const key = `${act.scheduled_date}-${act.time_of_day}`;
@@ -61,8 +61,15 @@ export default function SalesSchedulePage() {
          return updated;
       });
       setActivitiesData(reconstructed);
+      
+      const newCounts = {};
+      Object.entries(bucketCounts).forEach(([k, count]) => {
+         newCounts[k] = Math.max(5, count);
+      });
+      setSlotCounts(newCounts);
     } else {
       setActivitiesData([]);
+      setSlotCounts({});
     }
   }, [planWrapper]);
 
@@ -71,7 +78,9 @@ export default function SalesSchedulePage() {
     const dates = [];
     const [y, m, d] = weekStartDate.split('-').map(Number);
     const start = new Date(y, m - 1, d);
-    const totalDays = includeSaturday ? 6 : 5;
+    let totalDays = 5;
+    if (includeSaturday) totalDays = 6;
+    if (includeSunday) totalDays = 7;
     for (let i = 0; i < totalDays; i++) {
         const currentDate = new Date(start);
         currentDate.setDate(currentDate.getDate() + i);
@@ -81,7 +90,7 @@ export default function SalesSchedulePage() {
         });
     }
     return dates;
-  }, [weekStartDate, includeSaturday]);
+  }, [weekStartDate, includeSaturday, includeSunday]);
 
   // Clamp activeTab if Saturday is toggled off while on Saturday tab
   useEffect(() => {
@@ -90,28 +99,34 @@ export default function SalesSchedulePage() {
      }
   }, [weekDates.length, activeTab]);
 
-  const { data: categories = [] } = useQuery({
+  const { data: dbCategories = [] } = useQuery({
     queryKey: ['salesCategories'],
     queryFn: async () => await salesService.getSalesCategories()
   });
 
+  const categories = useMemo(() => {
+    const defaultCats = ["SALES CALL", "IN-HOUSE"];
+    return Array.from(new Set([...defaultCats, ...dbCategories]));
+  }, [dbCategories]);
+
  
 
   const getSlotData = (dateStr, timeOfDay, slotIndex) => {
-    // Generate an artificial ID just to find it in the array, or find based on attributes
     const existing = activitiesData.find(a => a.scheduled_date === dateStr && a.time_of_day === timeOfDay && a._slot_index === slotIndex);
     if (existing) return existing;
     return {
       scheduled_date: dateStr,
       time_of_day: timeOfDay,
-      _slot_index: slotIndex, // local tracker
+      _slot_index: slotIndex,
       activity_type: 'None',
       account_name: '',
       contact_person: '',
       contact_number: '',
       email_address: '',
       address: '',
-      remarks_plan: ''
+      remarks_plan: '',
+      reference_number: '',
+      expense_amount: ''
     };
   };
 
@@ -130,75 +145,113 @@ export default function SalesSchedulePage() {
     });
   };
 
-  const handleDuplicateDown = (dateStr, timeOfDay, fromSlotIndex) => {
-    const sourceData = getSlotData(dateStr, timeOfDay, fromSlotIndex);
-    if (!sourceData || sourceData.activity_type === 'None') return;
-
-    setActivitiesData(prev => {
-      const copy = [...prev];
-      let anythingCopied = false;
-      for (let i = fromSlotIndex + 1; i < 5; i++) {
-         const existingIdx = copy.findIndex(a => a.scheduled_date === dateStr && a.time_of_day === timeOfDay && a._slot_index === i);
-         const targetIsFilled = existingIdx >= 0 && (copy[existingIdx].activity_type !== 'None' || (copy[existingIdx].account_name && copy[existingIdx].account_name.trim() !== ''));
-         
-         if (!targetIsFilled) {
-            anythingCopied = true;
-            const newPayload = { ...sourceData, _slot_index: i, id: undefined, plan_id: undefined, employee_id: undefined };
-            if (existingIdx >= 0) {
-               copy[existingIdx] = newPayload;
-            } else {
-               copy.push(newPayload);
-            }
-         }
-      }
-      if (anythingCopied) {
-        toast.success(`Duplicated to remaining empty slots in ${timeOfDay}.`);
-      } else {
-        toast.error(`No empty slots remaining below to duplicate into.`);
-      }
-      return copy;
-    });
+  const handleAddSlot = (dateStr, timeOfDay) => {
+     setSlotCounts(prev => {
+        const key = `${dateStr}-${timeOfDay}`;
+        const currentCount = prev[key] || 5;
+        if (currentCount >= 8) {
+           toast.error("Maximum of 8 activities allowed per block.");
+           return prev;
+        }
+        return { ...prev, [key]: currentCount + 1 };
+     });
   };
 
-  const handleDuplicateDayToNext = (sourceDateStr, fromTabIndex) => {
-     const maxTabs = includeSaturday ? 6 : 5;
-     if (fromTabIndex >= maxTabs - 1) {
-        toast.error("No next day available to duplicate into.");
-        return;
-     }
-
-     const nextDateStr = weekDates[fromTabIndex + 1].dateStr;
-
+  const handleUsePrevious = (dateStr, timeOfDay, currentSlotIndex) => {
+     if (currentSlotIndex === 0) return;
+     const prevData = getSlotData(dateStr, timeOfDay, currentSlotIndex - 1);
+     if (!prevData || prevData.activity_type === 'None') return;
+     
      setActivitiesData(prev => {
         const copy = [...prev];
-        let anythingCopied = false;
-
-        const sourceData = copy.filter(a => a.scheduled_date === sourceDateStr && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== '')));
-
-        if (sourceData.length === 0) return prev;
-
-        sourceData.forEach(sd => {
-           const targetIdx = copy.findIndex(a => a.scheduled_date === nextDateStr && a.time_of_day === sd.time_of_day && a._slot_index === sd._slot_index);
-           const targetIsFilled = targetIdx >= 0 && (copy[targetIdx].activity_type !== 'None' || (copy[targetIdx].account_name && copy[targetIdx].account_name.trim() !== ''));
-
-           if (!targetIsFilled) {
-               anythingCopied = true;
-               const newPayload = { ...sd, scheduled_date: nextDateStr, id: undefined, plan_id: undefined, employee_id: undefined };
-               if (targetIdx >= 0) {
-                  copy[targetIdx] = newPayload;
-               } else {
-                  copy.push(newPayload);
-               }
-           }
-        });
-
-        if (anythingCopied) {
-           toast.success("Day schedule duplicated to the next day!");
+        const existingIdx = copy.findIndex(a => a.scheduled_date === dateStr && a.time_of_day === timeOfDay && a._slot_index === currentSlotIndex);
+        
+        const newPayload = { ...prevData, _slot_index: currentSlotIndex, id: undefined, plan_id: undefined, employee_id: undefined };
+        
+        if (existingIdx >= 0) {
+           copy[existingIdx] = newPayload;
         } else {
-           toast.error("Target day slots are fully occupied for matching source tasks.");
+           copy.push(newPayload);
         }
         return copy;
      });
+    
+  };
+
+  const handleDeleteSlot = (dateStr, timeOfDay, slotIndex) => {
+     setActivitiesData(prev => {
+        let copy = [...prev];
+        copy = copy.filter(a => !(a.scheduled_date === dateStr && a.time_of_day === timeOfDay && a._slot_index === slotIndex));
+        copy = copy.map(a => {
+           if (a.scheduled_date === dateStr && a.time_of_day === timeOfDay && a._slot_index > slotIndex) {
+              return { ...a, _slot_index: a._slot_index - 1 };
+           }
+           return a;
+        });
+        return copy;
+     });
+
+     setSlotCounts(prev => {
+        const key = `${dateStr}-${timeOfDay}`;
+        const currentCount = prev[key] || 5;
+        if (currentCount > 5) {
+           return { ...prev, [key]: currentCount - 1 };
+        }
+        return prev;
+     });
+  };
+
+  const handleClearBlock = (dateStr, timeOfDay) => {
+     setActivitiesData(prev => prev.filter(a => !(a.scheduled_date === dateStr && a.time_of_day === timeOfDay)));
+     setSlotCounts(prev => ({ ...prev, [`${dateStr}-${timeOfDay}`]: 5 }));
+     
+  };
+
+  const handleClearDay = (dateStr) => {
+     setActivitiesData(prev => prev.filter(a => a.scheduled_date !== dateStr));
+     setSlotCounts(prev => ({ ...prev, [`${dateStr}-AM`]: 5, [`${dateStr}-PM`]: 5 }));
+     
+  };
+
+  const handleCloneDayToDate = (sourceDateStr, targetDateStr) => {
+     setActivitiesData(prev => {
+        const copy = prev.filter(a => a.scheduled_date !== targetDateStr);
+        const sourceTasks = prev.filter(a => a.scheduled_date === sourceDateStr && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== '')));
+        
+        if (sourceTasks.length === 0) {
+           toast.error("Source day is empty.");
+           return prev;
+        }
+
+        let maxAm = 0;
+        let maxPm = 0;
+
+        sourceTasks.forEach(task => {
+           if (task.time_of_day === 'AM') maxAm = Math.max(maxAm, task._slot_index + 1);
+           if (task.time_of_day === 'PM') maxPm = Math.max(maxPm, task._slot_index + 1);
+           copy.push({ ...task, scheduled_date: targetDateStr, id: undefined, plan_id: undefined, employee_id: undefined });
+        });
+
+        setSlotCounts(sc => ({
+           ...sc,
+           [`${targetDateStr}-AM`]: Math.max(5, maxAm),
+           [`${targetDateStr}-PM`]: Math.max(5, maxPm)
+        }));
+
+       
+        return copy;
+     });
+  };
+
+  const handleActionSelect = (val, dateStr) => {
+     if (!val) return;
+     if (val === 'clear_am') handleClearBlock(dateStr, 'AM');
+     else if (val === 'clear_pm') handleClearBlock(dateStr, 'PM');
+     else if (val === 'clear_day') handleClearDay(dateStr);
+     else if (val.startsWith('clone_')) {
+        const targetDate = val.replace('clone_', '');
+        handleCloneDayToDate(dateStr, targetDate);
+     }
   };
 
   const saveMutation = useMutation({
@@ -225,8 +278,20 @@ export default function SalesSchedulePage() {
         if (!payload.id) {
            delete payload.id;
         }
+        
+        if (payload.expense_amount === '') payload.expense_amount = null;
+        if (payload.reference_number === '') payload.reference_number = null;
+        
         return payload;
       });
+
+      const newIds = toSave.filter(a => !!a.id).map(a => a.id);
+      const originalIds = plan?.sales_activities?.map(a => a.id) || [];
+      const idsToDelete = originalIds.filter(id => !newIds.includes(id));
+
+      if (idsToDelete.length > 0) {
+         await salesService.deleteActivities(idsToDelete);
+      }
 
       if (toSave.length > 0) {
         await salesService.bulkUpsertActivities(toSave);
@@ -235,7 +300,7 @@ export default function SalesSchedulePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weeklyPlan", user.id, weekStartDate] });
-      toast.success("Schedule saved as Draft!");
+    
     },
     onError: (err) => toast.error(err.message)
   });
@@ -253,9 +318,21 @@ export default function SalesSchedulePage() {
     onError: (err) => toast.error(err.message)
   });
 
+  const deletePlanMutation = useMutation({
+     mutationFn: async () => {
+        if (!plan?.id) return;
+        await salesService.deleteWeeklyPlan(plan.id);
+     },
+     onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["weeklyPlan", user.id, weekStartDate] });
+        toast.success("Draft Plan Successfully Deleted!");
+     },
+     onError: (err) => toast.error(err.message)
+  });
+
   if (isLoading) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute excludeSuperAdmin={true}>
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-gray-8" size={32} /></div>
       </ProtectedRoute>
     )
@@ -272,7 +349,7 @@ export default function SalesSchedulePage() {
   const allDaysFilled = weekDates.every(d => mapDateToTasks[d.dateStr] > 0);
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute excludeSuperAdmin={true}>
       <div className="max-w-[1600px] mx-auto space-y-6 pb-10 px-2 sm:px-4">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
           <div>
@@ -281,10 +358,16 @@ export default function SalesSchedulePage() {
           </div>
           <div className="flex gap-4 items-center flex-wrap">
             {!isLocked && (
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-gray-10 hover:text-gray-12 bg-gray-2 px-3 py-2 rounded-lg border border-gray-4 whitespace-nowrap">
-                <input type="checkbox" checked={includeSaturday} onChange={e => setIncludeSaturday(e.target.checked)} className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer" />
-                <span>Saturday Shift</span>
-              </label>
+              <div className="flex gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-gray-10 hover:text-gray-12 bg-gray-2 px-3 py-2 rounded-lg border border-gray-4 whitespace-nowrap">
+                  <input type="checkbox" checked={includeSaturday} onChange={e => { setIncludeSaturday(e.target.checked); if (!e.target.checked) setIncludeSunday(false); }} className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer" />
+                  <span>Saturday</span>
+                </label>
+                <label className={`flex items-center gap-2 cursor-pointer text-sm font-bold text-gray-10 hover:text-gray-12 bg-gray-2 px-3 py-2 rounded-lg border border-gray-4 whitespace-nowrap transition-opacity ${!includeSaturday ? 'opacity-40 pointer-events-none' : ''}`}>
+                  <input type="checkbox" checked={includeSunday} onChange={e => setIncludeSunday(e.target.checked)} disabled={!includeSaturday} className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer" />
+                  <span>Sunday</span>
+                </label>
+              </div>
             )}
             <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
                <CalendarIcon size={16} className="text-gray-8 mr-2" />
@@ -313,7 +396,24 @@ export default function SalesSchedulePage() {
           <div className="bg-blue-900/10 border border-blue-900/30 p-4 rounded-xl flex items-center justify-between">
             <p className="text-sm font-bold text-blue-500">Remember to submit your schedule by Friday End of Day for the following week!</p>
             <div className="flex gap-3">
-              <button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || submitMutation.isPending} className="px-4 py-2 bg-gray-2 hover:bg-gray-3 border border-gray-4 text-gray-12 rounded-lg font-bold flex items-center gap-2 transition-colors">
+              {plan?.id && (
+                <button 
+                  onClick={() => {
+                     if (window.confirm("Are you sure you want to completely delete this Draft plan and all its activities?")) {
+                        deletePlanMutation.mutate();
+                     }
+                  }} 
+                  disabled={deletePlanMutation.isPending || submitMutation.isPending || saveMutation.isPending} 
+                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-600 rounded-lg font-bold flex items-center gap-2 transition-colors"
+                >
+                   {deletePlanMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />} Delete Draft
+                </button>
+              )}
+              <button 
+                 onClick={() => saveMutation.mutate()} 
+                 disabled={saveMutation.isPending || deletePlanMutation.isPending || submitMutation.isPending} 
+                 className="px-4 py-2 bg-gray-2 hover:bg-gray-3 border border-gray-4 text-gray-12 rounded-lg font-bold flex items-center gap-2 transition-colors"
+              >
                  {saveMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Draft
               </button>
               <button 
@@ -348,13 +448,24 @@ export default function SalesSchedulePage() {
         {/* 2-Column Grid for the Active Day */}
         <div className="flex justify-between items-center mt-6 mb-2 border-b border-gray-4 pb-2">
            <h2 className="text-xl font-black text-gray-12">{currentDateObj.label} Schedule</h2>
-           {!isLocked && activeTab < (includeSaturday ? 5 : 4) && (
-              <button 
-                onClick={() => handleDuplicateDayToNext(currentDateObj.dateStr, activeTab)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
-              >
-                <Copy size={14} /> Copy to Next Day
-              </button>
+           {!isLocked && (
+             <div className="relative">
+                <select 
+                  className="appearance-none bg-gray-2 hover:bg-gray-3 border border-gray-4 text-gray-12 text-xs font-bold uppercase tracking-wider px-3 py-2 pr-8 rounded-lg outline-none cursor-pointer transition-colors shadow-sm"
+                  value=""
+                  onChange={e => handleActionSelect(e.target.value, currentDateObj.dateStr)}
+                >
+                  <option value="" disabled>Advanced Actions...</option>
+                  <option value="clear_am">Clear AM Block</option>
+                  <option value="clear_pm">Clear PM Block</option>
+                  <option value="clear_day">Wipe Entire Day</option>
+                  <option disabled>──────────</option>
+                  {weekDates.filter(d => d.dateStr !== currentDateObj.dateStr).map(d => (
+                     <option key={`clone_${d.dateStr}`} value={`clone_${d.dateStr}`}>Clone Day To {d.label}</option>
+                  ))}
+                </select>
+                <Settings size={14} className="absolute right-2.5 top-2.5 text-gray-8 pointer-events-none" />
+             </div>
            )}
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -363,18 +474,32 @@ export default function SalesSchedulePage() {
              <div className="bg-gray-2 border border-gray-4 rounded-t-xl p-3 border-b-0">
                <h3 className="font-black text-gray-12 tracking-widest uppercase text-center">MORNING (AM)</h3>
              </div>
-             {[0,1,2,3,4].map(slotIdx => (
-               <ActivitySlotBox 
-                 key={`AM-${slotIdx}`} 
-                 data={getSlotData(currentDateObj.dateStr, 'AM', slotIdx)} 
-                 onChange={(field, val) => updateSlotData(currentDateObj.dateStr, 'AM', slotIdx, field, val)}
-                 onDuplicate={() => handleDuplicateDown(currentDateObj.dateStr, 'AM', slotIdx)}
-                 disabled={isLocked}
-                 slotNum={slotIdx + 1}
-                 availableCategories={categories}
-                 isLastSlot={slotIdx === 4}
-               />
-             ))}
+             {Array.from({ length: slotCounts[`${currentDateObj.dateStr}-AM`] || 5 }).map((_, slotIdx) => {
+               const currentData = getSlotData(currentDateObj.dateStr, 'AM', slotIdx);
+               const prevData = slotIdx > 0 ? getSlotData(currentDateObj.dateStr, 'AM', slotIdx - 1) : null;
+               const prevIsFilled = prevData && (prevData.activity_type !== 'None' || !!prevData.account_name);
+               const isCurrentEmpty = (!currentData.activity_type || currentData.activity_type === 'None') && (!currentData.account_name || currentData.account_name.trim() === '');
+               
+               return (
+                 <ActivitySlotBox 
+                   key={`AM-${slotIdx}`} 
+                   data={currentData} 
+                   onChange={(field, val) => updateSlotData(currentDateObj.dateStr, 'AM', slotIdx, field, val)}
+                   onDelete={() => handleDeleteSlot(currentDateObj.dateStr, 'AM', slotIdx)}
+                   onUsePrevious={() => handleUsePrevious(currentDateObj.dateStr, 'AM', slotIdx)}
+                   showUsePrevious={slotIdx > 0 && prevIsFilled && isCurrentEmpty}
+                   canDelete={slotIdx >= 5}
+                   disabled={isLocked}
+                   slotNum={slotIdx + 1}
+                   availableCategories={categories}
+                 />
+               );
+             })}
+             {!isLocked && (slotCounts[`${currentDateObj.dateStr}-AM`] || 5) < 8 && (
+                <button onClick={() => handleAddSlot(currentDateObj.dateStr, 'AM')} className="w-full py-3 mt-2 border-2 border-dashed border-gray-4 hover:border-primary hover:text-primary hover:bg-primary/5 text-gray-9 font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2">
+                   <Plus size={16} /> Add Extra Schedule Item
+                </button>
+             )}
            </div>
 
            {/* PM COLUMN */}
@@ -382,18 +507,32 @@ export default function SalesSchedulePage() {
              <div className="bg-gray-2 border border-gray-4 rounded-t-xl p-3 border-b-0">
                <h3 className="font-black text-gray-12 tracking-widest uppercase text-center">AFTERNOON (PM)</h3>
              </div>
-             {[0,1,2,3,4].map(slotIdx => (
-               <ActivitySlotBox 
-                 key={`PM-${slotIdx}`} 
-                 data={getSlotData(currentDateObj.dateStr, 'PM', slotIdx)} 
-                 onChange={(field, val) => updateSlotData(currentDateObj.dateStr, 'PM', slotIdx, field, val)}
-                 onDuplicate={() => handleDuplicateDown(currentDateObj.dateStr, 'PM', slotIdx)}
-                 disabled={isLocked}
-                 slotNum={slotIdx + 1}
-                 availableCategories={categories}
-                 isLastSlot={slotIdx === 4}
-               />
-             ))}
+             {Array.from({ length: slotCounts[`${currentDateObj.dateStr}-PM`] || 5 }).map((_, slotIdx) => {
+               const currentData = getSlotData(currentDateObj.dateStr, 'PM', slotIdx);
+               const prevData = slotIdx > 0 ? getSlotData(currentDateObj.dateStr, 'PM', slotIdx - 1) : null;
+               const prevIsFilled = prevData && (prevData.activity_type !== 'None' || !!prevData.account_name);
+               const isCurrentEmpty = (!currentData.activity_type || currentData.activity_type === 'None') && (!currentData.account_name || currentData.account_name.trim() === '');
+
+               return (
+                 <ActivitySlotBox 
+                   key={`PM-${slotIdx}`} 
+                   data={currentData} 
+                   onChange={(field, val) => updateSlotData(currentDateObj.dateStr, 'PM', slotIdx, field, val)}
+                   onDelete={() => handleDeleteSlot(currentDateObj.dateStr, 'PM', slotIdx)}
+                   onUsePrevious={() => handleUsePrevious(currentDateObj.dateStr, 'PM', slotIdx)}
+                   showUsePrevious={slotIdx > 0 && prevIsFilled && isCurrentEmpty}
+                   canDelete={slotIdx >= 5}
+                   disabled={isLocked}
+                   slotNum={slotIdx + 1}
+                   availableCategories={categories}
+                 />
+               );
+             })}
+             {!isLocked && (slotCounts[`${currentDateObj.dateStr}-PM`] || 5) < 8 && (
+                <button onClick={() => handleAddSlot(currentDateObj.dateStr, 'PM')} className="w-full py-3 mt-2 border-2 border-dashed border-gray-4 hover:border-primary hover:text-primary hover:bg-primary/5 text-gray-9 font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2">
+                   <Plus size={16} /> Add Extra Schedule Item
+                </button>
+             )}
            </div>
         </div>
       </div>
@@ -401,7 +540,7 @@ export default function SalesSchedulePage() {
   );
 }
 
-function ActivitySlotBox({ data, onChange, onDuplicate, disabled, slotNum, availableCategories = [], isLastSlot }) {
+function ActivitySlotBox({ data, onChange, onDelete, onUsePrevious, showUsePrevious, canDelete, disabled, slotNum, availableCategories = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isFilled = data.activity_type !== 'None' || !!data.account_name;
 
@@ -412,7 +551,7 @@ function ActivitySlotBox({ data, onChange, onDuplicate, disabled, slotNum, avail
          onClick={() => !disabled && setIsExpanded(!isExpanded)}
          className={`p-3 flex items-center justify-between cursor-pointer hover:bg-gray-2 transition-colors ${disabled && 'cursor-not-allowed opacity-80'}`}
        >
-         <div className="flex gap-3 items-center flex-1 max-w-[75%] pr-2">
+         <div className="flex gap-3 items-center flex-1 max-w-[65%] pr-2">
             <span className="bg-gray-3 text-gray-10 font-bold w-6 h-6 flex items-center justify-center rounded-full text-xs shrink-0">{slotNum}</span>
             <div className="max-w-[150px] w-full shrink-0">
                <select 
@@ -428,22 +567,28 @@ function ActivitySlotBox({ data, onChange, onDuplicate, disabled, slotNum, avail
             </div>
             {isFilled && <span className="text-sm text-gray-12 font-medium truncate hidden sm:block flex-1">{data.account_name || <span className="text-gray-8 italic">Unnamed Account</span>}</span>}
          </div>
-         <div className="flex items-center gap-2 shrink-0">
-           {!disabled && isFilled && !isLastSlot && (
+         <div className="flex gap-2 items-center">
+            {showUsePrevious && !disabled && (
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-                className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 rounded shadow-sm transition-all"
-                title="Apply details to remaining empty slots below"
+                onClick={(e) => { e.stopPropagation(); onUsePrevious(); }}
+                className="flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 rounded shadow-sm transition-all"
+                title="Use Previous Item Details"
               >
-                <Copy size={12} /> <span className="hidden sm:inline">Duplicate Down</span>
+                <Copy size={12} /> <span className="hidden lg:inline">Copy Prev</span>
               </button>
-           )}
-           {!disabled && (
-             <span className="text-gray-8">
-               {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-             </span>
-           )}
+            )}
+            {!disabled && canDelete && (
+              <button 
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                className="p-1.5 text-gray-9 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                title="Remove Extra Added Slot"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+            <ChevronDown size={20} className={`text-gray-8 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
          </div>
        </div>
 
@@ -473,6 +618,36 @@ function ActivitySlotBox({ data, onChange, onDuplicate, disabled, slotNum, avail
              <div className="sm:col-span-2">
                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Details (Plan)</label>
                <textarea disabled={disabled} value={data.remarks_plan} onChange={e => onChange('remarks_plan', e.target.value)} className="w-full bg-gray-2 border border-gray-4 rounded px-3 py-1.5 text-sm text-gray-12 outline-none focus:border-primary resize-none h-20" />
+             </div>
+             {/* === EXPENSE & REFERENCE FIELDS === */}
+             <div className="sm:col-span-2 border-t border-gray-4 pt-3 mt-1">
+               <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">Fund Request &amp; Reference</p>
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                 <div>
+                   <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Reference No. (SQ/TRM)</label>
+                   <input
+                     type="text"
+                     disabled={disabled}
+                     value={data.reference_number || ''}
+                     onChange={e => onChange('reference_number', e.target.value)}
+                     placeholder="e.g. SQ-2026-001"
+                     className="w-full bg-gray-2 border border-gray-4 rounded px-3 py-1.5 text-sm text-gray-12 outline-none focus:border-amber-500 placeholder:text-gray-7"
+                   />
+                 </div>
+                 <div>
+                   <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Est. Expense (₱)</label>
+                   <input
+                     type="number"
+                     disabled={disabled}
+                     value={data.expense_amount || ''}
+                     onChange={e => onChange('expense_amount', e.target.value === '' ? '' : Number(e.target.value))}
+                     placeholder="0.00"
+                     min="0"
+                     step="0.01"
+                     className="w-full bg-gray-2 border border-gray-4 rounded px-3 py-1.5 text-sm text-gray-12 outline-none focus:border-amber-500 placeholder:text-gray-7"
+                   />
+                 </div>
+               </div>
              </div>
          </div>
        )}
