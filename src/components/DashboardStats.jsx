@@ -19,6 +19,7 @@ export default function DashboardStats({ selectedMonth }) {
   const isHead = user?.is_head || user?.isHead;
   const isManagement = isHr || isHead;
   const userSubDept = user?.sub_department || user?.subDepartment;
+  const userDept = user?.department;
 
   // 🔥 MAGIC: This uses the exact same Query Key as TasksList.
   // TanStack will just hand over the cached data instantly. Zero extra loading!
@@ -79,12 +80,17 @@ export default function DashboardStats({ selectedMonth }) {
     } else if (isHead) {
       let teamTasks = thisMonthTasks.filter((t) => t.loggedById !== user?.id);
 
-      // Head only tracks their sub-department
+      // Head only tracks their sub-department, or entire department if no sub-dept
       teamTasks = teamTasks.filter(
-        (t) =>
-          (t.sub_department ||
-            t.creator?.sub_department ||
-            t.employees?.sub_department) === userSubDept,
+        (t) => {
+           const taskSubDept = t.sub_department || t.creator?.sub_department || t.employees?.sub_department;
+           const taskDept = t.creator?.department || t.employees?.department;
+           if(userSubDept) {
+              return taskSubDept === userSubDept;
+           } else {
+              return taskDept === userDept;
+           }
+        }
       );
 
       teamPendingApprovals = teamTasks.filter((t) => t.status === "INCOMPLETE").length;
@@ -107,7 +113,7 @@ export default function DashboardStats({ selectedMonth }) {
       hrRejected,
       hrAllTasks,
     };
-  }, [rawTasks, user?.id, isManagement, isHead, isHr, userSubDept, selectedMonth]);
+  }, [rawTasks, user?.id, isManagement, isHead, isHr, userSubDept, userDept, selectedMonth]);
 
   if (isLoading) {
     return (

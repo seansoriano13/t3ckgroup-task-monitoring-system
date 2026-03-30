@@ -22,7 +22,7 @@ function formatDateToYMD(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-export default function SalesDashboard() {
+export default function SalesDashboard({ selectedMonth: propMonth }) {
   const { user } = useAuth();
 
   // === TAB STATE ===
@@ -31,7 +31,14 @@ export default function SalesDashboard() {
   // === OVERVIEW STATE ===
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
+  const [internalMonth, setInternalMonth] = useState(currentMonthYear);
+
+  // Sync with prop if provided, otherwise use internal
+  const rawMonth = propMonth || internalMonth;
+  // Standardize to YYYY-MM and YYYY-MM-01
+  const selectedMonth = rawMonth?.length > 7 ? rawMonth.slice(0, 7) : (rawMonth || currentMonthYear);
+  const fullMonthDate = `${selectedMonth}-01`;
+  const setSelectedMonth = setInternalMonth;
 
   // === ANALYTICS STATE ===
   const [startDate, setStartDate] = useState(
@@ -84,7 +91,7 @@ export default function SalesDashboard() {
     useQuery({
       queryKey: ["salesRevenueLogs", selectedMonth],
       queryFn: async () => {
-        const sDate = `${selectedMonth}-01`;
+        const sDate = fullMonthDate;
         const [yy, mm] = selectedMonth.split("-").map(Number);
         const nextMonth = mm === 12 ? 1 : mm + 1;
         const nextYear = mm === 12 ? yy + 1 : yy;
@@ -204,7 +211,7 @@ export default function SalesDashboard() {
           {/* OVERVIEW FILTER */}
           <div className="flex justify-end mb-6 print:hidden">
             <div className="flex gap-4 items-center">
-              <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
+              {/* <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
                 <span className="text-xs font-bold text-gray-9 mr-3 uppercase tracking-wider">
                   Target Month:
                 </span>
@@ -220,7 +227,7 @@ export default function SalesDashboard() {
                   dateFormat="MMMM yyyy"
                   className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer flex-1 min-w-[120px] w-full"
                 />
-              </div>
+              </div> */}
               <button
                 onClick={printMonthlyReport}
                 className="bg-red-9 hover:bg-red-10 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm  shadow-blue-500/20"
@@ -355,9 +362,9 @@ export default function SalesDashboard() {
                             <div className="flex items-center justify-center gap-2 w-max mx-auto">
                               <div className="w-24 h-2 bg-gray-4 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
                                 <div
-                                  className={`h-full ${pct >= 100 ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : pct >= 50 ? "bg-yellow-500" : "bg-red-500"}`}
+                                  className={`h-full ${pct >= 100 ? "transition-all duration-1000 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : pct >= 50 ? "transition-all duration-1000 bg-yellow-500" : "transition-all duration-1000 bg-red-500"}`}
                                   style={{ width: `${Math.min(pct, 100)}%` }}
-                                ></div>
+                                ></div> 
                               </div>
                               <span className="text-xs font-bold text-gray-12 w-8">
                                 {pct}%
@@ -619,10 +626,10 @@ export default function SalesDashboard() {
                       </div>
                       <div className="flex justify-between text-xs font-mono font-black">
                         <span className="">
-                          Completed Sales: ₱{prod.won.toLocaleString()}
+                           Completed Sales: ₱{prod.won.toLocaleString()}
                         </span>
                         <span className="">
-                          Lost Sales: ₱{prod.lost.toLocaleString()}
+                           Lost Sales: ₱{prod.lost.toLocaleString()}
                         </span>
                       </div>
                     </div>

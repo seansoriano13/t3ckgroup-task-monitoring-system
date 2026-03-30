@@ -6,6 +6,7 @@ export default function ProtectedRoute({
   requireHead = false,
   requireHr = false,
   requireSuperAdmin = false,
+  excludeSuperAdmin = false,
 }) {
   const { user, isAuthLoading } = useAuth();
 
@@ -22,18 +23,27 @@ export default function ProtectedRoute({
     return <Navigate to="/login" replace />;
   }
 
+  const isSA = user.isSuperAdmin || user.is_super_admin;
+  const isHrUser = user.isHr || user.is_hr;
+  const isHeadUser = user.isHead || user.is_head;
+
   // Super Admin barrier
-  if (requireSuperAdmin && !user.isSuperAdmin && !user.is_super_admin) {
+  if (requireSuperAdmin && !isSA) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Explicitly block Super Admins from specific routes (even if they have Head/HR tags)
+  if (excludeSuperAdmin && isSA) {
     return <Navigate to="/" replace />;
   }
 
   //   If not HR and not Head
-  if (requireHead && !user.isHead && !user.isHr) {
+  if (requireHead && !isHeadUser && !isHrUser) {
     return <Navigate to="/" replace />;
   }
 
-  //   if not HR
-  if (requireHr && !user.isHr) {
+  //   if not HR (Super Admins bypass this to access HR pages)
+  if (requireHr && !isHrUser && !isSA) {
     return <Navigate to="/" replace />;
   }
 

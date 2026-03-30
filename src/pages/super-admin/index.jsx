@@ -1,24 +1,28 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import { useAuth } from "../../context/AuthContext";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { Crown, Save, DollarSign, Loader2 } from "lucide-react";
+import { Loader2, CheckCheck } from "lucide-react";
 import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import DatePicker from "react-datepicker";
 import { PhilippinePeso } from "lucide-react";
+import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Ensure it defaults to the 1st of the current month in 'YYYY-MM-DD' formatting for Supabase
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
+
+  // Draft quotas: map of employeeId -> value string (tracks unsaved edits)
+  const [draftQuotas, setDraftQuotas] = useState({});
+  const [isSavingAll, setIsSavingAll] = useState(false);
 
   // 1. Fetch Sales Employees
   const { data: salesEmployees = [], isLoading: loadingEmps } = useQuery({
@@ -38,17 +42,7 @@ export default function SuperAdminDashboard() {
     queryFn: () => salesService.getAllSalesActivities(),
   });
 
-  const mutation = useMutation({
-    mutationFn: ({ employeeId, amount }) =>
-      salesService.upsertQuota(employeeId, amount, selectedMonth),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quotas", selectedMonth] });
-      toast.success("Quota updated successfully!");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  // Calculate Map of Employee ID -> Current Quota
+  // Derive server quota map
   const quotaMap = useMemo(() => {
     return quotas.reduce((acc, q) => {
       acc[q.employee_id] = q.amount_target;
@@ -56,11 +50,57 @@ export default function SuperAdminDashboard() {
     }, {});
   }, [quotas]);
 
-  const handleUpdateQuota = (employeeId, amount) => {
-    // Basic validation
-    let num = parseFloat(amount);
-    if (isNaN(num)) num = 0;
-    mutation.mutate({ employeeId, amount: num });
+  // Sync draft state whenever fetched quotas change — fixes stale state on month navigation
+  useEffect(() => {
+    if (salesEmployees.length === 0) return;
+    const freshDraft = {};
+    salesEmployees
+      .filter((e) => !e.is_super_admin)
+      .forEach((emp) => {
+        freshDraft[emp.id] = String(quotaMap[emp.id] ?? 0);
+      });
+    setDraftQuotas(freshDraft);
+  }, [quotas, salesEmployees]);
+
+  // Check if any draft differs from server value
+  const hasPendingChanges = useMemo(() => {
+    return salesEmployees
+      .filter((e) => !e.is_super_admin)
+      .some((emp) => {
+        const draft = parseFloat(draftQuotas[emp.id]) || 0;
+        const server = quotaMap[emp.id] ?? 0;
+        return draft !== server;
+      });
+  }, [draftQuotas, quotaMap, salesEmployees]);
+
+  const handleSaveAll = async () => {
+    const changed = salesEmployees
+      .filter((e) => !e.is_super_admin)
+      .map((emp) => ({
+        employeeId: emp.id,
+        amount: parseFloat(draftQuotas[emp.id]) || 0,
+      }))
+      .filter(({ employeeId, amount }) => amount !== (quotaMap[employeeId] ?? 0));
+
+    if (changed.length === 0) {
+      toast("No changes to save.", { icon: "ℹ️" });
+      return;
+    }
+
+    setIsSavingAll(true);
+    try {
+      await Promise.all(
+        changed.map(({ employeeId, amount }) =>
+          salesService.upsertQuota(employeeId, amount, selectedMonth)
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ["quotas", selectedMonth] });
+      toast.success(`${changed.length} quota${changed.length > 1 ? "s" : ""} saved!`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setIsSavingAll(false);
+    }
   };
 
   if (loadingEmps || loadingQuotas) {
@@ -107,33 +147,52 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-gray-1 border border-gray-4 p-4 sm:p-6 rounded-xl shadow-lg ">
-          <h2 className="text-xl font-bold text-gray-12 mb-4">
-            Set Sales Quotas
-          </h2>
+        <ExpenseApprovalQueue isSuperAdmin={true} />
+
+        <div className="bg-gray-1 border border-gray-4 p-4 sm:p-6 rounded-xl shadow-lg">
+          <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+            <div>
+              <h2 className="text-xl font-bold text-gray-12">Set Sales Quotas</h2>
+              <p className="text-xs text-gray-9 mt-0.5">
+                Edit any quotas below, then hit <strong>Save All</strong> to commit changes.
+              </p>
+            </div>
+            <button
+              onClick={handleSaveAll}
+              disabled={isSavingAll || !hasPendingChanges}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-widest transition-all shrink-0
+                bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/20
+                disabled:bg-gray-4 disabled:text-gray-8 disabled:shadow-none disabled:cursor-not-allowed"
+            >
+              {isSavingAll ? (
+                <><Loader2 size={16} className="animate-spin" /> Saving...</>
+              ) : (
+                <><CheckCheck size={16} /> Save All</>
+              )}
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {salesEmployees.map((emp) => {
-              const target = quotaMap[emp.id] || 0;
-              return (
-                <QuotaCard
-                  key={emp.id}
-                  employee={emp}
-                  currentQuota={target}
-                  onSave={(val) => handleUpdateQuota(emp.id, val)}
-                  isSaving={mutation.isPending}
-                />
-              );
-            })}
+            {salesEmployees.filter((emp) => !emp.is_super_admin).map((emp) => (
+              <QuotaCard
+                key={emp.id}
+                employee={emp}
+                value={draftQuotas[emp.id] ?? "0"}
+                serverValue={quotaMap[emp.id] ?? 0}
+                onChange={(val) =>
+                  setDraftQuotas((prev) => ({ ...prev, [emp.id]: val }))
+                }
+              />
+            ))}
           </div>
-          {salesEmployees.length === 0 && (
+          {salesEmployees.filter((emp) => !emp.is_super_admin).length === 0 && (
             <p className="text-gray-9 italic">
               No employees found matching 'Sales' department criteria.
             </p>
           )}
         </div>
 
-        <SalesPerformanceMetrics />
+        <SalesPerformanceMetrics selectedMonth={selectedMonth} />
         <div className="pt-6">
           <EmployeePipelineMatrix />
         </div>
@@ -142,40 +201,42 @@ export default function SuperAdminDashboard() {
   );
 }
 
-function QuotaCard({ employee, currentQuota, onSave, isSaving }) {
-  const [val, setVal] = useState(currentQuota);
+function QuotaCard({ employee, value, serverValue, onChange }) {
+  const isDirty = (parseFloat(value) || 0) !== serverValue;
 
   return (
-    <div className="bg-gray-2 border border-gray-4 p-4 rounded-xl flex flex-col justify-between">
+    <div
+      className={`bg-gray-2 border rounded-xl p-4 flex flex-col justify-between transition-all ${
+        isDirty ? "border-purple-500/50 shadow-sm shadow-purple-500/10" : "border-gray-4"
+      }`}
+    >
       <div>
-        <p className="font-bold text-gray-12 text-lg truncate">
-          {employee.name}
-        </p>
+        <p className="font-bold text-gray-12 text-lg truncate">{employee.name}</p>
         <p className="text-xs text-gray-9 font-bold uppercase tracking-wide mb-4 truncate">
-          {employee.sub_department || employee.department || "Sales Rep"}
+          {employee.role || employee.sub_department || "Sales Rep"}
         </p>
       </div>
 
-      <div className="flex gap-2 items-center">
-        <div className="relative flex-1">
-          <PhilippinePeso
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-          />
-          <input
-            type="number"
-            value={val}
-            onChange={(e) => setVal(e.target.value)}
-            className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-3 py-2 text-sm font-bold outline-none focus:border-purple-500 transition-colors"
-          />
-        </div>
-        <button
-          onClick={() => onSave(val)}
-          disabled={isSaving || val == currentQuota}
-          className="bg-purple-600 hover:bg-purple-800 disabled:bg-gray-5 disabled:text-gray-8 text-white p-2 rounded-lg transition-colors font-bold flex items-center shrink-0"
-        >
-          <Save size={18} />
-        </button>
+      <div className="relative">
+        <PhilippinePeso
+          size={16}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+        />
+        <input
+          type="number"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`w-full bg-gray-1 border text-gray-12 rounded-lg pl-8 pr-14 py-2 text-sm font-bold outline-none transition-colors ${
+            isDirty
+              ? "border-purple-500 focus:border-purple-400"
+              : "border-gray-4 focus:border-purple-500"
+          }`}
+        />
+        {isDirty && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-purple-400 uppercase tracking-widest pointer-events-none">
+            edited
+          </span>
+        )}
       </div>
     </div>
   );

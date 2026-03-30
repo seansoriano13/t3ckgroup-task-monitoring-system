@@ -84,7 +84,7 @@ export default function SalesRecordsPage() {
       if (user.isSuperAdmin || user.isHr) {
         // HR & Admins: Default to current Month & Year
         setTimeframe("MONTHLY");
-        setSelectedDateFilter(`${y}-${m}`);
+        setSelectedDateFilter(`${y}`);
       } else {
         // Standard Employees: Default to strictly Today
         setTimeframe("DAILY");
@@ -163,17 +163,25 @@ export default function SalesRecordsPage() {
   // Extract unique employees for dropdown (merging both sets for consistency)
   const uniqueEmployees = useMemo(() => {
     const map = new Map();
+    
+    // Helper to check if employee should be included
+    const isValidEmployee = (emp) => {
+      if (!emp) return false;
+      if (emp.is_super_admin) return false;
+      return emp.department?.toLowerCase().includes("sales");
+    };
+
     rawActivities.forEach((act) => {
-      if (act.employees?.name && !map.has(act.employee_id)) {
+      if (act.employees?.name && !map.has(act.employee_id) && isValidEmployee(act.employees)) {
         map.set(act.employee_id, act.employees.name);
       }
     });
     rawRevenue.forEach((rev) => {
-      if (rev.employees?.name && !map.has(rev.employee_id)) {
+      if (rev.employees?.name && !map.has(rev.employee_id) && isValidEmployee(rev.employees)) {
         map.set(rev.employee_id, rev.employees.name);
       }
     });
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name })).sort((a,b) => a.name.localeCompare(b.name));
   }, [rawActivities, rawRevenue]);
 
   // Access lists
@@ -209,7 +217,8 @@ export default function SalesRecordsPage() {
           (a.account_name && a.account_name.toLowerCase().includes(lower)) ||
           (a.employees?.name &&
             a.employees.name.toLowerCase().includes(lower)) ||
-          (a.details_daily && a.details_daily.toLowerCase().includes(lower)),
+          (a.details_daily && a.details_daily.toLowerCase().includes(lower)) ||
+          (a.reference_number && a.reference_number.toLowerCase().includes(lower)),
       );
     }
 
@@ -562,6 +571,9 @@ export default function SalesRecordsPage() {
                     <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
                       Details
                     </th>
+                    <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
+                      Ref # / Expense
+                    </th>
                     <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center">
                       Status
                     </th>
@@ -642,6 +654,29 @@ export default function SalesRecordsPage() {
                               <span className="text-gray-7 italic">Blank</span>
                             )}
                           </td>
+                          <td className="p-4">
+                            <div className="flex flex-col gap-1">
+                              {act.reference_number && (
+                                <span className="text-[10px] font-black text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
+                                  {act.reference_number}
+                                </span>
+                              )}
+                              {act.expense_amount && (
+                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full w-max">
+                                  ₱ {Number(act.expense_amount).toLocaleString()}
+                                </span>
+                              )}
+                              {act.sales_outcome === 'WON' && (
+                                <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">WON</span>
+                              )}
+                              {act.sales_outcome === 'LOST' && (
+                                <span className="text-[10px] font-black text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full w-max">LOST</span>
+                              )}
+                              {!act.reference_number && !act.expense_amount && !act.sales_outcome && (
+                                <span className="text-gray-7 italic text-[10px]">—</span>
+                              )}
+                            </div>
+                          </td>
                           <td className="p-4 text-center">
                             {act.status === "DONE" ? (
                               <div className="flex flex-col items-center gap-1 text-green-500">
@@ -715,50 +750,17 @@ export default function SalesRecordsPage() {
                   <div className="flex overflow-x-auto gap-4 sm:gap-6 pb-4 custom-scrollbar snap-x">
                     {empGroup.dates.map((dateBlock) => {
                       if (timeframe !== "DAILY") {
-                        const total = dateBlock.all.length;
-                        const done = dateBlock.all.filter(
-                          (a) => a.status === "DONE",
-                        ).length;
-                        const pct =
-                          total > 0 ? Math.round((done / total) * 100) : 0;
-                        const label =
-                          timeframe === "MONTHLY"
-                            ? new Date(
-                                dateBlock.dateStr + "-01",
-                              ).toLocaleDateString("en-US", {
-                                month: "long",
-                                year: "numeric",
-                              })
-                            : dateBlock.dateStr;
-
                         return (
-                          <div
+                          <ExpandableSummaryCard
                             key={dateBlock.dateStr}
-                            className="min-w-[200px] shrink-0 bg-gray-2 rounded-xl border border-gray-4 p-5 snap-start shadow-sm flex flex-col justify-center text-center transition-transform hover:-translate-y-1"
-                          >
-                            <h3
-                              className="font-black text-gray-12 mb-2 bg-gray-3 px-3 py-1.5 rounded-lg text-sm uppercase tracking-widest truncate"
-                              title={label}
-                            >
-                              {label}
-                            </h3>
-                            <p className="text-4xl font-black my-3">
-                              {total}{" "}
-                              <span className="text-[10px] text-gray-9 uppercase tracking-widest block font-bold mt-1">
-                                Total Operations
-                              </span>
-                            </p>
-                            <div className="mt-auto pt-4 border-t border-gray-4 flex justify-between items-center w-full px-2">
-                              <span className="text-xs font-bold text-gray-10 uppercase">
-                                Completed
-                              </span>
-                              <span
-                                className={`text-sm font-black text-white px-2 py-0.5 rounded-full ${pct >= 80 ? "bg-green-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-500"}`}
-                              >
-                                {pct}%
-                              </span>
-                            </div>
-                          </div>
+                            dateBlock={dateBlock}
+                            label={
+                              timeframe === "MONTHLY"
+                                ? new Date(dateBlock.dateStr + "-01").toLocaleDateString("en-US", { month: "long", year: "numeric" })
+                                : dateBlock.dateStr
+                            }
+                            onActivityClick={(act) => setSelectedActivity(act)}
+                          />
                         );
                       }
 
@@ -980,14 +982,100 @@ export default function SalesRecordsPage() {
   );
 }
 
+function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
+  const [expanded, setExpanded] = useState(false);
+  const total = dateBlock.all.length;
+  const done = dateBlock.all.filter(a => a.status === "DONE").length;
+  const pending = dateBlock.all.filter(a => a.status === "PENDING_APPROVAL").length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const pctColor = pct >= 80 ? "text-green-600 bg-green-500/10 border-green-500/20"
+    : pct >= 50 ? "text-yellow-600 bg-yellow-500/10 border-yellow-500/20"
+    : "text-red-600 bg-red-500/10 border-red-500/20";
+
+  return (
+    <div className="min-w-[260px] shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm snap-start flex flex-col overflow-hidden transition-all">
+      {/* Summary header — entire row is clickable */}
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full text-left p-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5 truncate">{label}</p>
+          <p className="text-2xl font-black text-gray-800 leading-tight">
+            {total}
+            <span className="text-xs font-semibold text-gray-400 ml-1.5">activities</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {pending > 0 && (
+            <span className="text-[10px] font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+              {pending} pending
+            </span>
+          )}
+          <span className={`text-xs font-black px-2.5 py-1 rounded-full border ${pctColor}`}>
+            {pct}%
+          </span>
+          <span className={`text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </span>
+        </div>
+      </button>
+
+      {/* Completion bar */}
+      <div className="h-1 bg-gray-100 mx-4 rounded-full mb-1">
+        <div
+          className={`h-1 rounded-full transition-all duration-500 ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-400' : 'bg-red-400'}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      {/* Expandable body */}
+      {expanded && (
+        <div className="border-t border-gray-100 p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+          {/* AM Block */}
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">AM Block ({dateBlock.AM.length})</p>
+            {dateBlock.AM.length === 0
+              ? <p className="text-xs text-gray-400 italic text-center py-2">No AM activities</p>
+              : <div className="space-y-1.5">
+                  {dateBlock.AM.map(act => (
+                    <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />
+                  ))}
+                </div>
+            }
+          </div>
+          {/* PM Block */}
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">PM Block ({dateBlock.PM.length})</p>
+            {dateBlock.PM.length === 0
+              ? <p className="text-xs text-gray-400 italic text-center py-2">No PM activities</p>
+              : <div className="space-y-1.5">
+                  {dateBlock.PM.map(act => (
+                    <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />
+                  ))}
+                </div>
+            }
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BoardActivityCard({ act, onClick }) {
   const isDone = act.status === "DONE";
+  const isLost = act.sales_outcome === 'LOST';
+  const isWon  = act.sales_outcome === 'WON';
   return (
     <div
       onClick={onClick}
       className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm
-        ${isDone ? "bg-green-500/10 border-green-500/20" : "bg-gray-2 border-gray-4 hover:border-gray-6"}
-        ${act.is_unplanned && "bg-gray-a2! border-0"}
+        ${isLost ? 'bg-red-500/5 border-red-500/30' : 
+          isWon ? 'bg-green-500/10 border-green-500/20' : 
+          isDone ? 'bg-gray-2 border-gray-4' : 
+          'bg-gray-1 border-gray-3 hover:border-gray-5'}
+        ${act.is_unplanned && 'bg-gray-a2! border-0'}
       `}
     >
       <p
@@ -1008,6 +1096,19 @@ function BoardActivityCard({ act, onClick }) {
           <Circle size={12} className="text-gray-7 shrink-0" />
         )}
       </div>
+      {/* Metadata badges */}
+      {(act.reference_number || act.expense_amount || act.sales_outcome) && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {act.reference_number && (
+            <span className="text-[8px] font-black text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 truncate max-w-[80px]">{act.reference_number}</span>
+          )}
+          {act.expense_amount && (
+            <span className="text-[8px] font-black text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">₱{Number(act.expense_amount).toLocaleString()}</span>
+          )}
+          {isWon && <span className="text-[8px] font-black text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">WON</span>}
+          {isLost && <span className="text-[8px] font-black text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20">LOST</span>}
+        </div>
+      )}
     </div>
   );
 }

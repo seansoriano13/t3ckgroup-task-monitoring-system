@@ -17,6 +17,7 @@ function DashboardHeader() {
   const isHead = user?.is_head === true || user?.isHead === true;
   const isManagement = isHr || isHead;
   const userSubDept = user?.sub_department || user?.subDepartment;
+  const userDept = user?.department;
 
   const { data: rawTasks = [] } = useQuery({
     queryKey: ["dashboardTasks", user?.id, "all"],
@@ -70,13 +71,23 @@ function DashboardHeader() {
           t.creator?.sub_department ||
           t.employees?.sub_department ||
           "";
+          
+        const taskDept = t.creator?.department || t.employees?.department || "";
+        
+        let isMyDept = false;
+        if (userSubDept) {
+          isMyDept = taskSubDept === userSubDept;
+        } else {
+          isMyDept = taskDept === userDept;
+        }
+        
         return (
-          isNotMe && taskSubDept === userSubDept && t.status === "INCOMPLETE"
+          isNotMe && isMyDept && t.status === "INCOMPLETE"
         );
       }
       return false;
     }).length;
-  }, [rawTasks, user, isManagement, isHr, isHead, userSubDept]);
+  }, [rawTasks, user, isManagement, isHr, isHead, userSubDept, userDept]);
 
   return (
     <div className="grid gap-4 md:gap-6">

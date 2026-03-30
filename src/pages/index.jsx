@@ -102,8 +102,8 @@ export default function Dashboard() {
           {/* SALES SECTION */}
           <div className="bg-gray-1 border border-gray-4 p-2 sm:p-10 pb-0 rounded-[2rem] shadow-xl relative overflow-hidden mt-12">
             <div className="relative w-full overflow-hidden">
-              <SalesDashboard />
-              <SalesPerformanceMetrics />
+              <SalesDashboard selectedMonth={selectedMonth} />
+              <SalesPerformanceMetrics selectedMonth={selectedMonth} />
             </div>
           </div>
         </div>
@@ -123,9 +123,9 @@ export default function Dashboard() {
     return (
       <ProtectedRoute>
         <div className="pb-10">
-          <SalesDashboard />
+          <SalesDashboard selectedMonth={selectedMonth} />
           <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 -mt-4">
-            <SalesPerformanceMetrics />
+            <SalesPerformanceMetrics selectedMonth={selectedMonth} />
           </div>
         </div>
       </ProtectedRoute>
