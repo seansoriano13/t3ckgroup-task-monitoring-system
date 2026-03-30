@@ -21,8 +21,8 @@ export default function SettingsPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: (val) =>
-      salesService.updateAppSettings({ require_revenue_verification: val }),
+    mutationFn: (payload) =>
+      salesService.updateAppSettings(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appSettings"] });
       toast.success("Security configuration updated system-wide!");
@@ -137,7 +137,7 @@ export default function SettingsPage() {
                 <div
                   onClick={() =>
                     !mutation.isPending &&
-                    mutation.mutate(!appSettings?.require_revenue_verification)
+                    mutation.mutate({ require_revenue_verification: !appSettings?.require_revenue_verification })
                   }
                   className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
                     appSettings?.require_revenue_verification
@@ -148,6 +148,53 @@ export default function SettingsPage() {
                   <div
                     className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
                       appSettings?.require_revenue_verification
+                        ? "right-1"
+                        : "left-1"
+                    }`}
+                  ></div>
+                </div>
+              )}
+            </div>
+
+            {/* Sales Expense Self-Approval Toggle */}
+            <div className="p-5 flex items-center justify-between hover:bg-gray-1/50 transition-colors relative z-10 border-t border-gray-3">
+              <div className="flex items-center gap-4">
+                <div className="text-gray-9">
+                  <Shield
+                    size={20}
+                    className={
+                      appSettings?.sales_self_approve_expenses
+                        ? "text-primary"
+                        : ""
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-12">
+                    Enable Sales Self-Approval
+                  </p>
+                  <p className="text-sm text-gray-9 max-w-sm">
+                    Allow sales personnel to self-approve mapped activities that contain financial expenses (bypassing the Head Queue).
+                  </p>
+                </div>
+              </div>
+              {loadingSettings ? (
+                <Loader2 size={16} className="animate-spin text-gray-9" />
+              ) : (
+                <div
+                  onClick={() =>
+                    !mutation.isPending &&
+                    mutation.mutate({ sales_self_approve_expenses: !appSettings?.sales_self_approve_expenses })
+                  }
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
+                    appSettings?.sales_self_approve_expenses
+                      ? "bg-primary"
+                      : "bg-gray-4"
+                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                >
+                  <div
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
+                      appSettings?.sales_self_approve_expenses
                         ? "right-1"
                         : "left-1"
                     }`}

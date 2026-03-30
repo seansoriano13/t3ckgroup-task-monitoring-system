@@ -86,7 +86,7 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN: The ID Card */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 flex flex-col gap-3 items-center text-center shadow-lg">
+          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 flex flex-col gap-2 items-center text-center shadow-lg">
             <div className="relative">
               <img
                 src={user?.picture || "/default-avatar.png"}
@@ -96,14 +96,14 @@ export default function ProfilePage() {
               />
               {/* Role Badges floating on the avatar */}
               {(user?.isHead || user?.isHr) && (
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                <div className="flex gap-2">
                   {user?.isHead && (
-                    <span className="bg-amber-900 text-amber-400 border border-amber-700/50 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-amber-100 text-amber-600 border border-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                       Head
                     </span>
                   )}
                   {user?.isHr && (
-                    <span className="bg-purple-900 text-purple-400 border border-purple-700/50 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-purple-100 text-purple-600 border border-purple-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                       HR
                     </span>
                   )}
