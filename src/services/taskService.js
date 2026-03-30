@@ -141,13 +141,25 @@ export const taskService = {
       .eq("id", payload.loggedById)
       .single();
     if (creator) {
-      notificationService.notifyHeadByDepartment(creator.sub_department, {
-        sender_id: payload.loggedById,
+      notificationService.notifyHeadByDepartment(creator.department, creator.sub_department, {
+        sender_id: payload.submittedById || payload.loggedById,
         type: "NEW_TASK_SUBMITTED",
         title: "New Task Submitted",
         message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
         reference_id: data[0].id,
       });
+
+      // Special Notification: If someone else (HR/Admin) created this task for the employee
+      if (payload.submittedById && payload.submittedById !== payload.loggedById) {
+        notificationService.createNotification({
+          recipient_id: payload.loggedById,
+          sender_id: payload.submittedById,
+          type: "TASK_ASSIGNED",
+          title: "New Task Assigned",
+          message: `${payload.submittedByName || "An administrator"} assigned you a new task: "${payload.taskDescription}".`,
+          reference_id: data[0].id,
+        });
+      }
     }
 
     return data[0];
@@ -227,7 +239,8 @@ export const taskService = {
     if (
       payload?.status === "COMPLETE" &&
       payload?.evaluatedBy === undefined &&
-      payload?.hrVerified !== true
+      payload?.hrVerified !== true &&
+      payload?.hrVerified !== false // Allow undo loop!
     ) {
       throw new Error(
         `Invalid pipeline state: status=COMPLETE requires evaluatedBy`,
@@ -376,8 +389,8 @@ export const taskService = {
 
         // Also keep the Head in the loop
         const empSubDept = current.creator?.sub_department;
-        if (empSubDept) {
-          notificationService.notifyHeadByDepartment(empSubDept, {
+        if (empSubDept || current.creator?.department) {
+          notificationService.notifyHeadByDepartment(current.creator?.department, empSubDept, {
             sender_id: payload.editedBy,
             type: "TASK_VERIFIED",
             title: "Staff Task Verified by HR",

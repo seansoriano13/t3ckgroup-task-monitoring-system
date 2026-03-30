@@ -92,7 +92,7 @@ export const notificationService = {
    */
   async broadcastToRole(rolesArray, { sender_id = null, type, title, message, reference_id = null, excludeSuperAdmin = false }) {
      try {
-       const { data: emps } = await supabase.from('employees').select('id, department, is_super_admin, is_hr');
+       const { data: emps } = await supabase.from('employees').select('id, department, is_super_admin, is_hr, is_head');
        if (!emps) return;
 
        const inserts = [];
@@ -100,6 +100,7 @@ export const notificationService = {
           let shouldInclude = false;
           if (rolesArray.includes('SUPER_ADMIN') && emp.is_super_admin) shouldInclude = true;
           if (rolesArray.includes('HR') && emp.is_hr) shouldInclude = true;
+          if (rolesArray.includes('HEAD') && emp.is_head) shouldInclude = true;
 
           // Optionally exclude Super Admins (e.g. for HR-only signals they don't need)
           if (excludeSuperAdmin && emp.is_super_admin) shouldInclude = false;
@@ -125,20 +126,27 @@ export const notificationService = {
   },
 
   /**
-   * Target a specific Department Head dynamically based on a department string
+   * Target a specific Department Head dynamically based on department and sub-department
    */
-  async notifyHeadByDepartment(subDeptString, { sender_id = null, type, title, message, reference_id = null }) {
-     if (!subDeptString) return;
+  async notifyHeadByDepartment(departmentString, subDeptString, { sender_id = null, type, title, message, reference_id = null }) {
+     if (!departmentString && !subDeptString) return;
      try {
-       const { data: heads } = await supabase
+       const { data: allHeads } = await supabase
          .from('employees')
-         .select('id')
-         .ilike('sub_department', `%${subDeptString}%`)
+         .select('id, department, sub_department')
          .eq('is_head', true);
 
-       if (!heads || heads.length === 0) return;
+       if (!allHeads || allHeads.length === 0) return;
+       
+       const targetHeads = allHeads.filter(h => {
+          if (subDeptString && h.sub_department && h.sub_department.toLowerCase().includes(subDeptString.toLowerCase())) return true;
+          if (departmentString && h.department && h.department.toLowerCase().includes(departmentString.toLowerCase()) && !h.sub_department) return true;
+          return false;
+       });
+         
+       if (targetHeads.length === 0) return;
 
-       const inserts = heads.map(h => ({
+       const inserts = targetHeads.map(h => ({
           recipient_id: h.id,
           sender_id,
           type,

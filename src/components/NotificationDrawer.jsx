@@ -104,6 +104,17 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         });
      } else if (notif.type.includes('REVENUE')) {
         navigate('/sales/records', { state: { openRevenueId: notif.reference_id } });
+     } else if (notif.type === 'SALES_EXPENSE_PENDING') {
+        // Admins/Heads: route them to the approval queue and highlight the item
+        if (user?.isSuperAdmin) {
+           navigate('/super-admin', { state: { highlightExpenseId: notif.reference_id } });
+        } else {
+           navigate('/approvals', { state: { highlightExpenseId: notif.reference_id } });
+        }
+     } else if (notif.type === 'SALES_EXPENSE_PROCESSED') {
+        // Sales rep: go to their daily execution for that day
+        const dateStr = notif.created_at ? notif.created_at.split('T')[0] : null;
+        navigate('/sales/daily', { state: { highlightActivityId: notif.reference_id, date: dateStr } });
      }
      
      onClose(); // collapse drawer
@@ -177,7 +188,9 @@ export default function NotificationDrawer({ isOpen, onClose }) {
                   <div 
                      key={notif.id} 
                      onClick={() => handleNotificationClick(notif)}
-                     className={`p-4 rounded-xl border transition-all cursor-pointer hover:border-gray-6 ${notif.is_read ? 'bg-gray-2/50 border-gray-3 opacity-75' : 'bg-gray-1 border-gray-5 shadow-md'}`}
+                     className={`p-4 rounded-xl border transition-all cursor-pointer hover:border-gray-6 
+                        ${notif.type === 'TASK_ASSIGNED' && !notif.is_read ? 'bg-purple-500/5 border-purple-500/30' : ''}
+                        ${notif.is_read ? 'bg-gray-2/50 border-gray-3 opacity-75' : 'bg-gray-1 border-gray-5 shadow-md'}`}
                   >
                      <div className="flex gap-3 items-start">
                         <div className={`p-2 rounded-full shrink-0 ${notif.is_read ? 'bg-gray-3' : 'bg-blue-500/10'}`}>

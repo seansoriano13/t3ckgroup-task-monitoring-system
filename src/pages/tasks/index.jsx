@@ -25,7 +25,8 @@ export default function TasksPage() {
   const queryClient = useQueryClient();
 
   // --- ROLE CHECKS ---
-  const isHr = user?.is_hr === true || user?.isHr === true;
+  const isSA = user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isHr = user?.is_hr === true || user?.isHr === true || isSA;
   const isHead = user?.is_head === true || user?.isHead === true;
   const isManagement = isHr || isHead;
   const userDept = user?.department;
@@ -77,7 +78,7 @@ export default function TasksPage() {
     const fetchTopology = async () => {
       const { data: emps } = await supabase
         .from("employees")
-        .select("id, name, department, sub_department");
+        .select("id, name, department, sub_department, is_super_admin, is_head");
       if (emps) setAllEmployees(emps);
 
       const { data: cats } = await supabase
@@ -152,7 +153,7 @@ export default function TasksPage() {
 
   const uniqueEmployees = useMemo(() => {
     if (!isManagement) return [];
-    let pool = allEmployees;
+    let pool = allEmployees.filter(e => !e.is_super_admin && !e.is_head);
     if (deptFilter !== "ALL")
       pool = pool.filter((e) => e.department === deptFilter);
     if (subDeptFilter !== "ALL")
@@ -368,28 +369,36 @@ export default function TasksPage() {
 
       {/* THE CATEGORIZED GRID */}
       <div className="space-y-12 pb-10">
-        {["INCOMPLETE", "COMPLETE", "NOT APPROVED"].map((status) => {
-          const statusTasks = paginatedTasks.filter((t) => t.status === status);
+        {["INCOMPLETE", "COMPLETE_UNVERIFIED", "COMPLETE_VERIFIED", "NOT APPROVED"].map((statusKey) => {
+          const statusTasks = paginatedTasks.filter((t) => {
+             if (statusKey === "COMPLETE_UNVERIFIED") return t.status === "COMPLETE" && !t.hrVerified;
+             if (statusKey === "COMPLETE_VERIFIED") return t.status === "COMPLETE" && t.hrVerified;
+             return t.status === statusKey;
+          });
           if (statusTasks.length === 0) return null;
 
           return (
-            <div key={status} className="space-y-4">
+            <div key={statusKey} className="space-y-4">
               <div className="flex items-center gap-3 border-b border-gray-4 pb-2 px-1">
                 <div
                   className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${
-                    status === "COMPLETE"
+                    statusKey === "COMPLETE_VERIFIED"
                       ? "bg-green-500"
-                      : status === "NOT APPROVED"
-                        ? "bg-red-500"
-                        : "bg-amber-500"
+                      : statusKey === "COMPLETE_UNVERIFIED"
+                        ? "bg-emerald-400"
+                        : statusKey === "NOT APPROVED"
+                          ? "bg-red-500"
+                          : "bg-amber-500"
                   }`}
                 />
                 <h2 className="text-sm font-black text-gray-12 uppercase tracking-[0.2em]">
-                  {status === "COMPLETE"
-                    ? "Verified & Completed"
-                    : status === "NOT APPROVED"
-                      ? "Revision Required"
-                      : "Pending / In Progress"}
+                  {statusKey === "COMPLETE_VERIFIED"
+                    ? "Verified"
+                    : statusKey === "COMPLETE_UNVERIFIED"
+                      ? "Completed"
+                      : statusKey === "NOT APPROVED"
+                        ? "Revision Required"
+                        : "Pending / In Progress"}
                 </h2>
                 <span className="text-[10px] font-bold text-gray-8 bg-gray-2 px-2 py-0.5 rounded-full border border-gray-4 ml-auto">
                   {statusTasks.length} {statusTasks.length === 1 ? "Task" : "Tasks"}

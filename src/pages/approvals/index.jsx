@@ -7,6 +7,7 @@ import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import { CheckCircle2, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
+import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 
 export default function ApprovalsPage() {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export default function ApprovalsPage() {
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isHead = user?.is_head === true || user?.isHead === true;
   const userSubDept = user?.sub_department || user?.subDepartment;
+  const userDept = user?.department;
 
   // 1. Fetch all tasks
   const { data: rawTasks = [], isLoading } = useQuery({
@@ -55,7 +57,16 @@ export default function ApprovalsPage() {
             t.employees?.sub_department ||
             "";
 
-          const isMyDept = taskSubDept === userSubDept;
+          const taskDept = t.creator?.department || t.employees?.department || "";
+          
+          let isMyDept = false;
+          if (userSubDept) {
+            isMyDept = taskSubDept === userSubDept;
+          } else {
+            // Head with no sub-dept gets everything in their department
+            isMyDept = taskDept === userDept;
+          }
+          
           const isIncomplete = t.status === "INCOMPLETE";
           return isNotMe && isMyDept && isIncomplete;
         }
@@ -67,7 +78,7 @@ export default function ApprovalsPage() {
         if (b.priority === "HIGH" && a.priority !== "HIGH") return 1;
         return new Date(a.createdAt) - new Date(b.createdAt);
       });
-  }, [rawTasks, user?.id, userSubDept, isHr, isHead]);
+  }, [rawTasks, user?.id, userDept, userSubDept, isHr, isHead]);
 
   // 3. The Approval/Verification Mutation
   const editTaskMutation = useMutation({
@@ -94,7 +105,7 @@ export default function ApprovalsPage() {
     );
 
   return (
-    <ProtectedRoute requireHead={true}>
+    <ProtectedRoute requireHead={true} excludeSuperAdmin={true}>
       <div className="max-w-5xl mx-auto space-y-6 pb-10">
         {/* HEADER */}
         <div className="flex justify-between items-end border-b border-gray-4 pb-4">
@@ -115,6 +126,9 @@ export default function ApprovalsPage() {
             </span>
           </div>
         </div>
+
+        {/* FINANCIAL QUEUE (only for Sales Heads) */}
+        {!isHr && <ExpenseApprovalQueue isSuperAdmin={false} />}
 
         {/* THE QUEUE */}
         {pendingTasks.length > 0 ? (
@@ -357,19 +371,29 @@ function ApprovalRow({
                       Assign Grade (1-5)
                     </label>
                     <div className="flex gap-1.5 md:gap-2">
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <button
-                          key={num}
-                          onClick={() => setGrade(num)}
-                          className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
-                            grade === num
-                              ? "bg-primary text-white border-primary shadow-md shadow-red-a3 scale-[1.05]"
-                              : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6"
-                          }`}
-                        >
-                          {num}
-                        </button>
-                      ))}
+                      {[1, 2, 3, 4, 5].map((num) => {
+                        const activeColorMap = {
+                          1: "bg-red-500 text-gray-1 hover:bg-red-600 border-red-500 shadow-red-500/40",
+                          2: "bg-orange-500 text-gray-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
+                          3: "bg-yellow-500 text-gray-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
+                          4: "bg-lime-500 text-gray-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
+                          5: "bg-green-500 text-gray-1 hover:bg-green-600 border-green-500 shadow-green-500/40",
+                        };
+
+                        return (
+                          <button
+                            key={num}
+                            onClick={() => setGrade(num)}
+                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
+                              grade === num
+                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
+                                : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6 hover:bg-gray-3"
+                            }`}
+                          >
+                            {num}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
