@@ -9,7 +9,7 @@ export function useTheme() {
     if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
       return "light";
     }
-    return "dark"; // Default to dark since original was dark
+    return "light"; // Default to dark since original was dark
   });
 
   useEffect(() => {
