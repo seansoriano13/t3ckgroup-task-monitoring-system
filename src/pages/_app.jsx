@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../services/taskService";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import RoleSwitcher from "../components/RoleSwitcher";
 
 export default function AppLayout() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,6 +99,8 @@ export default function AppLayout() {
           onSubmit={handleSubmitTask}
         />
       )}
+
+      <RoleSwitcher />
     </div>
   );
 }
