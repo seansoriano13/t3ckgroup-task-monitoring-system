@@ -106,6 +106,7 @@ export default function EmployeeManagement() {
                 <th className="p-4">Email</th>
                 <th className="p-4">Department</th>
                 <th className="p-4">Sub-Dept</th>
+                <th className="p-4">Role</th>
                 <th className="p-4">Role Flags</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -136,6 +137,9 @@ export default function EmployeeManagement() {
                     </td>
                     <td className="p-4 text-sm text-gray-11">
                       {emp.subDepartment || "-"}
+                    </td>
+                    <td className="p-4 text-sm text-gray-11 font-medium">
+                      {emp.role || "-"}
                     </td>
                     <td className="p-4 text-xs flex gap-1 items-center">
                       {emp.isSuperAdmin && (
@@ -213,6 +217,7 @@ function EmployeeFormModal({ employee, onClose }) {
         email: employee.email || "",
         department: employee.department || "",
         subDepartment: employee.subDepartment || "",
+        role: employee.role || "",
         isHead: employee.isHead || false,
         isHr: employee.isHr || false,
         isSuperAdmin: employee.isSuperAdmin || false,
@@ -223,6 +228,7 @@ function EmployeeFormModal({ employee, onClose }) {
       email: "",
       department: "",
       subDepartment: "",
+      role: "",
       isHead: false,
       isHr: false,
       isSuperAdmin: false,
@@ -234,14 +240,26 @@ function EmployeeFormModal({ employee, onClose }) {
     queryFn: () => employeeService.getAllCategories(),
   });
 
+  // SALES has its own flow and is not in the categories table,
+  // so we inject it manually as a hardcoded option.
+  const SALES_DEPT = "SALES";
+  const SALES_SUB_DEPTS = ["GOV", "MARKETING", "NGO", "SALES"];
+
   const uniqueDepts = useMemo(() => {
-    return [
+    const fromCategories = [
       ...new Set(rawCategories.map((c) => c.department).filter(Boolean)),
     ].sort();
+    // Append SALES if not already present
+    if (!fromCategories.includes(SALES_DEPT)) {
+      fromCategories.push(SALES_DEPT);
+    }
+    return fromCategories;
   }, [rawCategories]);
 
   const uniqueSubDepts = useMemo(() => {
     if (!formData.department) return [];
+    // SALES sub-depts are hardcoded since they don't exist in categories
+    if (formData.department === SALES_DEPT) return SALES_SUB_DEPTS;
     return [
       ...new Set(
         rawCategories
@@ -362,6 +380,21 @@ function EmployeeFormModal({ employee, onClose }) {
                   </option>
                 ))}
               </select>
+            </div>
+            
+            <div className="col-span-2">
+              <label className="text-xs font-bold text-gray-9 uppercase">
+                Job Role / Title
+              </label>
+              <input
+                type="text"
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                placeholder="e.g. MARKETING ASSISTANT"
+                className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
+              />
             </div>
           </div>
 
