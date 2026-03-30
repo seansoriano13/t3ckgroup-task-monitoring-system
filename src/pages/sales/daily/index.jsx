@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useLocation } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { CheckCircle2, Circle, Loader2, Plus, Calendar as CalendarIcon, Save, AlertCircle } from "lucide-react";
+import { CheckCircle2, Circle, Loader2, Plus, Calendar as CalendarIcon, AlertCircle, Clock, ThumbsUp } from "lucide-react";
 import StatusBadge from "../../../components/StatusBadge.jsx";
 
 function getStartOfWeek(date) {
@@ -21,9 +22,19 @@ function formatDateToYMD(date) {
 export default function DailyExecutionPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isAdminView = user?.isSuperAdmin || user?.isHr || user?.is_hr || user?.is_head || user?.isHead;
 
-  const [currentDateObj, setCurrentDateObj] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(() => formatDateToYMD(new Date()));
+  const location = useLocation();
+  const [currentDateObj, setCurrentDateObj] = useState(() => {
+    // If routed from a notification with a specific date, use it
+    if (location.state?.date) return new Date(location.state.date);
+    return new Date();
+  });
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (location.state?.date) return location.state.date;
+    return formatDateToYMD(new Date());
+  });
+  const highlightActivityId = location.state?.highlightActivityId || null;
 
   // Pull weekly plan so we know which days actually have tasks for the dot indicator
   const weekStartStr = formatDateToYMD(getStartOfWeek(currentDateObj));
@@ -35,6 +46,22 @@ export default function DailyExecutionPage() {
   const weeklyActivities = planWrapper?.sales_activities || [];
   const planStatus = planWrapper?.status || 'DRAFT';
   const isGreen = planStatus === 'SUBMITTED' || planStatus === 'APPROVED';
+
+  const { data: dbCategories = [] } = useQuery({
+    queryKey: ['salesCategories'],
+    queryFn: async () => await salesService.getSalesCategories()
+  });
+
+  const { data: appSettings } = useQuery({
+    queryKey: ['appSettings'],
+    queryFn: () => salesService.getAppSettings(),
+    enabled: !!user?.id,
+  });
+
+  const categories = useMemo(() => {
+    const defaultCats = ["SALES CALL", "IN-HOUSE"];
+    return Array.from(new Set([...defaultCats, ...dbCategories]));
+  }, [dbCategories]);
 
   // Future week lock
   const currentWeekStart = formatDateToYMD(getStartOfWeek(new Date()));
@@ -48,8 +75,16 @@ export default function DailyExecutionPage() {
         return d.getDay() === 6 && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== ''));
      });
   }, [weeklyActivities]);
+
+  const hasTasksOnSunday = useMemo(() => {
+     return weeklyActivities.some(a => {
+        const d = new Date(a.scheduled_date);
+        // getDay() === 0 is Sunday
+        return d.getDay() === 0 && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== ''));
+     });
+  }, [weeklyActivities]);
   
-  const daysToShow = hasTasksOnSaturday ? 6 : 5;
+  const daysToShow = hasTasksOnSunday ? 7 : (hasTasksOnSaturday ? 6 : 5);
   
   // Calculate the dates for the week (Mon-Sat or Mon-Fri)
   const weekDates = useMemo(() => {
@@ -96,6 +131,7 @@ export default function DailyExecutionPage() {
     mutationFn: (payload) => salesService.bulkUpsertActivities([payload]),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dailyActivities", user?.id, selectedDate] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPlanLoc", user?.id, weekStartStr] });
       toast.success("Unplanned task added!");
     },
     onError: (err) => toast.error(err.message)
@@ -105,6 +141,7 @@ export default function DailyExecutionPage() {
     addUnplannedMutation.mutate({
       ...payload,
       employee_id: user.id,
+      plan_id: planWrapper?.id || null,
       scheduled_date: selectedDate,
       status: 'DONE',
       is_unplanned: true
@@ -113,7 +150,7 @@ export default function DailyExecutionPage() {
 
   if (isLoading || !user?.id) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute excludeSuperAdmin={true}>
         <div className="flex justify-center items-center h-[80vh] text-gray-9 gap-3 font-bold">
            <Loader2 className="animate-spin" /> Fetching Daily Checklist...
         </div>
@@ -122,7 +159,7 @@ export default function DailyExecutionPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute excludeSuperAdmin={true}>
       <div className="max-w-6xl mx-auto space-y-6 pb-10 px-2 sm:px-4">
         
         {/* HEADER & DATE PICKER */}
@@ -202,15 +239,15 @@ export default function DailyExecutionPage() {
                        <p className="p-6 text-center text-sm text-gray-8 italic">No morning tasks</p>
                     )}
                     {plannedAM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
+                       <ChecklistItem key={act.id} data={act} settings={appSettings} onToggle={handleToggleDone} disabledUI={isLockedUI} isAdminView={isAdminView} highlightId={highlightActivityId} />
                     ))}
                     {unplannedAM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
+                       <ChecklistItem key={act.id} data={act} settings={appSettings} onToggle={handleToggleDone} disabledUI={isLockedUI} isAdminView={isAdminView} highlightId={highlightActivityId} />
                     ))}
                  </div>
                  {!isLockedUI && (
                     <div className="p-3 bg-gray-2 border-t border-gray-4">
-                      <AddUnplannedForm timeOfDay="AM" onSave={handleAddUnplanned} />
+                      <AddUnplannedForm timeOfDay="AM" onSave={handleAddUnplanned} categories={categories} />
                     </div>
                  )}
               </div>
@@ -225,15 +262,15 @@ export default function DailyExecutionPage() {
                        <p className="p-6 text-center text-sm text-gray-8 italic">No afternoon tasks</p>
                     )}
                     {plannedPM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
+                       <ChecklistItem key={act.id} data={act} settings={appSettings} onToggle={handleToggleDone} disabledUI={isLockedUI} isAdminView={isAdminView} highlightId={highlightActivityId} />
                     ))}
                     {unplannedPM.map(act => (
-                       <ChecklistItem key={act.id} data={act} onToggle={handleToggleDone} disabledUI={isLockedUI} />
+                       <ChecklistItem key={act.id} data={act} settings={appSettings} onToggle={handleToggleDone} disabledUI={isLockedUI} isAdminView={isAdminView} highlightId={highlightActivityId} />
                     ))}
                  </div>
                  {!isLockedUI && (
                     <div className="p-3 bg-gray-2 border-t border-gray-4">
-                      <AddUnplannedForm timeOfDay="PM" onSave={handleAddUnplanned} />
+                      <AddUnplannedForm timeOfDay="PM" onSave={handleAddUnplanned} categories={categories} />
                     </div>
                  )}
               </div>
@@ -246,35 +283,149 @@ export default function DailyExecutionPage() {
 }
 
 // Checklist Item mapping to iPhone notes style
-function ChecklistItem({ data, onToggle, disabledUI }) {
+function ChecklistItem({ data, onToggle, disabledUI, isAdminView, settings, highlightId }) {
   const isDone = data.status === 'DONE';
+  const isPendingApproval = data.status === 'PENDING_APPROVAL';
+  const isHighlighted = data.id === highlightId;
+  const isLost = data.sales_outcome === 'LOST';
+  const isWon  = data.sales_outcome === 'WON';
   const [details, setDetails] = useState(data.details_daily || "");
   const [isEditing, setIsEditing] = useState(false);
+  const [justChecked, setJustChecked] = useState(false);
+  const queryClient = useQueryClient();
+  const itemRef = useRef(null);
+
+  // Scroll into view and briefly pulse when routed from a notification
+  useEffect(() => {
+    if (isHighlighted && itemRef.current) {
+      setTimeout(() => {
+        itemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 400);
+    }
+  }, [isHighlighted]);
+
+  const selfApproveMutation = useMutation({
+    mutationFn: () => salesService.approveExpenseActivity(data.id, true),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["weeklyPlanLoc"] });
+      toast.success("Self-Approval Processed!");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const outcomeMutation = useMutation({
+    mutationFn: ({ id, outcome }) => salesService.updateActivityOutcome(id, outcome),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
+      toast.success("Outcome updated!");
+    },
+    onError: (err) => toast.error(err.message)
+  });
 
   let isLate = false;
   if (isDone && data.completed_at) {
      const scheduledDateObj = new Date(data.scheduled_date);
      const completedAtObj = new Date(data.completed_at);
-     // Add 24 hours to scheduled date for a grace period
      scheduledDateObj.setDate(scheduledDateObj.getDate() + 1);
      if (completedAtObj > scheduledDateObj) {
         isLate = true;
      }
   }
 
+  const handleCheck = () => {
+    if (disabledUI) return;
+    setJustChecked(true);
+    setTimeout(() => setJustChecked(false), 600);
+    onToggle(data.id, details);
+  };
+
   return (
-    <div className={`p-4 flex gap-4 transition-all ${isDone ? 'bg-gray-2/50 opacity-60' : 'bg-gray-1 hover:bg-gray-2/50'}`}>
-       <button disabled={isDone || disabledUI} onClick={() => !disabledUI && onToggle(data.id, details)} className="mt-1 shrink-0 text-primary transition-transform active:scale-90 disabled:cursor-not-allowed">
-         {isDone ? <CheckCircle2 size={24} /> : <Circle size={24} className="text-gray-6" />}
+    <div
+      ref={itemRef}
+      className={`p-4 flex gap-4 border-l-4 transition-all duration-500 ${justChecked ? 'animate-check-flash' : ''} ${
+        isHighlighted ? 'border-l-blue-500 bg-blue-50/60' :
+        isLost ? 'border-l-red-400/60' :
+        isWon  ? 'border-l-green-400/60' :
+        isPendingApproval ? 'border-l-amber-400/60' :
+                 'border-l-transparent'
+      } ${(isDone || isPendingApproval) ? 'opacity-60 hover:opacity-100' : 'hover:bg-gray-2/50'}`}>
+       <button
+         disabled={isDone || isPendingApproval || disabledUI}
+         onClick={handleCheck}
+         className="mt-1 shrink-0 transition-transform active:scale-75 disabled:cursor-not-allowed"
+       >
+         {isDone
+           ? <CheckCircle2 key={justChecked ? 'pop' : 'idle'} size={24} className={`text-green-500 ${justChecked ? 'animate-success-pop' : ''}`} />
+           : isPendingApproval
+           ? <Clock size={24} className="text-amber-500" />
+           : <Circle size={24} className={`text-gray-6 transition-transform ${justChecked ? 'scale-110' : ''}`} />}
        </button>
        <div className="flex-1 min-w-0">
-          <p className={`font-bold text-base truncate transition-all flex items-center flex-wrap gap-2 ${isDone ? 'line-through text-gray-8' : 'text-gray-12'}`}>
+          <p className={`font-bold text-base truncate transition-all flex items-center flex-wrap gap-2 ${(isDone || isPendingApproval) ? 'line-through text-gray-8' : 'text-gray-12'}`}>
             <span>{data.account_name}</span>
             {data.is_unplanned && <span className="text-[10px] bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full not-italic no-underline border border-blue-500/20">EXTRA</span>}
             {isLate && <span className="text-[10px] bg-orange-500/10 text-orange-600 px-2 py-0.5 rounded-full not-italic no-underline font-black tracking-widest border border-orange-500/20">LATE</span>}
+            {isPendingApproval && <span className="text-[10px] bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full not-italic font-black tracking-widest border border-amber-500/20">PENDING APPROVAL</span>}
           </p>
           {!isDone && (
             <p className="text-xs text-gray-9 mt-0.5 truncate">{data.activity_type} - {data.contact_person || 'No Contact'}</p>
+          )}
+
+          {/* Reference & Expense Badges */}
+          {(data.reference_number || data.expense_amount) && (
+            <div className="flex flex-wrap gap-2 mt-1.5">
+              {data.reference_number && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 border border-amber-500/25 px-2 py-0.5 rounded-full">
+                 {data.reference_number}
+                </span>
+              )}
+              {data.expense_amount && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 border border-emerald-500/25 px-2 py-0.5 rounded-full">
+                   {Number(data.expense_amount).toLocaleString()}
+                </span>
+              )}
+              {/* Sales Outcome Badge (visible to admin/head only) */}
+              {isAdminView && isWon && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-600 border border-green-500/25 px-2 py-0.5 rounded-full">âœ… WON</span>
+              )}
+              {isAdminView && isLost && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 border border-red-500/25 px-2 py-0.5 rounded-full">ðŸš« LOST</span>
+              )}
+            </div>
+          )}
+
+          {/* User Self-Approval Fast Track Hook */}
+          {isPendingApproval && settings?.sales_self_approve_expenses && !isAdminView && (
+             <div className="mt-3">
+               <button 
+                  onClick={() => selfApproveMutation.mutate()} 
+                  disabled={selfApproveMutation.isPending || disabledUI}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 rounded-lg text-xs font-bold transition-all border border-emerald-500/20 shadow-sm disabled:opacity-50"
+               >
+                 {selfApproveMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <ThumbsUp size={14} />} 
+                 Fast-Track Approval
+               </button>
+             </div>
+          )}
+
+          {/* Admin/Head: Sales Outcome Dropdown (only on DONE activities with financial context) */}
+          {isAdminView && isDone && (data.reference_number || data.expense_amount) && (
+            <div className="mt-2 flex items-center gap-2">
+              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider shrink-0">Outcome:</label>
+              <select
+                value={data.sales_outcome || ''}
+                onChange={e => outcomeMutation.mutate({ id: data.id, outcome: e.target.value || null })}
+                disabled={outcomeMutation.isPending}
+                className="text-[10px] font-bold uppercase bg-gray-2 border border-gray-4 rounded px-2 py-1 outline-none focus:border-primary cursor-pointer disabled:opacity-50"
+              >
+                <option value="">Pending</option>
+                <option value="WON"> WON</option>
+                <option value="LOST"> LOST</option>
+              </select>
+              {outcomeMutation.isPending && <Loader2 size={12} className="animate-spin text-gray-9" />}
+            </div>
           )}
 
           {/* Optional Details Input */}
@@ -302,9 +453,22 @@ function ChecklistItem({ data, onToggle, disabledUI }) {
   )
 }
 
-function AddUnplannedForm({ timeOfDay, onSave }) {
+function AddUnplannedForm({ timeOfDay, onSave, categories = ["SALES CALL", "IN-HOUSE"] }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [payload, setPayload] = useState({ activity_type: 'Sales Call', account_name: '', details_daily: '' });
+  
+  const getInitialPayload = () => ({
+     activity_type: 'SALES CALL', 
+     account_name: '', 
+     details_daily: '',
+     contact_person: '',
+     contact_number: '',
+     email_address: '',
+     address: '',
+     reference_number: '',
+     expense_amount: ''
+  });
+  
+  const [payload, setPayload] = useState(getInitialPayload());
 
   if (!isOpen) {
     return (
@@ -315,27 +479,75 @@ function AddUnplannedForm({ timeOfDay, onSave }) {
   }
 
   const handleSave = () => {
-    onSave({ ...payload, time_of_day: timeOfDay });
+    const finalPayload = { ...payload, time_of_day: timeOfDay };
+    
+    // Fix optional numeric fields
+    if (finalPayload.expense_amount === '') finalPayload.expense_amount = null;
+    if (finalPayload.reference_number === '') finalPayload.reference_number = null;
+
+    onSave(finalPayload);
     setIsOpen(false);
-    setPayload({ activity_type: 'Sales Call', account_name: '', details_daily: '' });
+    setPayload(getInitialPayload());
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-top-2 p-3 bg-gray-3 rounded-lg border border-gray-4 mt-1 space-y-3">
-      <div>
-        <input autoFocus required type="text" placeholder="Account Name (Required)" value={payload.account_name} onChange={e => setPayload({...payload, account_name: e.target.value})} className="w-full bg-gray-1 border border-gray-4 rounded px-2 py-1.5 text-xs outline-none focus:border-primary" />
+    <div className="animate-in fade-in slide-in-from-top-2 p-4 bg-gray-3 rounded-xl border border-gray-4 mt-2 space-y-4 shadow-sm relative w-full overflow-hidden">
+      <div className="flex justify-between items-center border-b border-gray-4 pb-2 mb-2">
+         <h4 className="text-[11px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5"><Plus size={14} /> Unplanned Entry</h4>
       </div>
-      <div className="flex gap-2">
-        <select value={payload.activity_type} onChange={e => setPayload({...payload, activity_type: e.target.value})} className="flex-1 bg-gray-1 border border-gray-4 rounded px-2 py-1.5 text-xs outline-none">
-           <option value="Sales Call">Sales Call</option>
-           <option value="In-House">In-House</option>
-        </select>
-        <input type="text" placeholder="Optional details..." value={payload.details_daily} onChange={e => setPayload({...payload, details_daily: e.target.value})} className="flex-[2] bg-gray-1 border border-gray-4 rounded px-2 py-1.5 text-xs outline-none" />
+
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="sm:col-span-2">
+             <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Account &amp; Activity</label>
+             <div className="flex gap-2">
+                <select value={payload.activity_type} onChange={e => setPayload({...payload, activity_type: e.target.value})} className="bg-gray-1 border border-gray-4 rounded-lg px-2 py-2 text-xs font-bold outline-none cursor-pointer">
+                   {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <input autoFocus required type="text" placeholder="Account Name (Required)" value={payload.account_name} onChange={e => setPayload({...payload, account_name: e.target.value})} className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-sm font-bold text-gray-12 outline-none focus:border-primary transition-colors" />
+             </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Contact Person</label>
+            <input type="text" value={payload.contact_person} onChange={e => setPayload({...payload, contact_person: e.target.value})} className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors" />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Contact Number</label>
+            <input type="text" value={payload.contact_number} onChange={e => setPayload({...payload, contact_number: e.target.value})} className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Email Address</label>
+            <input type="email" value={payload.email_address} onChange={e => setPayload({...payload, email_address: e.target.value})} className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Address</label>
+            <input type="text" value={payload.address} onChange={e => setPayload({...payload, address: e.target.value})} className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1 flex items-center gap-1 w-full justify-between">
+               Execution Details
+               <span className="text-[9px] font-medium text-gray-8 italic lowercase">(optional remarks)</span>
+            </label>
+            <textarea placeholder="What occurred?" value={payload.details_daily} onChange={e => setPayload({...payload, details_daily: e.target.value})} className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary transition-colors resize-none h-16" />
+          </div>
+        </div>
+
+        <div className="border-t border-gray-4 pt-3 mt-1 sm:col-span-2">
+           <label className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block mb-2">Fund Request &amp; Reference</label>
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+             <input type="text" placeholder="Ref No. (e.g. SQ/TRM)" value={payload.reference_number || ''} onChange={e => setPayload({...payload, reference_number: e.target.value})} className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs text-gray-12 outline-none focus:border-amber-500 placeholder:text-gray-7" />
+             <input type="number" placeholder="Est. Expense (â‚±)" value={payload.expense_amount || ''} onChange={e => setPayload({...payload, expense_amount: e.target.value === '' ? '' : Number(e.target.value)})} className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs text-gray-12 outline-none focus:border-amber-500 placeholder:text-gray-7" min="0" step="0.01" />
+           </div>
+        </div>
       </div>
-      <div className="flex gap-2 pt-1">
-        <button onClick={() => setIsOpen(false)} className="flex-1 py-1 text-xs font-bold text-gray-9 hover:text-gray-12">Cancel</button>
-        <button disabled={!payload.account_name} onClick={handleSave} className="flex-1 py-1 rounded bg-primary text-white text-xs font-bold shadow disabled:opacity-50">Add Item</button>
+
+      <div className="flex gap-2 pt-3 border-t border-gray-4 mt-4">
+        <button onClick={() => setIsOpen(false)} className="flex-1 py-2 text-xs font-bold text-gray-9 hover:text-gray-12 bg-gray-2 rounded-lg border border-gray-4 transition-colors">Cancel</button>
+        <button disabled={!payload.account_name} onClick={handleSave} className="flex-[2] py-2 rounded-lg bg-primary text-white text-xs font-bold shadow-lg shadow-red-a3 disabled:opacity-50 transition-transform active:scale-[0.98]">
+           Add Item
+        </button>
       </div>
     </div>
   )
 }
+

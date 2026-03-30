@@ -16,6 +16,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   // Role Checks
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isHead = user?.is_head === true || user?.isHead === true;
+  const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
 
   // Database States
   const [categories, setCategories] = useState([]);
@@ -62,9 +63,12 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         // 2. Fetch Employees Based on Role
         let empQuery = supabase
           .from("employees")
-          .select("id, name, department, sub_department");
+          .select("id, name, department, sub_department, is_super_admin");
 
-        if (!isHr && isHead) {
+        if (isSuperAdmin) {
+          // Super Admin can see everyone except other Super Admins (to keep it clean)
+          empQuery = empQuery.or(`is_super_admin.eq.false,is_super_admin.is.null,id.eq.${user.id}`);
+        } else if (!isHr && isHead) {
           empQuery = empQuery.eq("sub_department", userSubDept || "");
         } else if (!isHr && !isHead) {
           empQuery = empQuery.eq("id", user.id);
@@ -122,7 +126,9 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   const isCommittee = selectedCategoryObj?.description
     ?.toUpperCase()
     .includes("COMMITTEE");
-  const isOthersGlobal = selectedCategoryObj?.description
+  const isOthersGlobal = selectedCategoryObj?.category_id
+    ?.toUpperCase()
+    .includes("OTHERS") || selectedCategoryObj?.description
     ?.toUpperCase()
     .includes("OTHERS");
 
@@ -155,6 +161,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     const payload = {
       ...formData,
       remarks: mergedRemarks,
+      submittedById: user.id,
+      submittedByName: user.name,
     };
 
     if (onSubmit) onSubmit(payload);
@@ -197,8 +205,9 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
 
   const filteredCategories = categories.filter((cat) => {
     // 1. Universal Override: COMMITTEE and OTHERS must always be selectable by everyone
+    const catId = cat.category_id?.toUpperCase() || "";
     const desc = cat.description?.toUpperCase() || "";
-    if (desc.includes("COMMITTEE") || desc.includes("OTHERS")) return true;
+    if (catId.includes("COMMITTEE") || catId.includes("OTHERS") || desc.includes("COMMITTEE") || desc.includes("OTHERS")) return true;
 
     // 2. If HR is actively using the dropdown filters, respect those first
     if (isHr && hrSubDeptFilter) return cat.sub_department === hrSubDeptFilter;

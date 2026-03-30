@@ -45,7 +45,7 @@ export const salesService = {
     // Assuming they are assigned to specific departments for 'Sales'
     const { data, error } = await supabase
       .from("employees")
-      .select("id, name, department, sub_department, is_super_admin")
+      .select("id, name, department, sub_department, role, is_super_admin")
       .or('department.ilike.%sales%,sub_department.ilike.%sales%,is_super_admin.eq.true'); 
 
     if (error) throw error;
@@ -145,6 +145,18 @@ export const salesService = {
     return results;
   },
 
+  async deleteActivities(activityIds) {
+    if (!activityIds || activityIds.length === 0) return;
+    const { error } = await supabase.from('sales_activities').delete().in('id', activityIds);
+    if (error) throw error;
+  },
+
+  async deleteWeeklyPlan(planId) {
+    if (!planId) return;
+    const { error } = await supabase.from('sales_weekly_plans').delete().eq('id', planId);
+    if (error) throw error;
+  },
+
   // === EXECUTION TRACKING ===
   async getDailyActivities(employeeId, dateStr) {
      const { data, error } = await supabase
@@ -158,17 +170,39 @@ export const salesService = {
   },
 
   async markActivityDone(activityId, details_daily) {
+     // Fetch activity first to check expense_amount natively before completion
+     const { data: actCheck } = await supabase.from("sales_activities").select('expense_amount').eq("id", activityId).single();
+     
+     // Fetch self approval setting override
+     const { data: settings } = await supabase.from('app_settings').select('sales_self_approve_expenses').eq('id', true).single();
+
+     let targetStatus = 'DONE';
+     if (Number(actCheck?.expense_amount) > 0 && !settings?.sales_self_approve_expenses) {
+         targetStatus = 'PENDING_APPROVAL';
+     }
+
      const { data: activity, error } = await supabase
        .from("sales_activities")
-       .update({ status: 'DONE', details_daily, completed_at: new Date().toISOString() })
+       .update({ status: targetStatus, details_daily, completed_at: new Date().toISOString() })
        .eq("id", activityId)
        .select('*, employees(name)')
        .single();
 
      if (error) throw error;
 
+     // Blast notification to Super Admin / Head if waiting for money
+     if (targetStatus === 'PENDING_APPROVAL') {
+         notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
+           sender_id: activity.employee_id,
+           type: 'SALES_EXPENSE_PENDING',
+           title: 'Expense Approval Needed',
+           message: `${activity.employees?.name} mapped an activity with a requested expense of ₱${Number(activity.expense_amount).toLocaleString()}.`,
+           reference_id: activity.id
+         });
+     }
+
      // Calculate if Day/Week is conquered (Fire & forget)
-     if (activity) {
+     if (activity && targetStatus === 'DONE') {
         supabase.from('sales_activities').select('id').eq('employee_id', activity.employee_id).eq('scheduled_date', activity.scheduled_date).neq('status', 'DONE').then(({ data: pendingDay }) => {
            if (pendingDay && pendingDay.length === 0) {
               notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
@@ -182,6 +216,57 @@ export const salesService = {
      }
 
      return activity;
+  },
+
+  async approveExpenseActivity(activityId, isApproved) {
+     const targetStatus = isApproved ? 'DONE' : 'REJECTED';
+     const { data: activity, error } = await supabase
+       .from("sales_activities")
+       .update({ status: targetStatus, completed_at: targetStatus === 'DONE' ? new Date().toISOString() : null })
+       .eq("id", activityId)
+       .select('*, employees(name)')
+       .single();
+
+     if (error) throw error;
+
+     // Notify employee of result
+     notificationService.createNotification({
+         recipient_id: activity.employee_id,
+         type: 'SALES_EXPENSE_PROCESSED',
+         title: isApproved ? 'Fund Request Approved' : 'Fund Request Denied',
+         message: isApproved ? `Your planned activity expense for ${activity.account_name || 'an account'} was successfully approved.` : `Your expense for ${activity.account_name || 'an account'} was rejected.`,
+         reference_id: activity.id
+     });
+
+     return activity;
+  },
+
+  async bulkApproveExpenses(activityIds) {
+     if (!activityIds || activityIds.length === 0) return;
+     // Batch-update all to DONE in one query
+     const { data, error } = await supabase
+       .from('sales_activities')
+       .update({ status: 'DONE', completed_at: new Date().toISOString() })
+       .in('id', activityIds)
+       .select('id, employee_id, account_name');
+     if (error) throw error;
+
+     // Notify each unique employee
+     const byEmployee = {};
+     (data || []).forEach(a => {
+        if (!byEmployee[a.employee_id]) byEmployee[a.employee_id] = [];
+        byEmployee[a.employee_id].push(a.account_name || 'an activity');
+     });
+     Object.entries(byEmployee).forEach(([empId, names]) => {
+        notificationService.createNotification({
+           recipient_id: empId,
+           type: 'SALES_EXPENSE_PROCESSED',
+           title: 'Fund Request Approved',
+           message: `${names.length} expense${names.length > 1 ? 's' : ''} approved: ${names.slice(0,3).join(', ')}${names.length > 3 ? '…' : ''}`,
+        });
+     });
+
+     return data;
   },
 
   // === REVENUE TRACKING ===
@@ -283,9 +368,9 @@ export const salesService = {
   // === GLOBAL APP SETTINGS ===
   async getAppSettings() {
      const { data, error } = await supabase.from('app_settings').select('*').single();
-     if (error || !data) {
+      if (error || !data) {
         // Fallback initialized row
-        const { data: d } = await supabase.from('app_settings').upsert({ id: true, require_revenue_verification: false }).select().single();
+        const { data: d } = await supabase.from('app_settings').upsert({ id: true, require_revenue_verification: false, sales_self_approve_expenses: false }).select().single();
         return d;
      }
      return data;
@@ -298,6 +383,22 @@ export const salesService = {
   },
 
   // === ADMIN & REPORTS ===
+  async getPendingExpenses(departmentStr = null) {
+     let query = supabase
+       .from('sales_activities')
+       .select('*, employees!inner(name, department, is_super_admin)')
+       .eq('status', 'PENDING_APPROVAL')
+       .order('scheduled_date', { ascending: false });
+
+     if (departmentStr) {
+        query = query.eq('employees.department', departmentStr);
+     }
+     
+     const { data, error } = await query;
+     if (error) throw error;
+     return data || [];
+  },
+
   async getAllSalesActivities() {
      const { data, error } = await supabase
        .from('sales_activities')
@@ -310,7 +411,7 @@ export const salesService = {
   async getAllRevenueLogs() {
      const { data, error } = await supabase
        .from('sales_revenue_logs')
-       .select('*, employees!sales_revenue_logs_employee_id_fkey(name, department), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)')
+       .select('*, employees!sales_revenue_logs_employee_id_fkey(name, department, is_super_admin), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)')
        .order('date', { ascending: false });
      if (error) throw error;
      return data;
@@ -325,6 +426,19 @@ export const salesService = {
        .order('date', { ascending: false });
      if (error) throw error;
      return data;
+  },
+
+  // === SALES OUTCOME (Admin/Head only) ===
+  async updateActivityOutcome(activityId, outcome) {
+    // outcome: 'WON' | 'LOST' | null
+    const { data, error } = await supabase
+      .from('sales_activities')
+      .update({ sales_outcome: outcome || null })
+      .eq('id', activityId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
   // === DASHBOARD AGGREGATES ===

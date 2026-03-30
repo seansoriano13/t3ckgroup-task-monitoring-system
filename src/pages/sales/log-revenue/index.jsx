@@ -15,6 +15,7 @@ export default function LogRevenuePage() {
     account: '',
     product_item_sold: '',
     revenue_amount: '',
+    reference_number: '',
     remarks: '',
     status: 'COMPLETED SALES'
   });
@@ -24,7 +25,7 @@ export default function LogRevenuePage() {
     onSuccess: () => {
        toast.success("Revenue Logged Successfully!");
        // reset generic fields
-       setFormData(f => ({ ...f, account: '', product_item_sold: '', revenue_amount: '', remarks: '' }));
+       setFormData(f => ({ ...f, account: '', product_item_sold: '', revenue_amount: '', reference_number: '', remarks: '' }));
        // invalidate queries if Dashboard relies on them
        queryClient.invalidateQueries({ queryKey: ["revenueLogs"] });
     },
@@ -66,7 +67,7 @@ export default function LogRevenuePage() {
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               
               <div>
-                <label className="text-xs font-bold text-gray-9 uppercase block mb-1">Date</label>
+                <label className="text-xs font-bold text-gray-9 uppercase block mb-1">Purchase Date</label>
                 <input required type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 font-bold" />
               </div>
 
@@ -108,9 +109,14 @@ export default function LogRevenuePage() {
                 </div>
               </div>
 
-              <div className="sm:col-span-2">
+              <div className="sm:col-span-1">
+                <label className="text-xs font-bold text-gray-9 uppercase block mb-1">Ref #</label>
+                <input type="text" placeholder="Optional" value={formData.reference_number} onChange={e => setFormData({...formData, reference_number: e.target.value})} className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500" />
+              </div>
+
+              <div className="sm:col-span-1">
                 <label className="text-xs font-bold text-gray-9 uppercase block mb-1">Remarks</label>
-                <textarea placeholder="Any additional notes?" value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 resize-none h-24" />
+                <textarea placeholder="Any additional notes?" value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 resize-none h-12" />
               </div>
            </div>
 
