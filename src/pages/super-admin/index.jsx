@@ -200,6 +200,26 @@ export default function SuperAdminDashboard() {
 function QuotaCard({ employee, value, serverValue, onChange }) {
   const isDirty = (parseFloat(value) || 0) !== serverValue;
 
+  // Format the raw numeric string into a comma-separated display string
+  const displayValue = useMemo(() => {
+    if (!value || value === "0") return "";
+    const clean = value.toString().replace(/,/g, "");
+    const parts = clean.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+  }, [value]);
+
+  const handleChange = (e) => {
+    // Only allow digits and one decimal point
+    const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+    
+    // Ensure only one decimal point exists
+    const parts = rawValue.split(".");
+    const cleanValue = parts[0] + (parts.length > 1 ? "." + parts[1] : "");
+    
+    onChange(cleanValue);
+  };
+
   return (
     <div
       className={`bg-gray-2 border rounded-xl p-4 flex flex-col justify-between transition-all ${
@@ -219,9 +239,11 @@ function QuotaCard({ employee, value, serverValue, onChange }) {
           className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
         />
         <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          placeholder="0"
+          value={displayValue}
+          onChange={handleChange}
           className={`w-full bg-gray-1 border text-gray-12 rounded-lg pl-8 pr-14 py-2 text-sm font-bold outline-none transition-colors ${
             isDirty
               ? "border-purple-500 focus:border-purple-400"
