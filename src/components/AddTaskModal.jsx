@@ -475,7 +475,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     End Time
                   </label>
                   <input
-                    disabled={!isHead || !isHr}
+                    disabled={!isHead && !isHr}
                     type="datetime-local"
                     name="endAt"
                     value={formData.endAt}

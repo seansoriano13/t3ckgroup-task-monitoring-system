@@ -77,6 +77,16 @@ export default function TasksList({ selectedMonth }) {
     }
   }, [location.state, rawTasks, navigate, location.pathname]);
 
+  // 🔥 FIX: Keep drawer task in sync with latest data to prevent stale state after mutations
+  useEffect(() => {
+    if (selectedTask && rawTasks.length > 0) {
+      const fresh = rawTasks.find((t) => t.id === selectedTask.id);
+      if (fresh && JSON.stringify(fresh) !== JSON.stringify(selectedTask)) {
+        setSelectedTask(fresh);
+      }
+    }
+  }, [rawTasks, selectedTask]);
+
   const { myTasks, teamTasks } = useMemo(() => {
     const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
     const currentMonth = selDate.getMonth();
@@ -140,6 +150,7 @@ export default function TasksList({ selectedMonth }) {
       taskService.updateTask(updatedData.id, updatedData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 

@@ -31,3 +31,6 @@ notes.txt
 t3ckgroup.sql
 notes.txt
 
+# TestSprite
+.testsprite/
+testsprite_tests/

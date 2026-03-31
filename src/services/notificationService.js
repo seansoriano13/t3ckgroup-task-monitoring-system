@@ -139,10 +139,10 @@ export const notificationService = {
        if (!allHeads || allHeads.length === 0) return;
        
        const targetHeads = allHeads.filter(h => {
-          if (subDeptString && h.sub_department && h.sub_department.toLowerCase().includes(subDeptString.toLowerCase())) return true;
-          if (departmentString && h.department && h.department.toLowerCase().includes(departmentString.toLowerCase()) && !h.sub_department) return true;
-          return false;
-       });
+           if (subDeptString && h.sub_department && h.sub_department.trim().toLowerCase() === subDeptString.trim().toLowerCase()) return true;
+           if (departmentString && h.department && h.department.trim().toLowerCase() === departmentString.trim().toLowerCase() && !h.sub_department) return true;
+           return false;
+        });
          
        if (targetHeads.length === 0) return;
 

@@ -118,6 +118,7 @@ export default function ApprovalsPage() {
       taskService.updateTask(updatedData.id, updatedData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       if (variables.status === "NOT APPROVED") {
         toast.success("Task has been rejected.");

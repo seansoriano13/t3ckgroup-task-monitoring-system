@@ -85,7 +85,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       // Deep Routing Logic
       if (notif.type.includes('TASK')) {
          // Route to Approvals or Tasks depending on role
-         if ((user?.is_head || user?.is_hr) && !user?.isSuperAdmin) {
+         if ((user?.isHead || user?.isHr) && !user?.isSuperAdmin) {
             navigate('/approvals', { state: { openTaskId: notif.reference_id } });
          } else if (user?.isSuperAdmin) {
             navigate('/tasks', { state: { openTaskId: notif.reference_id } });
@@ -156,8 +156,8 @@ export default function NotificationDrawer({ isOpen, onClose }) {
          {/* Tabs */}
          <div className="flex px-6 pt-4 gap-2 border-b border-gray-4 shrink-0 overflow-x-auto custom-scrollbar pb-2">
              {['ALL', 'UNREAD', 'TASKS', 'SALES'].map(tab => {
-               const isSalesStaff = user?.department?.toLowerCase().includes("sales") || user?.sub_department?.toLowerCase().includes("sales") || user?.subDepartment?.toLowerCase().includes("sales");
-               const isManagement = user?.is_hr || user?.isHr || user?.isSuperAdmin;
+               const isSalesStaff = user?.department?.toLowerCase().includes("sales") || user?.subDepartment?.toLowerCase().includes("sales");
+               const isManagement = user?.isHr || user?.isSuperAdmin;
                if (tab === 'SALES' && !isSalesStaff && !isManagement) return null;
                if (tab === 'TASKS' && isSalesStaff && !isManagement) return null;
 

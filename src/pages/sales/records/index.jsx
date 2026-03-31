@@ -257,26 +257,24 @@ export default function SalesRecordsPage() {
 
     return filtered;
   }, [
-    allowedActivities,
-    filterEmp,
-    filterStatus,
-    filterType,
-    searchTerm,
-    selectedDateFilter,
     timeframe,
   ]);
 
   // Filter revenue logs
   const filteredRevenue = useMemo(() => {
     let filtered = allowedRevenue;
+
+    // A. Role/Employee Filter
     if (filterEmp !== "ALL")
       filtered = filtered.filter((a) => a.employee_id === filterEmp);
+
+    // B. Status Filter
     if (filterStatus !== "ALL") {
       // Map the common filtering dropdown to Revenue exact terms
-      if (filterStatus === "DONE")
-        filtered = filtered.filter(
+       if (filterStatus === "DONE")
+         filtered = filtered.filter(
           (a) =>
-            (a.status.includes("COMPLETED") || a.status === "Won") &&
+            a.status?.toUpperCase().includes("COMPLETED") &&
             (!isVerificationEnforced || a.is_verified !== false),
         );
       if (filterStatus === "INCOMPLETE")
@@ -286,6 +284,45 @@ export default function SalesRecordsPage() {
       if (filterStatus === "UNVERIFIED")
         filtered = filtered.filter((a) => a.is_verified === false);
     }
+
+    // C. Date Filter (Sync with Board)
+    if (selectedDateFilter) {
+      const startOfDay = new Date(selectedDateFilter);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(selectedDateFilter);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      filtered = filtered.filter((a) => {
+        const logDate = new Date(a.date);
+        if (timeframe === "DAILY") {
+          return (
+            logDate.getFullYear() === startOfDay.getFullYear() &&
+            logDate.getMonth() === startOfDay.getMonth() &&
+            logDate.getDate() === startOfDay.getDate()
+          );
+        } else if (timeframe === "MONTHLY") {
+          return (
+            logDate.getFullYear() === startOfDay.getFullYear() &&
+            logDate.getMonth() === startOfDay.getMonth()
+          );
+        } else if (timeframe === "YEARLY") {
+          return logDate.getFullYear() === startOfDay.getFullYear();
+        } else if (timeframe === "WEEKLY") {
+          const day = startOfDay.getDay();
+          const diff = startOfDay.getDate() - day + (day === 0 ? -6 : 1);
+          const startOfWeek = new Date(startOfDay.setDate(diff));
+          startOfWeek.setHours(0, 0, 0, 0);
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23, 59, 59, 999);
+
+          return logDate >= startOfWeek && logDate <= endOfWeek;
+        }
+        return true;
+      });
+    }
+
+    // D. Search Term
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -297,7 +334,14 @@ export default function SalesRecordsPage() {
       );
     }
     return filtered;
-  }, [allowedRevenue, filterEmp, filterStatus, searchTerm]);
+  }, [
+    allowedRevenue,
+    filterEmp,
+    filterStatus,
+    searchTerm,
+    selectedDateFilter,
+    timeframe,
+  ]);
 
   // --- PAGINATION RESETS ---
   useEffect(() => {
@@ -494,17 +538,17 @@ export default function SalesRecordsPage() {
             )}
 
             <select
-              value={user?.isSuperAdmin ? filterEmp : user?.id}
+              value={user?.isSuperAdmin || user?.isHr ? filterEmp : user?.id}
               onChange={(e) => setFilterEmp(e.target.value)}
-              disabled={!user?.isSuperAdmin}
-              className={`bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-gray-6 font-semibold flex-1 sm:flex-none ${!user?.isSuperAdmin ? "opacity-70 cursor-not-allowed" : ""}`}
+              disabled={!user?.isSuperAdmin && !user?.isHr}
+              className={`bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-gray-6 font-semibold flex-1 sm:flex-none ${!user?.isSuperAdmin && !user?.isHr ? "opacity-70 cursor-not-allowed" : ""}`}
             >
-              {user?.isSuperAdmin ? (
+              {user?.isSuperAdmin || user?.isHr ? (
                 <option value="ALL">All Representatives</option>
               ) : (
                 <option value={user?.id}>My Records</option>
               )}
-              {user?.isSuperAdmin &&
+              {(user?.isSuperAdmin || user?.isHr) &&
                 uniqueEmployees.map((emp) => (
                   <option key={emp.id} value={emp.id}>
                     {emp.name}
@@ -915,8 +959,7 @@ export default function SalesRecordsPage() {
                               <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
                                 PENDING
                               </span>
-                            ) : log.status === "COMPLETED SALES" ||
-                              log.status === "Won" ? (
+                            ) : log.status?.toUpperCase().includes("COMPLETED") ? (
                               <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
                                 COMPLETED
                               </span>
@@ -1203,7 +1246,7 @@ const EditRevenueModal = ({
       });
       setRequestMode(false);
     }
-  }, [log]);
+  }, [log?.id]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

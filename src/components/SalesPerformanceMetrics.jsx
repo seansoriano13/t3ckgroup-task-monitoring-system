@@ -6,7 +6,7 @@ import { Loader2, TrendingUp, Calculator, Tag, Wallet } from "lucide-react";
 
 export default function SalesPerformanceMetrics({ selectedMonth }) {
   const { user } = useAuth();
-  const isAdminView = user?.isSuperAdmin || user?.isHr || user?.is_hr;
+  const isAdminView = user?.isSuperAdmin || user?.isHr || user?.is_hr || user?.isHead || user?.is_head;
   
   // Real-world reference for "Due" logic
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -52,7 +52,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
       
       // Filter out admins from performance results
       if (
-        act.employees?.isSuperAdmin ||
+        act.employees?.is_super_admin ||
         roleStr.includes("admin") ||
         deptStr.includes("super admin")
       ) {

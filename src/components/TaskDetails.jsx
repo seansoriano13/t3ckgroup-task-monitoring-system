@@ -147,15 +147,7 @@ export default function TaskDetails({
 
   const handleSaveEdit = () => {
     // eslint-disable-next-line no-unused-vars
-    const { department, subDepartment, ...dbPayload } = formData;
-    dbPayload.grade = dbPayload.grade ? Number(dbPayload.grade) : 0;
-
-    if (
-      dbPayload.status === "INCOMPLETE" ||
-      dbPayload.status === "NOT APPROVED"
-    ) {
-      dbPayload.hrVerified = false;
-    }
+    const { department, subDepartment, status, grade, ...dbPayload } = formData;
 
     executeUpdate({ id: task.id, ...dbPayload, editedBy: user.id });
   };

@@ -95,23 +95,10 @@ const StandardDetailsSection = ({
         </FieldBox>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <FieldBox label="Status" isEditing={isEditing && isManagement}>
-          {isEditing && isManagement ? (
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full bg-transparent px-3 py-2 outline-none text-sm font-bold text-gray-12 cursor-pointer"
-            >
-              <option value="INCOMPLETE">INCOMPLETE</option>
-              <option value="COMPLETE">COMPLETE</option>
-              <option value="NOT APPROVED">NOT APPROVED</option>
-            </select>
-          ) : (
+        <FieldBox label="Status" isEditing={false}>
             <div className="px-3">
               <StatusBadge status={task.status} />
             </div>
-          )}
         </FieldBox>
         {/* {!isEditing && (
           <FieldBox label="Created At" isEditing={false}>

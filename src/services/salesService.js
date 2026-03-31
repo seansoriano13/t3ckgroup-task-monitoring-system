@@ -131,6 +131,20 @@ export const salesService = {
             reference_id: firstUnplanned?.id
          });
       }
+
+      // Notify admins if any inserted items need expense approval
+      const pendingExpenseItems = inserted.filter(a => a.status === 'PENDING_APPROVAL' && Number(a.expense_amount) > 0);
+      if (pendingExpenseItems.length > 0) {
+         for (const item of pendingExpenseItems) {
+            await notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
+               sender_id: item.employee_id,
+               type: 'SALES_EXPENSE_PENDING',
+               title: 'Expense Approval Needed',
+               message: `${item.employees?.name || 'A Sales Rep'} logged an unplanned activity with a requested expense of ₱${Number(item.expense_amount).toLocaleString()}.`,
+               reference_id: item.id
+            });
+         }
+      }
     }
 
     if (toUpdate.length > 0) {
@@ -183,7 +197,7 @@ export const salesService = {
 
      const { data: activity, error } = await supabase
        .from("sales_activities")
-       .update({ status: targetStatus, details_daily, completed_at: new Date().toISOString() })
+       .update({ status: targetStatus, details_daily, ...(targetStatus === 'DONE' && { completed_at: new Date().toISOString() }) })
        .eq("id", activityId)
        .select('*, employees(name)')
        .single();
@@ -203,7 +217,7 @@ export const salesService = {
 
      // Calculate if Day/Week is conquered (Fire & forget)
      if (activity && targetStatus === 'DONE') {
-        supabase.from('sales_activities').select('id').eq('employee_id', activity.employee_id).eq('scheduled_date', activity.scheduled_date).neq('status', 'DONE').then(({ data: pendingDay }) => {
+         supabase.from('sales_activities').select('id').eq('employee_id', activity.employee_id).eq('scheduled_date', activity.scheduled_date).neq('id', activityId).neq('status', 'DONE').then(({ data: pendingDay }) => {
            if (pendingDay && pendingDay.length === 0) {
               notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
                  sender_id: activity.employee_id,
@@ -482,15 +496,15 @@ export const salesService = {
        if (!agg[r.employee_id]) {
            // If they have revenue but no quota, we should probably still show them or skip.
            // Let's create a placeholder so they don't disappear.
-           agg[r.employee_id] = {
-              employee_id: r.employee_id,
-              name: 'Sales Rep', // Ideally joined, but this is fallback
-              quota: 0,
-              revenueWon: 0,
-              revenueLost: 0
-           }
+            agg[r.employee_id] = {
+               employee_id: r.employee_id,
+               name: r.employees?.name || 'Sales Rep',
+               quota: 0,
+               revenueWon: 0,
+               revenueLost: 0
+            }
        }
-       if (r.status === 'COMPLETED SALES' || r.status === 'Won') {
+        if (r.status?.toUpperCase().includes('COMPLETED')) {
           agg[r.employee_id].revenueWon += Number(r.revenue_amount);
        } else {
           agg[r.employee_id].revenueLost += Number(r.revenue_amount);

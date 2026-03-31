@@ -142,8 +142,8 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
              </div>
            )}
 
-           {/* Admin/Head: Editable Sales Outcome (requires financial context) */}
-           {isAdminView && (activity.reference_number || activity.expense_amount) && (() => {
+            {/* Admin/Head: Editable Sales Outcome (strictly requires reference number) */}
+            {isAdminView && activity.reference_number && (() => {
              const isActivityCompleted = activity.status === 'DONE' || activity.status === 'PENDING_APPROVAL';
              return (
                <div className={`bg-gray-1 border rounded-xl p-5 shadow-sm space-y-3 ${

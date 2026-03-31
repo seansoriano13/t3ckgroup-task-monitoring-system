@@ -15,7 +15,13 @@ function getNextMonday() {
 }
 
 function getStartOfWeek(date) {
-  const d = new Date(date);
+  let d;
+  if (typeof date === 'string') {
+    const [y, m, day] = date.split('-').map(Number);
+    d = new Date(y, m - 1, day);
+  } else {
+    d = new Date(date);
+  }
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
   return new Date(d.setDate(diff));
@@ -214,33 +220,33 @@ export default function SalesSchedulePage() {
   };
 
   const handleCloneDayToDate = (sourceDateStr, targetDateStr) => {
+     const sourceTasks = activitiesData.filter(a => a.scheduled_date === sourceDateStr && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== '')));
+
+     if (sourceTasks.length === 0) {
+        toast.error("Source day is empty.");
+        return;
+     }
+
+     let maxAm = 0;
+     let maxPm = 0;
+     sourceTasks.forEach(task => {
+        if (task.time_of_day === 'AM') maxAm = Math.max(maxAm, task._slot_index + 1);
+        if (task.time_of_day === 'PM') maxPm = Math.max(maxPm, task._slot_index + 1);
+     });
+
      setActivitiesData(prev => {
         const copy = prev.filter(a => a.scheduled_date !== targetDateStr);
-        const sourceTasks = prev.filter(a => a.scheduled_date === sourceDateStr && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== '')));
-        
-        if (sourceTasks.length === 0) {
-           toast.error("Source day is empty.");
-           return prev;
-        }
-
-        let maxAm = 0;
-        let maxPm = 0;
-
         sourceTasks.forEach(task => {
-           if (task.time_of_day === 'AM') maxAm = Math.max(maxAm, task._slot_index + 1);
-           if (task.time_of_day === 'PM') maxPm = Math.max(maxPm, task._slot_index + 1);
            copy.push({ ...task, scheduled_date: targetDateStr, id: undefined, plan_id: undefined, employee_id: undefined });
         });
-
-        setSlotCounts(sc => ({
-           ...sc,
-           [`${targetDateStr}-AM`]: Math.max(5, maxAm),
-           [`${targetDateStr}-PM`]: Math.max(5, maxPm)
-        }));
-
-       
         return copy;
      });
+
+     setSlotCounts(sc => ({
+        ...sc,
+        [`${targetDateStr}-AM`]: Math.max(5, maxAm),
+        [`${targetDateStr}-PM`]: Math.max(5, maxPm)
+     }));
   };
 
   const handleActionSelect = (val, dateStr) => {
@@ -300,7 +306,7 @@ export default function SalesSchedulePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weeklyPlan", user.id, weekStartDate] });
-    
+      toast.success("Draft saved successfully!");
     },
     onError: (err) => toast.error(err.message)
   });
@@ -382,7 +388,7 @@ export default function SalesSchedulePage() {
                     if (dayIndex >= 0 && dayIndex <= 5) {
                        setActiveTab(dayIndex);
                     } else if (pickedDate.getDay() === 0) {
-                       setActiveTab(0);
+                       setActiveTab(includeSunday ? 6 : 0);
                     }
                  }}
                  className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer"

@@ -49,7 +49,7 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
    <ErrorBoundary FallbackComponent={GlobalErrorFallback}>
      <QueryClientProvider client={queryClient}>
-      <GoogleOAuthProvider clientId="657214572650-l21fq9k3kp078k343go0o22toagqgirs.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
         <AuthProvider>
           <ThemeApplier>
             <Toaster

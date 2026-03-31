@@ -9,7 +9,13 @@ import { CheckCircle2, Circle, Loader2, Plus, Calendar as CalendarIcon, AlertCir
 import StatusBadge from "../../../components/StatusBadge.jsx";
 
 function getStartOfWeek(date) {
-  const d = new Date(date);
+  let d;
+  if (typeof date === 'string') {
+    const [y, m, day] = date.split('-').map(Number);
+    d = new Date(y, m - 1, day);
+  } else {
+    d = new Date(date);
+  }
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
   return new Date(d.setDate(diff));
@@ -138,13 +144,17 @@ export default function DailyExecutionPage() {
   });
 
   const handleAddUnplanned = (payload) => {
+    const hasExpense = Number(payload.expense_amount) > 0;
+    const needsApproval = hasExpense && !appSettings?.sales_self_approve_expenses;
+
     addUnplannedMutation.mutate({
       ...payload,
       employee_id: user.id,
       plan_id: planWrapper?.id || null,
       scheduled_date: selectedDate,
-      status: 'DONE',
-      is_unplanned: true
+      status: needsApproval ? 'PENDING_APPROVAL' : 'DONE',
+      is_unplanned: true,
+      completed_at: needsApproval ? null : new Date().toISOString()
     });
   }
 
@@ -410,8 +420,8 @@ function ChecklistItem({ data, onToggle, disabledUI, isAdminView, settings, high
              </div>
           )}
 
-          {/* Admin/Head: Sales Outcome Dropdown (only on DONE activities with financial context) */}
-          {isAdminView && isDone && (data.reference_number || data.expense_amount) && (
+          {/* Admin/Head: Sales Outcome Dropdown (only on DONE activities with reference number context) */}
+          {isAdminView && isDone && data.reference_number && (
             <div className="mt-2 flex items-center gap-2">
               <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider shrink-0">Outcome:</label>
               <select

@@ -25,10 +25,10 @@ export default function AppLayout() {
       setIsModalOpen(false);
 
       // Cancel any outgoing refetches so they don't overwrite our optimistic data
-      await queryClient.cancelQueries({ queryKey: ["myTasks"] });
+      await queryClient.cancelQueries({ queryKey: ["dashboardTasks"] });
 
       // Snapshot the current state of myTasks (in case the Wi-Fi drops and we need to roll back)
-      const previousTasks = queryClient.getQueryData(["myTasks"]);
+      const previousTasks = queryClient.getQueryData(["dashboardTasks"]);
 
       // Create the "Fake" task to instantly show on screen
       const optimisticTask = {
@@ -41,7 +41,7 @@ export default function AppLayout() {
       };
 
       // Inject the fake task at the very top of the list
-      queryClient.setQueryData(["myTasks"], (old) => {
+      queryClient.setQueryData(["dashboardTasks"], (old) => {
         return old ? [optimisticTask, ...old] : [optimisticTask];
       });
 
@@ -55,7 +55,7 @@ export default function AppLayout() {
 
       // Revert the UI back to how it was before they clicked submit
       if (context?.previousTasks) {
-        queryClient.setQueryData(["myTasks"], context.previousTasks);
+        queryClient.setQueryData(["dashboardTasks"], context.previousTasks);
       }
 
       // Optionally reopen the modal so they don't lose what they typed!
@@ -65,8 +65,8 @@ export default function AppLayout() {
     // 3. CLEANUP: Once Supabase is done (success or fail), fetch the true data
     onSettled: () => {
       // This quietly swaps out your "temp" task with the real database row
-      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] }); // Sync the pulse feed!
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
 
     onSuccess: () => {

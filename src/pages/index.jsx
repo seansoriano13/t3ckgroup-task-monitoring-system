@@ -52,6 +52,20 @@ export default function Dashboard() {
     },
   });
 
+  const editTaskMutation = useMutation({
+    mutationFn: (updatedData) =>
+      taskService.updateTask(updatedData.id, updatedData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task updated successfully!");
+    },
+    onError: (error) => {
+      console.error("Failed to update task:", error);
+      toast.error(error?.message || "Database error: Could not update task.");
+    },
+  });
+
   // Omni Dashboard exclusively for HR and Super Admins (Full Bird's Eye View)
   if (user?.is_hr || user?.isHr || user?.isSuperAdmin) {
     return (
@@ -102,6 +116,9 @@ export default function Dashboard() {
           isOpen={isDrawerOpen}
           onClose={handleCloseDrawer}
           task={selectedTask}
+          onUpdateTask={(updatedTask) =>
+            editTaskMutation.mutateAsync(updatedTask)
+          }
           onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
         />
       </ProtectedRoute>
@@ -132,7 +149,7 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-4 pb-4 px-2">
             <div>
               <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">
-                Pipeline Monitoring
+                Monitoring
               </p>
               <h2 className="text-2xl font-black text-gray-12 uppercase">
                 {user?.is_head || user?.isHead ? "Department Logs" : "My Feed"}
@@ -157,6 +174,9 @@ export default function Dashboard() {
           isOpen={isDrawerOpen}
           onClose={handleCloseDrawer}
           task={selectedTask}
+          onUpdateTask={(updatedTask) =>
+            editTaskMutation.mutateAsync(updatedTask)
+          }
           onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
         />
         <FloatingMonthPicker

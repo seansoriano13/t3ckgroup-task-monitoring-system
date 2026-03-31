@@ -126,6 +126,7 @@ export default function TasksPage() {
       taskService.updateTask(updatedData.id, updatedData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       toast.success("Task updated successfully!");
     },
     onError: (error) => {
@@ -184,6 +185,19 @@ export default function TasksPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
+
+  // Pre-compute category totals from FULL filtered set (not paginated slice)
+  const statusTotals = useMemo(() => {
+    const totals = {};
+    ["INCOMPLETE", "COMPLETE_UNVERIFIED", "COMPLETE_VERIFIED", "NOT APPROVED"].forEach((key) => {
+      totals[key] = sortedAndFilteredTasks.filter((t) => {
+        if (key === "COMPLETE_UNVERIFIED") return t.status === "COMPLETE" && !t.hrVerified;
+        if (key === "COMPLETE_VERIFIED") return t.status === "COMPLETE" && t.hrVerified;
+        return t.status === key;
+      }).length;
+    });
+    return totals;
+  }, [sortedAndFilteredTasks]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -401,7 +415,7 @@ export default function TasksPage() {
                         : "Pending / In Progress"}
                 </h2>
                 <span className="text-[10px] font-bold text-gray-8 bg-gray-2 px-2 py-0.5 rounded-full border border-gray-4 ml-auto">
-                  {statusTasks.length} {statusTasks.length === 1 ? "Task" : "Tasks"}
+                  {statusTotals[statusKey]} Total
                 </span>
               </div>
 

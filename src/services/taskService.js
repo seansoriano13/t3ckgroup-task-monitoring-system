@@ -137,7 +137,7 @@ export const taskService = {
     // We need to fetch the creator's department to notify the correct Head
     const { data: creator } = await supabase
       .from("employees")
-      .select("name, sub_department")
+      .select("name, department, sub_department")
       .eq("id", payload.loggedById)
       .single();
     if (creator) {
@@ -201,7 +201,7 @@ export const taskService = {
       const { data: cur, error: curErr } = await supabase
         .from("tasks")
         .select(
-          "status, hr_verified, evaluated_by, logged_by, task_description, creator:employees!tasks_logged_by_fk(name, department)",
+          "status, hr_verified, evaluated_by, logged_by, task_description, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
         )
         .eq("id", taskId)
         .single();
