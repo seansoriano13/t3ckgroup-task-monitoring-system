@@ -183,7 +183,7 @@ export default function TaskDetails({
       />
 
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-[600px] bg-gray-2 border-l border-gray-4 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-[600px] bg-gray-2 border-l border-gray-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <TaskHeader
           isEditing={isEditing}
@@ -319,7 +319,7 @@ export default function TaskDetails({
               });
             },
           }}
-          permissions={{ canEdit, isStrictlyHead, isHr, isManagement }}
+          permissions={{ canEdit, isStrictlyHead, isHr, isManagement, isOwner }}
           state={{
             isEditing,
             isSubmitting,

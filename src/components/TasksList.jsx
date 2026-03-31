@@ -184,25 +184,39 @@ export default function TasksList({ selectedMonth }) {
           {myTasks.length > 0 ? (
             <div className="space-y-8">
               {/* Categorized Containers */}
-              {["INCOMPLETE", "COMPLETE"].map((status) => {
-                const filtered = myTasks.filter((t) =>
-                  status === "COMPLETE"
-                    ? t.status === "COMPLETE"
-                    : t.status !== "COMPLETE",
-                );
+              {["INCOMPLETE", "COMPLETE_UNVERIFIED", "COMPLETE_VERIFIED", "NOT APPROVED"].map((statusKey) => {
+                const filtered = myTasks.filter((t) => {
+                  if (statusKey === "COMPLETE_UNVERIFIED") return t.status === "COMPLETE" && !t.hrVerified;
+                  if (statusKey === "COMPLETE_VERIFIED") return t.status === "COMPLETE" && t.hrVerified;
+                  if (statusKey === "INCOMPLETE") return t.status === "INCOMPLETE";
+                  if (statusKey === "NOT APPROVED") return t.status === "NOT APPROVED";
+                  return false;
+                });
 
                 if (filtered.length === 0) return null;
 
                 return (
-                  <div key={status} className="space-y-3">
+                  <div key={statusKey} className="space-y-3">
                     <div className="flex items-center gap-2 px-1">
                       <div
-                        className={`w-1.5 h-1.5 rounded-full ${status === "COMPLETE" ? "bg-green-500" : "bg-amber-500"}`}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          statusKey === "COMPLETE_VERIFIED"
+                            ? "bg-green-500"
+                            : statusKey === "COMPLETE_UNVERIFIED"
+                              ? "bg-emerald-400"
+                              : statusKey === "NOT APPROVED"
+                                ? "bg-red-500"
+                                : "bg-amber-500"
+                        }`}
                       />
                       <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
-                        {status === "COMPLETE"
-                          ? "Finalized & Verified"
-                          : "Active / Pending Action"}
+                        {statusKey === "COMPLETE_VERIFIED"
+                          ? "HR Verified"
+                          : statusKey === "COMPLETE_UNVERIFIED"
+                            ? "Completed"
+                            : statusKey === "NOT APPROVED"
+                              ? "Revision Required"
+                              : "Active / Pending Action"}
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

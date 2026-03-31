@@ -20,7 +20,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
     onDelete,
     onUndoVerify,
   } = actions;
-  const { canEdit, isStrictlyHead, isHr, isManagement } = permissions;
+  const { canEdit, isStrictlyHead, isHr, isManagement, isOwner } = permissions;
   const { isEditing, isSubmitting, task, formIsValid } = state;
 
   return (
@@ -36,7 +36,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
           {isEditing ? "Cancel" : "Close"}
         </button>
 
-        {!isEditing && isManagement && (
+        {!isEditing && (isManagement || (isOwner && task.status === "INCOMPLETE")) && (
           <button
             onClick={onDelete}
             disabled={isSubmitting}
