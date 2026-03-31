@@ -13,8 +13,11 @@ const ROLE_PRESETS = [
     desc: "Regular staff (ADMIN/ADMIN)",
     color: "bg-gray-500",
     dbValues: {
-      department: "ADMIN", sub_department: "ADMIN",
-      is_head: false, is_hr: false, is_super_admin: false,
+      department: "ADMIN",
+      sub_department: "ADMIN",
+      is_head: false,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -22,8 +25,11 @@ const ROLE_PRESETS = [
     desc: "IT department (OPERATIONS/IT)",
     color: "bg-indigo-500",
     dbValues: {
-      department: "OPERATIONS", sub_department: "IT",
-      is_head: false, is_hr: false, is_super_admin: false,
+      department: "OPERATIONS",
+      sub_department: "IT",
+      is_head: false,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -31,8 +37,11 @@ const ROLE_PRESETS = [
     desc: "Sales department (SALES/GOV)",
     color: "bg-blue-500",
     dbValues: {
-      department: "SALES", sub_department: "GOV",
-      is_head: false, is_hr: false, is_super_admin: false,
+      department: "SALES",
+      sub_department: "GOV",
+      is_head: false,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -40,8 +49,11 @@ const ROLE_PRESETS = [
     desc: "Sub-dept head (OPS/PURCHASING)",
     color: "bg-amber-500",
     dbValues: {
-      department: "OPERATIONS", sub_department: "PURCHASING",
-      is_head: true, is_hr: false, is_super_admin: false,
+      department: "OPERATIONS",
+      sub_department: "PURCHASING",
+      is_head: true,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -49,8 +61,11 @@ const ROLE_PRESETS = [
     desc: "Dept-wide head (OPS/NULL)",
     color: "bg-orange-500",
     dbValues: {
-      department: "OPERATIONS", sub_department: null,
-      is_head: true, is_hr: false, is_super_admin: false,
+      department: "OPERATIONS",
+      sub_department: null,
+      is_head: true,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -58,8 +73,11 @@ const ROLE_PRESETS = [
     desc: "IT sub-dept head (OPS/IT)",
     color: "bg-teal-500",
     dbValues: {
-      department: "OPERATIONS", sub_department: "IT",
-      is_head: true, is_hr: false, is_super_admin: false,
+      department: "OPERATIONS",
+      sub_department: "IT",
+      is_head: true,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -67,8 +85,11 @@ const ROLE_PRESETS = [
     desc: "Sales sub-dept head (SALES/GOV)",
     color: "bg-cyan-600",
     dbValues: {
-      department: "SALES", sub_department: "GOV",
-      is_head: true, is_hr: false, is_super_admin: false,
+      department: "SALES",
+      sub_department: "GOV",
+      is_head: true,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -76,8 +97,11 @@ const ROLE_PRESETS = [
     desc: "Global Sales Head (SALES/NULL)",
     color: "bg-blue-600",
     dbValues: {
-      department: "SALES", sub_department: null,
-      is_head: true, is_hr: false, is_super_admin: false,
+      department: "SALES",
+      sub_department: null,
+      is_head: true,
+      is_hr: false,
+      is_super_admin: false,
     },
   },
   {
@@ -85,8 +109,11 @@ const ROLE_PRESETS = [
     desc: "HR + Head (Jen's view)",
     color: "bg-green-500",
     dbValues: {
-      department: "ADMIN", sub_department: "ADMIN",
-      is_head: true, is_hr: true, is_super_admin: false,
+      department: "ADMIN",
+      sub_department: "ADMIN",
+      is_head: true,
+      is_hr: true,
+      is_super_admin: false,
     },
   },
   {
@@ -94,14 +121,17 @@ const ROLE_PRESETS = [
     desc: "Full system oversight",
     color: "bg-purple-500",
     dbValues: {
-      department: "SUPER ADMIN", sub_department: null,
-      is_head: true, is_hr: true, is_super_admin: true,
+      department: "SUPER ADMIN",
+      sub_department: null,
+      is_head: true,
+      is_hr: true,
+      is_super_admin: true,
     },
   },
 ];
 
 export default function RoleSwitcher() {
-  const { user, handleLogin, logout } = useAuth();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
 
@@ -112,8 +142,9 @@ export default function RoleSwitcher() {
     (p) =>
       p.dbValues.is_head === (user.isHead || user.is_head || false) &&
       p.dbValues.is_hr === (user.isHr || user.is_hr || false) &&
-      p.dbValues.is_super_admin === (user.isSuperAdmin || user.is_super_admin || false) &&
-      p.dbValues.department === user.department
+      p.dbValues.is_super_admin ===
+        (user.isSuperAdmin || user.is_super_admin || false) &&
+      p.dbValues.department === user.department,
   );
 
   const handleSwitch = async (preset) => {
@@ -128,12 +159,9 @@ export default function RoleSwitcher() {
       if (error) throw error;
 
       // 2. Re-fetch the employee from DB to get the fresh row
-      const freshEmployee = await employeeService.getEmployeeByEmail(TEST_EMAIL);
+      const freshEmployee =
+        await employeeService.getEmployeeByEmail(TEST_EMAIL);
       if (!freshEmployee) throw new Error("Could not re-fetch employee");
-
-      // 3. Update localStorage session with fresh data
-      const sessionUser = { ...freshEmployee, picture: user.picture };
-      localStorage.setItem("t3ck_session", JSON.stringify(sessionUser));
 
       toast.success(`Switched to: ${preset.label}`, { icon: "🔬" });
 
@@ -173,14 +201,22 @@ export default function RoleSwitcher() {
                       : "hover:bg-gray-3 border border-transparent"
                   }`}
                 >
-                  <div className={`w-2.5 h-2.5 rounded-full ${preset.color} shrink-0 ${isActive ? "shadow-[0_0_8px_rgba(168,85,247,0.6)]" : ""}`} />
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full ${preset.color} shrink-0 ${isActive ? "shadow-[0_0_8px_rgba(168,85,247,0.6)]" : ""}`}
+                  />
                   <div className="flex-1">
-                    <p className={`text-sm font-bold ${isActive ? "text-purple-400" : "text-gray-12"}`}>
+                    <p
+                      className={`text-sm font-bold ${isActive ? "text-purple-400" : "text-gray-12"}`}
+                    >
                       {preset.label}
                     </p>
                     <p className="text-[10px] text-gray-9">{preset.desc}</p>
                   </div>
-                  {isActive && <span className="text-[9px] text-purple-400 font-bold">ACTIVE</span>}
+                  {isActive && (
+                    <span className="text-[9px] text-purple-400 font-bold">
+                      ACTIVE
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -204,7 +240,10 @@ export default function RoleSwitcher() {
             : "bg-gray-2 border border-gray-4 hover:border-gray-6 text-gray-12"
         }`}
       >
-        <FlaskConical size={16} className={activePreset ? "text-white" : "text-purple-400"} />
+        <FlaskConical
+          size={16}
+          className={activePreset ? "text-white" : "text-purple-400"}
+        />
         <span className="text-xs font-bold">
           {activePreset ? `Testing: ${activePreset.label}` : "Test Mode"}
         </span>

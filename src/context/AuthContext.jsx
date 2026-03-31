@@ -100,7 +100,6 @@ export const AuthProvider = ({ children }) => {
         };
 
         setUser(sessionUser);
-        localStorage.setItem("t3ck_session", JSON.stringify(sessionUser));
         toast.success(`Welcome (Test Mode), ${dbEmployee.name}`);
         return true;
       } else {
@@ -116,12 +115,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("t3ck_session");
-    toast.success("Logged out successfully.");
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
 
-    window.location.href = "/login";
+      if (error) throw error;
+
+      setUser(null);
+
+      toast.success("Logged out successfully.");
+      window.location.replace = "/login";
+    } catch (error) {
+      console.error("Error logging out", error);
+      toast.error("Failed to logout. Please try again.");
+      setUser(null);
+      window.location.replace = "/login";
+    }
   };
 
   return (
