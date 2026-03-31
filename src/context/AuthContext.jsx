@@ -124,12 +124,12 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
 
       toast.success("Logged out successfully.");
-      window.location.replace = "/login";
+      window.location.replace("/login");
     } catch (error) {
       console.error("Error logging out", error);
       toast.error("Failed to logout. Please try again.");
       setUser(null);
-      window.location.replace = "/login";
+      window.location.replace("/login");
     }
   };
 
