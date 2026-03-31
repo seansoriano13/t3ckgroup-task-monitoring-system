@@ -41,7 +41,7 @@ export default function ReviewTaskModal({
         onClick={onClose}
       />
 
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-gray-2 border-l border-gray-4 shadow-2xl z-50 transform transition-transform duration-300 flex flex-col">
+      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-gray-2 border-l border-gray-4 shadow-2xl z-9999 transform transition-transform duration-300 flex flex-col">
         {/* HEADER */}
         <div className="flex justify-between items-center p-6 border-b border-gray-4 bg-gray-1">
           <h2 className="text-lg font-bold text-gray-12">Review Task</h2>

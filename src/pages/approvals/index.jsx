@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService.js";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
-import { CheckCircle2, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, Clock, Search, SlidersHorizontal, X } from "lucide-react";
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
@@ -28,6 +28,11 @@ export default function ApprovalsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [autoOpenId, setAutoOpenId] = useState(null);
+
+  // Filter state (Head-only UX)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("ALL"); // ALL | HIGH | NORMAL
+  const [sortBy, setSortBy] = useState("OLDEST"); // OLDEST | NEWEST | NAME
 
   // 🔥 DEEP LINKING HOOK
   useEffect(() => {
@@ -80,6 +85,33 @@ export default function ApprovalsPage() {
       });
   }, [rawTasks, user?.id, userDept, userSubDept, isHr, isHead]);
 
+  // Client-side filter + sort applied on top of the queue
+  const filteredTasks = useMemo(() => {
+    let result = [...pendingTasks];
+
+    // Search: name, category, description
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (t) =>
+          (t.loggedByName || "").toLowerCase().includes(q) ||
+          (t.categoryId || "").toLowerCase().includes(q) ||
+          (t.taskDescription || "").toLowerCase().includes(q)
+      );
+    }
+
+    // Priority filter
+    if (priorityFilter === "HIGH") result = result.filter((t) => t.priority === "HIGH");
+    if (priorityFilter === "NORMAL") result = result.filter((t) => t.priority !== "HIGH");
+
+    // Sort
+    if (sortBy === "NEWEST") result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    else if (sortBy === "OLDEST") result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    else if (sortBy === "NAME") result.sort((a, b) => (a.loggedByName || "").localeCompare(b.loggedByName || ""));
+
+    return result;
+  }, [pendingTasks, searchQuery, priorityFilter, sortBy]);
+
   // 3. The Approval/Verification Mutation
   const editTaskMutation = useMutation({
     mutationFn: (updatedData) =>
@@ -127,17 +159,76 @@ export default function ApprovalsPage() {
           </div>
         </div>
 
+        {/* FILTER BAR — Heads only */}
+        {!isHr && pendingTasks.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center bg-gray-2 border border-gray-4 rounded-xl px-3 py-2.5">
+            {/* Search */}
+            <div className="flex items-center gap-2 flex-1 min-w-0 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5">
+              <Search size={13} className="text-gray-8 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name, category, or description…"
+                className="flex-1 bg-transparent text-sm text-gray-12 placeholder-gray-7 outline-none"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="text-gray-7 hover:text-gray-11 transition-colors">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Priority toggle */}
+            <div className="flex gap-1 bg-gray-1 border border-gray-4 rounded-lg p-1 shrink-0">
+              {[["ALL", "All"], ["HIGH", "High"], ["NORMAL", "Normal"]].map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setPriorityFilter(val)}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
+                    priorityFilter === val
+                      ? "bg-primary text-white shadow"
+                      : "text-gray-9 hover:text-gray-12"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <SlidersHorizontal size={13} className="text-gray-8" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-gray-1 border border-gray-4 text-xs font-bold text-gray-11 rounded-lg px-2 py-1.5 outline-none cursor-pointer"
+              >
+                <option value="OLDEST">Oldest first</option>
+                <option value="NEWEST">Newest first</option>
+                <option value="NAME">By name</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {/* FINANCIAL QUEUE (only for Sales Heads) */}
         {!isHr && <ExpenseApprovalQueue isSuperAdmin={false} />}
 
         {/* THE QUEUE */}
-        {pendingTasks.length > 0 ? (
+        {filteredTasks.length > 0 ? (
           <div className="flex flex-col gap-4">
-            {pendingTasks.map((task) => (
+            {/* Result count when filtering */}
+            {(searchQuery || priorityFilter !== "ALL") && (
+              <p className="text-xs font-bold text-gray-9 px-1">
+                Showing {filteredTasks.length} of {pendingTasks.length} tasks
+              </p>
+            )}
+            {filteredTasks.map((task) => (
               <ApprovalRow
                 key={task.id}
                 task={task}
-                isHr={isHr} // 👈 Pass role to the row so UI changes
+                isHr={isHr}
                 currentUserId={user?.id}
                 defaultExpanded={task.id === autoOpenId}
                 onProcess={(payload) =>
@@ -149,6 +240,18 @@ export default function ApprovalsPage() {
                 isSubmitting={editTaskMutation.isPending}
               />
             ))}
+          </div>
+        ) : pendingTasks.length > 0 ? (
+          // Has tasks but none match the filter
+          <div className="text-center py-16 bg-gray-2 border border-gray-4 border-dashed rounded-xl">
+            <Search size={32} className="mx-auto text-gray-7 mb-3" />
+            <p className="text-gray-12 font-bold">No tasks match your filter</p>
+            <button
+              onClick={() => { setSearchQuery(""); setPriorityFilter("ALL"); }}
+              className="mt-3 text-xs font-bold text-primary hover:underline"
+            >
+              Clear filters
+            </button>
           </div>
         ) : (
           <div className="text-center py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl shadow-sm">
@@ -314,15 +417,32 @@ function ApprovalRow({
                     <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1">
                       Manager's Evaluation
                     </p>
-                    <div className="flex items-center justify-between bg-gray-1 border border-gray-4 px-4 py-3 rounded-xl">
-                      <span className="text-xs font-bold text-gray-10">
-                        Grade:
-                      </span>
-                      <span className="text-lg font-black text-primary">
-                        {task.grade} / 5
-                      </span>
+                    <div className="flex gap-1.5 md:gap-2 pointer-events-none select-none">
+                      {[1, 2, 3, 4, 5].map((num) => {
+                        const activeColorMap = {
+                          1: "bg-red-500 text-gray-1 border-red-500 shadow-red-500/40",
+                          2: "bg-orange-500 text-gray-1 border-orange-500 shadow-orange-500/40",
+                          3: "bg-yellow-500 text-gray-1 border-yellow-500 shadow-yellow-500/40",
+                          4: "bg-lime-500 text-gray-1 border-lime-500 shadow-lime-500/40",
+                          5: "bg-green-500 text-gray-1 border-green-500 shadow-green-500/40",
+                        };
+                        const isSelected = task.grade === num;
+                        return (
+                          <div
+                            key={num}
+                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${
+                              isSelected
+                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
+                                : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
+                            }`}
+                          >
+                            {num}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
+
 
                   {task.remarks && (
                     <div className="bg-gray-1 border border-gray-4 p-3 rounded-xl">

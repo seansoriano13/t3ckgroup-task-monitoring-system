@@ -53,12 +53,36 @@ export default function ManagerEvaluation({
         /* FINALIZED VIEW (Complete OR Not Approved)     */
         /* ========================================= */
         <>
-          <FieldBox label="Final Grade" isEditing={false}>
-            <p className="px-3 text-sm font-bold text-gray-12">
-              {task.grade ? `${task.grade} / 5` : "N/A"}
-            </p>
-          </FieldBox>
-          <div /> {/* Layout Spacer */}
+          <div className="col-span-2 flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+              Final Grade
+            </label>
+            <div className="flex gap-2 pointer-events-none select-none">
+              {[1, 2, 3, 4, 5].map((num) => {
+                const activeColorMap = {
+                  1: "bg-red-500 text-gray-1 border-red-500 shadow-red-500/40",
+                  2: "bg-orange-500 text-gray-1 border-orange-500 shadow-orange-500/40",
+                  3: "bg-yellow-500 text-gray-1 border-yellow-500 shadow-yellow-500/40",
+                  4: "bg-lime-500 text-gray-1 border-lime-500 shadow-lime-500/40",
+                  5: "bg-green-500 text-gray-1 border-green-500 shadow-green-500/40",
+                };
+                const isSelected = task.grade === num;
+                return (
+                  <div
+                    key={num}
+                    className={`flex-1 py-2.5 rounded-lg font-black border text-sm text-center transition-all ${
+                      isSelected
+                        ? `${activeColorMap[num]} shadow-md scale-[1.05]`
+                        : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
+                    }`}
+                  >
+                    {num}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {task.hrRemarks && (
             <div className="col-span-2 flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
               <label className="text-[10px] font-bold text-red-9 uppercase tracking-wider pl-1 flex items-center gap-1.5">

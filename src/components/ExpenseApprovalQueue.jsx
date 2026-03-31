@@ -14,10 +14,16 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
 
   const deptFilter = isSuperAdmin ? null : user?.department;
 
+  const { data: appSettings } = useQuery({
+    queryKey: ["appSettings"],
+    queryFn: () => salesService.getAppSettings(),
+    enabled: !!user?.id,
+  });
+
   const { data: pendingExpenses = [], isLoading } = useQuery({
     queryKey: ["pendingExpenses", deptFilter],
     queryFn: () => salesService.getPendingExpenses(deptFilter),
-    enabled: !!user?.id,
+    enabled: !!user?.id && !appSettings?.sales_self_approve_expenses,
   });
 
   const [selected, setSelected] = useState(new Set());
@@ -102,6 +108,8 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
   });
 
   const isPending = approveMutation.isPending || bulkApproveMutation.isPending;
+
+  if (appSettings?.sales_self_approve_expenses) return null;
 
   if (isLoading) return (
     <div className="p-6 text-center text-gray-400 text-sm font-medium flex items-center justify-center gap-2 bg-white border border-gray-200 rounded-2xl mb-6">
