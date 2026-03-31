@@ -160,7 +160,7 @@ export default function HRCategoriesConfig() {
             className={`transition-transform ${isExpanded ? "rotate-180" : "rotate-0"}`}
           />
           <h2 className="text-sm font-bold text-gray-10 uppercase tracking-wider">
-            HR Categories Config
+           Categories Config
           </h2>
         </div>
 

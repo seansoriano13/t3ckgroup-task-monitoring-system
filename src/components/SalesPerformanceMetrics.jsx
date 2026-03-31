@@ -216,7 +216,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
 
                 <div className="space-y-2.5 mt-2">
                    <MetricRow label="Month Pipeline" value={stat.totalPipeline} />
-                   <MetricRow label="Due within range" value={stat.totalDue} color="text-blue-500 bg-blue-500/10" />
+                   <MetricRow label="Due within Month" value={stat.totalDue} color="text-blue-500 bg-blue-500/10" />
                    <MetricRow label="Tasks Completed" value={stat.totalDone} color="text-emerald-500 bg-emerald-500/10" />
                    <MetricRow label="Backlog" value={stat.totalIncomplete} color={stat.totalIncomplete > 0 ? "text-red-500 bg-red-500/10 font-black" : "text-gray-6 bg-gray-6/10"} />
                    <MetricRow label="Extra (Unplanned)" value={stat.totalUnplanned} color="text-purple-500 bg-purple-500/10" />
@@ -233,9 +233,6 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
         <div className="bg-gray-1 border border-gray-4 p-6 sm:p-8 rounded-3xl shadow-xl space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-4">
             <div className="flex items-center gap-4">
-               <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
-                  <Wallet size={28} className="text-white" />
-               </div>
                <div>
                   <h2 className="text-2xl font-black text-gray-12 uppercase tracking-tight">Financial Overview</h2>
                   <p className="text-sm text-gray-9 font-bold uppercase tracking-widest">{monthLabel}</p>
@@ -247,17 +244,17 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
                   <p className="text-[10px] font-black text-gray-8 uppercase tracking-widest">Total Volume</p>
                   <p className="text-lg font-black text-gray-12">{expenseSummary.totalCount} <span className="text-[10px] text-gray-9 font-medium">Items</span></p>
                </div>
-               <div className="bg-amber-500/10 px-4 py-2 border border-amber-500/20 rounded-xl">
-                  <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Global Avg</p>
-                  <p className="text-lg font-black text-amber-600">₱ {expenseSummary.avgTotal.toLocaleString()}</p>
+               <div className="px-4 py-2 border border-gray-4 rounded-xl">
+                  <p className="text-[10px] font-black text-gray-8 uppercase tracking-widest">Global Avg</p>
+                  <p className="text-lg font-black text-gray-12">₱ {expenseSummary.avgTotal.toLocaleString()}</p>
                </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <SummaryCard title="Gross Budget" amount={expenseSummary.totalExpense} count={expenseSummary.totalCount} avg={expenseSummary.avgTotal} Icon={Calculator} colorClass="hover:border-amber-500/30" iconColor="text-amber-500" />
-            <SummaryCard title="Account Tasks" amount={expenseSummary.withRefExpense} count={expenseSummary.withRefCount} avg={expenseSummary.avgWithRef} Icon={Tag} colorClass="hover:border-blue-500/30" iconColor="text-blue-500" />
-            <SummaryCard title="Misc BizDev" amount={expenseSummary.bizDevExpense} count={expenseSummary.bizDevCount} avg={expenseSummary.avgBizDev} Icon={Calculator} colorClass="hover:border-purple-500/30" iconColor="text-purple-500" />
+            <SummaryCard title="Gross Budget" amount={expenseSummary.totalExpense} count={expenseSummary.totalCount} avg={expenseSummary.avgTotal} Icon={Calculator} colorClass="hover:border-gray-4" iconColor="text-gray-12" />
+            <SummaryCard title="Account Tasks" amount={expenseSummary.withRefExpense} count={expenseSummary.withRefCount} avg={expenseSummary.avgWithRef} Icon={Tag} colorClass="hover:border-gray-4" iconColor="text-gray-12" />
+            <SummaryCard title="Misc BizDev" amount={expenseSummary.bizDevExpense} count={expenseSummary.bizDevCount} avg={expenseSummary.avgBizDev} Icon={Calculator} colorClass="hover:border-gray-4" iconColor="text-gray-12" />
           </div>
         </div>
       )}

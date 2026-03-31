@@ -173,7 +173,7 @@ export default function EmployeeManagement() {
                       </button>
                       <button
                         onClick={() => handleDelete(emp.id)}
-                        className="p-2 bg-red-900/20 hover:bg-red-900/40 text-red-500 rounded-lg transition-colors inline-block"
+                        className="p-2 bg-red-100 hover:bg-red-200 text-red-500 rounded-lg transition-colors inline-block"
                         title="Delete Employee"
                       >
                         <Trash2 size={16} />

@@ -224,7 +224,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         onClick={onClose}
       />
 
-      <div className="fixed absolute-center w-full max-w-lg z-50 p-4">
+      <div className="fixed absolute-center w-full max-w-lg z-[9999] p-4">
         <div className="bg-gray-2 border border-gray-4 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           {/* Header */}
           <div className="flex-between p-6 border-b border-gray-3 bg-gray-1 shrink-0">

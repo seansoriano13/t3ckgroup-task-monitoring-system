@@ -131,7 +131,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       )}
 
       {/* Drawer */}
-      <div className={`fixed top-0 right-0 h-full w-[400px] max-w-full bg-gray-1 border-l border-gray-4 shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-[400px] max-w-full bg-gray-1 border-l border-gray-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
          
          <div className="p-6 border-b border-gray-4 flex justify-between items-start bg-gray-2/50 shrink-0">
             <div>
