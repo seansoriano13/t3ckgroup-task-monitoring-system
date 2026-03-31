@@ -14,23 +14,14 @@ export default function AppLayout() {
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  // 🔥 THE WRITE CONNECTION
-  // ⚡ THE OPTIMISTIC WRITE CONNECTION
   const addTaskMutation = useMutation({
     mutationFn: taskService.createTask,
-
-    // 1. FIRE INSTANTLY: The millisecond the user clicks submit
     onMutate: async (newTask) => {
-      // Close the modal instantly so the user isn't left waiting
       setIsModalOpen(false);
 
-      // Cancel any outgoing refetches so they don't overwrite our optimistic data
       await queryClient.cancelQueries({ queryKey: ["dashboardTasks"] });
 
-      // Snapshot the current state of myTasks (in case the Wi-Fi drops and we need to roll back)
       const previousTasks = queryClient.getQueryData(["dashboardTasks"]);
-
-      // Create the "Fake" task to instantly show on screen
       const optimisticTask = {
         id: `temp-${Date.now()}`,
         ...newTask,

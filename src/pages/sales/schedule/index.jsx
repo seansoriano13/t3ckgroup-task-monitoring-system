@@ -9,9 +9,9 @@ import { Calendar as CalendarIcon, Save, Send, Loader2, ChevronDown, ChevronRigh
 
 // Utility to get the next Monday
 function getNextMonday() {
-  const d = new Date();
-  d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7 || 7));
-  return d;
+  const date = new Date();
+  date.setDate(date.getDate() + ((1 + 7 - date.getDay()) % 7 || 7));
+  return date;
 }
 
 function getStartOfWeek(date) {
