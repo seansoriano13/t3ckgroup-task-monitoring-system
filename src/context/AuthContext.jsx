@@ -4,6 +4,7 @@ import { useState } from "react";
 import { employeeService } from "../services/employeeService.js";
 import toast from "react-hot-toast";
 import { useContext } from "react";
+import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
 
@@ -12,35 +13,38 @@ export const AuthProvider = ({ children }) => {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const storedUser = localStorage.getItem("t3ck_session");
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        setUser(parsed);
+    const initializeSession = async () => {
+      setIsAuthLoading(true);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        // Background revalidation: refresh role data from DB
-        try {
-          const freshData = await employeeService.getEmployeeByEmail(parsed.email);
-          if (freshData) {
-            const refreshed = { ...freshData, picture: parsed.picture };
-            setUser(refreshed);
-            localStorage.setItem("t3ck_session", JSON.stringify(refreshed));
-          } else {
-            // Employee was deleted from DB
-            setUser(null);
-            localStorage.removeItem("t3ck_session");
+        if (session?.user?.email) {
+          const employee = await employeeService.getEmployeeByEmail(
+            session.user.email,
+          );
+
+          if (employee) {
+            const metadata = session.user.user_metadata || null;
+            setUser({
+              ...employee,
+              picture: metadata?.avatar_url || metadata?.picture || "",
+            });
           }
-        } catch {
-          // Network error — keep cached session
         }
+      } catch (error) {
+        console.error("Auth Initialization Error:", error);
+        setUser(null);
+      } finally {
+        setIsAuthLoading(false);
       }
-      setIsAuthLoading(false);
     };
 
-    checkSession();
+    initializeSession();
   }, []);
 
-  const handleLogin = async (googleEmail, googleName, googlePictureUrl) => {
+  const handleLogin = async (googleEmail, googlePictureUrl) => {
     setIsAuthLoading(true);
     try {
       const dbEmployee = await employeeService.getEmployeeByEmail(googleEmail);
@@ -52,10 +56,11 @@ export const AuthProvider = ({ children }) => {
         };
 
         setUser(sessionUser);
-        localStorage.setItem("t3ck_session", JSON.stringify(sessionUser));
+
         toast.success(`Welcome, ${dbEmployee.name}`);
         return true;
       } else {
+        await supabase.auth.signOut();
         toast.error(
           "Unauthorized: Your email is not registered in the employee database.",
         );

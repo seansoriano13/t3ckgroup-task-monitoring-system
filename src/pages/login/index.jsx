@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import PrimaryButton from "../../components/PrimaryButton";
 import { useTheme } from "../../hooks/useTheme";
+import { supabase } from "../../lib/supabase";
 
 // Updated for the dark theme disabled state
 export const INPUT_STYLE =
@@ -24,7 +24,7 @@ export default function Login() {
   const handleManualLogin = async (e) => {
     e.preventDefault();
     if (!allowTestLogin) return;
-    
+
     if (!email || !password) {
       toast.error("Please enter email and password.");
       return;
@@ -34,13 +34,27 @@ export default function Login() {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    const decodedToken = jwtDecode(credentialResponse.credential);
-    const { email, name, picture } = decodedToken;
+    try {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: credentialResponse.credential,
+      });
 
-    const isAuthorized = await handleLogin(email, name, picture);
+      if (error) throw error;
 
-    if (isAuthorized) {
-      navigate("/");
+      const googleEmail = data.user.email;
+      const googlePictureUrl =
+        data.user.user_metadata.avatar_url ||
+        data.user.user_metadata.picture ||
+        "";
+
+      const isAuthorized = await handleLogin(googleEmail, googlePictureUrl);
+
+      if (isAuthorized) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Google login failed:", error);
     }
   };
 
