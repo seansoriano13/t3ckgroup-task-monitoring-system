@@ -364,7 +364,7 @@ export default function SalesRecordsPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3 tracking-tight">
-                Sales Records
+                Sales Records 
               </h1>
               <p className="text-gray-9 mt-1 font-medium text-sm">
                 Comprehensive filtering view for Sales Activities and Logged
@@ -747,7 +747,7 @@ export default function SalesRecordsPage() {
                   <h2 className="text-xl font-black text-gray-12 mb-4 border-b border-gray-4 pb-2 flex items-center gap-2">
                     <Users size={20} /> {empGroup.employeeName}
                   </h2>
-                  <div className="flex overflow-x-auto gap-4 sm:gap-6 pb-4 custom-scrollbar snap-x">
+                  <div className="flex overflow-x-auto gap-4 sm:gap-6 pb-4 custom-scrollbar snap-x items-start">
                     {empGroup.dates.map((dateBlock) => {
                       if (timeframe !== "DAILY") {
                         return (

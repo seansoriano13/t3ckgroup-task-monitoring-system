@@ -11,11 +11,9 @@ import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
 import { Activity } from "lucide-react";
 import SalesPerformanceMetrics from "../components/SalesPerformanceMetrics.jsx";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-
 import { Calendar } from "lucide-react";
 import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
+import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -47,7 +45,7 @@ export default function Dashboard() {
   };
 
   const deleteTaskMutation = useMutation({
-    mutationFn: (taskId) => taskService.deleteTask(taskId, user?.id),
+    mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       toast.success("Task permanently deleted.");
@@ -71,24 +69,11 @@ export default function Dashboard() {
                   cross-departmental approval matrix.
                 </p>
               </div>
-
-              {/* MONTH PICKER - Consistent with Super Admin / Sales */}
-              <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner w-full sm:w-auto overflow-hidden">
-                <span className="text-[10px] font-bold text-gray-9 mr-3 uppercase shrink-0 flex items-center gap-1.5">
-                  <Calendar size={12} /> Target Month:
+              <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-xs font-bold text-gray-9 shadow-inner w-max">
+                <Calendar size={12} />
+                <span className="uppercase tracking-wider">
+                  {new Date(selectedMonth).toLocaleString("default", { month: "long", year: "numeric" })}
                 </span>
-                <DatePicker
-                  selected={new Date(selectedMonth)}
-                  onChange={(date) => {
-                    if (date) {
-                      const m = String(date.getMonth() + 1).padStart(2, "0");
-                      setSelectedMonth(`${date.getFullYear()}-${m}-01`);
-                    }
-                  }}
-                  showMonthYearPicker
-                  dateFormat="MMMM yyyy"
-                  className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer flex-1 min-w-[120px] w-full text-sm"
-                />
               </div>
             </div>
 
@@ -108,11 +93,16 @@ export default function Dashboard() {
           </div>
         </div>
 
+        <FloatingMonthPicker
+          selectedMonth={selectedMonth}
+          onChange={setSelectedMonth}
+        />
+
         <TaskDetails
           isOpen={isDrawerOpen}
           onClose={handleCloseDrawer}
           task={selectedTask}
-          onDeleteTask={(taskId) => deleteTaskMutation.mutateAsync(taskId)}
+          onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
         />
       </ProtectedRoute>
     );
@@ -149,22 +139,11 @@ export default function Dashboard() {
               </h2>
             </div>
 
-            <div className="bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 flex items-center shadow-sm w-full sm:w-auto overflow-hidden">
-              <span className="text-[10px] font-bold text-gray-8 mr-3 uppercase shrink-0">
-                Month:
+            <div className="flex items-center gap-1.5 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-9 shadow-sm w-max">
+              <Calendar size={12} />
+              <span className="uppercase tracking-wider">
+                {new Date(selectedMonth).toLocaleString("default", { month: "short", year: "numeric" })}
               </span>
-              <DatePicker
-                selected={new Date(selectedMonth)}
-                onChange={(date) => {
-                  if (date) {
-                    const m = String(date.getMonth() + 1).padStart(2, "0");
-                    setSelectedMonth(`${date.getFullYear()}-${m}-01`);
-                  }
-                }}
-                showMonthYearPicker
-                dateFormat="MMM yyyy"
-                className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer text-xs w-28"
-              />
             </div>
           </div>
 
@@ -178,7 +157,11 @@ export default function Dashboard() {
           isOpen={isDrawerOpen}
           onClose={handleCloseDrawer}
           task={selectedTask}
-          onDeleteTask={(taskId) => deleteTaskMutation.mutateAsync(taskId)}
+          onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
+        />
+        <FloatingMonthPicker
+          selectedMonth={selectedMonth}
+          onChange={setSelectedMonth}
         />
       </div>
     </ProtectedRoute>

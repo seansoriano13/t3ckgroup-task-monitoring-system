@@ -4,12 +4,11 @@ import { salesService } from "../../services/salesService";
 import { useAuth } from "../../context/AuthContext";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { Loader2, CheckCheck } from "lucide-react";
+import { Loader2, CheckCheck, PhilippinePeso } from "lucide-react";
 import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
-import DatePicker from "react-datepicker";
-import { PhilippinePeso } from "lucide-react";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
+import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
@@ -110,6 +109,10 @@ export default function SuperAdminDashboard() {
           <Loader2 className="animate-spin" />
           <p className="font-bold">Syncing Super Admin Metrics...</p>
         </div>
+        <FloatingMonthPicker
+          selectedMonth={selectedMonth}
+          onChange={setSelectedMonth}
+        />
       </ProtectedRoute>
     );
   }
@@ -128,22 +131,10 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
 
-          <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner w-full sm:w-auto overflow-hidden">
-            <span className="text-xs font-bold text-gray-9 mr-3 uppercase shrink-0">
-              Target Month:
+          <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-xs font-bold text-gray-9 shadow-inner w-max">
+            <span className="uppercase tracking-wider">
+              {new Date(selectedMonth).toLocaleString("default", { month: "long", year: "numeric" })}
             </span>
-            <DatePicker
-              selected={new Date(selectedMonth)}
-              onChange={(date) => {
-                if (date) {
-                  const m = String(date.getMonth() + 1).padStart(2, "0");
-                  setSelectedMonth(`${date.getFullYear()}-${m}-01`);
-                }
-              }}
-              showMonthYearPicker
-              dateFormat="MMMM yyyy"
-              className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer flex-1 min-w-[120px] w-full"
-            />
           </div>
         </div>
 
@@ -194,9 +185,14 @@ export default function SuperAdminDashboard() {
 
         <SalesPerformanceMetrics selectedMonth={selectedMonth} />
         <div className="pt-6">
-          <EmployeePipelineMatrix />
+          <EmployeePipelineMatrix selectedMonth={selectedMonth} />
         </div>
       </div>
+
+      <FloatingMonthPicker
+        selectedMonth={selectedMonth}
+        onChange={setSelectedMonth}
+      />
     </ProtectedRoute>
   );
 }
