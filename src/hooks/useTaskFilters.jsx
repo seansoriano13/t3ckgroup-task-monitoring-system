@@ -16,6 +16,15 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
   const { isManagement = false, allEmployees = [] } = options;
 
   // --- 1. THE FILTER & SORT ENGINE ---
+  const employeeMap = useMemo(() => {
+    if (!isManagement || allEmployees.length === 0) return new Map();
+    const map = new Map();
+    for (const emp of allEmployees) {
+      map.set(emp.id, emp);
+    }
+    return map;
+  }, [isManagement, allEmployees]);
+
   const filteredTasks = useMemo(() => {
     const filtered = rawTasks.filter((task) => {
       if (task.status === "DELETED") return false;
@@ -58,8 +67,8 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       if (isManagement) {
         // If allEmployees is still loading, skip hierarchy filters rather than
         // rejecting every task (taskOwner would be undefined for all tasks).
-        if (allEmployees.length > 0) {
-          const taskOwner = allEmployees.find((e) => e.id === task.loggedById);
+        if (employeeMap.size > 0) {
+          const taskOwner = employeeMap.get(task.loggedById);
           if (deptFilter !== "ALL")
             matchesDept = taskOwner?.department === deptFilter;
           if (subDeptFilter !== "ALL")
@@ -112,6 +121,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     deptFilter,
     subDeptFilter,
     employeeFilter,
+    employeeMap,
     allEmployees,
     isManagement,
   ]);
