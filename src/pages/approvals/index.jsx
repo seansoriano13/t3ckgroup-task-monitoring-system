@@ -4,7 +4,15 @@ import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService.js";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
-import { CheckCircle2, ChevronDown, ChevronUp, Clock, Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
@@ -37,7 +45,7 @@ export default function ApprovalsPage() {
   // 🔥 DEEP LINKING HOOK
   useEffect(() => {
     if (location.state?.openTaskId && rawTasks.length > 0) {
-      setAutoOpenId(location.state.openTaskId);
+      queueMicrotask(() => setAutoOpenId(location.state.openTaskId));
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, rawTasks, navigate, location.pathname]);
@@ -62,8 +70,9 @@ export default function ApprovalsPage() {
             t.employees?.sub_department ||
             "";
 
-          const taskDept = t.creator?.department || t.employees?.department || "";
-          
+          const taskDept =
+            t.creator?.department || t.employees?.department || "";
+
           let isMyDept = false;
           if (userSubDept) {
             isMyDept = taskSubDept === userSubDept;
@@ -71,7 +80,7 @@ export default function ApprovalsPage() {
             // Head with no sub-dept gets everything in their department
             isMyDept = taskDept === userDept;
           }
-          
+
           const isIncomplete = t.status === "INCOMPLETE";
           return isNotMe && isMyDept && isIncomplete;
         }
@@ -96,18 +105,25 @@ export default function ApprovalsPage() {
         (t) =>
           (t.loggedByName || "").toLowerCase().includes(q) ||
           (t.categoryId || "").toLowerCase().includes(q) ||
-          (t.taskDescription || "").toLowerCase().includes(q)
+          (t.taskDescription || "").toLowerCase().includes(q),
       );
     }
 
     // Priority filter
-    if (priorityFilter === "HIGH") result = result.filter((t) => t.priority === "HIGH");
-    if (priorityFilter === "NORMAL") result = result.filter((t) => t.priority !== "HIGH");
+    if (priorityFilter === "HIGH")
+      result = result.filter((t) => t.priority === "HIGH");
+    if (priorityFilter === "NORMAL")
+      result = result.filter((t) => t.priority !== "HIGH");
 
     // Sort
-    if (sortBy === "NEWEST") result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    else if (sortBy === "OLDEST") result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    else if (sortBy === "NAME") result.sort((a, b) => (a.loggedByName || "").localeCompare(b.loggedByName || ""));
+    if (sortBy === "NEWEST")
+      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    else if (sortBy === "OLDEST")
+      result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    else if (sortBy === "NAME")
+      result.sort((a, b) =>
+        (a.loggedByName || "").localeCompare(b.loggedByName || ""),
+      );
 
     return result;
   }, [pendingTasks, searchQuery, priorityFilter, sortBy]);
@@ -174,7 +190,10 @@ export default function ApprovalsPage() {
                 className="flex-1 bg-transparent text-sm text-gray-12 placeholder-gray-7 outline-none"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-gray-7 hover:text-gray-11 transition-colors">
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-gray-7 hover:text-gray-11 transition-colors"
+                >
                   <X size={13} />
                 </button>
               )}
@@ -182,7 +201,11 @@ export default function ApprovalsPage() {
 
             {/* Priority toggle */}
             <div className="flex gap-1 bg-gray-1 border border-gray-4 rounded-lg p-1 shrink-0">
-              {[["ALL", "All"], ["HIGH", "High"], ["NORMAL", "Normal"]].map(([val, label]) => (
+              {[
+                ["ALL", "All"],
+                ["HIGH", "High"],
+                ["NORMAL", "Normal"],
+              ].map(([val, label]) => (
                 <button
                   key={val}
                   onClick={() => setPriorityFilter(val)}
@@ -248,7 +271,10 @@ export default function ApprovalsPage() {
             <Search size={32} className="mx-auto text-gray-7 mb-3" />
             <p className="text-gray-12 font-bold">No tasks match your filter</p>
             <button
-              onClick={() => { setSearchQuery(""); setPriorityFilter("ALL"); }}
+              onClick={() => {
+                setSearchQuery("");
+                setPriorityFilter("ALL");
+              }}
               className="mt-3 text-xs font-bold text-primary hover:underline"
             >
               Clear filters
@@ -341,7 +367,7 @@ function ApprovalRow({
     <div
       className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${
         expanded
-          ? "border-gray-8 shadow-lg"
+          ? "border-gray-6 shadow-lg"
           : "border-gray-4 hover:border-gray-6"
       }`}
     >
@@ -443,7 +469,6 @@ function ApprovalRow({
                       })}
                     </div>
                   </div>
-
 
                   {task.remarks && (
                     <div className="bg-gray-1 border border-gray-4 p-3 rounded-xl">
