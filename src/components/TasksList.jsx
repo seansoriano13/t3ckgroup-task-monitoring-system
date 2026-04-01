@@ -4,6 +4,7 @@ import TaskDetails from "./TaskDetails";
 import { useAuth } from "../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../services/taskService.js";
+import { TASK_STATUS } from "../constants/status.js";
 import { useMemo, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { ArrowUpRight } from "lucide-react";
@@ -94,7 +95,7 @@ export default function TasksList({ selectedMonth }) {
 
     // 🔥 NEW: Instantly scrub all deleted tasks and filter by THIS MONTH
     const activeTasks = rawTasks.filter((t) => {
-      if (t.status === "DELETED") return false;
+      if (t.status === TASK_STATUS.DELETED) return false;
       const taskDate = new Date(t.createdAt);
       return (
         taskDate.getMonth() === currentMonth &&
@@ -203,13 +204,13 @@ export default function TasksList({ selectedMonth }) {
               ].map((statusKey) => {
                 const filtered = myTasks.filter((t) => {
                   if (statusKey === "COMPLETE_UNVERIFIED")
-                    return t.status === "COMPLETE" && !t.hrVerified;
+                    return t.status === TASK_STATUS.COMPLETE && !t.hrVerified;
                   if (statusKey === "COMPLETE_VERIFIED")
-                    return t.status === "COMPLETE" && t.hrVerified;
+                    return t.status === TASK_STATUS.COMPLETE && t.hrVerified;
                   if (statusKey === "INCOMPLETE")
-                    return t.status === "INCOMPLETE";
+                    return t.status === TASK_STATUS.INCOMPLETE;
                   if (statusKey === "NOT APPROVED")
-                    return t.status === "NOT APPROVED";
+                    return t.status === TASK_STATUS.NOT_APPROVED;
                   return false;
                 });
 
@@ -335,9 +336,9 @@ export default function TasksList({ selectedMonth }) {
                           {/* Primary Status Dot */}
                           <span
                             className={`w-2.5 h-2.5 rounded-full shadow-sm ${
-                              task.status === "COMPLETE"
+                              task.status === TASK_STATUS.COMPLETE
                                 ? "bg-green-500"
-                                : task.status === "NOT APPROVED"
+                                : task.status === TASK_STATUS.NOT_APPROVED
                                   ? "bg-red-500"
                                   : "bg-amber-500"
                             }`}
@@ -374,13 +375,13 @@ export default function TasksList({ selectedMonth }) {
                 {(() => {
                   const total = teamTasks.length || 1; // Fallback to 1 to prevent division by zero errors
                   const draftCount = teamTasks.filter(
-                    (t) => t.status === "INCOMPLETE",
+                    (t) => t.status === TASK_STATUS.INCOMPLETE,
                   ).length;
                   const rejectedCount = teamTasks.filter(
-                    (t) => t.status === "NOT APPROVED",
+                    (t) => t.status === TASK_STATUS.NOT_APPROVED,
                   ).length;
                   const pendingHrCount = teamTasks.filter(
-                    (t) => t.status === "COMPLETE" && !t.hrVerified,
+                    (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
                   ).length;
                   const verifiedCount = teamTasks.filter(
                     (t) => t.hrVerified,

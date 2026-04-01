@@ -1,0 +1,26 @@
+/**
+ * Centralized status constants to prevent magic string bugs
+ * and ensure consistency across the task and sales modules.
+ */
+
+export const TASK_STATUS = {
+  INCOMPLETE: "INCOMPLETE",
+  COMPLETE: "COMPLETE",
+  NOT_APPROVED: "NOT APPROVED", // Standardized to match database string
+  DELETED: "DELETED",
+};
+
+export const REVENUE_STATUS = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  LOST: "LOST",
+  REJECTED: "REJECTED",
+  APPROVED: "APPROVED",
+};
+
+export const SALES_PLAN_STATUS = {
+  DRAFT: "DRAFT",
+  SUBMITTED: "SUBMITTED",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+};

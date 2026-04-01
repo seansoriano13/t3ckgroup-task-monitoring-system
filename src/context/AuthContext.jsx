@@ -42,6 +42,30 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeSession();
+
+    // ≡ƒöæ Real-time Session Sync: Listen for auth state changes globally
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user?.email) {
+        const employee = await employeeService.getEmployeeByEmail(
+          session.user.email,
+        );
+        if (employee) {
+          const metadata = session.user.user_metadata || null;
+          setUser({
+            ...employee,
+            picture: metadata?.avatar_url || metadata?.picture || "",
+          });
+        }
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = async (googleEmail, googlePictureUrl) => {

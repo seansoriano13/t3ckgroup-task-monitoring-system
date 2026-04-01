@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
+import { REVENUE_STATUS } from "../constants/status";
+import { formatDateToYMD } from "../utils/dateUtils";
 import {
   Trophy,
   TrendingUp,
@@ -18,8 +20,8 @@ import { supabase } from "../lib/supabase";
 import StatusBadge from "./StatusBadge.jsx";
 import DatePicker from "react-datepicker";
 
-function formatDateToYMD(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+function formatDate(date) {
+  return formatDateToYMD(date);
 }
 
 export default function SalesDashboard({ selectedMonth: propMonth }) {
@@ -43,34 +45,34 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
 
   // === ANALYTICS STATE ===
   const [startDate, setStartDate] = useState(
-    formatDateToYMD(
+    formatDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
     ),
   ); // default this month
-  const [endDate, setEndDate] = useState(formatDateToYMD(currentDate));
+  const [endDate, setEndDate] = useState(formatDate(currentDate));
   const [activePreset, setActivePreset] = useState("THIS_MONTH");
 
   const handleAnalyticPreset = (preset) => {
     setActivePreset(preset);
     const today = new Date();
     if (preset === "TODAY") {
-      setStartDate(formatDateToYMD(today));
-      setEndDate(formatDateToYMD(today));
+      setStartDate(formatDate(today));
+      setEndDate(formatDate(today));
     } else if (preset === "THIS_WEEK") {
       const start = new Date(today);
       const day = start.getDay();
       const diff = start.getDate() - day + (day === 0 ? -6 : 1);
       start.setDate(diff);
-      setStartDate(formatDateToYMD(start));
-      setEndDate(formatDateToYMD(today));
+      setStartDate(formatDate(start));
+      setEndDate(formatDate(today));
     } else if (preset === "THIS_MONTH") {
       const start = new Date(today.getFullYear(), today.getMonth(), 1);
-      setStartDate(formatDateToYMD(start));
-      setEndDate(formatDateToYMD(today));
+      setStartDate(formatDate(start));
+      setEndDate(formatDate(today));
     } else if (preset === "THIS_YEAR") {
       const start = new Date(today.getFullYear(), 0, 1);
-      setStartDate(formatDateToYMD(start));
-      setEndDate(formatDateToYMD(today));
+      setStartDate(formatDate(start));
+      setEndDate(formatDate(today));
     }
   };
 
@@ -78,7 +80,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
   const { data: leaderboard = [], isLoading: isLdrLoading } = useQuery({
     queryKey: ["salesLeaderboard", selectedMonth],
     queryFn: () => salesService.getLeaderboardData(selectedMonth),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { data: appSettings } = useQuery({
@@ -91,23 +93,8 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
   const { data: overviewLogs = [], isLoading: isOverviewLogsLoading } =
     useQuery({
       queryKey: ["salesRevenueLogs", selectedMonth],
-      queryFn: async () => {
-        const sDate = fullMonthDate;
-        const [yy, mm] = selectedMonth.split("-").map(Number);
-        const nextMonth = mm === 12 ? 1 : mm + 1;
-        const nextYear = mm === 12 ? yy + 1 : yy;
-        const eDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
-
-        const { data, error } = await supabase
-          .from("sales_revenue_logs")
-          .select("*, employees(name)")
-          .gte("date", sDate)
-          .lt("date", eDate)
-          .order("date", { ascending: false });
-        if (error) throw error;
-        return data;
-      },
-      refetchInterval: 3000,
+      queryFn: () => salesService.getRevenueLogsByMonth(selectedMonth),
+      refetchInterval: 15000,
     });
 
   // === FETCH ANALYTICS QUERIES ===
@@ -115,7 +102,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
     queryKey: ["salesAnalytics", startDate, endDate],
     queryFn: () => salesService.getRevenueAnalysis(startDate, endDate),
     enabled: activeTab === "ANALYTICS" && !!startDate && !!endDate,
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   // Calculate Overview Aggregates
@@ -134,7 +121,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
 
     analyticsLogs.forEach((log) => {
       const val = Number(log.revenue_amount) || 0;
-      const isWon = log.status?.toUpperCase().includes("COMPLETED");
+      const isWon = log.status?.toUpperCase().includes(REVENUE_STATUS.COMPLETED);
 
       if (isWon) won += val;
       else lost += val;

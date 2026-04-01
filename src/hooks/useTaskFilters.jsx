@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { TASK_STATUS } from "../constants/status";
 
 export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
   const {
@@ -39,9 +40,20 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
         cat.toLowerCase().includes(searchTerm.toLowerCase()) ||
         empName.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Base Filters
-      const matchesStatus =
-        statusFilter === "ALL" || task.status === statusFilter;
+      // Status Filter Logic
+      let matchesStatus = true;
+      if (statusFilter !== "ALL") {
+        if (statusFilter === "INCOMPLETE") {
+          matchesStatus = task.status === TASK_STATUS.INCOMPLETE;
+        } else if (statusFilter === "COMPLETE_UNVERIFIED") {
+          matchesStatus = task.status === TASK_STATUS.COMPLETE && !task.hrVerified;
+        } else if (statusFilter === "COMPLETE_VERIFIED") {
+          matchesStatus = task.status === TASK_STATUS.COMPLETE && task.hrVerified;
+        } else if (statusFilter === "NOT APPROVED") {
+          matchesStatus = task.status === TASK_STATUS.NOT_APPROVED;
+        }
+      }
+
       const matchesPriority =
         priorityFilter === "ALL" || task.priority === priorityFilter;
 

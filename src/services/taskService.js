@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase.js";
 import { notificationService } from "./notificationService.js";
+import { TASK_STATUS } from "../constants/status.js";
 
 export const taskService = {
   // 1. HR/HEAD VIEW: Get everything
@@ -15,7 +16,7 @@ export const taskService = {
         categories(description)
       `,
       )
-      .neq("status", "DELETED")
+      .neq("status", TASK_STATUS.DELETED)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -79,7 +80,7 @@ export const taskService = {
       `,
       )
       .eq("logged_by", userId)
-      .neq("status", "DELETED")
+      .neq("status", TASK_STATUS.DELETED)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -124,7 +125,7 @@ export const taskService = {
             ? new Date(payload.startAt).toISOString()
             : new Date().toISOString(),
           end_at: payload.endAt ? new Date(payload.endAt).toISOString() : null,
-          status: "INCOMPLETE",
+          status: TASK_STATUS.INCOMPLETE,
           priority: payload.priority || "LOW",
           remarks: payload.remarks || "",
         },
@@ -173,17 +174,17 @@ export const taskService = {
     // - If HR verification is being applied, the task must be in COMPLETE.
     // - If task is being moved back to INCOMPLETE, HR verification must be cleared.
     // - For COMPLETE/NOT APPROVED transitions, prevent "finalized with no evaluator" if caller didn't provide evaluatedBy.
-    if (payload?.hrVerified === true && payload?.status !== "COMPLETE") {
-      payload = { ...payload, status: "COMPLETE" };
+    if (payload?.hrVerified === true && payload?.status !== TASK_STATUS.COMPLETE) {
+      payload = { ...payload, status: TASK_STATUS.COMPLETE };
     }
 
-    if (payload?.status === "INCOMPLETE") {
+    if (payload?.status === TASK_STATUS.INCOMPLETE) {
       updateData.hr_verified = false;
       updateData.hr_verified_at = null;
       updateData.hr_remarks = "";
     }
 
-    if (payload?.status === "NOT APPROVED") {
+    if (payload?.status === TASK_STATUS.NOT_APPROVED) {
       updateData.hr_verified = false;
       updateData.hr_verified_at = null;
       // Preserve existing hr_remarks unless caller explicitly provided hrRemarks.
@@ -212,14 +213,14 @@ export const taskService = {
     // Prevent approving/rejecting if the task isn't in the expected pre-state.
     // Head transitions include evaluatedBy; HR transitions do not.
     const isHeadApprove =
-      payload?.status === "COMPLETE" && payload?.evaluatedBy !== undefined;
+      payload?.status === TASK_STATUS.COMPLETE && payload?.evaluatedBy !== undefined;
     const isHeadReject =
-      payload?.status === "NOT APPROVED" && payload?.evaluatedBy !== undefined;
+      payload?.status === TASK_STATUS.NOT_APPROVED && payload?.evaluatedBy !== undefined;
     const isHrReject =
-      payload?.status === "NOT APPROVED" && payload?.evaluatedBy === undefined;
+      payload?.status === TASK_STATUS.NOT_APPROVED && payload?.evaluatedBy === undefined;
 
     if (isHeadApprove) {
-      if (current?.status !== "INCOMPLETE") {
+      if (current?.status !== TASK_STATUS.INCOMPLETE) {
         throw new Error(
           `Invalid pipeline transition: can only approve tasks from INCOMPLETE`,
         );
@@ -227,7 +228,7 @@ export const taskService = {
     }
 
     if (isHeadReject) {
-      if (current?.status !== "INCOMPLETE") {
+      if (current?.status !== TASK_STATUS.INCOMPLETE) {
         throw new Error(
           `Invalid pipeline transition: can only reject tasks from INCOMPLETE`,
         );
@@ -237,7 +238,7 @@ export const taskService = {
     // If a caller tries to move to COMPLETE/NOT APPROVED without head evaluation metadata,
     // only HR should be allowed to do it via hrVerified/hrVerified=false paths.
     if (
-      payload?.status === "COMPLETE" &&
+      payload?.status === TASK_STATUS.COMPLETE &&
       payload?.evaluatedBy === undefined &&
       payload?.hrVerified !== true &&
       payload?.hrVerified !== false // Allow undo loop!
@@ -248,7 +249,7 @@ export const taskService = {
     }
 
     if (
-      payload?.status === "NOT APPROVED" &&
+      payload?.status === TASK_STATUS.NOT_APPROVED &&
       payload?.evaluatedBy === undefined &&
       payload?.hrVerified !== false
     ) {
@@ -259,7 +260,7 @@ export const taskService = {
 
     // HR rejection should only happen while the task is currently COMPLETE and unverified.
     if (isHrReject) {
-      if (current?.status !== "COMPLETE" || current?.hr_verified !== false) {
+      if (current?.status !== TASK_STATUS.COMPLETE || current?.hr_verified !== false) {
         throw new Error(
           `Invalid pipeline transition: HR reject requires status=COMPLETE and hrVerified=false`,
         );
@@ -269,7 +270,7 @@ export const taskService = {
 
     // Enforce HR verification/undo pre-conditions.
     if (payload?.hrVerified === true) {
-      if (current?.status !== "COMPLETE" || current?.hr_verified !== false) {
+      if (current?.status !== TASK_STATUS.COMPLETE || current?.hr_verified !== false) {
         throw new Error(
           `Invalid pipeline transition: HR verify requires status=COMPLETE and hrVerified=false`,
         );
@@ -286,11 +287,11 @@ export const taskService = {
     // Head transitions may also set hrVerified=false, so we distinguish HR undo by absence of evaluatedBy.
     const isHrUndo =
       payload?.hrVerified === false &&
-      payload?.status === "COMPLETE" &&
+      payload?.status === TASK_STATUS.COMPLETE &&
       payload?.evaluatedBy === undefined;
 
     if (isHrUndo) {
-      if (current?.status !== "COMPLETE" || current?.hr_verified !== true) {
+      if (current?.status !== TASK_STATUS.COMPLETE || current?.hr_verified !== true) {
         throw new Error(
           `Invalid pipeline transition: HR undo requires status=COMPLETE and hrVerified=true`,
         );
@@ -369,7 +370,6 @@ export const taskService = {
     // 🔥 NOTIFICATION TRIGGERS 🔥
     if (current && payload.editedBy) {
       const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? "..." : ""}"`;
-      const empDept = current.creator?.department;
 
       if (isHeadApprove) {
         // Notify HR only (not Super Admin — they have HR access already and get a richer signal on full completion)
@@ -430,7 +430,7 @@ export const taskService = {
       if (
         payload.grade !== undefined &&
         payload.grade > 0 &&
-        payload.status === "COMPLETE" &&
+        payload.status === TASK_STATUS.COMPLETE &&
         current.evaluated_by == null
       ) {
         notificationService.createNotification({
@@ -452,7 +452,7 @@ export const taskService = {
     const { error } = await supabase
       .from("tasks")
       .update({
-        status: "DELETED",
+        status: TASK_STATUS.DELETED,
         edited_by: userId, 
         edited_at: new Date().toISOString(),
       })

@@ -1,5 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { notificationService } from "./notificationService";
+import { REVENUE_STATUS, SALES_PLAN_STATUS } from "../constants/status";
+import { getMonthBoundaries } from "../utils/dateUtils";
 
 export const salesService = {
   // === QUOTAS ===
@@ -23,6 +25,20 @@ export const salesService = {
       )
       .select()
       .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getRevenueLogsByMonth(selectedMonth) {
+    const { startDate, endDate } = getMonthBoundaries(selectedMonth);
+
+    const { data, error } = await supabase
+      .from("sales_revenue_logs")
+      .select("*, employees(name)")
+      .gte("date", startDate)
+      .lt("date", endDate)
+      .order("date", { ascending: false });
 
     if (error) throw error;
     return data;
@@ -81,7 +97,7 @@ export const salesService = {
   async submitPlan(planId, userObj) {
     const { data, error } = await supabase
       .from("sales_weekly_plans")
-      .update({ status: 'SUBMITTED' })
+      .update({ status: SALES_PLAN_STATUS.SUBMITTED })
       .eq('id', planId)
       .select()
       .single();
@@ -133,7 +149,7 @@ export const salesService = {
       }
 
       // Notify admins if any inserted items need expense approval
-      const pendingExpenseItems = inserted.filter(a => a.status === 'PENDING_APPROVAL' && Number(a.expense_amount) > 0);
+      const pendingExpenseItems = inserted.filter(a => a.status === REVENUE_STATUS.PENDING && Number(a.expense_amount) > 0);
       if (pendingExpenseItems.length > 0) {
          for (const item of pendingExpenseItems) {
             await notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
@@ -186,18 +202,17 @@ export const salesService = {
   async markActivityDone(activityId, details_daily) {
      // Fetch activity first to check expense_amount natively before completion
      const { data: actCheck } = await supabase.from("sales_activities").select('expense_amount').eq("id", activityId).single();
-     
-     // Fetch self approval setting override
+         // Fetch self approval setting override
      const { data: settings } = await supabase.from('app_settings').select('sales_self_approve_expenses').eq('id', true).single();
 
-     let targetStatus = 'DONE';
+     let targetStatus = REVENUE_STATUS.APPROVED;
      if (Number(actCheck?.expense_amount) > 0 && !settings?.sales_self_approve_expenses) {
-         targetStatus = 'PENDING_APPROVAL';
+         targetStatus = REVENUE_STATUS.PENDING;
      }
 
      const { data: activity, error } = await supabase
        .from("sales_activities")
-       .update({ status: targetStatus, details_daily, ...(targetStatus === 'DONE' && { completed_at: new Date().toISOString() }) })
+       .update({ status: targetStatus, details_daily, ...(targetStatus === REVENUE_STATUS.APPROVED && { completed_at: new Date().toISOString() }) })
        .eq("id", activityId)
        .select('*, employees(name)')
        .single();
@@ -205,7 +220,7 @@ export const salesService = {
      if (error) throw error;
 
      // Blast notification to Super Admin / Head if waiting for money
-     if (targetStatus === 'PENDING_APPROVAL') {
+     if (targetStatus === REVENUE_STATUS.PENDING) {
          notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
            sender_id: activity.employee_id,
            type: 'SALES_EXPENSE_PENDING',
@@ -216,27 +231,27 @@ export const salesService = {
      }
 
      // Calculate if Day/Week is conquered (Fire & forget)
-     if (activity && targetStatus === 'DONE') {
-         supabase.from('sales_activities').select('id').eq('employee_id', activity.employee_id).eq('scheduled_date', activity.scheduled_date).neq('id', activityId).neq('status', 'DONE').then(({ data: pendingDay }) => {
-           if (pendingDay && pendingDay.length === 0) {
-              notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
-                 sender_id: activity.employee_id,
-                 type: 'SALES_DAY_CONQUERED',
-                 title: 'Day Conquered!',
-                 message: `${activity.employees?.name} just conquered their entire daily pipeline!`,
-              });
-           }
-        });
+     if (activity && targetStatus === REVENUE_STATUS.APPROVED) {
+         supabase.from('sales_activities').select('id').eq('employee_id', activity.employee_id).eq('scheduled_date', activity.scheduled_date).neq('id', activityId).neq('status', REVENUE_STATUS.APPROVED).then(({ data: pendingDay }) => {
+            if (pendingDay && pendingDay.length === 0) {
+               notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
+                  sender_id: activity.employee_id,
+                  type: 'SALES_DAY_CONQUERED',
+                  title: 'Day Conquered!',
+                  message: `${activity.employees?.name} just conquered their entire daily pipeline!`,
+               });
+            }
+         });
      }
 
      return activity;
   },
 
   async approveExpenseActivity(activityId, isApproved) {
-     const targetStatus = isApproved ? 'DONE' : 'REJECTED';
+     const targetStatus = isApproved ? REVENUE_STATUS.APPROVED : REVENUE_STATUS.REJECTED;
      const { data: activity, error } = await supabase
        .from("sales_activities")
-       .update({ status: targetStatus, completed_at: targetStatus === 'DONE' ? new Date().toISOString() : null })
+       .update({ status: targetStatus, completed_at: targetStatus === REVENUE_STATUS.APPROVED ? new Date().toISOString() : null })
        .eq("id", activityId)
        .select('*, employees(name)')
        .single();
@@ -260,7 +275,7 @@ export const salesService = {
      // Batch-update all to DONE in one query
      const { data, error } = await supabase
        .from('sales_activities')
-       .update({ status: 'DONE', completed_at: new Date().toISOString() })
+       .update({ status: REVENUE_STATUS.APPROVED, completed_at: new Date().toISOString() })
        .in('id', activityIds)
        .select('id, employee_id, account_name');
      if (error) throw error;
@@ -335,7 +350,7 @@ export const salesService = {
      const payload = {
          edit_request_amount: amount,
          edit_request_reason: reason,
-         edit_request_status: 'PENDING',
+         edit_request_status: REVENUE_STATUS.PENDING,
          edit_requested_at: new Date().toISOString()
      };
      const { data, error } = await supabase.from('sales_revenue_logs').update(payload).eq('id', id).select('*, employees(name)').single();
@@ -362,7 +377,7 @@ export const salesService = {
          payload.last_edited_by = adminId;
          payload.last_edited_at = new Date().toISOString();
      } else {
-         payload.edit_request_status = 'REJECTED';
+         payload.edit_request_status = REVENUE_STATUS.REJECTED;
      }
      const { data, error } = await supabase.from('sales_revenue_logs').update(payload).eq('id', id).select().single();
      if (error) throw error;
@@ -401,7 +416,7 @@ export const salesService = {
      let query = supabase
        .from('sales_activities')
        .select('*, employees!inner(name, department, is_super_admin)')
-       .eq('status', 'PENDING_APPROVAL')
+       .eq('status', REVENUE_STATUS.PENDING)
        .order('scheduled_date', { ascending: false });
 
      if (departmentStr) {
@@ -458,19 +473,15 @@ export const salesService = {
   // === DASHBOARD AGGREGATES ===
   async getLeaderboardData(monthYearStr) {
     // 1. Get Quotas for the month
+    const { startDate, endDate } = getMonthBoundaries(monthYearStr);
+    
     const { data: quotas, error: qErr } = await supabase
        .from('sales_quotas')
        .select('*, employees(name, is_super_admin)')
-       .eq('month_year', `${monthYearStr}-01`);
+       .eq('month_year', startDate);
     if (qErr) throw qErr;
 
     // 2. Get all revenues for the month using proper date ranging
-    const startDate = `${monthYearStr}-01`;
-    const [yy, mm] = monthYearStr.split('-').map(Number);
-    const nextMonth = mm === 12 ? 1 : mm + 1;
-    const nextYear = mm === 12 ? yy + 1 : yy;
-    const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
-
     const { data: revenues, error: rErr } = await supabase
        .from('sales_revenue_logs')
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name, is_super_admin)')
@@ -504,7 +515,7 @@ export const salesService = {
                revenueLost: 0
             }
        }
-        if (r.status?.toUpperCase().includes('COMPLETED')) {
+        if (r.status?.toUpperCase().includes(REVENUE_STATUS.COMPLETED)) {
           agg[r.employee_id].revenueWon += Number(r.revenue_amount);
        } else {
           agg[r.employee_id].revenueLost += Number(r.revenue_amount);

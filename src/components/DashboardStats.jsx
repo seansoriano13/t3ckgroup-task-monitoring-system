@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
+import { TASK_STATUS } from "../constants/status.js";
 
 export default function DashboardStats({ selectedMonth }) {
   const { user } = useAuth();
@@ -60,17 +61,17 @@ export default function DashboardStats({ selectedMonth }) {
     // 2. Calculate Personal Stats
     const myTasks = thisMonthTasks.filter((t) => t.loggedById === user?.id);
     const myPending = myTasks.filter(
-      (t) => t.status === "INCOMPLETE" && !t.endAt,
+      (t) => t.status === TASK_STATUS.INCOMPLETE && !t.endAt,
     ).length;
     const myPendingApproval = myTasks.filter(
-      (t) => t.status === "INCOMPLETE" && !!t.endAt,
+      (t) => t.status === TASK_STATUS.INCOMPLETE && !!t.endAt,
     ).length;
     const myPendingHr = myTasks.filter(
-      (t) => t.status === "COMPLETE" && !t.hrVerified,
+      (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
     ).length;
     // For My Completed, it's tasks that are FULLY completed and verified
     const myCompleted = myTasks.filter(
-      (t) => t.status === "COMPLETE" && t.hrVerified,
+      (t) => t.status === TASK_STATUS.COMPLETE && t.hrVerified,
     ).length;
 
     // 3. Calculate Management Stats (Only if Head or HR)
@@ -86,13 +87,13 @@ export default function DashboardStats({ selectedMonth }) {
 
     if (isHr) {
       hrPendingApprovals = thisMonthTasks.filter(
-        (t) => t.status === "INCOMPLETE",
+        (t) => t.status === TASK_STATUS.INCOMPLETE,
       ).length;
       hrPendingVerification = thisMonthTasks.filter(
-        (t) => t.status === "COMPLETE" && !t.hrVerified,
+        (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
       ).length;
       hrRejected = thisMonthTasks.filter(
-        (t) => t.status === "NOT APPROVED",
+        (t) => t.status === TASK_STATUS.NOT_APPROVED,
       ).length;
       hrAllTasks = thisMonthTasks.length;
     } else if (isHead) {
@@ -113,14 +114,14 @@ export default function DashboardStats({ selectedMonth }) {
       });
 
       teamPendingApprovals = teamTasks.filter(
-        (t) => t.status === "INCOMPLETE",
+        (t) => t.status === TASK_STATUS.INCOMPLETE,
       ).length;
-      teamCompleted = teamTasks.filter((t) => t.status === "COMPLETE").length;
+      teamCompleted = teamTasks.filter((t) => t.status === TASK_STATUS.COMPLETE).length;
       teamRejected = teamTasks.filter(
-        (t) => t.status === "NOT APPROVED",
+        (t) => t.status === TASK_STATUS.NOT_APPROVED,
       ).length;
       teamPendingHr = teamTasks.filter(
-        (t) => t.status === "COMPLETE" && !t.hrVerified,
+        (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
       ).length;
     }
 
