@@ -56,13 +56,18 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
         matchesSubDept = true,
         matchesEmployee = true;
       if (isManagement) {
-        const taskOwner = allEmployees.find((e) => e.id === task.loggedById);
-        if (deptFilter !== "ALL")
-          matchesDept = taskOwner?.department === deptFilter;
-        if (subDeptFilter !== "ALL")
-          matchesSubDept = taskOwner?.sub_department === subDeptFilter;
-        if (employeeFilter !== "ALL")
-          matchesEmployee = task.loggedById === employeeFilter;
+        // If allEmployees is still loading, skip hierarchy filters rather than
+        // rejecting every task (taskOwner would be undefined for all tasks).
+        if (allEmployees.length > 0) {
+          const taskOwner = allEmployees.find((e) => e.id === task.loggedById);
+          if (deptFilter !== "ALL")
+            matchesDept = taskOwner?.department === deptFilter;
+          if (subDeptFilter !== "ALL")
+            // getAllEmployees() maps sub_department → subDepartment (camelCase)
+            matchesSubDept = taskOwner?.subDepartment === subDeptFilter;
+          if (employeeFilter !== "ALL")
+            matchesEmployee = task.loggedById === employeeFilter;
+        }
       }
 
       return (

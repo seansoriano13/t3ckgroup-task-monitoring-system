@@ -13,12 +13,12 @@ import { useAuth } from "../../context/AuthContext";
 import { taskService } from "../../services/taskService.js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { supabase } from "../../lib/supabase.js";
 
 // --- DATE PICKER IMPORTS ---
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTaskFilters } from "../../hooks/useTaskFilters.jsx";
+import { employeeService } from "../../services/employeeService.js";
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -70,27 +70,22 @@ export default function TasksPage() {
     },
   });
 
-  // 🔥 FETCH DROPDOWN DATA (Topology)
-  // We fetch this directly so the dropdowns populate even if no tasks exist yet
+  // Fetch all employees and categories
   useEffect(() => {
     if (!isManagement) return;
 
     const fetchTopology = async () => {
-      const { data: emps } = await supabase
-        .from("employees")
-        .select("id, name, department, sub_department, is_super_admin, is_head");
-      if (emps) setAllEmployees(emps);
+      const employees = await employeeService.getAllEmployees();
+      if (employees) setAllEmployees(employees);
 
-      const { data: cats } = await supabase
-        .from("categories")
-        .select("department, sub_department");
-      if (cats) setAllCategories(cats);
+      const categories = await employeeService.getAllCategories();
+      if (categories) setAllCategories(categories);
     };
 
     fetchTopology();
   }, [isManagement]);
 
-  // 🔥 THE DYNAMIC READ ENGINE
+  // Fetch all tasks
   const {
     data: rawTasks = [],
     isLoading,
@@ -107,20 +102,20 @@ export default function TasksPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 🔥 DEEP LINKING NOTIFICATION HOOK
   useEffect(() => {
     if (location.state?.openTaskId && rawTasks.length > 0) {
       const targetTask = rawTasks.find(
         (t) => t.id === location.state.openTaskId,
       );
       if (targetTask) {
-        setViewTask(targetTask);
-        navigate(location.pathname, { replace: true, state: {} });
+        queueMicrotask(() => {
+          setViewTask(targetTask);
+          navigate(location.pathname, { replace: true, state: {} });
+        });
       }
     }
   }, [location.state, rawTasks, navigate, location.pathname]);
 
-  // THE WRITE ENGINE
   const editTaskMutation = useMutation({
     mutationFn: (updatedData) =>
       taskService.updateTask(updatedData.id, updatedData),
@@ -154,7 +149,7 @@ export default function TasksPage() {
 
   const uniqueEmployees = useMemo(() => {
     if (!isManagement) return [];
-    let pool = allEmployees.filter(e => !e.is_super_admin && !e.is_head);
+    let pool = allEmployees.filter((e) => !e.is_super_admin && !e.is_head);
     if (deptFilter !== "ALL")
       pool = pool.filter((e) => e.department === deptFilter);
     if (subDeptFilter !== "ALL")
@@ -189,10 +184,17 @@ export default function TasksPage() {
   // Pre-compute category totals from FULL filtered set (not paginated slice)
   const statusTotals = useMemo(() => {
     const totals = {};
-    ["INCOMPLETE", "COMPLETE_UNVERIFIED", "COMPLETE_VERIFIED", "NOT APPROVED"].forEach((key) => {
+    [
+      "INCOMPLETE",
+      "COMPLETE_UNVERIFIED",
+      "COMPLETE_VERIFIED",
+      "NOT APPROVED",
+    ].forEach((key) => {
       totals[key] = sortedAndFilteredTasks.filter((t) => {
-        if (key === "COMPLETE_UNVERIFIED") return t.status === "COMPLETE" && !t.hrVerified;
-        if (key === "COMPLETE_VERIFIED") return t.status === "COMPLETE" && t.hrVerified;
+        if (key === "COMPLETE_UNVERIFIED")
+          return t.status === "COMPLETE" && !t.hrVerified;
+        if (key === "COMPLETE_VERIFIED")
+          return t.status === "COMPLETE" && t.hrVerified;
         return t.status === key;
       }).length;
     });
@@ -200,8 +202,7 @@ export default function TasksPage() {
   }, [sortedAndFilteredTasks]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentPage(1);
+    queueMicrotask(() => setCurrentPage(1));
   }, [
     searchTerm,
     statusFilter,
@@ -383,11 +384,18 @@ export default function TasksPage() {
 
       {/* THE CATEGORIZED GRID */}
       <div className="space-y-12 pb-10">
-        {["INCOMPLETE", "COMPLETE_UNVERIFIED", "COMPLETE_VERIFIED", "NOT APPROVED"].map((statusKey) => {
+        {[
+          "INCOMPLETE",
+          "COMPLETE_UNVERIFIED",
+          "COMPLETE_VERIFIED",
+          "NOT APPROVED",
+        ].map((statusKey) => {
           const statusTasks = paginatedTasks.filter((t) => {
-             if (statusKey === "COMPLETE_UNVERIFIED") return t.status === "COMPLETE" && !t.hrVerified;
-             if (statusKey === "COMPLETE_VERIFIED") return t.status === "COMPLETE" && t.hrVerified;
-             return t.status === statusKey;
+            if (statusKey === "COMPLETE_UNVERIFIED")
+              return t.status === "COMPLETE" && !t.hrVerified;
+            if (statusKey === "COMPLETE_VERIFIED")
+              return t.status === "COMPLETE" && t.hrVerified;
+            return t.status === statusKey;
           });
           if (statusTasks.length === 0) return null;
 
@@ -405,15 +413,15 @@ export default function TasksPage() {
                           : "bg-amber-500"
                   }`}
                 />
-                <h2 className="text-sm font-black text-gray-12 uppercase tracking-[0.2em]">
+                <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
                   {statusKey === "COMPLETE_VERIFIED"
                     ? "Verified"
                     : statusKey === "COMPLETE_UNVERIFIED"
-                      ? "Completed"
+                      ? "Completed (Unverified)"
                       : statusKey === "NOT APPROVED"
-                        ? "Revision Required"
+                        ? "Not Approved"
                         : "Pending / In Progress"}
-                </h2>
+                </h3>
                 <span className="text-[10px] font-bold text-gray-8 bg-gray-2 px-2 py-0.5 rounded-full border border-gray-4 ml-auto">
                   {statusTotals[statusKey]} Total
                 </span>
@@ -444,33 +452,33 @@ export default function TasksPage() {
         )}
       </div>
 
-          {/* PAGINATION - Stacked buttons on tiny screens */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4 mb-10">
-              <div className="flex items-center gap-4 w-full sm:w-auto">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((prev) => prev - 1)}
-                  className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
-                >
-                  Prev
-                </button>
-                <span className="sm:hidden text-gray-11 font-bold text-xs uppercase">
-                  {currentPage} / {totalPages}
-                </span>
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
-                >
-                  Next
-                </button>
-              </div>
-              <span className="hidden sm:block text-gray-11 font-bold text-sm uppercase tracking-widest">
-                Page {currentPage} of {totalPages}
-              </span>
-            </div>
-          )}
+      {/* PAGINATION - Stacked buttons on tiny screens */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4 mb-10">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
+            >
+              Prev
+            </button>
+            <span className="sm:hidden text-gray-11 font-bold text-xs uppercase">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
+            >
+              Next
+            </button>
+          </div>
+          <span className="hidden sm:block text-gray-11 font-bold text-sm uppercase tracking-widest">
+            Page {currentPage} of {totalPages}
+          </span>
+        </div>
+      )}
       <TaskDetails
         isOpen={!!viewTask}
         onClose={() => setViewTask(null)}
