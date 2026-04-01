@@ -297,6 +297,24 @@ export const taskService = {
       }
     }
 
+    // --- IMMUTABILITY GUARD ---
+    // If the task is presently verified, block edits to core content fields.
+    // (HR undo can still proceed because this check drops if isHrUndo is true,
+    // though HR undo payload usually shouldn't touch these anyway).
+    if (current?.hr_verified === true && !isHrUndo) {
+      const attemptedCoreEdits = [
+        payload.taskDescription,
+        payload.categoryId,
+        payload.priority,
+        payload.startAt,
+        payload.endAt
+      ].some(val => val !== undefined);
+
+      if (attemptedCoreEdits) {
+        throw new Error("Cannot edit core details of a task that has already been verified by HR.");
+      }
+    }
+
     // Employee Edit Fields
     if (payload.taskDescription !== undefined)
       updateData.task_description = payload.taskDescription;
