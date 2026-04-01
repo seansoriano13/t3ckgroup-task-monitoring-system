@@ -9,7 +9,6 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isHead = user?.is_head === true || user?.isHead === true;
 
-  // 🔥 THE FIX: Extract this to a stable primitive string
   const userDepartment = user?.department;
 
   // Fetch ALL tasks (we will filter them down for Heads)
@@ -26,13 +25,11 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
     const currentMonth = selDate.getMonth();
     const currentYear = selDate.getFullYear();
 
-    // 1. Group all tasks by Employee
     const empMap = {};
 
     rawTasks.forEach((task) => {
       if (!task.loggedById || task.status === "DELETED") return;
 
-      // 🔥 Month Filtering
       const taskDate = new Date(task.createdAt);
       if (
         taskDate.getMonth() !== currentMonth ||
@@ -43,7 +40,7 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
 
       // If they are a Head (but NOT HR), strictly filter out tasks from other departments
       if (!isHr && isHead) {
-        if (task.creator?.department !== userDepartment) return; // 🔥 Use the variable here
+        if (task.creator?.department !== userDepartment) return;
       }
 
       // If Super Admin, exclude tasks/stats belonging to other Heads or HR
@@ -95,8 +92,15 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
         completionRate:
           Math.round(((emp.pendingHr + emp.verified) / emp.total) * 100) || 0,
       }))
-      .sort((a, b) => b.total - a.total); // Sort by most active employees first
-  }, [rawTasks, isHr, isHead, userDepartment, selectedMonth]); // 🔥 And use the variable here
+      .sort((a, b) => b.total - a.total);
+  }, [
+    rawTasks,
+    isHr,
+    isHead,
+    userDepartment,
+    user?.isSuperAdmin,
+    selectedMonth,
+  ]);
 
   if (isLoading || employeeStats.length === 0) return null;
 

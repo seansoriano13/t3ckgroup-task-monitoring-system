@@ -17,13 +17,15 @@ import {
  * never trapped inside a parent stacking context. Modals at z-[9999]
  * will always render above this FAB (z-40).
  */
+
 export default function FloatingMonthPicker({ selectedMonth, onChange }) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
 
-  const parsedDate = selectedMonth && !isNaN(new Date(selectedMonth).getTime())
-    ? new Date(selectedMonth)
-    : new Date();
+  const parsedDate =
+    selectedMonth && !isNaN(new Date(selectedMonth).getTime())
+      ? new Date(selectedMonth)
+      : new Date();
   const year = parsedDate.getFullYear();
   const month = parsedDate.getMonth();
 
@@ -85,7 +87,7 @@ export default function FloatingMonthPicker({ selectedMonth, onChange }) {
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-9 flex items-center gap-1.5">
               <TrendingUp size={12} className="text-primary" />
-              Target Period
+              Target Month
             </p>
             {!isCurrentMonth && (
               <button
@@ -212,7 +214,9 @@ export default function FloatingMonthPicker({ selectedMonth, onChange }) {
         }`}
       >
         <Calendar size={16} className={open ? "text-white" : "text-primary"} />
-        <span className="uppercase tracking-wider text-xs">{fmt(parsedDate)}</span>
+        <span className="uppercase tracking-wider text-xs">
+          {fmt(parsedDate)}
+        </span>
         {!isCurrentMonth && (
           <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-black uppercase tracking-wide">
             Past

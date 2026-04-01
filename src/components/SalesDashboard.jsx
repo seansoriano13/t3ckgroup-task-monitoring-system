@@ -36,7 +36,8 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
   // Sync with prop if provided, otherwise use internal
   const rawMonth = propMonth || internalMonth;
   // Standardize to YYYY-MM and YYYY-MM-01
-  const selectedMonth = rawMonth?.length > 7 ? rawMonth.slice(0, 7) : (rawMonth || currentMonthYear);
+  const selectedMonth =
+    rawMonth?.length > 7 ? rawMonth.slice(0, 7) : rawMonth || currentMonthYear;
   const fullMonthDate = `${selectedMonth}-01`;
   const setSelectedMonth = setInternalMonth;
 
@@ -191,7 +192,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
             onClick={() => setActiveTab("ANALYTICS")}
             className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeTab === "ANALYTICS" ? "bg-red-9 text-white shadow" : "text-gray-9 hover:text-gray-12"}`}
           >
-            <PieChart size={16} />  Analytics
+            <PieChart size={16} /> Analytics
           </button>
         </div>
       </div>
@@ -364,7 +365,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
                                 <div
                                   className={`h-full ${pct >= 100 ? "transition-all duration-1000 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : pct >= 50 ? "transition-all duration-1000 bg-yellow-500" : "transition-all duration-1000 bg-red-500"}`}
                                   style={{ width: `${Math.min(pct, 100)}%` }}
-                                ></div> 
+                                ></div>
                               </div>
                               <span className="text-xs font-bold text-gray-12 w-8">
                                 {pct}%
@@ -626,10 +627,10 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
                       </div>
                       <div className="flex justify-between text-xs font-mono font-black">
                         <span className="">
-                           Completed Sales: ₱{prod.won.toLocaleString()}
+                          Completed Sales: ₱{prod.won.toLocaleString()}
                         </span>
                         <span className="">
-                           Lost Sales: ₱{prod.lost.toLocaleString()}
+                          Lost Sales: ₱{prod.lost.toLocaleString()}
                         </span>
                       </div>
                     </div>

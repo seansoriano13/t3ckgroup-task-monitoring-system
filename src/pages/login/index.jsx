@@ -83,7 +83,7 @@ export default function Login() {
               <label className="text-xs font-bold text-gray-10 uppercase tracking-wider flex justify-between">
                 Email Address{" "}
                 {!allowTestLogin && (
-                  <span className="text-gray-8 lowercase normal-case font-normal">
+                  <span className="text-gray-8 normal-case font-normal">
                     (Disabled)
                   </span>
                 )}
@@ -102,7 +102,7 @@ export default function Login() {
               <label className="text-xs font-bold text-gray-10 uppercase tracking-wider flex justify-between">
                 Password{" "}
                 {!allowTestLogin && (
-                  <span className="text-gray-8 lowercase normal-case font-normal">
+                  <span className="text-gray-8 normal-case font-normal">
                     (Disabled)
                   </span>
                 )}

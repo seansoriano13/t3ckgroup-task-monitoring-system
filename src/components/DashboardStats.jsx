@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  CheckCircle2, 
-  Clock, 
-  Activity, 
-  AlertCircle, 
-  ShieldAlert, 
-  XCircle, 
-  Database 
+import {
+  CheckCircle2,
+  Clock,
+  Activity,
+  AlertCircle,
+  ShieldAlert,
+  XCircle,
+  Database,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
@@ -21,8 +21,7 @@ export default function DashboardStats({ selectedMonth }) {
   const userSubDept = user?.sub_department || user?.subDepartment;
   const userDept = user?.department;
 
-  // 🔥 MAGIC: This uses the exact same Query Key as TasksList.
-  // TanStack will just hand over the cached data instantly. Zero extra loading!
+  // Used cached data
   const { data: rawTasks = [], isLoading } = useQuery({
     queryKey: ["dashboardTasks", user?.id, isManagement ? "all" : "personal"],
     queryFn: () =>
@@ -40,11 +39,16 @@ export default function DashboardStats({ selectedMonth }) {
     // 1. Filter tasks for ONLY this month, EXCLUDING Super Admin
     const thisMonthTasks = rawTasks.filter((t) => {
       const taskDate = new Date(t.createdAt);
-      
-      const roleStr = (t.creator?.role || '').toLowerCase();
-      const deptStr = (t.creator?.department || '').toLowerCase();
-      if (t.creator?.isSuperAdmin || roleStr.includes('admin') || deptStr.includes('super admin') || deptStr.includes('management')) {
-         return false;
+
+      const roleStr = (t.creator?.role || "").toLowerCase();
+      const deptStr = (t.creator?.department || "").toLowerCase();
+      if (
+        t.creator?.isSuperAdmin ||
+        roleStr.includes("admin") ||
+        deptStr.includes("super admin") ||
+        deptStr.includes("management")
+      ) {
+        return false;
       }
 
       return (
@@ -55,11 +59,19 @@ export default function DashboardStats({ selectedMonth }) {
 
     // 2. Calculate Personal Stats
     const myTasks = thisMonthTasks.filter((t) => t.loggedById === user?.id);
-    const myPending = myTasks.filter((t) => t.status === "INCOMPLETE" && !t.endAt).length;
-    const myPendingApproval = myTasks.filter((t) => t.status === "INCOMPLETE" && !!t.endAt).length;
-    const myPendingHr = myTasks.filter((t) => t.status === "COMPLETE" && !t.hrVerified).length;
+    const myPending = myTasks.filter(
+      (t) => t.status === "INCOMPLETE" && !t.endAt,
+    ).length;
+    const myPendingApproval = myTasks.filter(
+      (t) => t.status === "INCOMPLETE" && !!t.endAt,
+    ).length;
+    const myPendingHr = myTasks.filter(
+      (t) => t.status === "COMPLETE" && !t.hrVerified,
+    ).length;
     // For My Completed, it's tasks that are FULLY completed and verified
-    const myCompleted = myTasks.filter((t) => t.status === "COMPLETE" && t.hrVerified).length;
+    const myCompleted = myTasks.filter(
+      (t) => t.status === "COMPLETE" && t.hrVerified,
+    ).length;
 
     // 3. Calculate Management Stats (Only if Head or HR)
     let teamPendingApprovals = 0;
@@ -73,30 +85,43 @@ export default function DashboardStats({ selectedMonth }) {
     let hrAllTasks = 0;
 
     if (isHr) {
-      hrPendingApprovals = thisMonthTasks.filter((t) => t.status === "INCOMPLETE").length;
-      hrPendingVerification = thisMonthTasks.filter((t) => t.status === "COMPLETE" && !t.hrVerified).length;
-      hrRejected = thisMonthTasks.filter((t) => t.status === "NOT APPROVED").length;
+      hrPendingApprovals = thisMonthTasks.filter(
+        (t) => t.status === "INCOMPLETE",
+      ).length;
+      hrPendingVerification = thisMonthTasks.filter(
+        (t) => t.status === "COMPLETE" && !t.hrVerified,
+      ).length;
+      hrRejected = thisMonthTasks.filter(
+        (t) => t.status === "NOT APPROVED",
+      ).length;
       hrAllTasks = thisMonthTasks.length;
     } else if (isHead) {
       let teamTasks = thisMonthTasks.filter((t) => t.loggedById !== user?.id);
 
       // Head only tracks their sub-department, or entire department if no sub-dept
-      teamTasks = teamTasks.filter(
-        (t) => {
-           const taskSubDept = t.sub_department || t.creator?.sub_department || t.employees?.sub_department;
-           const taskDept = t.creator?.department || t.employees?.department;
-           if(userSubDept) {
-              return taskSubDept === userSubDept;
-           } else {
-              return taskDept === userDept;
-           }
+      teamTasks = teamTasks.filter((t) => {
+        const taskSubDept =
+          t.sub_department ||
+          t.creator?.sub_department ||
+          t.employees?.sub_department;
+        const taskDept = t.creator?.department || t.employees?.department;
+        if (userSubDept) {
+          return taskSubDept === userSubDept;
+        } else {
+          return taskDept === userDept;
         }
-      );
+      });
 
-      teamPendingApprovals = teamTasks.filter((t) => t.status === "INCOMPLETE").length;
+      teamPendingApprovals = teamTasks.filter(
+        (t) => t.status === "INCOMPLETE",
+      ).length;
       teamCompleted = teamTasks.filter((t) => t.status === "COMPLETE").length;
-      teamRejected = teamTasks.filter((t) => t.status === "NOT APPROVED").length;
-      teamPendingHr = teamTasks.filter((t) => t.status === "COMPLETE" && !t.hrVerified).length;
+      teamRejected = teamTasks.filter(
+        (t) => t.status === "NOT APPROVED",
+      ).length;
+      teamPendingHr = teamTasks.filter(
+        (t) => t.status === "COMPLETE" && !t.hrVerified,
+      ).length;
     }
 
     return {
@@ -113,7 +138,7 @@ export default function DashboardStats({ selectedMonth }) {
       hrRejected,
       hrAllTasks,
     };
-  }, [rawTasks, user?.id, isManagement, isHead, isHr, userSubDept, userDept, selectedMonth]);
+  }, [rawTasks, user?.id, isHead, isHr, userSubDept, userDept, selectedMonth]);
 
   if (isLoading) {
     return (
@@ -141,7 +166,7 @@ export default function DashboardStats({ selectedMonth }) {
             borderColor="border-t-yellow-500"
           />
           <StatCard
-            title="Pending HR"
+            title="Pending HR Verification"
             value={stats.myPendingHr}
             subtitle="HR Verification"
             icon={<ShieldAlert size={20} className="text-amber-500" />}
@@ -176,14 +201,14 @@ export default function DashboardStats({ selectedMonth }) {
             borderColor="border-t-red-500"
           />
           <StatCard
-            title="Pending HR"
+            title="Pending HR Verification"
             value={stats.teamPendingHr}
             subtitle="Waiting HR Review"
             icon={<Clock size={20} className="text-amber-500" />}
             borderColor="border-t-amber-500"
           />
           <StatCard
-            title="Approved Tasks"
+            title="Completed Tasks"
             value={stats.teamCompleted}
             subtitle="Completed this Month"
             icon={<CheckCircle2 size={20} className="text-blue-500" />}
@@ -231,7 +256,7 @@ export default function DashboardStats({ selectedMonth }) {
 }
 
 // Reusable Sub-component for the cards
-function StatCard({ title, value, subtitle, icon, borderColor, highlight }) {
+function StatCard({ title, value, subtitle, icon, highlight }) {
   return (
     <div
       className={`bg-gray-1 rounded-xl p-5 border border-gray-4 shadow-sm relative overflow-hidden transition-all ${highlight ? "bg-primary/5 border-primary/30" : ""}`}
