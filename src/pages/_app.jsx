@@ -6,11 +6,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../services/taskService";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import { Loader2 } from "lucide-react";
 import RoleSwitcher from "../components/RoleSwitcher";
 
 export default function AppLayout() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const location = useLocation();
   const queryClient = useQueryClient();
 
@@ -71,6 +72,22 @@ export default function AppLayout() {
 
   if (location.pathname === "/login") {
     return <Outlet />;
+  }
+
+  // 🔑 CRITICAL: Don't render child pages until auth is resolved.
+  // Without this gate, useQuery's `enabled: !!user?.id` fires as `false`
+  // at mount time and the query is registered as permanently disabled.
+  if (isAuthLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-2">
+        <div className="flex flex-col items-center gap-3 text-gray-9">
+          <Loader2 className="animate-spin" size={28} />
+          <p className="text-sm font-bold uppercase tracking-widest animate-pulse">
+            Loading Portal...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
