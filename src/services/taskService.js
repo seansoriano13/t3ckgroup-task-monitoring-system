@@ -434,8 +434,8 @@ export const taskService = {
     const { error } = await supabase
       .from("tasks")
       .update({
-        status: "DELETED", // Hides it from normal views
-        edited_by: userId, // Audit trail: Who deleted it?
+        status: "DELETED",
+        edited_by: userId, 
         edited_at: new Date().toISOString(),
       })
       .eq("id", taskId);

@@ -127,12 +127,12 @@ export default function TasksList({ selectedMonth }) {
           "";
 
         const taskDept = t.creator?.department || t.employees?.department || "";
-        
+
         let inMyDept = false;
-        if(userSubDept) {
-           inMyDept = taskSubDept === userSubDept;
+        if (userSubDept) {
+          inMyDept = taskSubDept === userSubDept;
         } else {
-           inMyDept = taskDept === userDept;
+          inMyDept = taskDept === userDept;
         }
 
         return isNotMe && inMyDept;
@@ -195,12 +195,21 @@ export default function TasksList({ selectedMonth }) {
           {myTasks.length > 0 ? (
             <div className="space-y-8">
               {/* Categorized Containers */}
-              {["INCOMPLETE", "COMPLETE_UNVERIFIED", "COMPLETE_VERIFIED", "NOT APPROVED"].map((statusKey) => {
+              {[
+                "INCOMPLETE",
+                "COMPLETE_UNVERIFIED",
+                "COMPLETE_VERIFIED",
+                "NOT APPROVED",
+              ].map((statusKey) => {
                 const filtered = myTasks.filter((t) => {
-                  if (statusKey === "COMPLETE_UNVERIFIED") return t.status === "COMPLETE" && !t.hrVerified;
-                  if (statusKey === "COMPLETE_VERIFIED") return t.status === "COMPLETE" && t.hrVerified;
-                  if (statusKey === "INCOMPLETE") return t.status === "INCOMPLETE";
-                  if (statusKey === "NOT APPROVED") return t.status === "NOT APPROVED";
+                  if (statusKey === "COMPLETE_UNVERIFIED")
+                    return t.status === "COMPLETE" && !t.hrVerified;
+                  if (statusKey === "COMPLETE_VERIFIED")
+                    return t.status === "COMPLETE" && t.hrVerified;
+                  if (statusKey === "INCOMPLETE")
+                    return t.status === "INCOMPLETE";
+                  if (statusKey === "NOT APPROVED")
+                    return t.status === "NOT APPROVED";
                   return false;
                 });
 
@@ -224,9 +233,9 @@ export default function TasksList({ selectedMonth }) {
                         {statusKey === "COMPLETE_VERIFIED"
                           ? "HR Verified"
                           : statusKey === "COMPLETE_UNVERIFIED"
-                            ? "Completed"
+                            ? "Completed (Unverified)"
                             : statusKey === "NOT APPROVED"
-                              ? "Revision Required"
+                              ? "Not Approved"
                               : "Active / Pending Action"}
                       </h3>
                     </div>
@@ -258,7 +267,7 @@ export default function TasksList({ selectedMonth }) {
             <div>
               <h2 className="text-xl font-black text-gray-12 flex items-center gap-2">
                 <Activity size={24} />
-                {isHr ? "Organization Stats" : "Team Activity Feed"}
+                {isHr ? "Organization Stats" : "Recent Activities"}
               </h2>
               <p className="text-sm text-gray-9 mt-1 font-medium">
                 Real-time monitoring for{" "}
@@ -278,7 +287,7 @@ export default function TasksList({ selectedMonth }) {
             <div className="lg:col-span-2 bg-gray-1 border border-gray-4 rounded-xl shadow-sm overflow-hidden">
               <div className="bg-gray-2 border-b border-gray-4 p-4">
                 <h3 className="text-xs font-bold text-gray-10 uppercase tracking-wider flex items-center gap-2">
-                  <Clock size={14} /> Latest Submissions
+                  <Clock size={14} /> Latest Tasks
                 </h3>
               </div>
               <div className="divide-y divide-gray-4">
@@ -348,7 +357,7 @@ export default function TasksList({ selectedMonth }) {
                   ))
                 ) : (
                   <div className="p-10 text-center text-gray-9 text-sm font-medium">
-                    No recent activity found.
+                    No recent tasks found.
                   </div>
                 )}
               </div>
@@ -502,8 +511,6 @@ export default function TasksList({ selectedMonth }) {
           </div>
         </section>
       )}
-
-    
 
       <TaskDetails
         isOpen={isDrawerOpen}
