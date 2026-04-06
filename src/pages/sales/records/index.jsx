@@ -10,6 +10,7 @@ import {
   FileText,
   CheckCircle2,
   Circle,
+  XCircle,
   AlertCircle,
   DollarSign,
   LayoutList,
@@ -22,6 +23,7 @@ import {
   Lock,
   Unlock,
   MessageSquare,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
@@ -58,6 +60,16 @@ export default function SalesRecordsPage() {
       queryClient.invalidateQueries({ queryKey: ["allRevenueLogs"] });
       toast.success("Revenue record updated successfully!");
       setEditingRevenue(null);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  // Super Admin only — soft-delete a revenue log (sets is_deleted=true in DB)
+  const deleteRevenueMutation = useMutation({
+    mutationFn: (id) => salesService.softDeleteRevenueLog(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allRevenueLogs"] });
+      toast.success("Revenue log removed.");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -200,8 +212,20 @@ export default function SalesRecordsPage() {
     let filtered = allowedActivities;
     if (filterEmp !== "ALL")
       filtered = filtered.filter((a) => a.employee_id === filterEmp);
-    if (filterStatus !== "ALL")
-      filtered = filtered.filter((a) => a.status === filterStatus);
+    if (filterStatus !== "ALL") {
+      if (filterStatus === "DONE") {
+        // "Completed" means APPROVED status
+        filtered = filtered.filter((a) => a.status === "APPROVED");
+      } else if (filterStatus === "PENDING") {
+        // "Pending Expense" — waiting for expense approval
+        filtered = filtered.filter((a) => a.status === "PENDING");
+      } else if (filterStatus === "INCOMPLETE") {
+        // "Planned / Incomplete" — not yet executed
+        filtered = filtered.filter((a) => a.status === "INCOMPLETE" || a.status === "REJECTED");
+      } else {
+        filtered = filtered.filter((a) => a.status === filterStatus);
+      }
+    }
     if (filterType !== "ALL")
       filtered = filtered.filter((a) => {
         const aType = (a.activity_type || "")
@@ -257,6 +281,12 @@ export default function SalesRecordsPage() {
 
     return filtered;
   }, [
+    allowedActivities,
+    filterEmp,
+    filterStatus,
+    filterType,
+    searchTerm,
+    selectedDateFilter,
     timeframe,
   ]);
 
@@ -565,7 +595,8 @@ export default function SalesRecordsPage() {
               {activeTab === "ACTIVITIES" ? (
                 <>
                   <option value="INCOMPLETE">Planned / Incomplete</option>
-                  <option value="DONE">Completed / Done</option>
+                  <option value="DONE">Completed / Approved</option>
+                  <option value="PENDING">Pending Expense Approval</option>
                 </>
               ) : (
                 <>
@@ -722,11 +753,25 @@ export default function SalesRecordsPage() {
                             </div>
                           </td>
                           <td className="p-4 text-center">
-                            {act.status === "DONE" ? (
+                            {act.status === "APPROVED" ? (
                               <div className="flex flex-col items-center gap-1 text-green-500">
                                 <CheckCircle2 size={18} />
                                 <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded">
                                   DONE
+                                </span>
+                              </div>
+                            ) : act.status === "PENDING" ? (
+                              <div className="flex flex-col items-center gap-1 text-amber-500">
+                                <Clock size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded">
+                                  PENDING
+                                </span>
+                              </div>
+                            ) : act.status === "REJECTED" ? (
+                              <div className="flex flex-col items-center gap-1 text-red-500">
+                                <XCircle size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded">
+                                  REJECTED
                                 </span>
                               </div>
                             ) : (
@@ -898,6 +943,11 @@ export default function SalesRecordsPage() {
                     <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center">
                       Status
                     </th>
+                    {user?.isSuperAdmin && (
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center w-12">
+                        
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-4">
@@ -969,6 +1019,35 @@ export default function SalesRecordsPage() {
                               </span>
                             )}
                           </td>
+                          {/* Super Admin soft-delete button */}
+                          {user?.isSuperAdmin && (
+                            <td
+                              className="p-4 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                title={log.is_verified ? "Un-verify before deleting" : "Remove log"}
+                                disabled={deleteRevenueMutation.isPending}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (log.is_verified) {
+                                    toast.error("Remove the verification stamp before deleting.");
+                                    return;
+                                  }
+                                  if (window.confirm(`Delete this revenue log (₱${Number(log.revenue_amount).toLocaleString()} – ${log.account})? This is a soft-delete and can be recovered from the database if needed.`)) {
+                                    deleteRevenueMutation.mutate(log.id);
+                                  }
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  log.is_verified
+                                    ? "text-gray-6 cursor-not-allowed"
+                                    : "text-gray-8 hover:text-red-500 hover:bg-red-500/10"
+                                }`}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))
                   )}
