@@ -75,7 +75,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
 
       stats[empId].totalPipeline++;
       const isUnplanned = !!act.is_unplanned;
-      const isDone = act.status === "DONE";
+      const isDone = act.status === "DONE" || act.status === "APPROVED";
 
       // COMMITMENT ADHERENCE (The Rate)
       // - If we are viewing a past month: all planned tasks are considered 'Due'.

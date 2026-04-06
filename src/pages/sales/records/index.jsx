@@ -213,9 +213,9 @@ export default function SalesRecordsPage() {
     if (filterEmp !== "ALL")
       filtered = filtered.filter((a) => a.employee_id === filterEmp);
     if (filterStatus !== "ALL") {
-      if (filterStatus === "DONE") {
-        // "Completed" means APPROVED status
-        filtered = filtered.filter((a) => a.status === "APPROVED");
+      if (filterStatus === "APPROVED" || filterStatus === "DONE") {
+        // "Completed" means APPROVED or DONE status
+        filtered = filtered.filter((a) => a.status === "APPROVED" || a.status === "DONE");
       } else if (filterStatus === "PENDING") {
         // "Pending Expense" — waiting for expense approval
         filtered = filtered.filter((a) => a.status === "PENDING");
@@ -301,15 +301,15 @@ export default function SalesRecordsPage() {
     // B. Status Filter
     if (filterStatus !== "ALL") {
       // Map the common filtering dropdown to Revenue exact terms
-       if (filterStatus === "DONE")
-         filtered = filtered.filter(
+      if (filterStatus === "APPROVED" || filterStatus === "DONE")
+        filtered = filtered.filter(
           (a) =>
-            a.status?.toUpperCase().includes("COMPLETED") &&
+            (a.status?.toUpperCase().includes("COMPLETED") || a.status?.toUpperCase() === "APPROVED") &&
             (!isVerificationEnforced || a.is_verified !== false),
         );
       if (filterStatus === "INCOMPLETE")
         filtered = filtered.filter(
-          (a) => a.status.includes("LOST") || a.status === "Lost",
+          (a) => a.status?.toUpperCase().includes("LOST") || a.status?.toUpperCase() === "REJECTED",
         );
       if (filterStatus === "UNVERIFIED")
         filtered = filtered.filter((a) => a.is_verified === false);
@@ -595,12 +595,12 @@ export default function SalesRecordsPage() {
               {activeTab === "ACTIVITIES" ? (
                 <>
                   <option value="INCOMPLETE">Planned / Incomplete</option>
-                  <option value="DONE">Completed / Approved</option>
+                  <option value="APPROVED">Approved / Completed</option>
                   <option value="PENDING">Pending Expense Approval</option>
                 </>
               ) : (
                 <>
-                  <option value="DONE">Completed Sales</option>
+                  <option value="APPROVED">Completed Sales</option>
                   <option value="INCOMPLETE">Lost Sales</option>
                   {isVerificationEnforced && (
                     <option value="UNVERIFIED">Pending Verification</option>
@@ -757,7 +757,7 @@ export default function SalesRecordsPage() {
                               <div className="flex flex-col items-center gap-1 text-green-500">
                                 <CheckCircle2 size={18} />
                                 <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded">
-                                  DONE
+                                  APPROVED
                                 </span>
                               </div>
                             ) : act.status === "PENDING" ? (
@@ -1107,8 +1107,8 @@ export default function SalesRecordsPage() {
 function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
   const [expanded, setExpanded] = useState(false);
   const total = dateBlock.all.length;
-  const done = dateBlock.all.filter(a => a.status === "DONE").length;
-  const pending = dateBlock.all.filter(a => a.status === "PENDING_APPROVAL").length;
+  const done = dateBlock.all.filter(a => a.status === "DONE" || a.status === "APPROVED").length;
+  const pending = dateBlock.all.filter(a => a.status === "PENDING_APPROVAL" || a.status === "PENDING").length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
   const pctColor = pct >= 80 ? "text-green-600 bg-green-500/10 border-green-500/20"
@@ -1186,7 +1186,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
 }
 
 function BoardActivityCard({ act, onClick }) {
-  const isDone = act.status === "DONE";
+  const isDone = act.status === "DONE" || act.status === "APPROVED";
   const isLost = act.sales_outcome === 'LOST';
   const isWon  = act.sales_outcome === 'WON';
   return (
@@ -1562,8 +1562,8 @@ const EditRevenueModal = ({
                   }
                   className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-bold"
                 >
-                  <option value="COMPLETED SALES">COMPLETED SALES</option>
-                  <option value="LOST SALES">LOST SALES</option>
+                  <option value="COMPLETED">COMPLETED SALES</option>
+                  <option value="LOST">LOST SALES</option>
                 </select>
               </div>
             </div>

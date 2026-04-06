@@ -43,7 +43,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
            <div>
               <div className="flex items-center gap-3">
                  <h2 className="text-xl font-black text-gray-12">Sales Activity Details</h2>
-                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${activity.status === 'DONE' ? 'bg-green-500/10 text-green-500' : 'bg-gray-4 text-gray-11'}`}>{activity.status}</span>
+                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${activity.status === 'DONE' || activity.status === 'APPROVED' ? 'bg-green-500/10 text-green-500' : activity.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : 'bg-gray-4 text-gray-11'}`}>{activity.status}</span>
                  {/* Sales Outcome Badge */}
                  {localOutcome === 'WON' && (
                    <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-green-500/10 text-green-500 border border-green-500/30">WON</span>
@@ -144,7 +144,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
 
             {/* Admin/Head: Editable Sales Outcome (strictly requires reference number) */}
             {isAdminView && activity.reference_number && (() => {
-             const isActivityCompleted = activity.status === 'DONE' || activity.status === 'PENDING_APPROVAL';
+              const isActivityCompleted = activity.status === 'DONE' || activity.status === 'APPROVED' || activity.status === 'PENDING_APPROVAL' || activity.status === 'PENDING';
              return (
                <div className={`bg-gray-1 border rounded-xl p-5 shadow-sm space-y-3 ${
                  !isActivityCompleted ? 'border-gray-3 opacity-60' :

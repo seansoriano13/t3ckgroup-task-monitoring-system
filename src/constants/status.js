@@ -16,6 +16,7 @@ export const REVENUE_STATUS = {
   LOST: "LOST",
   REJECTED: "REJECTED",
   APPROVED: "APPROVED",
+  DONE: "APPROVED", // Alias for backward compatibility and UI filters
 };
 
 export const SALES_PLAN_STATUS = {

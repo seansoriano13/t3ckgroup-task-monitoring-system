@@ -200,7 +200,7 @@ export default function DailyExecutionPage() {
             {weekDates.map(wd => {
               const todaysTasks = weeklyActivities.filter(a => a.scheduled_date === wd.dateStr && (a.activity_type !== 'None' || (a.account_name && a.account_name.trim() !== '')));
               const hasTasks = todaysTasks.length > 0;
-              const allTasksDone = hasTasks && todaysTasks.every(a => a.status === 'DONE' || a.status === 'APPROVED');
+              const allTasksDone = hasTasks && todaysTasks.every(a => a.status === 'DONE' || a.status === 'APPROVED' || a.status === 'PENDING' || a.status === 'PENDING_APPROVAL');
 
               return (
                 <button
@@ -369,7 +369,10 @@ function ChecklistItem({ data, onToggle, disabledUI, isAdminView, settings, high
          {isDone
            ? <CheckCircle2 key={justChecked ? 'pop' : 'idle'} size={24} className={`text-green-500 ${justChecked ? 'animate-success-pop' : ''}`} />
            : isPendingApproval
-           ? <Clock size={24} className="text-amber-500" />
+           ? <div className="relative">
+               <CheckCircle2 size={24} className="text-amber-500 opacity-50" />
+               <Clock size={12} className="text-amber-600 absolute -right-1 -bottom-1 bg-white rounded-full shadow-sm" />
+             </div>
            : <Circle size={24} className={`text-gray-6 transition-transform ${justChecked ? 'scale-110' : ''}`} />}
        </button>
        <div className="flex-1 min-w-0">

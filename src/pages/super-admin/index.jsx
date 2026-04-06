@@ -10,6 +10,8 @@ import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx"
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
 
+const EMPTY_ARRAY = [];
+
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -24,19 +26,19 @@ export default function SuperAdminDashboard() {
   const [isSavingAll, setIsSavingAll] = useState(false);
 
   // 1. Fetch Sales Employees
-  const { data: salesEmployees = [], isLoading: loadingEmps } = useQuery({
+  const { data: salesEmployees = EMPTY_ARRAY, isLoading: loadingEmps } = useQuery({
     queryKey: ["salesEmployees"],
     queryFn: () => salesService.getSalesEmployees(),
   });
 
   // 2. Fetch Quotas for the Selected Month
-  const { data: quotas = [], isLoading: loadingQuotas } = useQuery({
+  const { data: quotas = EMPTY_ARRAY, isLoading: loadingQuotas } = useQuery({
     queryKey: ["quotas", selectedMonth],
     queryFn: () => salesService.getQuotasByMonth(selectedMonth),
   });
 
   // 3. Fetch all activities for Stats
-  const { data: allActivities = [], isLoading: loadingAct } = useQuery({
+  const { data: allActivities = EMPTY_ARRAY, isLoading: loadingAct } = useQuery({
     queryKey: ["allSalesActivitiesAdmin"],
     queryFn: () => salesService.getAllSalesActivities(),
   });
