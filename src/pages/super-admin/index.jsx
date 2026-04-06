@@ -4,7 +4,7 @@ import { salesService } from "../../services/salesService";
 import { useAuth } from "../../context/AuthContext";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { Loader2, CheckCheck, PhilippinePeso } from "lucide-react";
+import { Loader2, CheckCheck, PhilippinePeso, ChevronLeft, ChevronRight } from "lucide-react";
 import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
@@ -131,10 +131,33 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-xs font-bold text-gray-9 shadow-inner w-max">
-            <span className="uppercase tracking-wider">
+          {/* Inline month navigator — arrows for quick prev/next, FAB for full picker */}
+          <div className="flex items-center gap-1 bg-gray-2 border border-gray-4 rounded-lg shadow-inner">
+            <button
+              onClick={() => {
+                const d = new Date(selectedMonth);
+                d.setMonth(d.getMonth() - 1);
+                setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`);
+              }}
+              className="p-2 hover:bg-gray-3 rounded-l-lg text-gray-9 hover:text-gray-12 transition-colors"
+              title="Previous month"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span className="px-2 text-xs font-bold text-gray-11 uppercase tracking-wider select-none min-w-[110px] text-center">
               {new Date(selectedMonth).toLocaleString("default", { month: "long", year: "numeric" })}
             </span>
+            <button
+              onClick={() => {
+                const d = new Date(selectedMonth);
+                d.setMonth(d.getMonth() + 1);
+                setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`);
+              }}
+              className="p-2 hover:bg-gray-3 rounded-r-lg text-gray-9 hover:text-gray-12 transition-colors"
+              title="Next month"
+            >
+              <ChevronRight size={15} />
+            </button>
           </div>
         </div>
 
