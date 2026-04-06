@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router";
+import { useNavigate, Navigate } from "react-router";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import PrimaryButton from "../../components/PrimaryButton";
@@ -26,8 +26,7 @@ export default function Login() {
   // Show nothing while auth is still resolving to prevent a flash of the form.
   if (isAuthLoading) return null;
   if (user) {
-    navigate("/", { replace: true });
-    return null;
+    return <Navigate to="/" replace />;
   }
 
   const handleManualLogin = async (e) => {
@@ -65,6 +64,7 @@ export default function Login() {
       }
     } catch (error) {
       console.error("Google login failed:", error);
+      toast.error("Google login failed: " + (error.message || "Network issue"));
     }
   };
 
