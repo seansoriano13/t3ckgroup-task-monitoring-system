@@ -50,6 +50,8 @@ export default function SideNav({ onOpenAddTask }) {
     navLinks = [
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
+      { label: "For Approval", link: "/approvals", icon: ShieldCheck },
+      { label: "HR Master Log", link: "/hr-master-log", icon: Database },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },

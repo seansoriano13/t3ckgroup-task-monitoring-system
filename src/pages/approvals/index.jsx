@@ -154,7 +154,7 @@ export default function ApprovalsPage() {
     );
 
   return (
-    <ProtectedRoute requireHead={true} excludeSuperAdmin={true}>
+    <ProtectedRoute requireHead={true}>
       <div className="max-w-5xl mx-auto space-y-6 pb-10">
         {/* HEADER */}
         <div className="flex justify-between items-end border-b border-gray-4 pb-4">
