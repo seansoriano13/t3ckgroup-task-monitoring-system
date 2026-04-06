@@ -143,7 +143,7 @@ export default function TasksPage() {
         ? allCategories
         : allCategories.filter((c) => c.department === deptFilter);
     return [
-      ...new Set(filteredCats.map((c) => c.sub_department).filter(Boolean)),
+      ...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean)),
     ].sort();
   }, [allCategories, deptFilter]);
 
@@ -153,7 +153,7 @@ export default function TasksPage() {
     if (deptFilter !== "ALL")
       pool = pool.filter((e) => e.department === deptFilter);
     if (subDeptFilter !== "ALL")
-      pool = pool.filter((e) => e.sub_department === subDeptFilter);
+      pool = pool.filter((e) => e.subDepartment === subDeptFilter);
     return pool.sort((a, b) => a.name.localeCompare(b.name));
   }, [allEmployees, deptFilter, subDeptFilter, isManagement]);
 
@@ -349,7 +349,7 @@ export default function TasksPage() {
               <select
                 value={subDeptFilter}
                 onChange={(e) => setSubDeptFilter(e.target.value)}
-                disabled={!isHr || deptFilter === "ALL"}
+                disabled={deptFilter === "ALL"}
                 className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50"
               >
                 <option value="ALL">All Sub-Depts</option>
