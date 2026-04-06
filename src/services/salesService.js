@@ -38,6 +38,7 @@ export const salesService = {
       .select("*, employees(name)")
       .gte("date", startDate)
       .lt("date", endDate)
+      .neq("is_deleted", true)          // exclude soft-deleted rows
       .order("date", { ascending: false });
 
     if (error) throw error;
@@ -441,9 +442,35 @@ export const salesService = {
      const { data, error } = await supabase
        .from('sales_revenue_logs')
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name, department, is_super_admin), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)')
+       .neq('is_deleted', true)          // exclude soft-deleted rows
        .order('date', { ascending: false });
      if (error) throw error;
      return data;
+  },
+
+  /**
+   * Soft-delete a revenue log (Super Admin only).
+   * Sets is_deleted=true and records a timestamp so the record is
+   * hidden from all queries but remains in the DB for audit purposes.
+   * Blocked if the log is currently is_verified=true (caller must un-verify first).
+   */
+  async softDeleteRevenueLog(id) {
+     const { data: log, error: fetchErr } = await supabase
+       .from('sales_revenue_logs')
+       .select('id, is_verified, is_deleted')
+       .eq('id', id)
+       .single();
+
+     if (fetchErr) throw new Error(fetchErr.message);
+     if (log?.is_deleted) throw new Error('This log has already been removed.');
+     if (log?.is_verified) throw new Error('Cannot delete a verified revenue log. Remove the verification stamp first.');
+
+     const { error } = await supabase
+       .from('sales_revenue_logs')
+       .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+       .eq('id', id);
+
+     if (error) throw new Error(error.message);
   },
 
   async getRevenueAnalysis(startDate, endDate) {
@@ -452,6 +479,7 @@ export const salesService = {
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name)')
        .gte('date', startDate)
        .lte('date', endDate)
+       .neq('is_deleted', true)          // exclude soft-deleted rows
        .order('date', { ascending: false });
      if (error) throw error;
      return data;
@@ -486,7 +514,8 @@ export const salesService = {
        .from('sales_revenue_logs')
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name, is_super_admin)')
        .gte('date', startDate)
-       .lt('date', endDate);
+       .lt('date', endDate)
+       .neq('is_deleted', true);          // exclude soft-deleted rows
     if (rErr) throw rErr;
 
     // 3. Combine
