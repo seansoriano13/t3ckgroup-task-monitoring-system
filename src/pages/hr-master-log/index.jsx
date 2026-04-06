@@ -458,12 +458,9 @@ export default function HrMasterLogPage() {
                           <CheckSquare size={14} /> Verified
                         </span>
                       ) : task.status === "COMPLETE" ? (
-                        <button
-                          onClick={() => verifyMutation.mutate(task.id)}
-                          className="text-xs font-bold text-primary hover:text-white bg-primary/10 hover:bg-primary px-3 py-1.5 rounded-full border border-primary/20 transition-colors"
-                        >
-                          Force Verify
-                        </button>
+                        <span className="text-xs text-amber-500 italic font-bold">
+                          Pending HR Verification
+                        </span>
                       ) : (
                         <span className="text-xs text-gray-8 italic">
                           Awaiting Manager

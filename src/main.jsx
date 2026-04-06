@@ -15,6 +15,11 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: true, // Instantly updates when they click back into the browser tab!
       staleTime: 1000 * 60 * 5, // Considers data "fresh" for 5 minutes to save bandwidth
       refetchInterval: 10000, // 👈 THE REAL-TIME MAGIC: Silently pulls fresh data every 10 seconds
+      retry: 1, // Minimize retries to avoid long hung states
+      networkMode: "always", // Prevent queries from pausing indefinitely on idle network throttling
+    },
+    mutations: {
+      networkMode: "always", // Ensure mutations don't get stuck if browser thinks it's offline
     },
   },
 });

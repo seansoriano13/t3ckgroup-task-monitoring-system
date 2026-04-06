@@ -123,7 +123,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 ) : (
                   <ShieldCheck size={16} />
                 )}
-                Verify
+                Verify & Sign
               </button>
             )}
 
