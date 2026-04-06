@@ -73,7 +73,7 @@ export default function SideNav({ onOpenAddTask }) {
       );
     }
 
-    if (user?.isHead) {
+    if (user?.isHead && !isSales) {
       navLinks.push({
         label: "For Approval",
         link: "/approvals",
@@ -167,7 +167,7 @@ export default function SideNav({ onOpenAddTask }) {
               title="Set Quotas"
             />
           </div>
-        ) : user?.isHr ? (
+        ) : user?.isHr || user?.isHead || user?.is_head || user?.is_hr ? (
           <div className="flex flex-col gap-2 w-full mt-2">
             <PrimaryButton
               onClick={() => {
@@ -178,15 +178,17 @@ export default function SideNav({ onOpenAddTask }) {
               label={<Plus size={20} />}
               title="Add Task"
             />
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                navigate("/approvals");
-              }}
-              className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Eye size={20} />}
-              title="For Approval"
-            />
+            {(!isSales || user?.isHr || user?.is_hr) && (
+              <PrimaryButton
+                onClick={() => {
+                  setIsExpanded(false);
+                  navigate("/approvals");
+                }}
+                className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
+                label={<Eye size={20} />}
+                title="For Approval"
+              />
+            )}
           </div>
         ) : (
           <div className="w-full mt-2">
@@ -195,21 +197,13 @@ export default function SideNav({ onOpenAddTask }) {
                 setIsExpanded(false); // Close sidebar when opening modal
                 if (isSales) {
                   navigate("/sales/schedule");
-                } else if (user?.is_head || user?.isHead) {
-                  navigate("/approvals");
                 } else {
                   onOpenAddTask();
                 }
               }}
               className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
-              label={
-                user?.isHead ? (
-                  <Eye size={20} />
-                ) : (
-                  <Plus size={20} />
-                )
-              }
-              title={user?.isHead ? "For Approval" : "Add Task"}
+              label={<Plus size={20} />}
+              title={isSales ? "Sales Planner" : "Add Task"}
             />
           </div>
         )}

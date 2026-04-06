@@ -9,10 +9,10 @@ import toast from "react-hot-toast";
 import SalesDashboard from "../components/SalesDashboard.jsx";
 import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
-import { Activity } from "lucide-react";
 import SalesPerformanceMetrics from "../components/SalesPerformanceMetrics.jsx";
 import { Calendar } from "lucide-react";
 import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
+import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
 import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
 
 export default function Dashboard() {
@@ -172,6 +172,9 @@ export default function Dashboard() {
           </div>
 
           <DashboardStats selectedMonth={selectedMonth} />
+          {!(user?.is_head || user?.isHead) && (
+            <PersonalPipelineRadar selectedMonth={selectedMonth} />
+          )}
           {(user?.is_head || user?.isHead) && (
             <EmployeePipelineMatrix selectedMonth={selectedMonth} />
           )}

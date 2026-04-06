@@ -175,7 +175,7 @@ export default function RoleSwitcher() {
   };
 
   return (
-    <div className="fixed bottom-8 right-50 z-[9999]">
+    <div className="fixed bottom-8 right-8 z-[9999]">
       {/* Expanded Panel */}
       {isOpen && (
         <div className="mb-2 bg-gray-1 border border-gray-4 rounded-xl shadow-2xl p-4 w-72 animate-in fade-in slide-in-from-bottom-2 duration-200">

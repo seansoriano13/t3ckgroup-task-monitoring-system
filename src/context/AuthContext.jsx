@@ -19,7 +19,14 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(() => {
+    // Optimistic: If we have a cached user, don't show the loading gate
+    try {
+      return !localStorage.getItem(PROFILE_CACHE_KEY);
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     let settled = false; // ensures setIsAuthLoading(false) only fires once
@@ -28,6 +35,14 @@ export const AuthProvider = ({ children }) => {
     // Only called on initial session load or explicit SIGNED_IN — NOT on TOKEN_REFRESHED.
     // Role changes in the DB only take effect after the user logs out and back in.
     const resolveEmployee = async (sessionUser) => {
+      // Safety timeout: If DB lookup hangs, release the gate after 5s
+      const localTimeout = setTimeout(() => {
+        if (!settled) {
+          console.warn("Auth: resolveEmployee timed out");
+          setIsAuthLoading(false);
+        }
+      }, 5000);
+
       try {
         const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
         if (employee) {
@@ -46,6 +61,7 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         console.warn("Auth: employee lookup failed (network?), keeping existing session:", err.message);
       } finally {
+        clearTimeout(localTimeout);
         setIsAuthLoading(false);
       }
     };

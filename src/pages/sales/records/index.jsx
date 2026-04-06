@@ -1115,8 +1115,21 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
     : pct >= 50 ? "text-yellow-600 bg-yellow-500/10 border-yellow-500/20"
     : "text-red-600 bg-red-500/10 border-red-500/20";
 
+  // Group activities by actual date for a much better UX
+  const activitiesByDate = useMemo(() => {
+    return dateBlock.all.reduce((acc, act) => {
+      const d = act.scheduled_date;
+      if (!acc[d]) acc[d] = { AM: [], PM: [] };
+      if (act.time_of_day === "AM") acc[d].AM.push(act);
+      else acc[d].PM.push(act);
+      return acc;
+    }, {});
+  }, [dateBlock]);
+
+  const datesSorted = Object.keys(activitiesByDate).sort();
+
   return (
-    <div className="min-w-[260px] shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm snap-start flex flex-col overflow-hidden transition-all">
+    <div className="min-w-[300px] shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm snap-start flex flex-col overflow-hidden transition-all">
       {/* Summary header — entire row is clickable */}
       <button
         onClick={() => setExpanded(v => !v)}
@@ -1154,31 +1167,41 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
 
       {/* Expandable body */}
       {expanded && (
-        <div className="border-t border-gray-100 p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* AM Block */}
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">AM Block ({dateBlock.AM.length})</p>
-            {dateBlock.AM.length === 0
-              ? <p className="text-xs text-gray-400 italic text-center py-2">No AM activities</p>
-              : <div className="space-y-1.5">
-                  {dateBlock.AM.map(act => (
-                    <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />
-                  ))}
-                </div>
-            }
-          </div>
-          {/* PM Block */}
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">PM Block ({dateBlock.PM.length})</p>
-            {dateBlock.PM.length === 0
-              ? <p className="text-xs text-gray-400 italic text-center py-2">No PM activities</p>
-              : <div className="space-y-1.5">
-                  {dateBlock.PM.map(act => (
-                    <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />
-                  ))}
-                </div>
-            }
-          </div>
+        <div className="bg-gray-50 border-t border-gray-100 p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[60vh] overflow-y-auto custom-scrollbar">
+          {datesSorted.length === 0 ? (
+             <p className="text-xs text-gray-400 italic text-center py-2">No activities</p>
+          ) : (
+             datesSorted.map((d) => (
+               <div key={d} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                 <h4 className="text-xs font-bold text-gray-800 mb-3 border-b border-gray-100 pb-1 flex justify-between items-center">
+                   {new Date(d).toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' })}
+                   <span className="text-[10px] text-gray-500 font-normal bg-gray-100 px-1.5 py-0.5 rounded text-center">{activitiesByDate[d].AM.length + activitiesByDate[d].PM.length} tasks</span>
+                 </h4>
+                 <div className="space-y-3">
+                   {activitiesByDate[d].AM.length > 0 && (
+                     <div>
+                       <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                          <Clock size={10} /> AM Block
+                       </p>
+                       <div className="space-y-1.5">
+                          {activitiesByDate[d].AM.map(act => <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />)}
+                       </div>
+                     </div>
+                   )}
+                   {activitiesByDate[d].PM.length > 0 && (
+                     <div>
+                       <p className="text-[9px] font-black text-purple-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 mt-2">
+                          <Clock size={10} /> PM Block
+                       </p>
+                       <div className="space-y-1.5">
+                          {activitiesByDate[d].PM.map(act => <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />)}
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </div>
+             ))
+          )}
         </div>
       )}
     </div>

@@ -61,6 +61,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
 
       if (!stats[empId]) {
         stats[empId] = {
+          empId,
           name: act.employees?.name || "Sales Rep",
           department: act.employees?.department || "Sales",
           totalPipeline: 0,
@@ -112,14 +113,22 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
       }
     });
 
-    return Object.values(stats)
+    const sortedStats = Object.values(stats)
       .map((s) => {
         const executionRate =
           s.totalDue > 0 ? Math.round((s.totalPlannedDone / s.totalDue) * 100) : 0;
         return { ...s, executionRate };
       })
       .sort((a, b) => b.executionRate - a.executionRate);
-  }, [allActivities, today, todayMonthKey, monthFilter]);
+
+    // Filter out other employees if the current user is not a Head,
+    // but the calculated rankings/sort remains preserved implicitly!
+    if (!isAdminView && user?.id) {
+      return sortedStats.filter((s) => s.empId === user.id);
+    }
+    
+    return sortedStats;
+  }, [allActivities, today, todayMonthKey, monthFilter, isAdminView, user?.id]);
 
   // 3. EXPENSE SUMMARY (Filtered by Month)
   const expenseSummary = useMemo(() => {

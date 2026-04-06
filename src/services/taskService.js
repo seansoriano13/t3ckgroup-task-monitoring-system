@@ -116,6 +116,20 @@ export const taskService = {
 
   // 3. CREATE
   async createTask(payload) {
+    let initialStatus = TASK_STATUS.INCOMPLETE;
+    let hrVerified = false;
+    let hrVerifiedAt = null;
+    let evaluatedBy = null;
+    let evaluatedAt = null;
+
+    if (payload.isHrSelfAssign) {
+      initialStatus = TASK_STATUS.COMPLETE;
+      hrVerified = true;
+      hrVerifiedAt = new Date().toISOString();
+      evaluatedBy = payload.submittedById;
+      evaluatedAt = new Date().toISOString();
+    }
+
     const { data, error } = await supabase
       .from("tasks")
       .insert([
@@ -127,9 +141,13 @@ export const taskService = {
             ? new Date(payload.startAt).toISOString()
             : new Date().toISOString(),
           end_at: payload.endAt ? new Date(payload.endAt).toISOString() : null,
-          status: TASK_STATUS.INCOMPLETE,
+          status: initialStatus,
           priority: payload.priority || "LOW",
           remarks: payload.remarks || "",
+          hr_verified: hrVerified,
+          hr_verified_at: hrVerifiedAt,
+          evaluated_by: evaluatedBy,
+          evaluated_at: evaluatedAt,
         },
       ])
       .select();

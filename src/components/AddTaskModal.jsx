@@ -70,7 +70,11 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
           // Super Admin can see everyone except other Super Admins (to keep it clean)
           empQuery = empQuery.or(`is_super_admin.eq.false,is_super_admin.is.null,id.eq.${user.id}`);
         } else if (!isHr && isHead) {
-          empQuery = empQuery.eq("sub_department", userSubDept || "");
+          if (userSubDept) {
+            empQuery = empQuery.eq("sub_department", userSubDept);
+          } else {
+            empQuery = empQuery.eq("department", user.department);
+          }
         } else if (!isHr && !isHead) {
           empQuery = empQuery.eq("id", user.id);
         }
@@ -159,8 +163,11 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
 
+    const isHrSelfAssign = isHr && formData.loggedById === user.id;
+
     const payload = {
       ...formData,
+      isHrSelfAssign,
       remarks: mergedRemarks,
       submittedById: user.id,
       submittedByName: user.name,
