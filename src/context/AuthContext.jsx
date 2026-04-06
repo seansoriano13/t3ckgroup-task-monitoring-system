@@ -7,9 +7,18 @@ import { useContext } from "react";
 import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
+const PROFILE_CACHE_KEY = "t3ck_user_profile";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    // Synchronously check localStorage on init to avoid flickering or stuck states
+    try {
+      const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
@@ -23,18 +32,21 @@ export const AuthProvider = ({ children }) => {
         const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
         if (employee) {
           const metadata = sessionUser.user_metadata || null;
-          setUser({
+          const mergedUser = {
             ...employee,
             picture: metadata?.avatar_url || metadata?.picture || "",
-          });
+          };
+          setUser(mergedUser);
+          localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(mergedUser));
+        } else {
+          // If logged into Supabase but NO matching employee found in DB -> Logout
+          console.warn("Auth: supabase session exists but no employee record found. Clearing session.");
+          await logout();
         }
-        // If employee not found: don't touch React state.
-        // Supabase will fire SIGNED_OUT itself if the token is truly invalid.
-        // Silently failing here prevents false logouts on network hiccups.
       } catch (err) {
-        // Network error during employee lookup — do NOT log the user out.
-        // Keep existing user state; they'll see stale data at worst.
         console.warn("Auth: employee lookup failed (network?), keeping existing session:", err.message);
+      } finally {
+        setIsAuthLoading(false);
       }
     };
 
@@ -75,18 +87,17 @@ export const AuthProvider = ({ children }) => {
           setIsAuthLoading(false);
         }
       } else if (event === "TOKEN_REFRESHED") {
-        // The session token was refreshed automatically (e.g. Android app resume).
-        // Only release the loading gate if it hasn't been settled yet.
+        if (session?.user?.email) {
+          await resolveEmployee(session.user);
+        }
         if (!settled) {
-          if (session?.user?.email) {
-            await resolveEmployee(session.user);
-          }
           settled = true;
           clearTimeout(timeout);
           setIsAuthLoading(false);
         }
       } else if (event === "SIGNED_OUT") {
         setUser(null);
+        localStorage.removeItem(PROFILE_CACHE_KEY);
         if (!settled) {
           settled = true;
           clearTimeout(timeout);
@@ -115,11 +126,13 @@ export const AuthProvider = ({ children }) => {
         };
 
         setUser(sessionUser);
+        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(sessionUser));
 
         toast.success(`Welcome, ${dbEmployee.name}`);
         return true;
       } else {
         await supabase.auth.signOut();
+        localStorage.removeItem(PROFILE_CACHE_KEY);
         toast.error(
           "Unauthorized: Your email is not registered in the employee database.",
         );
@@ -159,10 +172,11 @@ export const AuthProvider = ({ children }) => {
         };
 
         setUser(sessionUser);
+        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(sessionUser));
         toast.success(`Welcome (Test Mode), ${dbEmployee.name}`);
         return true;
       } else {
-        toast.error("Unauthorized: Test email not found in database.");
+        toast.error(`Unauthorized: Account ${email} not found.`);
         return false;
       }
     } catch (error) {
@@ -176,12 +190,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      localStorage.removeItem(PROFILE_CACHE_KEY);
       const { error } = await supabase.auth.signOut();
-
       if (error) throw error;
-
       setUser(null);
-
       toast.success("Logged out successfully.");
       window.location.replace("/login");
     } catch (error) {

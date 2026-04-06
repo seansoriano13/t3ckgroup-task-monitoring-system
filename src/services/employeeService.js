@@ -6,6 +6,7 @@ export const employeeService = {
       .from("employees")
       .select("*")
       .eq("email", email)
+      .neq("is_deleted", true)
       .single();
 
     if (error) return null;
@@ -24,7 +25,10 @@ export const employeeService = {
   },
 
   async getAllEmployees() {
-    const { data, error } = await supabase.from("employees").select("*");
+    const { data, error } = await supabase
+      .from("employees")
+      .select("*")
+      .neq("is_deleted", true);
     if (error) throw error;
 
     return data.map((employee) => ({
@@ -149,7 +153,10 @@ export const employeeService = {
   },
 
   async deleteEmployee(id) {
-    const { error } = await supabase.from("employees").delete().eq("id", id);
+    const { error } = await supabase
+      .from("employees")
+      .update({ is_deleted: true })
+      .eq("id", id);
     if (error) throw error;
     return true;
   },

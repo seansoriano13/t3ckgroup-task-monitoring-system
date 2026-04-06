@@ -191,7 +191,7 @@ export default function HrMasterLogPage() {
         {/* HEADER & TOP LEVEL STATS */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
           <div>
-            <h1 className="text-3xl font-black text-gray-12">HR Master Log</h1>
+            <h1 className="text-3xl font-black text-gray-12">Master Log</h1>
             <p className="text-gray-9 mt-1 font-medium">
               Review, verify, and export company-wide timesheets.
             </p>

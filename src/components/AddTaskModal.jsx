@@ -63,7 +63,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         // 2. Fetch Employees Based on Role
         let empQuery = supabase
           .from("employees")
-          .select("id, name, department, sub_department, is_super_admin");
+          .select("id, name, department, sub_department, is_super_admin")
+          .neq("is_deleted", true);
 
         if (isSuperAdmin) {
           // Super Admin can see everyone except other Super Admins (to keep it clean)

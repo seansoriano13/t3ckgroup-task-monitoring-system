@@ -51,7 +51,7 @@ export default function SideNav({ onOpenAddTask }) {
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
       { label: "For Approval", link: "/approvals", icon: ShieldCheck },
-      { label: "HR Master Log", link: "/hr-master-log", icon: Database },
+      { label: "Master Log", link: "/hr-master-log", icon: Database },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
@@ -83,7 +83,7 @@ export default function SideNav({ onOpenAddTask }) {
 
     if (user?.isHr) {
       navLinks.push(
-        { label: "HR Master Log", link: "/hr-master-log", icon: Database },
+        { label: "Master Log", link: "/hr-master-log", icon: Database },
         {
           label: "Employee Mgmt",
           link: "/hr/employee-management",
@@ -223,11 +223,10 @@ export default function SideNav({ onOpenAddTask }) {
     /* 🔥 THE FIX: Match these to your Aside's width */
     left-14 md:left-[72px] 
 
-    ${
-      isExpanded
-        ? "w-[calc(100vw-56px)] md:w-64 opacity-100" // 56px is the width of w-14
-        : "w-0 opacity-0 pointer-events-none"
-    }
+    ${isExpanded
+            ? "w-[calc(100vw-56px)] md:w-64 opacity-100" // 56px is the width of w-14
+            : "w-0 opacity-0 pointer-events-none"
+          }
   `}
       >
         {/* We fix the inner width so the text doesn't wrap weirdly during the animation */}
@@ -262,10 +261,9 @@ export default function SideNav({ onOpenAddTask }) {
                   to={navLink.link}
                   onClick={() => setIsExpanded(false)} // 👈 Closes sidebar upon navigation!
                   className={({ isActive }) =>
-                    `flex gap-3 items-center px-3 py-3 rounded-lg font-semibold transition-all ${
-                      isActive
-                        ? "text-red-9 bg-red-a3" // Active state styling
-                        : "text-gray-10 hover:text-gray-12 hover:bg-gray-3"
+                    `flex gap-3 items-center px-3 py-3 rounded-lg font-semibold transition-all ${isActive
+                      ? "text-red-9 bg-red-a3" // Active state styling
+                      : "text-gray-10 hover:text-gray-12 hover:bg-gray-3"
                     }`
                   }
                 >
