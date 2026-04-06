@@ -49,95 +49,49 @@ export const AuthProvider = ({ children }) => {
       }
     }, 10_000);
 
-    const initializeSession = async () => {
-      setIsAuthLoading(true);
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          // Log the error but do NOT call supabase.auth.signOut() here.
-          // Reason: a mobile network hiccup during getSession() is NOT the same
-          // as a corrupt token. Calling signOut() on a network error would:
-          //   1. Fire SIGNED_OUT → setUser(null) → redirect to login
-          //   2. Wipe the valid session from localStorage
-          // The Supabase SDK handles truly invalid tokens by firing SIGNED_OUT
-          // automatically — we don't need to do it manually.
-          console.warn("Auth: getSession returned an error:", error.message);
-          setUser(null);
-          return;
-        }
-
+    // 🔄 Real-time Session Sync
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "INITIAL_SESSION") {
         if (session?.user?.email) {
           await resolveEmployee(session.user);
         } else {
           setUser(null);
         }
-      } catch (err) {
-        // Same reasoning: network throw should NOT wipe a valid Supabase session.
-        console.error("Auth Initialization Error:", err);
-        setUser(null);
-      } finally {
         if (!settled) {
           settled = true;
           clearTimeout(timeout);
           setIsAuthLoading(false);
         }
-      }
-    };
-
-    initializeSession();
-
-    // 🔄 Real-time Session Sync
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user?.email) {
+      } else if (event === "SIGNED_IN") {
         // Explicit new login — always re-fetch the employee to get fresh role data
-        await resolveEmployee(session.user);
-        if (!settled) {
-          settled = true;
-          clearTimeout(timeout);
-          setIsAuthLoading(false);
-        }
-
-      } else if (event === "TOKEN_REFRESHED" && session?.user?.email) {
-        // The session token was refreshed automatically (e.g. Android app resume).
-        // Do NOT re-fetch the employee here — this was the cause of the mid-session
-        // role change bug (Super Admin becoming HR after the DB was updated).
-        // Role changes in DB only apply on next login, not on token refresh.
-        // Only release the loading gate if it hasn't been settled yet
-        // (covers the race where TOKEN_REFRESHED fires before initializeSession finishes).
-        if (!settled) {
-          // We have a valid session but no user yet — resolve the employee once
+        if (session?.user?.email) {
           await resolveEmployee(session.user);
-          settled = true;
-          clearTimeout(timeout);
-          setIsAuthLoading(false);
         }
-
-      } else if (event === "INITIAL_SESSION" && session?.user?.email) {
-        // On Android PWA reload, INITIAL_SESSION fires before getSession() returns.
-        // This is the primary fix for the "swipe-up reload → stuck loading" bug.
-        await resolveEmployee(session.user);
         if (!settled) {
           settled = true;
           clearTimeout(timeout);
           setIsAuthLoading(false);
         }
-
-      } else if (event === "INITIAL_SESSION" && !session) {
-        // No session at all — user is logged out
+      } else if (event === "TOKEN_REFRESHED") {
+        // The session token was refreshed automatically (e.g. Android app resume).
+        // Only release the loading gate if it hasn't been settled yet.
         if (!settled) {
+          if (session?.user?.email) {
+            await resolveEmployee(session.user);
+          }
           settled = true;
           clearTimeout(timeout);
           setIsAuthLoading(false);
         }
-
       } else if (event === "SIGNED_OUT") {
         setUser(null);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeout);
+          setIsAuthLoading(false);
+        }
       }
     });
 
