@@ -15,23 +15,31 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let settled = false; // ensures setIsAuthLoading(false) only fires once
 
-    // Shared helper — looks up the employee record and enriches with Google metadata
+    // Shared helper — looks up the employee record from DB and merges Google metadata.
+    // Only called on initial session load or explicit SIGNED_IN — NOT on TOKEN_REFRESHED.
+    // Role changes in the DB only take effect after the user logs out and back in.
     const resolveEmployee = async (sessionUser) => {
-      const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
-      if (employee) {
-        const metadata = sessionUser.user_metadata || null;
-        setUser({
-          ...employee,
-          picture: metadata?.avatar_url || metadata?.picture || "",
-        });
-      } else {
-        // Email exists in Supabase Auth but not in the employees table
-        setUser(null);
+      try {
+        const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
+        if (employee) {
+          const metadata = sessionUser.user_metadata || null;
+          setUser({
+            ...employee,
+            picture: metadata?.avatar_url || metadata?.picture || "",
+          });
+        }
+        // If employee not found: don't touch React state.
+        // Supabase will fire SIGNED_OUT itself if the token is truly invalid.
+        // Silently failing here prevents false logouts on network hiccups.
+      } catch (err) {
+        // Network error during employee lookup — do NOT log the user out.
+        // Keep existing user state; they'll see stale data at worst.
+        console.warn("Auth: employee lookup failed (network?), keeping existing session:", err.message);
       }
     };
 
-    // Safety net: if Supabase never resolves (network offline, token deadlock),
-    // release the loading gate after 10 seconds so the user sees the login page
+    // Safety net: if auth never resolves (offline, token deadlock, slow network),
+    // release the loading gate after 10s so the user reaches the login page
     // instead of being stuck on "Loading Portal..." forever.
     const timeout = setTimeout(() => {
       if (!settled) {
@@ -50,10 +58,14 @@ export const AuthProvider = ({ children }) => {
         } = await supabase.auth.getSession();
 
         if (error) {
-          // Corrupt or expired token — clear it so the user isn't permanently stuck.
-          // This is the root cause of the Android "swipe-up reload" freeze.
-          console.warn("Auth: getSession error, signing out to clear stale token:", error.message);
-          await supabase.auth.signOut();
+          // Log the error but do NOT call supabase.auth.signOut() here.
+          // Reason: a mobile network hiccup during getSession() is NOT the same
+          // as a corrupt token. Calling signOut() on a network error would:
+          //   1. Fire SIGNED_OUT → setUser(null) → redirect to login
+          //   2. Wipe the valid session from localStorage
+          // The Supabase SDK handles truly invalid tokens by firing SIGNED_OUT
+          // automatically — we don't need to do it manually.
+          console.warn("Auth: getSession returned an error:", error.message);
           setUser(null);
           return;
         }
@@ -64,9 +76,8 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         }
       } catch (err) {
+        // Same reasoning: network throw should NOT wipe a valid Supabase session.
         console.error("Auth Initialization Error:", err);
-        // Clear any stale token to prevent the stuck-loading loop on next reload
-        try { await supabase.auth.signOut(); } catch (_) { /* ignore */ }
         setUser(null);
       } finally {
         if (!settled) {
@@ -79,35 +90,54 @@ export const AuthProvider = ({ children }) => {
 
     initializeSession();
 
-    // 🔄 Real-time Session Sync: Listen for auth state changes globally
-    //
-    // KEY FIX: On Android reload, Supabase fires TOKEN_REFRESHED (not SIGNED_IN).
-    // The previous handler only caught SIGNED_IN, so mobile reloads with a valid
-    // refresh token silently failed to set the user — causing the stuck load screen.
+    // 🔄 Real-time Session Sync
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (
-        (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") &&
-        session?.user?.email
-      ) {
+      if (event === "SIGNED_IN" && session?.user?.email) {
+        // Explicit new login — always re-fetch the employee to get fresh role data
         await resolveEmployee(session.user);
-        // Ensure the loading gate is released if onAuthStateChange fires
-        // before initializeSession() completes (race condition on fast devices)
         if (!settled) {
           settled = true;
           clearTimeout(timeout);
           setIsAuthLoading(false);
         }
+
+      } else if (event === "TOKEN_REFRESHED" && session?.user?.email) {
+        // The session token was refreshed automatically (e.g. Android app resume).
+        // Do NOT re-fetch the employee here — this was the cause of the mid-session
+        // role change bug (Super Admin becoming HR after the DB was updated).
+        // Role changes in DB only apply on next login, not on token refresh.
+        // Only release the loading gate if it hasn't been settled yet
+        // (covers the race where TOKEN_REFRESHED fires before initializeSession finishes).
+        if (!settled) {
+          // We have a valid session but no user yet — resolve the employee once
+          await resolveEmployee(session.user);
+          settled = true;
+          clearTimeout(timeout);
+          setIsAuthLoading(false);
+        }
+
+      } else if (event === "INITIAL_SESSION" && session?.user?.email) {
+        // On Android PWA reload, INITIAL_SESSION fires before getSession() returns.
+        // This is the primary fix for the "swipe-up reload → stuck loading" bug.
+        await resolveEmployee(session.user);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeout);
+          setIsAuthLoading(false);
+        }
+
+      } else if (event === "INITIAL_SESSION" && !session) {
+        // No session at all — user is logged out
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeout);
+          setIsAuthLoading(false);
+        }
+
       } else if (event === "SIGNED_OUT") {
         setUser(null);
-      } else if (event === "INITIAL_SESSION" && !session) {
-        // No session on initial load — user is logged out, release gate immediately
-        if (!settled) {
-          settled = true;
-          clearTimeout(timeout);
-          setIsAuthLoading(false);
-        }
       }
     });
 
@@ -116,6 +146,7 @@ export const AuthProvider = ({ children }) => {
       clearTimeout(timeout);
     };
   }, []);
+
 
 
   const handleLogin = async (googleEmail, googlePictureUrl) => {

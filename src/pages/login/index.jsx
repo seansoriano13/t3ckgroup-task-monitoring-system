@@ -12,7 +12,7 @@ export const INPUT_STYLE =
   "px-4 py-3 bg-gray-2 border border-gray-4 text-gray-8 rounded-lg outline-none cursor-not-allowed opacity-70 transition-all w-full";
 
 export default function Login() {
-  const { handleLogin, handleTestLogin } = useAuth();
+  const { handleLogin, handleTestLogin, user, isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -20,6 +20,15 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const allowTestLogin = import.meta.env.VITE_ALLOW_TEST_LOGIN === "true";
+
+  // If the user is already authenticated (e.g. swiped back to /login, or
+  // the session was restored on reload), redirect to home immediately.
+  // Show nothing while auth is still resolving to prevent a flash of the form.
+  if (isAuthLoading) return null;
+  if (user) {
+    navigate("/", { replace: true });
+    return null;
+  }
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
@@ -32,6 +41,7 @@ export default function Login() {
     const success = await handleTestLogin(email, password);
     if (success) navigate("/");
   };
+
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
