@@ -178,8 +178,7 @@ export default function TasksList({ selectedMonth }) {
   return (
     <div className="space-y-10">
       {/* SECTION 1: MY PERSONAL TASKS (Visible to Everyone) */}
-      {!isManagement && (
-        <section className="space-y-6">
+      <section className="space-y-6">
           <div className="flex justify-between items-end">
             <div className="flex items-center gap-2">
               <User size={18} className="text-primary" />
@@ -259,7 +258,6 @@ export default function TasksList({ selectedMonth }) {
             </div>
           )}
         </section>
-      )}
 
       {/* SECTION 2: MANAGEMENT COMMAND CENTER (HR/HEAD ONLY) */}
       {isManagement && (

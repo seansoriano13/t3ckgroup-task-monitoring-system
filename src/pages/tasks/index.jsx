@@ -37,7 +37,7 @@ export default function TasksPage() {
   const itemsPerPage = 9;
 
   // HR Specific Toggle
-  const [hrViewMode, setHrViewMode] = useState("ALL"); // "ALL" or "PERSONAL"
+  const [hrViewMode, setHrViewMode] = useState("PERSONAL"); // "ALL" or "PERSONAL"
 
   // 1. Filter State (Standard)
   const [searchTerm, setSearchTerm] = useState("");
@@ -156,7 +156,7 @@ export default function TasksPage() {
 
   const uniqueEmployees = useMemo(() => {
     if (!isManagement) return [];
-    let pool = allEmployees.filter((e) => !e.is_super_admin && !e.is_head);
+    let pool = allEmployees.filter((e) => !e.is_super_admin);
     if (deptFilter !== "ALL")
       pool = pool.filter((e) => e.department === deptFilter);
     if (subDeptFilter !== "ALL")

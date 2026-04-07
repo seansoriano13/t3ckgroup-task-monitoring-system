@@ -85,8 +85,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         else if (empData) setEmployees(empData);
 
         // Reset form data and filters for fresh open
-        setHrDeptFilter(isHr ? "ADMIN" : "");
-        setHrSubDeptFilter(isHr ? "HR" : "");
+        setHrDeptFilter(isHr ? (user.department || "ADMIN") : "");
+        setHrSubDeptFilter(isHr ? (user.sub_department || user.subDepartment || "HR") : "");
         setFormData({
           loggedById: user.id,
           categoryId: "",
@@ -163,7 +163,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
 
-    const isAutoVerified = isHr || isSuperAdmin;
+    const isAutoVerified = (isHr || isSuperAdmin) && formData.loggedById !== user.id;
 
     const payload = {
       ...formData,
@@ -200,6 +200,10 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     if (hrDeptFilter && emp.department !== hrDeptFilter) return false;
     if (hrSubDeptFilter && emp.sub_department !== hrSubDeptFilter) return false;
     return true;
+  }).sort((a, b) => {
+    if (a.id === user.id) return -1;
+    if (b.id === user.id) return 1;
+    return a.name.localeCompare(b.name);
   });
 
   // --- DYNAMIC CATEGORY & DEPARTMENT DISPLAY LOGIC ---
