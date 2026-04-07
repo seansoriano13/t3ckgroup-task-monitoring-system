@@ -12,7 +12,7 @@ export const INPUT_STYLE =
   "px-4 py-3 bg-gray-2 border border-gray-4 text-gray-8 rounded-lg outline-none cursor-not-allowed opacity-70 transition-all w-full";
 
 export default function Login() {
-  const { handleLogin, handleTestLogin, user, isAuthLoading } = useAuth();
+  const { handleLogin, user, isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -31,16 +31,8 @@ export default function Login() {
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
-    if (!allowTestLogin) return;
-
-    if (!email || !password) {
-      toast.error("Please enter email and password.");
-      return;
-    }
-    const success = await handleTestLogin(email, password);
-    if (success) navigate("/");
+    toast.error("Test login is disabled.");
   };
-
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {

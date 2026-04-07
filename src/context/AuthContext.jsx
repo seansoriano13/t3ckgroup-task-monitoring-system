@@ -1,9 +1,6 @@
-import { useEffect } from "react";
-import { createContext } from "react";
-import { useState } from "react";
+import { useEffect, useRef, createContext, useState, useContext } from "react";
 import { employeeService } from "../services/employeeService.js";
 import toast from "react-hot-toast";
-import { useContext } from "react";
 import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
@@ -13,6 +10,11 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true); // Always start loading to verify session integrity
   const [initFinished, setInitFinished] = useState(false); // New flag to prevent infinite loops
+  const userEmailRef = useRef(null);
+
+  useEffect(() => {
+    userEmailRef.current = user?.email;
+  }, [user]);
 
   useEffect(() => {
     let settled = false; // ensures setIsAuthLoading(false) only fires once
@@ -22,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     // Role changes in the DB only take effect after the user logs out and back in.
     const resolveEmployee = async (sessionUser) => {
       // If we already have a user and it's the right one, don't re-fetch
-      if (user?.email === sessionUser.email && initFinished) return;
+      if (userEmailRef.current === sessionUser.email && initFinished) return;
 
       try {
         const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
@@ -110,47 +112,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const handleTestLogin = async (email, password) => {
-    setIsAuthLoading(true);
-    try {
-      const testPassword = import.meta.env.VITE_TEST_PASSWORD;
-      const allowTestLogin = import.meta.env.VITE_ALLOW_TEST_LOGIN === "true";
-
-      if (!allowTestLogin) {
-        toast.error("Test login is currently disabled.");
-        return false;
-      }
-
-      if (password !== testPassword) {
-        toast.error("Invalid test password.");
-        return false;
-      }
-
-      const dbEmployee = await employeeService.getEmployeeByEmail(email);
-
-      if (dbEmployee) {
-        const sessionUser = {
-          ...dbEmployee,
-          picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(dbEmployee.name)}&background=random`,
-        };
-
-        setUser(sessionUser);
-        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(sessionUser));
-        toast.success(`Welcome (Test Mode), ${dbEmployee.name}`);
-        return true;
-      } else {
-        toast.error(`Unauthorized: Account ${email} not found.`);
-        return false;
-      }
-    } catch (error) {
-      console.error("Test Login error:", error);
-      toast.error("A network error occurred during test login.");
-      return false;
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
-
   const logout = async () => {
     try {
       localStorage.removeItem(PROFILE_CACHE_KEY);
@@ -169,7 +130,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthLoading, handleLogin, handleTestLogin, logout }}
+      value={{ user, isAuthLoading, handleLogin, logout }}
     >
       {children}
     </AuthContext.Provider>
