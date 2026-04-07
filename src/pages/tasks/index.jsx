@@ -36,6 +36,9 @@ export default function TasksPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
+  // HR Specific Toggle
+  const [hrViewMode, setHrViewMode] = useState("ALL"); // "ALL" or "PERSONAL"
+
   // 1. Filter State (Standard)
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -86,14 +89,18 @@ export default function TasksPage() {
   }, [isManagement]);
 
   // Fetch all tasks
+  const fetchStrategy = isHr
+    ? (hrViewMode === "ALL" ? "all" : "personal")
+    : (isManagement ? "all" : "personal");
+
   const {
     data: rawTasks = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["tasks", user?.id, isManagement ? "all" : "personal"],
+    queryKey: ["tasks", user?.id, fetchStrategy],
     queryFn: () =>
-      isManagement
+      fetchStrategy === "all"
         ? taskService.getAllTasks()
         : taskService.getMyTasks(user?.id),
     enabled: !!user?.id,
@@ -158,6 +165,8 @@ export default function TasksPage() {
   }, [allEmployees, deptFilter, subDeptFilter, isManagement]);
 
   // --- THE MASTER FILTER ENGINE ---
+  const filteredEmployeesForFilters = isHr && hrViewMode === "PERSONAL" ? [] : allEmployees;
+  
   const { filteredTasks: sortedAndFilteredTasks } = useTaskFilters(
     rawTasks,
     {
@@ -171,7 +180,7 @@ export default function TasksPage() {
       subDeptFilter,
       employeeFilter,
     },
-    { isManagement, allEmployees },
+    { isManagement: isHr && hrViewMode === "PERSONAL" ? false : isManagement, allEmployees: filteredEmployeesForFilters },
   );
 
   // 3. Third, Paginate
@@ -237,15 +246,52 @@ export default function TasksPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-4 md:space-y-6 pb-20 md:pb-10">
       {/* HEADER - Smaller text on mobile */}
-      <div className="px-1 md:px-0">
-        <h1 className="text-2xl md:text-3xl font-black text-gray-12 tracking-tight">
-          {isManagement ? "All tasks" : "My Tasks"}
-        </h1>
-        <p className="text-sm md:text-base text-gray-9 mt-1">
-          {isManagement
-            ? "Monitor and filter employee task logs."
-            : "Manage and filter your logged tasks."}
-        </p>
+      <div className="px-1 md:px-0 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-12 tracking-tight">
+            {isHr
+              ? hrViewMode === "ALL"
+                ? "Company Tasks"
+                : "My Tasks"
+              : isManagement
+                ? "All tasks"
+                : "My Tasks"}
+          </h1>
+          <p className="text-sm md:text-base text-gray-9 mt-1">
+            {isHr
+              ? hrViewMode === "ALL"
+                ? "Monitor and filter company-wide task logs."
+                : "Manage and filter your own personal tasks."
+              : isManagement
+                ? "Monitor and filter employee task logs."
+                : "Manage and filter your logged tasks."}
+          </p>
+        </div>
+        {/* HR VIEW TOGGLE */}
+        {isHr && (
+          <div className="flex bg-gray-2 border border-gray-4 rounded-lg overflow-hidden shrink-0">
+            <button
+              onClick={() => setHrViewMode("ALL")}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-gray-4 ${
+                hrViewMode === "ALL"
+                  ? "bg-primary text-white shadow-inner"
+                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
+              }`}
+            >
+              Company
+            </button>
+            <button
+              onClick={() => setHrViewMode("PERSONAL")}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                hrViewMode === "PERSONAL"
+                  ? "bg-primary text-white shadow-inner"
+                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
+              }`}
+            >
+              My Tasks
+            </button>
+          </div>
+        )}
       </div>
 
       {/* FILTER CONTROL BARS */}
@@ -318,7 +364,7 @@ export default function TasksPage() {
         </div>
 
         {/* Row 2: Management Filters - 1 Column on Mobile, 3 on Tablet */}
-        {isManagement && (
+        {isManagement && (!isHr || hrViewMode === "ALL") && (
           <div className="bg-gray-1 border border-gray-4 p-4 rounded-xl  grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
             <div className="space-y-1">
               <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">

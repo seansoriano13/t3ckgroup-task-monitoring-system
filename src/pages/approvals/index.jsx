@@ -56,12 +56,17 @@ export default function ApprovalsPage() {
       .filter((t) => {
         const isNotMe = t.loggedById !== user?.id; // Don't approve your own tasks
 
+        let matchesHrQueue = false;
+        let matchesHeadQueue = false;
+
         if (isHr) {
           // 🔥 HR QUEUE: Needs to be COMPLETE, but NOT YET VERIFIED
           const isComplete = t.status === "COMPLETE";
           const isNotVerified = !t.hrVerified;
-          return isNotMe && isComplete && isNotVerified;
-        } else if (isHead) {
+          matchesHrQueue = isNotMe && isComplete && isNotVerified;
+        } 
+        
+        if (isHead) {
           // 🔥 HEAD QUEUE: Needs to be INCOMPLETE, and in their Sub-Department
           const taskSubDept =
             t.sub_department ||
@@ -82,10 +87,10 @@ export default function ApprovalsPage() {
           }
 
           const isIncomplete = t.status === "INCOMPLETE";
-          return isNotMe && isMyDept && isIncomplete;
+          matchesHeadQueue = isNotMe && isMyDept && isIncomplete;
         }
 
-        return false;
+        return matchesHrQueue || matchesHeadQueue;
       })
       .sort((a, b) => {
         if (a.priority === "HIGH" && b.priority !== "HIGH") return -1;
@@ -176,8 +181,8 @@ export default function ApprovalsPage() {
           </div>
         </div>
 
-        {/* FILTER BAR — Heads only */}
-        {!isHr && pendingTasks.length > 0 && (
+        {/* FILTER BAR */}
+        {pendingTasks.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center bg-gray-2 border border-gray-4 rounded-xl px-3 py-2.5">
             {/* Search */}
             <div className="flex items-center gap-2 flex-1 min-w-0 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5">

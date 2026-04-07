@@ -85,8 +85,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         else if (empData) setEmployees(empData);
 
         // Reset form data and filters for fresh open
-        setHrDeptFilter("");
-        setHrSubDeptFilter("");
+        setHrDeptFilter(isHr ? "ADMIN" : "");
+        setHrSubDeptFilter(isHr ? "HR" : "");
         setFormData({
           loggedById: user.id,
           categoryId: "",
@@ -163,11 +163,11 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
 
-    const isHrSelfAssign = isHr && formData.loggedById === user.id;
+    const isAutoVerified = isHr || isSuperAdmin;
 
     const payload = {
       ...formData,
-      isHrSelfAssign,
+      isAutoVerified,
       remarks: mergedRemarks,
       submittedById: user.id,
       submittedByName: user.name,

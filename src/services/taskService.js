@@ -122,7 +122,7 @@ export const taskService = {
     let evaluatedBy = null;
     let evaluatedAt = null;
 
-    if (payload.isHrSelfAssign) {
+    if (payload.isAutoVerified) {
       initialStatus = TASK_STATUS.COMPLETE;
       hrVerified = true;
       hrVerifiedAt = new Date().toISOString();
