@@ -12,10 +12,12 @@ import { useTheme } from "./hooks/useTheme";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: true, // Instantly updates when they click back into the browser tab!
-      staleTime: 1000 * 60 * 5, // Considers data "fresh" for 5 minutes to save bandwidth
-      refetchInterval: 10000, // 👈 THE REAL-TIME MAGIC: Silently pulls fresh data every 10 seconds
-      retry: 1, // Minimize retries to avoid long hung states
+      refetchOnWindowFocus: true, // Instantly updates when they click back into browser
+      refetchOnReconnect: "always",
+      staleTime: 1000 * 60 * 5, // Considers data "fresh" for 5 minutes
+      refetchInterval: 1000 * 30, // 👈 Increased to 30s: Better for mobile battery/background stability
+      retry: 2, 
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     },
   },
 });

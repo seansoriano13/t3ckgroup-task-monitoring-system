@@ -10,23 +10,9 @@ const AuthContext = createContext(null);
 const PROFILE_CACHE_KEY = "t3ck_user_profile";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    // Synchronously check localStorage on init to avoid flickering or stuck states
-    try {
-      const cached = localStorage.getItem(PROFILE_CACHE_KEY);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  });
-  const [isAuthLoading, setIsAuthLoading] = useState(() => {
-    // Optimistic: If we have a cached user, don't show the loading gate
-    try {
-      return !localStorage.getItem(PROFILE_CACHE_KEY);
-    } catch {
-      return true;
-    }
-  });
+  const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true); // Always start loading to verify session integrity
+  const [initFinished, setInitFinished] = useState(false); // New flag to prevent infinite loops
 
   useEffect(() => {
     let settled = false; // ensures setIsAuthLoading(false) only fires once
@@ -35,13 +21,8 @@ export const AuthProvider = ({ children }) => {
     // Only called on initial session load or explicit SIGNED_IN — NOT on TOKEN_REFRESHED.
     // Role changes in the DB only take effect after the user logs out and back in.
     const resolveEmployee = async (sessionUser) => {
-      // Safety timeout: If DB lookup hangs, release the gate after 5s
-      const localTimeout = setTimeout(() => {
-        if (!settled) {
-          console.warn("Auth: resolveEmployee timed out");
-          setIsAuthLoading(false);
-        }
-      }, 5000);
+      // If we already have a user and it's the right one, don't re-fetch
+      if (user?.email === sessionUser.email && initFinished) return;
 
       try {
         const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
@@ -54,15 +35,22 @@ export const AuthProvider = ({ children }) => {
           setUser(mergedUser);
           localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(mergedUser));
         } else {
-          // If logged into Supabase but NO matching employee found in DB -> Logout
-          console.warn("Auth: supabase session exists but no employee record found. Clearing session.");
+          console.warn("Auth: No employee record found. Clearing session.");
           await logout();
         }
       } catch (err) {
-        console.warn("Auth: employee lookup failed (network?), keeping existing session:", err.message);
+        console.error("Auth: resolveEmployee failed:", err);
+        // Fallback to local cache if DB is unreachable BUT session is valid
+        const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.email === sessionUser.email) {
+            setUser(parsed);
+          }
+        }
       } finally {
-        clearTimeout(localTimeout);
         setIsAuthLoading(false);
+        setInitFinished(true);
       }
     };
 
@@ -80,45 +68,18 @@ export const AuthProvider = ({ children }) => {
     // 🔄 Real-time Session Sync
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "INITIAL_SESSION") {
-        if (session?.user?.email) {
-          await resolveEmployee(session.user);
-        } else {
-          setUser(null);
-        }
-        if (!settled) {
-          settled = true;
-          clearTimeout(timeout);
-          setIsAuthLoading(false);
-        }
-      } else if (event === "SIGNED_IN") {
-        // Explicit new login — always re-fetch the employee to get fresh role data
-        if (session?.user?.email) {
-          await resolveEmployee(session.user);
-        }
-        if (!settled) {
-          settled = true;
-          clearTimeout(timeout);
-          setIsAuthLoading(false);
-        }
-      } else if (event === "TOKEN_REFRESHED") {
-        if (session?.user?.email) {
-          await resolveEmployee(session.user);
-        }
-        if (!settled) {
-          settled = true;
-          clearTimeout(timeout);
-          setIsAuthLoading(false);
-        }
-      } else if (event === "SIGNED_OUT") {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth Event:", event);
+      
+      if (session?.user) {
+        // If we have a session, always try to resolve the employee
+        resolveEmployee(session.user);
+      } else {
+        // No session -> clear everything
         setUser(null);
         localStorage.removeItem(PROFILE_CACHE_KEY);
-        if (!settled) {
-          settled = true;
-          clearTimeout(timeout);
-          setIsAuthLoading(false);
-        }
+        setIsAuthLoading(false);
+        setInitFinished(true);
       }
     });
 
@@ -131,35 +92,21 @@ export const AuthProvider = ({ children }) => {
 
 
   const handleLogin = async (googleEmail, googlePictureUrl) => {
-    setIsAuthLoading(true);
+    // handleLogin no longer manually updates state. 
+    // It just validates that the employee exists before allowing the flow.
+    // The onAuthStateChange listener will handle the actual state update once 
+    // supabase.auth.signInWithIdToken completes in the component.
     try {
       const dbEmployee = await employeeService.getEmployeeByEmail(googleEmail);
-
-      if (dbEmployee) {
-        const sessionUser = {
-          ...dbEmployee,
-          picture: googlePictureUrl,
-        };
-
-        setUser(sessionUser);
-        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(sessionUser));
-
-        toast.success(`Welcome, ${dbEmployee.name}`);
-        return true;
-      } else {
-        await supabase.auth.signOut();
-        localStorage.removeItem(PROFILE_CACHE_KEY);
-        toast.error(
-          "Unauthorized: Your email is not registered in the employee database.",
-        );
+      if (!dbEmployee) {
+        toast.error("Unauthorized: Your email is not registered.");
         return false;
       }
+      return true;
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("A network error occurred.");
+      console.error("Manual look-up failed:", error);
+      toast.error("Connection error. Try again.");
       return false;
-    } finally {
-      setIsAuthLoading(false);
     }
   };
 
