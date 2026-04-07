@@ -16,6 +16,7 @@ import {
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
+import TaskDetails from "../../components/TaskDetails.jsx";
 
 export default function ApprovalsPage() {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ export default function ApprovalsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [autoOpenId, setAutoOpenId] = useState(null);
+  const [viewTask, setViewTask] = useState(null); // Full Modal State
 
   // Filter state (Head-only UX)
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,7 +47,11 @@ export default function ApprovalsPage() {
   // 🔥 DEEP LINKING HOOK
   useEffect(() => {
     if (location.state?.openTaskId && rawTasks.length > 0) {
-      queueMicrotask(() => setAutoOpenId(location.state.openTaskId));
+      const targetTask = rawTasks.find(t => t.id === location.state.openTaskId);
+      queueMicrotask(() => {
+        setAutoOpenId(location.state.openTaskId); // Still opens the row for context underneath
+        if (targetTask) setViewTask(targetTask); // Pops the big modal
+      });
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, rawTasks, navigate, location.pathname]);
@@ -148,6 +154,15 @@ export default function ApprovalsPage() {
           isHr ? "Task verified by HR." : "Task approved successfully.",
         );
       }
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task deleted successfully");
     },
   });
 
@@ -297,6 +312,14 @@ export default function ApprovalsPage() {
           </div>
         )}
       </div>
+
+      <TaskDetails
+        isOpen={!!viewTask}
+        onClose={() => setViewTask(null)}
+        task={viewTask}
+        onUpdateTask={(updatedTask) => editTaskMutation.mutateAsync(updatedTask)}
+        onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
+      />
     </ProtectedRoute>
   );
 }
