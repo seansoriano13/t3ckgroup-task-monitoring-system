@@ -85,8 +85,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         else if (empData) setEmployees(empData);
 
         // Reset form data and filters for fresh open
-        setHrDeptFilter(isHr ? (user.department || "ADMIN") : "");
-        setHrSubDeptFilter(isHr ? (user.sub_department || user.subDepartment || "HR") : "");
+        setHrDeptFilter(isHr && !isSuperAdmin ? (user.department || "ADMIN") : "");
+        setHrSubDeptFilter(isHr && !isSuperAdmin ? (user.sub_department || user.subDepartment || "HR") : "");
         setFormData({
           loggedById: user.id,
           categoryId: "",

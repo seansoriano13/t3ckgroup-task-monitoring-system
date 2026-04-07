@@ -7,7 +7,8 @@ import TasksList from "../components/TasksList.jsx";
 import TaskDetails from "../components/TaskDetails.jsx";
 import toast from "react-hot-toast";
 import SalesDashboard from "../components/SalesDashboard.jsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import DashboardStats from "../components/DashboardStats.jsx";
 import SalesPerformanceMetrics from "../components/SalesPerformanceMetrics.jsx";
 import { Calendar } from "lucide-react";
@@ -33,6 +34,26 @@ export default function Dashboard() {
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
   const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // If routed from a notification directly to the dashboard, we need to locate the task
+  // Since dashboard tasks are segmented, we fetch it explicitly if needed
+  useEffect(() => {
+    if (location.state?.openTaskId) {
+      const targetId = location.state.openTaskId;
+      taskService.getTaskById(targetId).then((task) => {
+        if (task) {
+          queueMicrotask(() => {
+            setSelectedTask(task);
+            setIsDrawerOpen(true);
+            navigate(location.pathname, { replace: true, state: {} });
+          });
+        }
+      });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleOpenDrawer = (task) => {
     setSelectedTask(task);

@@ -167,6 +167,11 @@ export default function SalesRecordsPage() {
         setSelectedDateFilter(targetDate);
         setFilterEmp(targetEmp);
 
+        // Pop open the detailed view modal if a specific activity was targeted
+        if (targetAct && eventType !== "SALES_PLAN_SUBMITTED") {
+          queueMicrotask(() => setSelectedActivity(targetAct));
+        }
+
         navigate(location.pathname, { replace: true, state: {} });
       }
     }
