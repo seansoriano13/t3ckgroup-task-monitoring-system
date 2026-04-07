@@ -4,7 +4,6 @@ import { taskService } from "../services/taskService.js";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardHeader from "../components/DashboardHeader.jsx";
 import TasksList from "../components/TasksList.jsx";
-import TaskDetails from "../components/TaskDetails.jsx";
 import toast from "react-hot-toast";
 import SalesDashboard from "../components/SalesDashboard.jsx";
 import { useState, useEffect } from "react";
@@ -20,15 +19,9 @@ export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const isManagement =
-    user?.is_hr || user?.isHr || user?.is_head || user?.isHead;
-
   const isSales =
     user?.department?.toLowerCase().includes("sales") ||
     user?.subDepartment?.toLowerCase().includes("sales");
-
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // --- MONTH SELECTION (Formatted for consistency with other dashboards) ---
   const currentDate = new Date();
@@ -37,55 +30,6 @@ export default function Dashboard() {
 
   const location = useLocation();
   const navigate = useNavigate();
-
-  // If routed from a notification directly to the dashboard, we need to locate the task
-  // Since dashboard tasks are segmented, we fetch it explicitly if needed
-  useEffect(() => {
-    if (location.state?.openTaskId) {
-      const targetId = location.state.openTaskId;
-      taskService.getTaskById(targetId).then((task) => {
-        if (task) {
-          queueMicrotask(() => {
-            setSelectedTask(task);
-            setIsDrawerOpen(true);
-            navigate(location.pathname, { replace: true, state: {} });
-          });
-        }
-      });
-    }
-  }, [location.state, navigate, location.pathname]);
-
-  const handleOpenDrawer = (task) => {
-    setSelectedTask(task);
-    setIsDrawerOpen(true);
-  };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-    setTimeout(() => setSelectedTask(null), 300);
-  };
-
-  const deleteTaskMutation = useMutation({
-    mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      toast.success("Task permanently deleted.");
-    },
-  });
-
-  const editTaskMutation = useMutation({
-    mutationFn: (updatedData) =>
-      taskService.updateTask(updatedData.id, updatedData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Task updated successfully!");
-    },
-    onError: (error) => {
-      console.error("Failed to update task:", error);
-      toast.error(error?.message || "Database error: Could not update task.");
-    },
-  });
 
   // Omni Dashboard exclusively for HR and Super Admins
   if (user?.is_hr || user?.isHr || user?.isSuperAdmin) {
@@ -103,15 +47,6 @@ export default function Dashboard() {
                   All task executions, approvals, and HR verifications.
                 </p>
               </div>
-              {/* <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-xs font-bold text-gray-9 shadow-inner w-max">
-                <Calendar size={12} />
-                <span className="uppercase tracking-wider">
-                  {new Date(selectedMonth).toLocaleString("default", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
-              </div> */}
             </div>
 
             <div className="grid gap-8 relative">
@@ -133,16 +68,6 @@ export default function Dashboard() {
         <FloatingMonthPicker
           selectedMonth={selectedMonth}
           onChange={setSelectedMonth}
-        />
-
-        <TaskDetails
-          isOpen={isDrawerOpen}
-          onClose={handleCloseDrawer}
-          task={selectedTask}
-          onUpdateTask={(updatedTask) =>
-            editTaskMutation.mutateAsync(updatedTask)
-          }
-          onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
         />
       </ProtectedRoute>
     );
@@ -201,15 +126,6 @@ export default function Dashboard() {
           )}
           <TasksList selectedMonth={selectedMonth} />
         </div>
-        <TaskDetails
-          isOpen={isDrawerOpen}
-          onClose={handleCloseDrawer}
-          task={selectedTask}
-          onUpdateTask={(updatedTask) =>
-            editTaskMutation.mutateAsync(updatedTask)
-          }
-          onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
-        />
         <FloatingMonthPicker
           selectedMonth={selectedMonth}
           onChange={setSelectedMonth}

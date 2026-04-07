@@ -37,7 +37,7 @@ export default function TasksPage() {
   const itemsPerPage = 9;
 
   // HR Specific Toggle
-  const [hrViewMode, setHrViewMode] = useState("PERSONAL"); // "ALL" or "PERSONAL"
+  const [hrViewMode, setHrViewMode] = useState("ALL"); // "ALL" or "PERSONAL"
 
   // 1. Filter State (Standard)
   const [searchTerm, setSearchTerm] = useState("");
@@ -166,7 +166,7 @@ export default function TasksPage() {
 
   // --- THE MASTER FILTER ENGINE ---
   const filteredEmployeesForFilters = isHr && hrViewMode === "PERSONAL" ? [] : allEmployees;
-  
+
   const { filteredTasks: sortedAndFilteredTasks } = useTaskFilters(
     rawTasks,
     {
@@ -272,21 +272,19 @@ export default function TasksPage() {
           <div className="flex bg-gray-2 border border-gray-4 rounded-lg overflow-hidden shrink-0">
             <button
               onClick={() => setHrViewMode("ALL")}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-gray-4 ${
-                hrViewMode === "ALL"
-                  ? "bg-primary text-white shadow-inner"
-                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
-              }`}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-gray-4 ${hrViewMode === "ALL"
+                ? "bg-primary text-white shadow-inner"
+                : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
+                }`}
             >
               Company
             </button>
             <button
               onClick={() => setHrViewMode("PERSONAL")}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
-                hrViewMode === "PERSONAL"
-                  ? "bg-primary text-white shadow-inner"
-                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
-              }`}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${hrViewMode === "PERSONAL"
+                ? "bg-primary text-white shadow-inner"
+                : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
+                }`}
             >
               My Tasks
             </button>
@@ -449,15 +447,14 @@ export default function TasksPage() {
             <div key={statusKey} className="space-y-4">
               <div className="flex items-center gap-3 border-b border-gray-4 pb-2 px-1">
                 <div
-                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${
-                    statusKey === "COMPLETE_VERIFIED"
-                      ? "bg-green-500"
-                      : statusKey === "COMPLETE_UNVERIFIED"
-                        ? "bg-emerald-400"
-                        : statusKey === "NOT APPROVED"
-                          ? "bg-red-500"
-                          : "bg-amber-500"
-                  }`}
+                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${statusKey === "COMPLETE_VERIFIED"
+                    ? "bg-green-500"
+                    : statusKey === "COMPLETE_UNVERIFIED"
+                      ? "bg-emerald-400"
+                      : statusKey === "NOT APPROVED"
+                        ? "bg-red-500"
+                        : "bg-amber-500"
+                    }`}
                 />
                 <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
                   {statusKey === "COMPLETE_VERIFIED"
