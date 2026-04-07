@@ -10,7 +10,7 @@ export const taskService = {
       .select(
         `
         *, 
-        creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
+        creator:employees!tasks_logged_by_fk(name, department, sub_department, email, is_super_admin),
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
         categories(description)

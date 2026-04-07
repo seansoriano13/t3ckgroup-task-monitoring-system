@@ -6,7 +6,7 @@ import { Loader2, TrendingUp, Calculator, Tag, Wallet } from "lucide-react";
 
 export default function SalesPerformanceMetrics({ selectedMonth }) {
   const { user } = useAuth();
-  const isAdminView = user?.isSuperAdmin || user?.isHr || user?.is_hr || user?.isHead || user?.is_head;
+  const isAdminView = user?.isSuperAdmin || user?.isHr || user?.isHead;
   
   // Real-world reference for "Due" logic
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -32,8 +32,8 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
   }, [selectedMonth]);
 
   const { data: allActivities = [], isLoading: loadingAct } = useQuery({
-    queryKey: ["allSalesActivitiesAdmin"],
-    queryFn: () => salesService.getAllSalesActivities(),
+    queryKey: ["allSalesActivitiesAdmin", monthFilter],
+    queryFn: () => salesService.getAllSalesActivities(monthFilter),
   });
 
   // 2. PERFORMANCE STATS (Filtered by Month)
