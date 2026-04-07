@@ -163,7 +163,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
 
-    const isAutoVerified = (isHr || isSuperAdmin) && formData.loggedById !== user.id;
+    const isAutoVerified = false;
 
     const payload = {
       ...formData,
