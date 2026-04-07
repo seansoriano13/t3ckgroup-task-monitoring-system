@@ -114,6 +114,52 @@ export const taskService = {
     }));
   },
 
+  // 2.5. SINGLE FETCH: Get one task by ID (for deep linking)
+  async getTaskById(taskId) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select(
+        `
+        *, 
+        creator:employees!tasks_logged_by_fk(name, department, sub_department, email, is_super_admin),
+        editor:employees!tasks_edited_by_fk(name),
+        evaluator:employees!tasks_evaluated_by_fkey(name),
+        categories(description)
+      `,
+      )
+      .eq("id", taskId)
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      taskDescription: data.task_description,
+      categoryId: data.category_id,
+      categoryDesc: data.categories?.description,
+      loggedById: data.logged_by,
+      loggedByName: data.creator?.name,
+      loggedByEmail: data.creator?.email,
+      creator: data.creator,
+      editedById: data.edited_by,
+      editedByName: data.editor?.name,
+      editedAt: data.edited_at,
+      evaluatedById: data.evaluated_by,
+      evaluatedByName: data.evaluator?.name,
+      evaluatedAt: data.evaluated_at,
+      startAt: data.start_at,
+      endAt: data.end_at,
+      status: data.status,
+      priority: data.priority,
+      remarks: data.remarks,
+      hrRemarks: data.hr_remarks,
+      grade: data.grade,
+      hrVerified: data.hr_verified,
+      hrVerifiedAt: data.hr_verified_at,
+      createdAt: data.created_at,
+    };
+  },
+
   // 3. CREATE
   async createTask(payload) {
     let initialStatus = TASK_STATUS.INCOMPLETE;
