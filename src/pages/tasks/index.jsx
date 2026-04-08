@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
   Search,
@@ -19,6 +19,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTaskFilters } from "../../hooks/useTaskFilters.jsx";
 import { employeeService } from "../../services/employeeService.js";
+import { useMemo } from "react";
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -33,8 +34,11 @@ export default function TasksPage() {
   const userSubDept = user?.sub_department || user?.subDepartment;
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const ITEMS_PER_GROUP = 6; // tasks shown per status group per page
+  const [groupPages, setGroupPages] = useState({});
+
+  const setGroupPage = (key, page) =>
+    setGroupPages((prev) => ({ ...prev, [key]: page }));
 
   // HR Specific Toggle
   const [hrViewMode, setHrViewMode] = useState("ALL"); // "ALL" or "PERSONAL"
@@ -183,38 +187,10 @@ export default function TasksPage() {
     { isManagement: isHr && hrViewMode === "PERSONAL" ? false : isManagement, allEmployees: filteredEmployeesForFilters },
   );
 
-  // 3. Third, Paginate
-  const totalPages = Math.ceil(sortedAndFilteredTasks.length / itemsPerPage);
-  const paginatedTasks = sortedAndFilteredTasks.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
 
-  // Pre-compute category totals from FULL filtered set (not paginated slice)
-  const statusTotals = useMemo(() => {
-    const totals = {};
-    [
-       "INCOMPLETE",
-       "AWAITING_APPROVAL",
-       "COMPLETE_UNVERIFIED",
-       "COMPLETE_VERIFIED",
-       "NOT APPROVED",
-     ].forEach((key) => {
-       totals[key] = sortedAndFilteredTasks.filter((t) => {
-         if (key === "COMPLETE_UNVERIFIED")
-           return t.status === "COMPLETE" && !t.hrVerified;
-         if (key === "COMPLETE_VERIFIED")
-           return t.status === "COMPLETE" && t.hrVerified;
-         if (key === "AWAITING_APPROVAL")
-           return t.status === "AWAITING APPROVAL";
-         return t.status === key;
-       }).length;
-     });
-    return totals;
-  }, [sortedAndFilteredTasks]);
 
   useEffect(() => {
-    queueMicrotask(() => setCurrentPage(1));
+    setGroupPages({});
   }, [
     searchTerm,
     statusFilter,
@@ -430,7 +406,7 @@ export default function TasksPage() {
         )}
       </div>
 
-      {/* THE CATEGORIZED GRID */}
+      {/* THE CATEGORIZED GRID — each group has its own pagination */}
       <div className="space-y-12 pb-10">
         {[
           "INCOMPLETE",
@@ -439,7 +415,8 @@ export default function TasksPage() {
           "COMPLETE_VERIFIED",
           "NOT APPROVED",
         ].map((statusKey) => {
-          const statusTasks = paginatedTasks.filter((t) => {
+          // All tasks that belong to this group
+          const allGroupTasks = sortedAndFilteredTasks.filter((t) => {
             if (statusKey === "COMPLETE_UNVERIFIED")
               return t.status === "COMPLETE" && !t.hrVerified;
             if (statusKey === "COMPLETE_VERIFIED")
@@ -448,22 +425,30 @@ export default function TasksPage() {
               return t.status === "AWAITING APPROVAL";
             return t.status === statusKey;
           });
-          if (statusTasks.length === 0) return null;
+          if (allGroupTasks.length === 0) return null;
+
+          const currentGroupPage = groupPages[statusKey] || 1;
+          const totalGroupPages = Math.ceil(allGroupTasks.length / ITEMS_PER_GROUP);
+          const groupTasks = allGroupTasks.slice(
+            (currentGroupPage - 1) * ITEMS_PER_GROUP,
+            currentGroupPage * ITEMS_PER_GROUP,
+          );
 
           return (
             <div key={statusKey} className="space-y-4">
+              {/* Group Header */}
               <div className="flex items-center gap-3 border-b border-gray-4 pb-2 px-1">
                 <div
                   className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${statusKey === "COMPLETE_VERIFIED"
-                   ? "bg-green-500"
-                   : statusKey === "COMPLETE_UNVERIFIED"
-                     ? "bg-emerald-400"
-                     : statusKey === "AWAITING_APPROVAL"
-                       ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
-                       : statusKey === "NOT APPROVED"
-                         ? "bg-red-500"
-                         : "bg-amber-500"
-                   }`}
+                      ? "bg-green-500"
+                      : statusKey === "COMPLETE_UNVERIFIED"
+                        ? "bg-emerald-400"
+                        : statusKey === "AWAITING_APPROVAL"
+                          ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                          : statusKey === "NOT APPROVED"
+                            ? "bg-red-500"
+                            : "bg-amber-500"
+                    }`}
                 />
                 <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
                   {statusKey === "COMPLETE_VERIFIED"
@@ -477,12 +462,13 @@ export default function TasksPage() {
                           : "Pending / In Progress"}
                 </h3>
                 <span className="text-[10px] font-bold text-gray-8 bg-gray-2 px-2 py-0.5 rounded-full border border-gray-4 ml-auto">
-                  {statusTotals[statusKey]} Total
+                  {allGroupTasks.length} Total
                 </span>
               </div>
 
+              {/* Task Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 items-start">
-                {statusTasks.map((task) => (
+                {groupTasks.map((task) => (
                   <TaskCard
                     key={task.id}
                     task={task}
@@ -491,11 +477,49 @@ export default function TasksPage() {
                   />
                 ))}
               </div>
+
+              {/* Per-Group Mini Pagination */}
+              {totalGroupPages > 1 && (
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <span className="text-[10px] font-bold text-gray-8 uppercase tracking-widest">
+                    Page {currentGroupPage} / {totalGroupPages}
+                  </span>
+                  <div className="flex gap-1">
+                    <button
+                      disabled={currentGroupPage === 1}
+                      onClick={() => setGroupPage(statusKey, currentGroupPage - 1)}
+                      className="px-3 py-1 rounded bg-gray-3 border border-gray-4 text-gray-12 text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
+                    >
+                      ←
+                    </button>
+                    {/* Page number pills */}
+                    {Array.from({ length: totalGroupPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setGroupPage(statusKey, p)}
+                        className={`w-7 h-7 rounded text-xs font-bold transition-all border ${p === currentGroupPage
+                            ? "bg-primary text-white border-primary"
+                            : "bg-gray-3 text-gray-10 border-gray-4 hover:border-gray-6"
+                          }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                    <button
+                      disabled={currentGroupPage === totalGroupPages}
+                      onClick={() => setGroupPage(statusKey, currentGroupPage + 1)}
+                      className="px-3 py-1 rounded bg-gray-3 border border-gray-4 text-gray-12 text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
 
-        {paginatedTasks.length === 0 && (
+        {sortedAndFilteredTasks.length === 0 && (
           <div className="text-center py-12 md:py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl mt-4 mx-1">
             <p className="text-gray-10 font-bold text-base md:text-lg">
               No tasks found.
@@ -507,33 +531,6 @@ export default function TasksPage() {
         )}
       </div>
 
-      {/* PAGINATION - Stacked buttons on tiny screens */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4 mb-10">
-          <div className="flex items-center gap-4 w-full sm:w-auto">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-              className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
-            >
-              Prev
-            </button>
-            <span className="sm:hidden text-gray-11 font-bold text-xs uppercase">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="flex-1 sm:flex-none px-6 py-2 bg-gray-3 border border-gray-4 rounded-lg text-gray-12 font-bold disabled:opacity-30 active:scale-95 transition-all"
-            >
-              Next
-            </button>
-          </div>
-          <span className="hidden sm:block text-gray-11 font-bold text-sm uppercase tracking-widest">
-            Page {currentPage} of {totalPages}
-          </span>
-        </div>
-      )}
       <TaskDetails
         isOpen={!!viewTask}
         onClose={() => setViewTask(null)}
