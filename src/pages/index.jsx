@@ -137,6 +137,12 @@ export default function Dashboard() {
             <SalesPerformanceMetrics selectedMonth={selectedMonth} />
           </div>
         </div>
+
+         <FloatingMonthPicker
+          selectedMonth={selectedMonth}
+          onChange={setSelectedMonth}
+        />
+
       </ProtectedRoute>
     );
   }
