@@ -118,7 +118,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
            </div>
 
            {/* === FINANCIAL & REFERENCE SECTION === */}
-           {(activity.reference_number || activity.expense_amount) && (
+           {(activity.reference_number || activity.so_number || activity.expense_amount) && (
              <div className={`bg-gray-1 border rounded-xl p-5 shadow-sm space-y-4 ${localOutcome === 'LOST' ? 'border-red-500/30 bg-red-500/5' : localOutcome === 'WON' ? 'border-green-500/30 bg-green-500/5' : 'border-amber-500/30'}`}>
                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-3">
                  <DollarSign size={16} className="text-amber-500" />
@@ -133,6 +133,13 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
                    </p>
                  </div>
                  <div>
+                   <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">SO Number</label>
+                   <p className="text-sm font-black text-blue-500 bg-blue-500/10 p-3 rounded-lg border border-blue-500/20 flex items-center gap-2">
+                     <Tag size={14} />
+                     {activity.so_number || <span className="text-gray-7 italic font-normal text-xs">Not provided</span>}
+                   </p>
+                 </div>
+                 <div className="sm:col-span-2">
                    <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">Est. Expense (₱)</label>
                    <p className="text-sm font-black text-emerald-600 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
                      {activity.expense_amount ? `₱ ${Number(activity.expense_amount).toLocaleString()}` : <span className="text-gray-7 italic font-normal text-xs">No amount declared</span>}
