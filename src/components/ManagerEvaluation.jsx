@@ -3,7 +3,7 @@ import { FieldBox } from "./FieldBox";
 
 export default function ManagerEvaluation({
   isEditing,
-  isStrictlyHead,
+  canEvaluate,
   isHr = false,
   task,
   approvalGrade,
@@ -33,7 +33,7 @@ export default function ManagerEvaluation({
         <div className={` text-xs font-bold uppercase tracking-wider`}>
           {isFinalized
             ? "Manager Evaluation"
-            : isStrictlyHead
+            : canEvaluate
               ? "Manager Evaluation (Required for Approval)"
               : "Evaluation Status (Not Yet Evaluated)"}
         </div>
@@ -119,17 +119,17 @@ export default function ManagerEvaluation({
                 return (
                   <button
                     key={num}
-                    disabled={!isStrictlyHead}
+                    disabled={!canEvaluate}
                     onClick={() => setApprovalGrade(num)}
                     className={`flex-1 py-2.5 rounded-lg font-bold transition-all border ${
-                      !isStrictlyHead ? "opacity-50 cursor-not-allowed" : ""
+                      !canEvaluate ? "opacity-50 cursor-not-allowed" : ""
                     } ${
                       isActive
                         ? // 2. Apply the specific color from the map if active
                           `${activeColorMap[num]} shadow-lg scale-[1.02]`
                         : // 3. Otherwise, apply default inactive styles
                           `bg-gray-2 text-gray-10 border-gray-4 ${
-                            isStrictlyHead
+                            canEvaluate
                               ? "hover:border-gray-6 hover:bg-gray-3"
                               : ""
                           }`
@@ -147,11 +147,11 @@ export default function ManagerEvaluation({
               Manager Remarks
             </label>
             <textarea
-              value={isStrictlyHead ? approvalRemarks : task.remarks || ""}
+              value={canEvaluate ? approvalRemarks : task.remarks || ""}
               onChange={(e) => setApprovalRemarks(e.target.value)}
-              disabled={!isStrictlyHead}
+              disabled={!canEvaluate}
               placeholder={
-                isStrictlyHead
+                canEvaluate
                   ? "Add feedback before approving..."
                   : "Waiting for manager review..."
               }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router";
+import { useNavigate, Navigate } from "react-router";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import PrimaryButton from "../../components/PrimaryButton";
@@ -12,7 +12,7 @@ export const INPUT_STYLE =
   "px-4 py-3 bg-gray-2 border border-gray-4 text-gray-8 rounded-lg outline-none cursor-not-allowed opacity-70 transition-all w-full";
 
 export default function Login() {
-  const { handleLogin, handleTestLogin } = useAuth();
+  const { handleLogin, user, isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -21,16 +21,17 @@ export default function Login() {
 
   const allowTestLogin = import.meta.env.VITE_ALLOW_TEST_LOGIN === "true";
 
+  // If the user is already authenticated (e.g. swiped back to /login, or
+  // the session was restored on reload), redirect to home immediately.
+  // Show nothing while auth is still resolving to prevent a flash of the form.
+  if (isAuthLoading) return null;
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
   const handleManualLogin = async (e) => {
     e.preventDefault();
-    if (!allowTestLogin) return;
-
-    if (!email || !password) {
-      toast.error("Please enter email and password.");
-      return;
-    }
-    const success = await handleTestLogin(email, password);
-    if (success) navigate("/");
+    toast.error("Test login is disabled.");
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -55,6 +56,7 @@ export default function Login() {
       }
     } catch (error) {
       console.error("Google login failed:", error);
+      toast.error("Google login failed: " + (error.message || "Network issue"));
     }
   };
 

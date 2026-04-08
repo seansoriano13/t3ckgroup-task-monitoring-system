@@ -1,8 +1,0 @@
-/tasks
-    - Separate them clearly, instead of showing 3 col task card with all tasks innit, make it categorized (like incomplete should have its own container, then complete is a separate conatiner, like a <br>)
-
-
-
-QUESTIONS TO ASK:
-- If the task was verified by HR, Should we lock the task? no more editing?
-

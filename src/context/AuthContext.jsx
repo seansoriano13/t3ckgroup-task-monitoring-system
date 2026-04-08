@@ -1,152 +1,123 @@
-import { useEffect } from "react";
-import { createContext } from "react";
-import { useState } from "react";
+import { useEffect, useRef, createContext, useState, useContext } from "react";
 import { employeeService } from "../services/employeeService.js";
 import toast from "react-hot-toast";
-import { useContext } from "react";
 import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
+const PROFILE_CACHE_KEY = "t3ck_user_profile";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true); // Always start loading to verify session integrity
+  const [initFinished, setInitFinished] = useState(false); // New flag to prevent infinite loops
+  const userEmailRef = useRef(null);
 
   useEffect(() => {
-    const initializeSession = async () => {
-      setIsAuthLoading(true);
+    userEmailRef.current = user?.email;
+  }, [user]);
+
+  useEffect(() => {
+    let settled = false; // ensures setIsAuthLoading(false) only fires once
+
+    // Shared helper — looks up the employee record from DB and merges Google metadata.
+    // Only called on initial session load or explicit SIGNED_IN — NOT on TOKEN_REFRESHED.
+    // Role changes in the DB only take effect after the user logs out and back in.
+    const resolveEmployee = async (sessionUser) => {
+      // If we already have a user and it's the right one, don't re-fetch
+      if (userEmailRef.current === sessionUser.email && initFinished) return;
+
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (session?.user?.email) {
-          const employee = await employeeService.getEmployeeByEmail(
-            session.user.email,
-          );
-
-          if (employee) {
-            const metadata = session.user.user_metadata || null;
-            setUser({
-              ...employee,
-              picture: metadata?.avatar_url || metadata?.picture || "",
-            });
+        const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
+        if (employee) {
+          const metadata = sessionUser.user_metadata || null;
+          const mergedUser = {
+            ...employee,
+            picture: metadata?.avatar_url || metadata?.picture || "",
+          };
+          setUser(mergedUser);
+          localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(mergedUser));
+        } else {
+          console.warn("Auth: No employee record found. Clearing session.");
+          await logout();
+        }
+      } catch (err) {
+        console.error("Auth: resolveEmployee failed:", err);
+        // Fallback to local cache if DB is unreachable BUT session is valid
+        const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.email === sessionUser.email) {
+            setUser(parsed);
           }
         }
-      } catch (error) {
-        console.error("Auth Initialization Error:", error);
-        setUser(null);
       } finally {
         setIsAuthLoading(false);
+        setInitFinished(true);
       }
     };
 
-    initializeSession();
+    // Safety net: if auth never resolves (offline, token deadlock, slow network),
+    // release the loading gate after 10s so the user reaches the login page
+    // instead of being stuck on "Loading Portal..." forever.
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        console.warn("Auth: session resolution timed out — releasing loading gate");
+        setIsAuthLoading(false);
+      }
+    }, 10_000);
 
-    // ≡ƒöæ Real-time Session Sync: Listen for auth state changes globally
+    // 🔄 Real-time Session Sync
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user?.email) {
-        const employee = await employeeService.getEmployeeByEmail(
-          session.user.email,
-        );
-        if (employee) {
-          const metadata = session.user.user_metadata || null;
-          setUser({
-            ...employee,
-            picture: metadata?.avatar_url || metadata?.picture || "",
-          });
-        }
-      } else if (event === "SIGNED_OUT") {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth Event:", event);
+      
+      if (session?.user) {
+        // If we have a session, always try to resolve the employee
+        resolveEmployee(session.user);
+      } else {
+        // No session -> clear everything
         setUser(null);
+        localStorage.removeItem(PROFILE_CACHE_KEY);
+        setIsAuthLoading(false);
+        setInitFinished(true);
       }
     });
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timeout);
     };
   }, []);
 
+
+
   const handleLogin = async (googleEmail, googlePictureUrl) => {
-    setIsAuthLoading(true);
+    // handleLogin no longer manually updates state. 
+    // It just validates that the employee exists before allowing the flow.
+    // The onAuthStateChange listener will handle the actual state update once 
+    // supabase.auth.signInWithIdToken completes in the component.
     try {
       const dbEmployee = await employeeService.getEmployeeByEmail(googleEmail);
-
-      if (dbEmployee) {
-        const sessionUser = {
-          ...dbEmployee,
-          picture: googlePictureUrl,
-        };
-
-        setUser(sessionUser);
-
-        toast.success(`Welcome, ${dbEmployee.name}`);
-        return true;
-      } else {
-        await supabase.auth.signOut();
-        toast.error(
-          "Unauthorized: Your email is not registered in the employee database.",
-        );
+      if (!dbEmployee) {
+        toast.error("Unauthorized: Your email is not registered.");
         return false;
       }
+      return true;
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("A network error occurred.");
+      console.error("Manual look-up failed:", error);
+      toast.error("Connection error. Try again.");
       return false;
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
-
-  const handleTestLogin = async (email, password) => {
-    setIsAuthLoading(true);
-    try {
-      const testPassword = import.meta.env.VITE_TEST_PASSWORD;
-      const allowTestLogin = import.meta.env.VITE_ALLOW_TEST_LOGIN === "true";
-
-      if (!allowTestLogin) {
-        toast.error("Test login is currently disabled.");
-        return false;
-      }
-
-      if (password !== testPassword) {
-        toast.error("Invalid test password.");
-        return false;
-      }
-
-      const dbEmployee = await employeeService.getEmployeeByEmail(email);
-
-      if (dbEmployee) {
-        const sessionUser = {
-          ...dbEmployee,
-          picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(dbEmployee.name)}&background=random`,
-        };
-
-        setUser(sessionUser);
-        toast.success(`Welcome (Test Mode), ${dbEmployee.name}`);
-        return true;
-      } else {
-        toast.error("Unauthorized: Test email not found in database.");
-        return false;
-      }
-    } catch (error) {
-      console.error("Test Login error:", error);
-      toast.error("A network error occurred during test login.");
-      return false;
-    } finally {
-      setIsAuthLoading(false);
     }
   };
 
   const logout = async () => {
     try {
+      localStorage.removeItem(PROFILE_CACHE_KEY);
       const { error } = await supabase.auth.signOut();
-
       if (error) throw error;
-
       setUser(null);
-
       toast.success("Logged out successfully.");
       window.location.replace("/login");
     } catch (error) {
@@ -159,7 +130,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthLoading, handleLogin, handleTestLogin, logout }}
+      value={{ user, isAuthLoading, handleLogin, logout }}
     >
       {children}
     </AuthContext.Provider>

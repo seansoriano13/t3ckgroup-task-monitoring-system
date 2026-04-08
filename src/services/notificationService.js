@@ -92,7 +92,7 @@ export const notificationService = {
    */
   async broadcastToRole(rolesArray, { sender_id = null, type, title, message, reference_id = null, excludeSuperAdmin = false }) {
      try {
-       const { data: emps } = await supabase.from('employees').select('id, department, is_super_admin, is_hr, is_head');
+       const { data: emps } = await supabase.from('employees').select('id, department, is_super_admin, is_hr, is_head').neq('is_deleted', true);
        if (!emps) return;
 
        const inserts = [];
@@ -134,7 +134,8 @@ export const notificationService = {
        const { data: allHeads } = await supabase
          .from('employees')
          .select('id, department, sub_department')
-         .eq('is_head', true);
+         .eq('is_head', true)
+         .neq('is_deleted', true);
 
        if (!allHeads || allHeads.length === 0) return;
        

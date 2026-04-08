@@ -74,10 +74,11 @@ export default function TaskDetails({
   }, [isOpen, task, user]);
 
   // Role Checks
-  const isHr = user?.is_hr === true || user?.isHr === true;
+  const isHr = user?.is_hr === true || user?.isHr === true || user?.is_super_admin === true || user?.isSuperAdmin === true;
   const isHead = user?.is_head === true || user?.isHead === true;
   const isManagement = isHr || isHead;
-  const isStrictlyHead = isHead && !isHr;
+  const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const canEvaluate = isHead || isSuperAdmin;
 
   // Custom Data Hook
   const topologyData = useTaskTopology(
@@ -229,7 +230,7 @@ export default function TaskDetails({
 
             <ManagerEvaluation
               isEditing={isEditing}
-              isStrictlyHead={isStrictlyHead}
+              canEvaluate={canEvaluate}
               isHr={isHr}
               formData={formData}
               handleChange={handleChange}
@@ -311,7 +312,7 @@ export default function TaskDetails({
               });
             },
           }}
-          permissions={{ canEdit, isStrictlyHead, isHr, isManagement, isOwner }}
+          permissions={{ canEdit, canEvaluate, isHr, isManagement, isOwner }}
           state={{
             isEditing,
             isSubmitting,

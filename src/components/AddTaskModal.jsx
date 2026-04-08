@@ -63,13 +63,18 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         // 2. Fetch Employees Based on Role
         let empQuery = supabase
           .from("employees")
-          .select("id, name, department, sub_department, is_super_admin");
+          .select("id, name, department, sub_department, is_super_admin")
+          .neq("is_deleted", true);
 
         if (isSuperAdmin) {
           // Super Admin can see everyone except other Super Admins (to keep it clean)
           empQuery = empQuery.or(`is_super_admin.eq.false,is_super_admin.is.null,id.eq.${user.id}`);
         } else if (!isHr && isHead) {
-          empQuery = empQuery.eq("sub_department", userSubDept || "");
+          if (userSubDept) {
+            empQuery = empQuery.eq("sub_department", userSubDept);
+          } else {
+            empQuery = empQuery.eq("department", user.department);
+          }
         } else if (!isHr && !isHead) {
           empQuery = empQuery.eq("id", user.id);
         }
@@ -80,8 +85,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         else if (empData) setEmployees(empData);
 
         // Reset form data and filters for fresh open
-        setHrDeptFilter("");
-        setHrSubDeptFilter("");
+        setHrDeptFilter(isHr && !isSuperAdmin ? (user.department || "ADMIN") : "");
+        setHrSubDeptFilter(isHr && !isSuperAdmin ? (user.sub_department || user.subDepartment || "HR") : "");
         setFormData({
           loggedById: user.id,
           categoryId: "",
@@ -158,8 +163,11 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
 
+    const isAutoVerified = false;
+
     const payload = {
       ...formData,
+      isAutoVerified,
       remarks: mergedRemarks,
       submittedById: user.id,
       submittedByName: user.name,
@@ -192,6 +200,10 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     if (hrDeptFilter && emp.department !== hrDeptFilter) return false;
     if (hrSubDeptFilter && emp.sub_department !== hrSubDeptFilter) return false;
     return true;
+  }).sort((a, b) => {
+    if (a.id === user.id) return -1;
+    if (b.id === user.id) return 1;
+    return a.name.localeCompare(b.name);
   });
 
   // --- DYNAMIC CATEGORY & DEPARTMENT DISPLAY LOGIC ---

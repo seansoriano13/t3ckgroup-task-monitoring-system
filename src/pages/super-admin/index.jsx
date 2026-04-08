@@ -1,14 +1,16 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import { useAuth } from "../../context/AuthContext";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { Loader2, CheckCheck, PhilippinePeso } from "lucide-react";
+import { Loader2, CheckCheck, PhilippinePeso, ChevronLeft, ChevronRight } from "lucide-react";
 import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
+
+const EMPTY_ARRAY = [];
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
@@ -24,19 +26,19 @@ export default function SuperAdminDashboard() {
   const [isSavingAll, setIsSavingAll] = useState(false);
 
   // 1. Fetch Sales Employees
-  const { data: salesEmployees = [], isLoading: loadingEmps } = useQuery({
+  const { data: salesEmployees = EMPTY_ARRAY, isLoading: loadingEmps } = useQuery({
     queryKey: ["salesEmployees"],
     queryFn: () => salesService.getSalesEmployees(),
   });
 
   // 2. Fetch Quotas for the Selected Month
-  const { data: quotas = [], isLoading: loadingQuotas } = useQuery({
+  const { data: quotas = EMPTY_ARRAY, isLoading: loadingQuotas } = useQuery({
     queryKey: ["quotas", selectedMonth],
     queryFn: () => salesService.getQuotasByMonth(selectedMonth),
   });
 
   // 3. Fetch all activities for Stats
-  const { data: allActivities = [], isLoading: loadingAct } = useQuery({
+  const { data: allActivities = EMPTY_ARRAY, isLoading: loadingAct } = useQuery({
     queryKey: ["allSalesActivitiesAdmin"],
     queryFn: () => salesService.getAllSalesActivities(),
   });
@@ -102,24 +104,15 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  if (loadingEmps || loadingQuotas) {
-    return (
-      <ProtectedRoute requireSuperAdmin={true}>
+  return (
+    <ProtectedRoute requireSuperAdmin={true}>
+      {loadingEmps || loadingQuotas ? (
         <div className="flex h-[80vh] items-center justify-center space-x-2 text-gray-9">
           <Loader2 className="animate-spin" />
           <p className="font-bold">Syncing Super Admin Metrics...</p>
         </div>
-        <FloatingMonthPicker
-          selectedMonth={selectedMonth}
-          onChange={setSelectedMonth}
-        />
-      </ProtectedRoute>
-    );
-  }
-
-  return (
-    <ProtectedRoute requireSuperAdmin={true}>
-      <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
+      ) : (
+        <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
           <div>
             <h1 className="text-3xl font-black text-gray-12 flex items-center gap-2">
@@ -131,10 +124,40 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-xs font-bold text-gray-9 shadow-inner w-max">
-            <span className="uppercase tracking-wider">
-              {new Date(selectedMonth).toLocaleString("default", { month: "long", year: "numeric" })}
+          {/* Inline month navigator — arrows for quick prev/next, FAB for full picker */}
+          <div className="flex items-center gap-1 bg-gray-2 border border-gray-4 rounded-lg shadow-inner">
+            <button
+              onClick={() => {
+                const parts = selectedMonth.split('-');
+                let y = parseInt(parts[0], 10);
+                let m = parseInt(parts[1], 10);
+                m -= 1;
+                if (m < 1) { m = 12; y -= 1; }
+                setSelectedMonth(`${y}-${String(m).padStart(2, '0')}-01`);
+              }}
+              className="p-2 hover:bg-gray-3 rounded-l-lg text-gray-9 hover:text-gray-12 transition-colors"
+              title="Previous month"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span className="px-2 text-xs font-bold text-gray-11 uppercase tracking-wider select-none min-w-[110px] text-center">
+              {new Date(selectedMonth).toLocaleString("default", { month: "long", year: "numeric", timeZone: "UTC" })}
             </span>
+            <button
+              onClick={() => {
+                const parts = selectedMonth.split('-');
+                let y = parseInt(parts[0], 10);
+                let m = parseInt(parts[1], 10);
+                m += 1;
+                if (m > 12) { m = 1; y += 1; }
+                setSelectedMonth(`${y}-${String(m).padStart(2, '0')}-01`);
+              }}
+              disabled={selectedMonth >= currentMonthYear}
+              className={`p-2 rounded-r-lg transition-colors ${selectedMonth >= currentMonthYear ? "text-gray-4 cursor-not-allowed" : "hover:bg-gray-3 text-gray-9 hover:text-gray-12"}`}
+              title="Next month"
+            >
+              <ChevronRight size={15} />
+            </button>
           </div>
         </div>
 
@@ -188,6 +211,7 @@ export default function SuperAdminDashboard() {
           <EmployeePipelineMatrix selectedMonth={selectedMonth} />
         </div>
       </div>
+      )}
 
       <FloatingMonthPicker
         selectedMonth={selectedMonth}
@@ -199,6 +223,7 @@ export default function SuperAdminDashboard() {
 
 function QuotaCard({ employee, value, serverValue, onChange }) {
   const isDirty = (parseFloat(value) || 0) !== serverValue;
+  const inputRef = useRef(null);
 
   // Format the raw numeric string into a comma-separated display string
   const displayValue = useMemo(() => {
@@ -210,14 +235,26 @@ function QuotaCard({ employee, value, serverValue, onChange }) {
   }, [value]);
 
   const handleChange = (e) => {
+    const rawValue = e.target.value;
+    const oldSelectionStart = e.target.selectionStart;
+
     // Only allow digits and one decimal point
-    const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+    const filteredValue = rawValue.replace(/[^0-9.]/g, "");
     
     // Ensure only one decimal point exists
-    const parts = rawValue.split(".");
+    const parts = filteredValue.split(".");
     const cleanValue = parts[0] + (parts.length > 1 ? "." + parts[1] : "");
     
     onChange(cleanValue);
+
+    // Smart caret repositioning
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        const diff = inputRef.current.value.length - rawValue.length;
+        const newPos = Math.max(0, oldSelectionStart + diff);
+        inputRef.current.setSelectionRange(newPos, newPos);
+      }
+    });
   };
 
   return (
@@ -239,6 +276,7 @@ function QuotaCard({ employee, value, serverValue, onChange }) {
           className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
         />
         <input
+          ref={inputRef}
           type="text"
           inputMode="numeric"
           placeholder="0"

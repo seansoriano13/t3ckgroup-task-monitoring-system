@@ -6,7 +6,7 @@ import { Loader2, TrendingUp, Calculator, Tag, Wallet } from "lucide-react";
 
 export default function SalesPerformanceMetrics({ selectedMonth }) {
   const { user } = useAuth();
-  const isAdminView = user?.isSuperAdmin || user?.isHr || user?.is_hr || user?.isHead || user?.is_head;
+  const isAdminView = user?.isSuperAdmin || user?.isHr || user?.isHead;
   
   // Real-world reference for "Due" logic
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -32,8 +32,8 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
   }, [selectedMonth]);
 
   const { data: allActivities = [], isLoading: loadingAct } = useQuery({
-    queryKey: ["allSalesActivitiesAdmin"],
-    queryFn: () => salesService.getAllSalesActivities(),
+    queryKey: ["allSalesActivitiesAdmin", monthFilter],
+    queryFn: () => salesService.getAllSalesActivities(monthFilter),
   });
 
   // 2. PERFORMANCE STATS (Filtered by Month)
@@ -61,6 +61,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
 
       if (!stats[empId]) {
         stats[empId] = {
+          empId,
           name: act.employees?.name || "Sales Rep",
           department: act.employees?.department || "Sales",
           totalPipeline: 0,
@@ -75,7 +76,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
 
       stats[empId].totalPipeline++;
       const isUnplanned = !!act.is_unplanned;
-      const isDone = act.status === "DONE";
+      const isDone = act.status === "DONE" || act.status === "APPROVED";
 
       // COMMITMENT ADHERENCE (The Rate)
       // - If we are viewing a past month: all planned tasks are considered 'Due'.
@@ -112,14 +113,22 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
       }
     });
 
-    return Object.values(stats)
+    const sortedStats = Object.values(stats)
       .map((s) => {
         const executionRate =
           s.totalDue > 0 ? Math.round((s.totalPlannedDone / s.totalDue) * 100) : 0;
         return { ...s, executionRate };
       })
       .sort((a, b) => b.executionRate - a.executionRate);
-  }, [allActivities, today, todayMonthKey, monthFilter]);
+
+    // Filter out other employees if the current user is not a Head,
+    // but the calculated rankings/sort remains preserved implicitly!
+    if (!isAdminView && user?.id) {
+      return sortedStats.filter((s) => s.empId === user.id);
+    }
+    
+    return sortedStats;
+  }, [allActivities, today, todayMonthKey, monthFilter, isAdminView, user?.id]);
 
   // 3. EXPENSE SUMMARY (Filtered by Month)
   const expenseSummary = useMemo(() => {

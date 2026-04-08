@@ -319,7 +319,9 @@ export default function SalesSchedulePage() {
     onSuccess: () => {
        queryClient.invalidateQueries({ queryKey: ["weeklyPlan", user.id, weekStartDate] });
        toast.success("Schedule Submitted Successfully!");
-       navigate('/sales/daily');
+       // Navigate to daily pointing at the start of the planned week so the
+       // user lands on Monday of their submitted plan, not today.
+       navigate('/sales/daily', { state: { date: weekStartDate } });
     },
     onError: (err) => toast.error(err.message)
   });

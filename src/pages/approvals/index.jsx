@@ -16,6 +16,7 @@ import {
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
+import TaskDetails from "../../components/TaskDetails.jsx";
 
 export default function ApprovalsPage() {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ export default function ApprovalsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [autoOpenId, setAutoOpenId] = useState(null);
+  const [viewTask, setViewTask] = useState(null); // Full Modal State
 
   // Filter state (Head-only UX)
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,7 +47,11 @@ export default function ApprovalsPage() {
   // 🔥 DEEP LINKING HOOK
   useEffect(() => {
     if (location.state?.openTaskId && rawTasks.length > 0) {
-      queueMicrotask(() => setAutoOpenId(location.state.openTaskId));
+      const targetTask = rawTasks.find(t => t.id === location.state.openTaskId);
+      queueMicrotask(() => {
+        setAutoOpenId(location.state.openTaskId); // Still opens the row for context underneath
+        if (targetTask) setViewTask(targetTask); // Pops the big modal
+      });
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, rawTasks, navigate, location.pathname]);
@@ -56,12 +62,17 @@ export default function ApprovalsPage() {
       .filter((t) => {
         const isNotMe = t.loggedById !== user?.id; // Don't approve your own tasks
 
+        let matchesHrQueue = false;
+        let matchesHeadQueue = false;
+
         if (isHr) {
           // 🔥 HR QUEUE: Needs to be COMPLETE, but NOT YET VERIFIED
           const isComplete = t.status === "COMPLETE";
           const isNotVerified = !t.hrVerified;
-          return isNotMe && isComplete && isNotVerified;
-        } else if (isHead) {
+          matchesHrQueue = isNotMe && isComplete && isNotVerified;
+        }
+
+        if (isHead) {
           // 🔥 HEAD QUEUE: Needs to be INCOMPLETE, and in their Sub-Department
           const taskSubDept =
             t.sub_department ||
@@ -82,10 +93,10 @@ export default function ApprovalsPage() {
           }
 
           const isIncomplete = t.status === "INCOMPLETE";
-          return isNotMe && isMyDept && isIncomplete;
+          matchesHeadQueue = isNotMe && isMyDept && isIncomplete;
         }
 
-        return false;
+        return matchesHrQueue || matchesHeadQueue;
       })
       .sort((a, b) => {
         if (a.priority === "HIGH" && b.priority !== "HIGH") return -1;
@@ -146,6 +157,15 @@ export default function ApprovalsPage() {
     },
   });
 
+  const deleteTaskMutation = useMutation({
+    mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task deleted successfully");
+    },
+  });
+
   if (isLoading)
     return (
       <div className="py-20 text-center text-gray-9 font-bold">
@@ -154,7 +174,7 @@ export default function ApprovalsPage() {
     );
 
   return (
-    <ProtectedRoute requireHead={true} excludeSuperAdmin={true}>
+    <ProtectedRoute requireHead={true}>
       <div className="max-w-5xl mx-auto space-y-6 pb-10">
         {/* HEADER */}
         <div className="flex justify-between items-end border-b border-gray-4 pb-4">
@@ -176,8 +196,8 @@ export default function ApprovalsPage() {
           </div>
         </div>
 
-        {/* FILTER BAR — Heads only */}
-        {!isHr && pendingTasks.length > 0 && (
+        {/* FILTER BAR */}
+        {pendingTasks.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center bg-gray-2 border border-gray-4 rounded-xl px-3 py-2.5">
             {/* Search */}
             <div className="flex items-center gap-2 flex-1 min-w-0 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5">
@@ -209,11 +229,10 @@ export default function ApprovalsPage() {
                 <button
                   key={val}
                   onClick={() => setPriorityFilter(val)}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
-                    priorityFilter === val
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${priorityFilter === val
                       ? "bg-primary text-white shadow"
                       : "text-gray-9 hover:text-gray-12"
-                  }`}
+                    }`}
                 >
                   {label}
                 </button>
@@ -292,6 +311,14 @@ export default function ApprovalsPage() {
           </div>
         )}
       </div>
+
+      <TaskDetails
+        isOpen={!!viewTask}
+        onClose={() => setViewTask(null)}
+        task={viewTask}
+        onUpdateTask={(updatedTask) => editTaskMutation.mutateAsync(updatedTask)}
+        onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
+      />
     </ProtectedRoute>
   );
 }
@@ -365,11 +392,10 @@ function ApprovalRow({
 
   return (
     <div
-      className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${
-        expanded
+      className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${expanded
           ? "border-gray-6 shadow-lg"
           : "border-gray-4 hover:border-gray-6"
-      }`}
+        }`}
     >
       {/* COMPACT ROW */}
       <div
@@ -457,11 +483,10 @@ function ApprovalRow({
                         return (
                           <div
                             key={num}
-                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${
-                              isSelected
+                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${isSelected
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
                                 : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
-                            }`}
+                              }`}
                           >
                             {num}
                           </div>
@@ -530,11 +555,10 @@ function ApprovalRow({
                           <button
                             key={num}
                             onClick={() => setGrade(num)}
-                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
-                              grade === num
+                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${grade === num
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
                                 : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6 hover:bg-gray-3"
-                            }`}
+                              }`}
                           >
                             {num}
                           </button>

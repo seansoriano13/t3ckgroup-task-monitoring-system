@@ -10,6 +10,7 @@ import {
   FileText,
   CheckCircle2,
   Circle,
+  XCircle,
   AlertCircle,
   DollarSign,
   LayoutList,
@@ -22,6 +23,7 @@ import {
   Lock,
   Unlock,
   MessageSquare,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
@@ -58,6 +60,16 @@ export default function SalesRecordsPage() {
       queryClient.invalidateQueries({ queryKey: ["allRevenueLogs"] });
       toast.success("Revenue record updated successfully!");
       setEditingRevenue(null);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  // Super Admin only — soft-delete a revenue log (sets is_deleted=true in DB)
+  const deleteRevenueMutation = useMutation({
+    mutationFn: (id) => salesService.softDeleteRevenueLog(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allRevenueLogs"] });
+      toast.success("Revenue log removed.");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -155,6 +167,11 @@ export default function SalesRecordsPage() {
         setSelectedDateFilter(targetDate);
         setFilterEmp(targetEmp);
 
+        // Pop open the detailed view modal if a specific activity was targeted
+        if (targetAct && eventType !== "SALES_PLAN_SUBMITTED") {
+          queueMicrotask(() => setSelectedActivity(targetAct));
+        }
+
         navigate(location.pathname, { replace: true, state: {} });
       }
     }
@@ -200,8 +217,20 @@ export default function SalesRecordsPage() {
     let filtered = allowedActivities;
     if (filterEmp !== "ALL")
       filtered = filtered.filter((a) => a.employee_id === filterEmp);
-    if (filterStatus !== "ALL")
-      filtered = filtered.filter((a) => a.status === filterStatus);
+    if (filterStatus !== "ALL") {
+      if (filterStatus === "APPROVED" || filterStatus === "DONE") {
+        // "Completed" means APPROVED or DONE status
+        filtered = filtered.filter((a) => a.status === "APPROVED" || a.status === "DONE");
+      } else if (filterStatus === "PENDING") {
+        // "Pending Expense" — waiting for expense approval
+        filtered = filtered.filter((a) => a.status === "PENDING");
+      } else if (filterStatus === "INCOMPLETE") {
+        // "Planned / Incomplete" — not yet executed
+        filtered = filtered.filter((a) => a.status === "INCOMPLETE" || a.status === "REJECTED");
+      } else {
+        filtered = filtered.filter((a) => a.status === filterStatus);
+      }
+    }
     if (filterType !== "ALL")
       filtered = filtered.filter((a) => {
         const aType = (a.activity_type || "")
@@ -257,6 +286,12 @@ export default function SalesRecordsPage() {
 
     return filtered;
   }, [
+    allowedActivities,
+    filterEmp,
+    filterStatus,
+    filterType,
+    searchTerm,
+    selectedDateFilter,
     timeframe,
   ]);
 
@@ -271,15 +306,15 @@ export default function SalesRecordsPage() {
     // B. Status Filter
     if (filterStatus !== "ALL") {
       // Map the common filtering dropdown to Revenue exact terms
-       if (filterStatus === "DONE")
-         filtered = filtered.filter(
+      if (filterStatus === "APPROVED" || filterStatus === "DONE")
+        filtered = filtered.filter(
           (a) =>
-            a.status?.toUpperCase().includes("COMPLETED") &&
+            (a.status?.toUpperCase().includes("COMPLETED") || a.status?.toUpperCase() === "APPROVED") &&
             (!isVerificationEnforced || a.is_verified !== false),
         );
       if (filterStatus === "INCOMPLETE")
         filtered = filtered.filter(
-          (a) => a.status.includes("LOST") || a.status === "Lost",
+          (a) => a.status?.toUpperCase().includes("LOST") || a.status?.toUpperCase() === "REJECTED",
         );
       if (filterStatus === "UNVERIFIED")
         filtered = filtered.filter((a) => a.is_verified === false);
@@ -565,11 +600,12 @@ export default function SalesRecordsPage() {
               {activeTab === "ACTIVITIES" ? (
                 <>
                   <option value="INCOMPLETE">Planned / Incomplete</option>
-                  <option value="DONE">Completed / Done</option>
+                  <option value="APPROVED">Approved / Completed</option>
+                  <option value="PENDING">Pending Expense Approval</option>
                 </>
               ) : (
                 <>
-                  <option value="DONE">Completed Sales</option>
+                  <option value="APPROVED">Completed Sales</option>
                   <option value="INCOMPLETE">Lost Sales</option>
                   {isVerificationEnforced && (
                     <option value="UNVERIFIED">Pending Verification</option>
@@ -722,11 +758,25 @@ export default function SalesRecordsPage() {
                             </div>
                           </td>
                           <td className="p-4 text-center">
-                            {act.status === "DONE" ? (
+                            {act.status === "APPROVED" ? (
                               <div className="flex flex-col items-center gap-1 text-green-500">
                                 <CheckCircle2 size={18} />
                                 <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded">
-                                  DONE
+                                  APPROVED
+                                </span>
+                              </div>
+                            ) : act.status === "PENDING" ? (
+                              <div className="flex flex-col items-center gap-1 text-amber-500">
+                                <Clock size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded">
+                                  PENDING
+                                </span>
+                              </div>
+                            ) : act.status === "REJECTED" ? (
+                              <div className="flex flex-col items-center gap-1 text-red-500">
+                                <XCircle size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded">
+                                  REJECTED
                                 </span>
                               </div>
                             ) : (
@@ -898,6 +948,11 @@ export default function SalesRecordsPage() {
                     <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center">
                       Status
                     </th>
+                    {user?.isSuperAdmin && (
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center w-12">
+                        
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-4">
@@ -969,6 +1024,35 @@ export default function SalesRecordsPage() {
                               </span>
                             )}
                           </td>
+                          {/* Super Admin soft-delete button */}
+                          {user?.isSuperAdmin && (
+                            <td
+                              className="p-4 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                title={log.is_verified ? "Un-verify before deleting" : "Remove log"}
+                                disabled={deleteRevenueMutation.isPending}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (log.is_verified) {
+                                    toast.error("Remove the verification stamp before deleting.");
+                                    return;
+                                  }
+                                  if (window.confirm(`Delete this revenue log (₱${Number(log.revenue_amount).toLocaleString()} – ${log.account})? This is a soft-delete and can be recovered from the database if needed.`)) {
+                                    deleteRevenueMutation.mutate(log.id);
+                                  }
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  log.is_verified
+                                    ? "text-gray-6 cursor-not-allowed"
+                                    : "text-gray-8 hover:text-red-500 hover:bg-red-500/10"
+                                }`}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))
                   )}
@@ -1028,16 +1112,29 @@ export default function SalesRecordsPage() {
 function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
   const [expanded, setExpanded] = useState(false);
   const total = dateBlock.all.length;
-  const done = dateBlock.all.filter(a => a.status === "DONE").length;
-  const pending = dateBlock.all.filter(a => a.status === "PENDING_APPROVAL").length;
+  const done = dateBlock.all.filter(a => a.status === "DONE" || a.status === "APPROVED").length;
+  const pending = dateBlock.all.filter(a => a.status === "PENDING_APPROVAL" || a.status === "PENDING").length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
   const pctColor = pct >= 80 ? "text-green-600 bg-green-500/10 border-green-500/20"
     : pct >= 50 ? "text-yellow-600 bg-yellow-500/10 border-yellow-500/20"
     : "text-red-600 bg-red-500/10 border-red-500/20";
 
+  // Group activities by actual date for a much better UX
+  const activitiesByDate = useMemo(() => {
+    return dateBlock.all.reduce((acc, act) => {
+      const d = act.scheduled_date;
+      if (!acc[d]) acc[d] = { AM: [], PM: [] };
+      if (act.time_of_day === "AM") acc[d].AM.push(act);
+      else acc[d].PM.push(act);
+      return acc;
+    }, {});
+  }, [dateBlock]);
+
+  const datesSorted = Object.keys(activitiesByDate).sort();
+
   return (
-    <div className="min-w-[260px] shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm snap-start flex flex-col overflow-hidden transition-all">
+    <div className="min-w-[300px] shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm snap-start flex flex-col overflow-hidden transition-all">
       {/* Summary header — entire row is clickable */}
       <button
         onClick={() => setExpanded(v => !v)}
@@ -1075,31 +1172,41 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
 
       {/* Expandable body */}
       {expanded && (
-        <div className="border-t border-gray-100 p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* AM Block */}
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">AM Block ({dateBlock.AM.length})</p>
-            {dateBlock.AM.length === 0
-              ? <p className="text-xs text-gray-400 italic text-center py-2">No AM activities</p>
-              : <div className="space-y-1.5">
-                  {dateBlock.AM.map(act => (
-                    <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />
-                  ))}
-                </div>
-            }
-          </div>
-          {/* PM Block */}
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">PM Block ({dateBlock.PM.length})</p>
-            {dateBlock.PM.length === 0
-              ? <p className="text-xs text-gray-400 italic text-center py-2">No PM activities</p>
-              : <div className="space-y-1.5">
-                  {dateBlock.PM.map(act => (
-                    <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />
-                  ))}
-                </div>
-            }
-          </div>
+        <div className="bg-gray-50 border-t border-gray-100 p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[60vh] overflow-y-auto custom-scrollbar">
+          {datesSorted.length === 0 ? (
+             <p className="text-xs text-gray-400 italic text-center py-2">No activities</p>
+          ) : (
+             datesSorted.map((d) => (
+               <div key={d} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                 <h4 className="text-xs font-bold text-gray-800 mb-3 border-b border-gray-100 pb-1 flex justify-between items-center">
+                   {new Date(d).toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' })}
+                   <span className="text-[10px] text-gray-500 font-normal bg-gray-100 px-1.5 py-0.5 rounded text-center">{activitiesByDate[d].AM.length + activitiesByDate[d].PM.length} tasks</span>
+                 </h4>
+                 <div className="space-y-3">
+                   {activitiesByDate[d].AM.length > 0 && (
+                     <div>
+                       <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                          <Clock size={10} /> AM Block
+                       </p>
+                       <div className="space-y-1.5">
+                          {activitiesByDate[d].AM.map(act => <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />)}
+                       </div>
+                     </div>
+                   )}
+                   {activitiesByDate[d].PM.length > 0 && (
+                     <div>
+                       <p className="text-[9px] font-black text-purple-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 mt-2">
+                          <Clock size={10} /> PM Block
+                       </p>
+                       <div className="space-y-1.5">
+                          {activitiesByDate[d].PM.map(act => <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />)}
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </div>
+             ))
+          )}
         </div>
       )}
     </div>
@@ -1107,7 +1214,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
 }
 
 function BoardActivityCard({ act, onClick }) {
-  const isDone = act.status === "DONE";
+  const isDone = act.status === "DONE" || act.status === "APPROVED";
   const isLost = act.sales_outcome === 'LOST';
   const isWon  = act.sales_outcome === 'WON';
   return (
@@ -1483,8 +1590,8 @@ const EditRevenueModal = ({
                   }
                   className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-bold"
                 >
-                  <option value="COMPLETED SALES">COMPLETED SALES</option>
-                  <option value="LOST SALES">LOST SALES</option>
+                  <option value="COMPLETED">COMPLETED SALES</option>
+                  <option value="LOST">LOST SALES</option>
                 </select>
               </div>
             </div>

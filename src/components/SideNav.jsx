@@ -50,6 +50,8 @@ export default function SideNav({ onOpenAddTask }) {
     navLinks = [
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
+      { label: "For Approval", link: "/approvals", icon: ShieldCheck },
+      { label: "Master Log", link: "/hr-master-log", icon: Database },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
@@ -71,7 +73,7 @@ export default function SideNav({ onOpenAddTask }) {
       );
     }
 
-    if (user?.isHead) {
+    if (user?.isHead && !isSales) {
       navLinks.push({
         label: "For Approval",
         link: "/approvals",
@@ -81,7 +83,7 @@ export default function SideNav({ onOpenAddTask }) {
 
     if (user?.isHr) {
       navLinks.push(
-        { label: "HR Master Log", link: "/hr-master-log", icon: Database },
+        { label: "Master Log", link: "/hr-master-log", icon: Database },
         {
           label: "Employee Mgmt",
           link: "/hr/employee-management",
@@ -165,7 +167,7 @@ export default function SideNav({ onOpenAddTask }) {
               title="Set Quotas"
             />
           </div>
-        ) : user?.isHr ? (
+        ) : user?.isHr || user?.isHead || user?.is_head || user?.is_hr ? (
           <div className="flex flex-col gap-2 w-full mt-2">
             <PrimaryButton
               onClick={() => {
@@ -176,15 +178,17 @@ export default function SideNav({ onOpenAddTask }) {
               label={<Plus size={20} />}
               title="Add Task"
             />
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                navigate("/approvals");
-              }}
-              className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Eye size={20} />}
-              title="For Approval"
-            />
+            {(!isSales || user?.isHr || user?.is_hr) && (
+              <PrimaryButton
+                onClick={() => {
+                  setIsExpanded(false);
+                  navigate("/approvals");
+                }}
+                className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
+                label={<Eye size={20} />}
+                title="For Approval"
+              />
+            )}
           </div>
         ) : (
           <div className="w-full mt-2">
@@ -193,21 +197,13 @@ export default function SideNav({ onOpenAddTask }) {
                 setIsExpanded(false); // Close sidebar when opening modal
                 if (isSales) {
                   navigate("/sales/schedule");
-                } else if (user?.is_head || user?.isHead) {
-                  navigate("/approvals");
                 } else {
                   onOpenAddTask();
                 }
               }}
               className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
-              label={
-                user?.isHead ? (
-                  <Eye size={20} />
-                ) : (
-                  <Plus size={20} />
-                )
-              }
-              title={user?.isHead ? "For Approval" : "Add Task"}
+              label={<Plus size={20} />}
+              title={isSales ? "Sales Planner" : "Add Task"}
             />
           </div>
         )}
@@ -221,11 +217,10 @@ export default function SideNav({ onOpenAddTask }) {
     /* 🔥 THE FIX: Match these to your Aside's width */
     left-14 md:left-[72px] 
 
-    ${
-      isExpanded
-        ? "w-[calc(100vw-56px)] md:w-64 opacity-100" // 56px is the width of w-14
-        : "w-0 opacity-0 pointer-events-none"
-    }
+    ${isExpanded
+            ? "w-[calc(100vw-56px)] md:w-64 opacity-100" // 56px is the width of w-14
+            : "w-0 opacity-0 pointer-events-none"
+          }
   `}
       >
         {/* We fix the inner width so the text doesn't wrap weirdly during the animation */}
@@ -260,10 +255,9 @@ export default function SideNav({ onOpenAddTask }) {
                   to={navLink.link}
                   onClick={() => setIsExpanded(false)} // 👈 Closes sidebar upon navigation!
                   className={({ isActive }) =>
-                    `flex gap-3 items-center px-3 py-3 rounded-lg font-semibold transition-all ${
-                      isActive
-                        ? "text-red-9 bg-red-a3" // Active state styling
-                        : "text-gray-10 hover:text-gray-12 hover:bg-gray-3"
+                    `flex gap-3 items-center px-3 py-3 rounded-lg font-semibold transition-all ${isActive
+                      ? "text-red-9 bg-red-a3" // Active state styling
+                      : "text-gray-10 hover:text-gray-12 hover:bg-gray-3"
                     }`
                   }
                 >

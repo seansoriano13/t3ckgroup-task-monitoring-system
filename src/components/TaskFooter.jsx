@@ -20,7 +20,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
     onDelete,
     onUndoVerify,
   } = actions;
-  const { canEdit, isStrictlyHead, isHr, isManagement, isOwner } = permissions;
+  const { canEdit, canEvaluate, isHr, isManagement, isOwner } = permissions;
   const { isEditing, isSubmitting, task, formIsValid } = state;
 
   return (
@@ -81,7 +81,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
             )}
 
             {/* --- HEAD ACTIONS (EVALUATION) --- */}
-            {isStrictlyHead && task.status === "INCOMPLETE" && (
+            {canEvaluate && task.status === "INCOMPLETE" && (
               <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
                 <button
                   onClick={onHeadReject}
@@ -123,7 +123,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 ) : (
                   <ShieldCheck size={16} />
                 )}
-                Verify
+                Verify & Sign
               </button>
             )}
 

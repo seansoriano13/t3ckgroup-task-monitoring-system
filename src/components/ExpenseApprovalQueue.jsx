@@ -14,16 +14,22 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
 
   const deptFilter = isSuperAdmin ? null : user?.department;
 
-  const { data: appSettings } = useQuery({
+  const { data: appSettings, isLoading: isLoadingSettings } = useQuery({
     queryKey: ["appSettings"],
     queryFn: () => salesService.getAppSettings(),
     enabled: !!user?.id,
   });
 
+  // Only enable the expenses query once appSettings has resolved.
+  // While appSettings is undefined (loading), !appSettings?.sales_self_approve_expenses
+  // evaluates to true which would fire the query prematurely and get stuck.
+  const settingsResolved = !isLoadingSettings && appSettings !== undefined;
+  const selfApproveEnabled = appSettings?.sales_self_approve_expenses === true;
+
   const { data: pendingExpenses = [], isLoading } = useQuery({
     queryKey: ["pendingExpenses", deptFilter],
     queryFn: () => salesService.getPendingExpenses(deptFilter),
-    enabled: !!user?.id && !appSettings?.sales_self_approve_expenses,
+    enabled: !!user?.id && settingsResolved && !selfApproveEnabled,
   });
 
   const [selected, setSelected] = useState(new Set());
@@ -41,13 +47,19 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
     );
   });
 
+  // Stable primitive key — only changes when the actual set of IDs changes.
+  // Using the array directly as a dep causes an infinite loop because React Query
+  // returns a new array reference on every render when the default `= []` is used.
+  const pendingExpenseIds = pendingExpenses.map(e => e.id).join(",");
+
   // Sync selection state when data changes (avoid stale IDs)
   useEffect(() => {
     setSelected(prev => {
-      const validIds = new Set(pendingExpenses.map(e => e.id));
+      const validIds = new Set(pendingExpenseIds ? pendingExpenseIds.split(",") : []);
       return new Set([...prev].filter(id => validIds.has(id)));
     });
-  }, [pendingExpenses]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingExpenseIds]);
 
   // Scroll to highlighted item from notification
   useEffect(() => {
@@ -109,7 +121,9 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
 
   const isPending = approveMutation.isPending || bulkApproveMutation.isPending;
 
-  if (appSettings?.sales_self_approve_expenses) return null;
+  // Hide completely while app settings are loading, or if self-approve is enabled.
+  if (isLoadingSettings || !settingsResolved) return null;
+  if (selfApproveEnabled) return null;
 
   if (isLoading) return (
     <div className="p-6 text-center text-gray-11 text-sm font-medium flex items-center justify-center gap-2 bg-gray-1 border border-gray-4 rounded-2xl mb-6">

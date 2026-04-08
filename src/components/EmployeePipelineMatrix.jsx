@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ShieldAlert, Star, Users, TrendingUp } from "lucide-react";
-import { useMemo } from "react";
+import { Activity, ShieldAlert, Star, Users, TrendingUp, Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 
@@ -10,6 +10,7 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
   const isHead = user?.is_head === true || user?.isHead === true;
 
   const userDepartment = user?.department;
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch ALL tasks (we will filter them down for Heads)
   const { data: rawTasks = [], isLoading } = useQuery({
@@ -47,6 +48,9 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
       if (user?.isSuperAdmin) {
         if (task.creator?.is_head || task.creator?.is_hr) return;
       }
+
+      // Exclude tasks logged BY any super admin (they don't need pipeline tracking)
+      if (task.creator?.is_super_admin) return;
 
       if (!empMap[task.loggedById]) {
         empMap[task.loggedById] = {
@@ -102,11 +106,21 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
     selectedMonth,
   ]);
 
+  const filteredStats = useMemo(() => {
+    if (!searchTerm.trim()) return employeeStats;
+    const lower = searchTerm.toLowerCase();
+    return employeeStats.filter(e => 
+      e.name.toLowerCase().includes(lower) || 
+      e.subDept.toLowerCase().includes(lower) ||
+      e.dept.toLowerCase().includes(lower)
+    );
+  }, [employeeStats, searchTerm]);
+
   if (isLoading || employeeStats.length === 0) return null;
 
   return (
     <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-sm p-5 overflow-hidden">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
         <div>
           <h2 className="text-lg font-black text-gray-12 flex items-center gap-2 tracking-tight">
             <Activity className="text-primary" size={20} /> Team Pipeline Radar
@@ -124,17 +138,36 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
             .
           </p>
         </div>
-        <div className="hidden sm:flex items-center gap-1.5 bg-gray-2 border border-gray-4 px-3 py-1.5 rounded-lg">
-          <Users size={14} className="text-gray-10" />
-          <span className="text-xs font-bold text-gray-11 tracking-wider uppercase">
-            {employeeStats.length} Members Active
-          </span>
+        
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-gray-2 border border-gray-4 rounded-lg px-3 py-1.5 min-w-[200px]">
+            <Search size={14} className="text-gray-9" />
+            <input
+              type="text"
+              placeholder="Search employee..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-transparent border-none outline-none text-xs text-gray-12 placeholder-gray-8 w-full"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm("")} className="text-gray-9 hover:text-gray-12">
+                <X size={12} />
+              </button>
+            )}
+          </div>
+          
+          <div className="hidden sm:flex items-center gap-1.5 bg-gray-2 border border-gray-4 px-3 py-1.5 rounded-lg h-full">
+            <Users size={14} className="text-gray-10" />
+            <span className="text-xs font-bold text-gray-11 tracking-wider uppercase">
+              {employeeStats.length} Members Active
+            </span>
+          </div>
         </div>
       </div>
 
       {/* HORIZONTAL SCROLLING GRID */}
       <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
-        {employeeStats.map((emp) => (
+        {filteredStats.map((emp) => (
           <div
             key={emp.id}
             className="min-w-[280px] sm:min-w-[320px] bg-gray-2 border border-gray-4 rounded-xl p-4 flex flex-col gap-4 snap-start hover:border-gray-5 transition-colors"

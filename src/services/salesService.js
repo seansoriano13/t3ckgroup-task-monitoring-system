@@ -38,6 +38,7 @@ export const salesService = {
       .select("*, employees(name)")
       .gte("date", startDate)
       .lt("date", endDate)
+      .neq("is_deleted", true)          // exclude soft-deleted rows
       .order("date", { ascending: false });
 
     if (error) throw error;
@@ -138,27 +139,31 @@ export const salesService = {
       // Broadcast Unplanned injection
       const unplannedCount = inserted.filter(a => a.is_unplanned).length;
       if (unplannedCount > 0) {
-         const firstUnplanned = inserted.find(a => a.is_unplanned);
-         await notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
-            sender_id: firstUnplanned?.employee_id,
-            type: 'UNPLANNED_ACTIVITY',
-            title: 'Unplanned Action Logged',
-            message: `${inserted[0].employees?.name || 'A Sales Rep'} dynamically injected ${unplannedCount} unplanned activit${unplannedCount > 1 ? 'ies' : 'y'} into their tracker.`,
-            reference_id: firstUnplanned?.id
-         });
+         try {
+           const firstUnplanned = inserted.find(a => a.is_unplanned);
+           await notificationService.broadcastToRole(['HR', 'SUPER_ADMIN'], {
+              sender_id: firstUnplanned?.employee_id,
+              type: 'UNPLANNED_ACTIVITY',
+              title: 'Unplanned Action Logged',
+              message: `${inserted[0].employees?.name || 'A Sales Rep'} dynamically injected ${unplannedCount} unplanned activit${unplannedCount > 1 ? 'ies' : 'y'} into their tracker.`,
+              reference_id: firstUnplanned?.id
+           });
+         } catch(e) { console.error("Notification failed", e); }
       }
 
       // Notify admins if any inserted items need expense approval
       const pendingExpenseItems = inserted.filter(a => a.status === REVENUE_STATUS.PENDING && Number(a.expense_amount) > 0);
       if (pendingExpenseItems.length > 0) {
          for (const item of pendingExpenseItems) {
-            await notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
-               sender_id: item.employee_id,
-               type: 'SALES_EXPENSE_PENDING',
-               title: 'Expense Approval Needed',
-               message: `${item.employees?.name || 'A Sales Rep'} logged an unplanned activity with a requested expense of ₱${Number(item.expense_amount).toLocaleString()}.`,
-               reference_id: item.id
-            });
+            try {
+              await notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
+                 sender_id: item.employee_id,
+                 type: 'SALES_EXPENSE_PENDING',
+                 title: 'Expense Approval Needed',
+                 message: `${item.employees?.name || 'A Sales Rep'} logged an unplanned activity with a requested expense of ₱${Number(item.expense_amount).toLocaleString()}.`,
+                 reference_id: item.id
+              });
+            } catch(e) { console.error("Notification failed", e); }
          }
       }
     }
@@ -272,11 +277,11 @@ export const salesService = {
 
   async bulkApproveExpenses(activityIds) {
      if (!activityIds || activityIds.length === 0) return;
-     // Batch-update all to DONE in one query
      const { data, error } = await supabase
        .from('sales_activities')
        .update({ status: REVENUE_STATUS.APPROVED, completed_at: new Date().toISOString() })
        .in('id', activityIds)
+       .eq('status', REVENUE_STATUS.PENDING)
        .select('id, employee_id, account_name');
      if (error) throw error;
 
@@ -396,11 +401,16 @@ export const salesService = {
 
   // === GLOBAL APP SETTINGS ===
   async getAppSettings() {
-     const { data, error } = await supabase.from('app_settings').select('*').single();
+     const { data, error } = await supabase.from('app_settings').select('*').maybeSingle();
       if (error || !data) {
         // Fallback initialized row
-        const { data: d } = await supabase.from('app_settings').upsert({ id: true, require_revenue_verification: false, sales_self_approve_expenses: false }).select().single();
-        return d;
+        try {
+          const { data: d } = await supabase.from('app_settings').upsert({ id: true, require_revenue_verification: false, sales_self_approve_expenses: false }).select().single();
+          return d;
+        } catch (e) {
+          console.error("Failed to fetch or initialize app settings", e);
+          return null; // Return null so that caller knows it's resolved but empty
+        }
      }
      return data;
   },
@@ -428,11 +438,17 @@ export const salesService = {
      return data || [];
   },
 
-  async getAllSalesActivities() {
-     const { data, error } = await supabase
+  async getAllSalesActivities(monthFilter = null) {
+     let query = supabase
        .from('sales_activities')
        .select('*, employees(name, department, is_super_admin)')
        .order('scheduled_date', { ascending: false });
+       
+     if (monthFilter) {
+        query = query.like('scheduled_date', `${monthFilter}-%`);
+     }
+     
+     const { data, error } = await query;
      if (error) throw error;
      return data;
   },
@@ -441,9 +457,35 @@ export const salesService = {
      const { data, error } = await supabase
        .from('sales_revenue_logs')
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name, department, is_super_admin), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)')
+       .neq('is_deleted', true)          // exclude soft-deleted rows
        .order('date', { ascending: false });
      if (error) throw error;
      return data;
+  },
+
+  /**
+   * Soft-delete a revenue log (Super Admin only).
+   * Sets is_deleted=true and records a timestamp so the record is
+   * hidden from all queries but remains in the DB for audit purposes.
+   * Blocked if the log is currently is_verified=true (caller must un-verify first).
+   */
+  async softDeleteRevenueLog(id) {
+     const { data: log, error: fetchErr } = await supabase
+       .from('sales_revenue_logs')
+       .select('id, is_verified, is_deleted')
+       .eq('id', id)
+       .single();
+
+     if (fetchErr) throw new Error(fetchErr.message);
+     if (log?.is_deleted) throw new Error('This log has already been removed.');
+     if (log?.is_verified) throw new Error('Cannot delete a verified revenue log. Remove the verification stamp first.');
+
+     const { error } = await supabase
+       .from('sales_revenue_logs')
+       .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+       .eq('id', id);
+
+     if (error) throw new Error(error.message);
   },
 
   async getRevenueAnalysis(startDate, endDate) {
@@ -452,6 +494,7 @@ export const salesService = {
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name)')
        .gte('date', startDate)
        .lte('date', endDate)
+       .neq('is_deleted', true)          // exclude soft-deleted rows
        .order('date', { ascending: false });
      if (error) throw error;
      return data;
@@ -486,7 +529,8 @@ export const salesService = {
        .from('sales_revenue_logs')
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name, is_super_admin)')
        .gte('date', startDate)
-       .lt('date', endDate);
+       .lt('date', endDate)
+       .neq('is_deleted', true);          // exclude soft-deleted rows
     if (rErr) throw rErr;
 
     // 3. Combine
@@ -515,7 +559,7 @@ export const salesService = {
                revenueLost: 0
             }
        }
-        if (r.status?.toUpperCase().includes(REVENUE_STATUS.COMPLETED)) {
+        if (r.status === REVENUE_STATUS.COMPLETED || r.status === REVENUE_STATUS.APPROVED) {
           agg[r.employee_id].revenueWon += Number(r.revenue_amount);
        } else {
           agg[r.employee_id].revenueLost += Number(r.revenue_amount);

@@ -10,7 +10,7 @@ export const taskService = {
       .select(
         `
         *, 
-        creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
+        creator:employees!tasks_logged_by_fk(name, department, sub_department, email, is_super_admin),
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
         categories(description)
@@ -85,6 +85,8 @@ export const taskService = {
 
     if (error) throw error;
 
+    // console.log("GET MY TASK", data);
+
     return data.map((task) => ({
       id: task.id,
       taskDescription: task.task_description,
@@ -112,8 +114,68 @@ export const taskService = {
     }));
   },
 
+  // 2.5. SINGLE FETCH: Get one task by ID (for deep linking)
+  async getTaskById(taskId) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select(
+        `
+        *, 
+        creator:employees!tasks_logged_by_fk(name, department, sub_department, email, is_super_admin),
+        editor:employees!tasks_edited_by_fk(name),
+        evaluator:employees!tasks_evaluated_by_fkey(name),
+        categories(description)
+      `,
+      )
+      .eq("id", taskId)
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      taskDescription: data.task_description,
+      categoryId: data.category_id,
+      categoryDesc: data.categories?.description,
+      loggedById: data.logged_by,
+      loggedByName: data.creator?.name,
+      loggedByEmail: data.creator?.email,
+      creator: data.creator,
+      editedById: data.edited_by,
+      editedByName: data.editor?.name,
+      editedAt: data.edited_at,
+      evaluatedById: data.evaluated_by,
+      evaluatedByName: data.evaluator?.name,
+      evaluatedAt: data.evaluated_at,
+      startAt: data.start_at,
+      endAt: data.end_at,
+      status: data.status,
+      priority: data.priority,
+      remarks: data.remarks,
+      hrRemarks: data.hr_remarks,
+      grade: data.grade,
+      hrVerified: data.hr_verified,
+      hrVerifiedAt: data.hr_verified_at,
+      createdAt: data.created_at,
+    };
+  },
+
   // 3. CREATE
   async createTask(payload) {
+    let initialStatus = TASK_STATUS.INCOMPLETE;
+    let hrVerified = false;
+    let hrVerifiedAt = null;
+    let evaluatedBy = null;
+    let evaluatedAt = null;
+
+    if (payload.isAutoVerified) {
+      initialStatus = TASK_STATUS.COMPLETE;
+      hrVerified = true;
+      hrVerifiedAt = new Date().toISOString();
+      evaluatedBy = payload.submittedById;
+      evaluatedAt = new Date().toISOString();
+    }
+
     const { data, error } = await supabase
       .from("tasks")
       .insert([
@@ -125,9 +187,13 @@ export const taskService = {
             ? new Date(payload.startAt).toISOString()
             : new Date().toISOString(),
           end_at: payload.endAt ? new Date(payload.endAt).toISOString() : null,
-          status: TASK_STATUS.INCOMPLETE,
+          status: initialStatus,
           priority: payload.priority || "LOW",
           remarks: payload.remarks || "",
+          hr_verified: hrVerified,
+          hr_verified_at: hrVerifiedAt,
+          evaluated_by: evaluatedBy,
+          evaluated_at: evaluatedAt,
         },
       ])
       .select();
@@ -142,16 +208,23 @@ export const taskService = {
       .eq("id", payload.loggedById)
       .single();
     if (creator) {
-      notificationService.notifyHeadByDepartment(creator.department, creator.sub_department, {
-        sender_id: payload.submittedById || payload.loggedById,
-        type: "NEW_TASK_SUBMITTED",
-        title: "New Task Submitted",
-        message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
-        reference_id: data[0].id,
-      });
+      notificationService.notifyHeadByDepartment(
+        creator.department,
+        creator.sub_department,
+        {
+          sender_id: payload.submittedById || payload.loggedById,
+          type: "NEW_TASK_SUBMITTED",
+          title: "New Task Submitted",
+          message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
+          reference_id: data[0].id,
+        },
+      );
 
       // Special Notification: If someone else (HR/Admin) created this task for the employee
-      if (payload.submittedById && payload.submittedById !== payload.loggedById) {
+      if (
+        payload.submittedById &&
+        payload.submittedById !== payload.loggedById
+      ) {
         notificationService.createNotification({
           recipient_id: payload.loggedById,
           sender_id: payload.submittedById,
@@ -174,7 +247,10 @@ export const taskService = {
     // - If HR verification is being applied, the task must be in COMPLETE.
     // - If task is being moved back to INCOMPLETE, HR verification must be cleared.
     // - For COMPLETE/NOT APPROVED transitions, prevent "finalized with no evaluator" if caller didn't provide evaluatedBy.
-    if (payload?.hrVerified === true && payload?.status !== TASK_STATUS.COMPLETE) {
+    if (
+      payload?.hrVerified === true &&
+      payload?.status !== TASK_STATUS.COMPLETE
+    ) {
       payload = { ...payload, status: TASK_STATUS.COMPLETE };
     }
 
@@ -213,11 +289,14 @@ export const taskService = {
     // Prevent approving/rejecting if the task isn't in the expected pre-state.
     // Head transitions include evaluatedBy; HR transitions do not.
     const isHeadApprove =
-      payload?.status === TASK_STATUS.COMPLETE && payload?.evaluatedBy !== undefined;
+      payload?.status === TASK_STATUS.COMPLETE &&
+      payload?.evaluatedBy !== undefined;
     const isHeadReject =
-      payload?.status === TASK_STATUS.NOT_APPROVED && payload?.evaluatedBy !== undefined;
+      payload?.status === TASK_STATUS.NOT_APPROVED &&
+      payload?.evaluatedBy !== undefined;
     const isHrReject =
-      payload?.status === TASK_STATUS.NOT_APPROVED && payload?.evaluatedBy === undefined;
+      payload?.status === TASK_STATUS.NOT_APPROVED &&
+      payload?.evaluatedBy === undefined;
 
     if (isHeadApprove) {
       if (current?.status !== TASK_STATUS.INCOMPLETE) {
@@ -260,7 +339,10 @@ export const taskService = {
 
     // HR rejection should only happen while the task is currently COMPLETE and unverified.
     if (isHrReject) {
-      if (current?.status !== TASK_STATUS.COMPLETE || current?.hr_verified !== false) {
+      if (
+        current?.status !== TASK_STATUS.COMPLETE ||
+        current?.hr_verified !== false
+      ) {
         throw new Error(
           `Invalid pipeline transition: HR reject requires status=COMPLETE and hrVerified=false`,
         );
@@ -270,7 +352,10 @@ export const taskService = {
 
     // Enforce HR verification/undo pre-conditions.
     if (payload?.hrVerified === true) {
-      if (current?.status !== TASK_STATUS.COMPLETE || current?.hr_verified !== false) {
+      if (
+        current?.status !== TASK_STATUS.COMPLETE ||
+        current?.hr_verified !== false
+      ) {
         throw new Error(
           `Invalid pipeline transition: HR verify requires status=COMPLETE and hrVerified=false`,
         );
@@ -291,7 +376,10 @@ export const taskService = {
       payload?.evaluatedBy === undefined;
 
     if (isHrUndo) {
-      if (current?.status !== TASK_STATUS.COMPLETE || current?.hr_verified !== true) {
+      if (
+        current?.status !== TASK_STATUS.COMPLETE ||
+        current?.hr_verified !== true
+      ) {
         throw new Error(
           `Invalid pipeline transition: HR undo requires status=COMPLETE and hrVerified=true`,
         );
@@ -308,11 +396,13 @@ export const taskService = {
         payload.categoryId,
         payload.priority,
         payload.startAt,
-        payload.endAt
-      ].some(val => val !== undefined);
+        payload.endAt,
+      ].some((val) => val !== undefined);
 
       if (attemptedCoreEdits) {
-        throw new Error("Cannot edit core details of a task that has already been verified by HR.");
+        throw new Error(
+          "Cannot edit core details of a task that has already been verified by HR.",
+        );
       }
     }
 
@@ -408,13 +498,17 @@ export const taskService = {
         // Also keep the Head in the loop
         const empSubDept = current.creator?.sub_department;
         if (empSubDept || current.creator?.department) {
-          notificationService.notifyHeadByDepartment(current.creator?.department, empSubDept, {
-            sender_id: payload.editedBy,
-            type: "TASK_VERIFIED",
-            title: "Staff Task Verified by HR",
-            message: `Task ${taskNameSnippet} by ${current.creator?.name} under your department was verified by HR.`,
-            reference_id: taskId,
-          });
+          notificationService.notifyHeadByDepartment(
+            current.creator?.department,
+            empSubDept,
+            {
+              sender_id: payload.editedBy,
+              type: "TASK_VERIFIED",
+              title: "Staff Task Verified by HR",
+              message: `Task ${taskNameSnippet} by ${current.creator?.name} under your department was verified by HR.`,
+              reference_id: taskId,
+            },
+          );
         }
 
         // Notify Super Admin: Task is now fully completed (HR-verified)
@@ -453,7 +547,7 @@ export const taskService = {
       .from("tasks")
       .update({
         status: TASK_STATUS.DELETED,
-        edited_by: userId, 
+        edited_by: userId,
         edited_at: new Date().toISOString(),
       })
       .eq("id", taskId);

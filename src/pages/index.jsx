@@ -4,67 +4,32 @@ import { taskService } from "../services/taskService.js";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardHeader from "../components/DashboardHeader.jsx";
 import TasksList from "../components/TasksList.jsx";
-import TaskDetails from "../components/TaskDetails.jsx";
 import toast from "react-hot-toast";
 import SalesDashboard from "../components/SalesDashboard.jsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import DashboardStats from "../components/DashboardStats.jsx";
-import { Activity } from "lucide-react";
 import SalesPerformanceMetrics from "../components/SalesPerformanceMetrics.jsx";
 import { Calendar } from "lucide-react";
 import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
+import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
 import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const isManagement =
-    user?.is_hr || user?.isHr || user?.is_head || user?.isHead;
-
   const isSales =
     user?.department?.toLowerCase().includes("sales") ||
     user?.subDepartment?.toLowerCase().includes("sales");
-
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // --- MONTH SELECTION (Formatted for consistency with other dashboards) ---
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
   const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
 
-  const handleOpenDrawer = (task) => {
-    setSelectedTask(task);
-    setIsDrawerOpen(true);
-  };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-    setTimeout(() => setSelectedTask(null), 300);
-  };
-
-  const deleteTaskMutation = useMutation({
-    mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      toast.success("Task permanently deleted.");
-    },
-  });
-
-  const editTaskMutation = useMutation({
-    mutationFn: (updatedData) =>
-      taskService.updateTask(updatedData.id, updatedData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Task updated successfully!");
-    },
-    onError: (error) => {
-      console.error("Failed to update task:", error);
-      toast.error(error?.message || "Database error: Could not update task.");
-    },
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Omni Dashboard exclusively for HR and Super Admins
   if (user?.is_hr || user?.isHr || user?.isSuperAdmin) {
@@ -82,15 +47,6 @@ export default function Dashboard() {
                   All task executions, approvals, and HR verifications.
                 </p>
               </div>
-              {/* <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-xs font-bold text-gray-9 shadow-inner w-max">
-                <Calendar size={12} />
-                <span className="uppercase tracking-wider">
-                  {new Date(selectedMonth).toLocaleString("default", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
-              </div> */}
             </div>
 
             <div className="grid gap-8 relative">
@@ -112,16 +68,6 @@ export default function Dashboard() {
         <FloatingMonthPicker
           selectedMonth={selectedMonth}
           onChange={setSelectedMonth}
-        />
-
-        <TaskDetails
-          isOpen={isDrawerOpen}
-          onClose={handleCloseDrawer}
-          task={selectedTask}
-          onUpdateTask={(updatedTask) =>
-            editTaskMutation.mutateAsync(updatedTask)
-          }
-          onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
         />
       </ProtectedRoute>
     );
@@ -178,20 +124,14 @@ export default function Dashboard() {
           </div>
 
           <DashboardStats selectedMonth={selectedMonth} />
+          {!(user?.is_head || user?.isHead) && (
+            <PersonalPipelineRadar selectedMonth={selectedMonth} />
+          )}
           {(user?.is_head || user?.isHead) && (
             <EmployeePipelineMatrix selectedMonth={selectedMonth} />
           )}
           <TasksList selectedMonth={selectedMonth} />
         </div>
-        <TaskDetails
-          isOpen={isDrawerOpen}
-          onClose={handleCloseDrawer}
-          task={selectedTask}
-          onUpdateTask={(updatedTask) =>
-            editTaskMutation.mutateAsync(updatedTask)
-          }
-          onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
-        />
         <FloatingMonthPicker
           selectedMonth={selectedMonth}
           onChange={setSelectedMonth}

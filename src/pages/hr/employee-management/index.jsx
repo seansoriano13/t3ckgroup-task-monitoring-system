@@ -381,7 +381,7 @@ function EmployeeFormModal({ employee, onClose }) {
                 ))}
               </select>
             </div>
-            
+
             <div className="col-span-2">
               <label className="text-xs font-bold text-gray-9 uppercase">
                 Job Role / Title
