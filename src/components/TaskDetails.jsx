@@ -8,6 +8,8 @@ import ManagerEvaluation from "./ManagerEvaluation";
 import { formatDate } from "../utils/formatDate";
 import { PencilLine } from "lucide-react";
 import TaskFooter from "./TaskFooter";
+import ChecklistTaskInput from "./ChecklistTaskInput";
+import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 
 export default function TaskDetails({
   isOpen,
@@ -111,6 +113,32 @@ export default function TaskDetails({
     isHead ||
     (isOwner && task.status !== "COMPLETE" && !isHrRejected);
 
+  let isChecklistFormat = false;
+  let hasUncheckedItems = false;
+  if (formData.taskDescription) {
+    const trimmed = typeof formData.taskDescription === 'string' ? formData.taskDescription.trim() : "";
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+         const parsed = JSON.parse(trimmed);
+         if (Array.isArray(parsed)) {
+            isChecklistFormat = true;
+            hasUncheckedItems = parsed.some(item => item && typeof item === 'object' && !item.checked);
+         }
+      } catch(e) {}
+    } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+         const parsed = JSON.parse(trimmed);
+         if (parsed && Array.isArray(parsed.items)) {
+            isChecklistFormat = true;
+            hasUncheckedItems = parsed.items.some(item => item && typeof item === 'object' && !item.checked);
+         }
+      } catch(e) {}
+    } else if (Array.isArray(formData.taskDescription)) {
+       isChecklistFormat = true;
+       hasUncheckedItems = formData.taskDescription.some(item => item && typeof item === 'object' && !item.checked);
+    }
+  }
+
   // 🔥 THE FIX: Since useEffect handles the data now, this just toggles the UI
   const handleToggleEdit = () => {
     setIsEditing(true);
@@ -136,13 +164,13 @@ export default function TaskDetails({
   const handleAssigneeChange = (e) =>
     setFormData({ ...formData, loggedById: e.target.value, categoryId: "" });
 
-  const executeUpdate = async (payload) => {
-    setIsSubmitting(true);
+  const executeUpdate = async (payload, silent = false) => {
+    if (!silent) setIsSubmitting(true);
     try {
       await onUpdateTask(payload);
-      onClose();
+      if (!silent) onClose();
     } catch {
-      setIsSubmitting(false);
+      if (!silent) setIsSubmitting(false);
     }
   };
 
@@ -214,17 +242,36 @@ export default function TaskDetails({
                 Description
               </label>
               {isEditing ? (
-                <textarea
-                  name="taskDescription"
-                  value={formData.taskDescription}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 transition-colors h-24 resize-none text-sm"
-                />
+                isChecklistFormat ? (
+                  <ChecklistTaskInput 
+                    value={formData.taskDescription}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <textarea
+                    name="taskDescription"
+                    value={formData.taskDescription}
+                    onChange={handleChange}
+                    required
+                    className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 transition-colors h-24 resize-none text-sm"
+                  />
+                )
               ) : (
-                <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
-                  {task.taskDescription}
-                </div>
+                isChecklistFormat ? (
+                  <ChecklistTaskRenderer 
+                    description={task.taskDescription}
+                    isOwner={isOwner}
+                    disabled={!canEdit || !isOwner}
+                    onInlineCheck={(newDesc) => {
+                       setFormData(prev => ({...prev, taskDescription: newDesc}));
+                       executeUpdate({ id: task.id, taskDescription: newDesc, editedBy: user.id }, true);
+                    }}
+                  />
+                ) : (
+                  <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
+                    {task.taskDescription}
+                  </div>
+                )
               )}
             </div>
 
@@ -322,7 +369,7 @@ export default function TaskDetails({
               !topologyData.isLoadingTop &&
               !(isManagement && !formData.loggedById) &&
               formData.categoryId,
-            canApprove: approvalGrade !== null,
+            canApprove: approvalGrade !== null && !hasUncheckedItems,
             approvalRemarks: approvalRemarks,
           }}
         />

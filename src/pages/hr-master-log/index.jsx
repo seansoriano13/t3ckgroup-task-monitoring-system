@@ -23,6 +23,7 @@ import { supabase } from "../../lib/supabase"; // Make sure this path is correct
 import { useTaskFilters } from "../../hooks/useTaskFilters"; // 🔥 The Custom Hook!
 import { Users } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { formatTaskPreview } from "../../utils/taskFormatters";
 
 export default function HrMasterLogPage() {
   const { user } = useAuth();
@@ -146,7 +147,7 @@ export default function HrMasterLogPage() {
           escapeCSV(t.creator?.department || ""),
           escapeCSV(t.creator?.sub_department || ""),
           escapeCSV(t.categoryId),
-          escapeCSV(t.taskDescription),
+          escapeCSV(formatTaskPreview(t.taskDescription)),
           escapeCSV(t.priority),
           escapeCSV(t.status),
           t.grade || "N/A",
@@ -444,7 +445,7 @@ export default function HrMasterLogPage() {
                       </span>
                     </td>
                     <td className="p-4 text-sm text-gray-11 truncate max-w-xs">
-                      {task.taskDescription}
+                      {formatTaskPreview(task.taskDescription)}
                     </td>
                     <td className="p-4">
                       <StatusBadge status={task.status} />

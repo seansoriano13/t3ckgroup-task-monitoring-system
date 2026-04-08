@@ -476,6 +476,7 @@ export default function TasksPage() {
                     key={task.id}
                     task={task}
                     onView={() => setViewTask(task)}
+                    onSilentUpdate={(payload) => editTaskMutation.mutateAsync(payload)}
                   />
                 ))}
               </div>

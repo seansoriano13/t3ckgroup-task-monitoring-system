@@ -33,6 +33,8 @@ import { Clock } from "lucide-react";
 
 export default function SalesRecordsPage() {
   const { user } = useAuth();
+  const isMasterHead = (user?.is_head || user?.isHead) && (!user?.sub_department && !user?.subDepartment);
+  const canViewAllSales = user?.isSuperAdmin || user?.isHr || isMasterHead;
   const [activeTab, setActiveTab] = useState("ACTIVITIES"); // ACTIVITIES or REVENUE
   const [viewMode, setViewMode] = useState("BOARD");
 
@@ -93,8 +95,8 @@ export default function SalesRecordsPage() {
       const m = String(today.getMonth() + 1).padStart(2, "0");
       const d = String(today.getDate()).padStart(2, "0");
 
-      if (user.isSuperAdmin || user.isHr) {
-        // HR & Admins: Default to current Month & Year
+      if (canViewAllSales) {
+        // HR, Admins & Master Heads: Default to current Month & Year
         setTimeframe("MONTHLY");
         setSelectedDateFilter(`${y}`);
       } else {
@@ -203,14 +205,14 @@ export default function SalesRecordsPage() {
 
   // Access lists
   const allowedActivities = useMemo(() => {
-    if (user?.isSuperAdmin || user?.isHr) return rawActivities;
+    if (canViewAllSales) return rawActivities;
     return rawActivities.filter((a) => a.employee_id === user?.id);
-  }, [rawActivities, user?.isSuperAdmin, user?.isHr, user?.id]);
+  }, [rawActivities, canViewAllSales, user?.id]);
 
   const allowedRevenue = useMemo(() => {
-    if (user?.isSuperAdmin || user?.isHr) return rawRevenue;
+    if (canViewAllSales) return rawRevenue;
     return rawRevenue.filter((a) => a.employee_id === user?.id);
-  }, [rawRevenue, user?.isSuperAdmin, user?.isHr, user?.id]);
+  }, [rawRevenue, canViewAllSales, user?.id]);
 
   // Filter activities
   const filteredActivities = useMemo(() => {
@@ -573,17 +575,17 @@ export default function SalesRecordsPage() {
             )}
 
             <select
-              value={user?.isSuperAdmin || user?.isHr ? filterEmp : user?.id}
+              value={canViewAllSales ? filterEmp : user?.id}
               onChange={(e) => setFilterEmp(e.target.value)}
-              disabled={!user?.isSuperAdmin && !user?.isHr}
-              className={`bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-gray-6 font-semibold flex-1 sm:flex-none ${!user?.isSuperAdmin && !user?.isHr ? "opacity-70 cursor-not-allowed" : ""}`}
+              disabled={!canViewAllSales}
+              className={`bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-gray-6 font-semibold flex-1 sm:flex-none ${!canViewAllSales ? "opacity-70 cursor-not-allowed" : ""}`}
             >
-              {user?.isSuperAdmin || user?.isHr ? (
+              {canViewAllSales ? (
                 <option value="ALL">All Representatives</option>
               ) : (
                 <option value={user?.id}>My Records</option>
               )}
-              {(user?.isSuperAdmin || user?.isHr) &&
+              {canViewAllSales &&
                 uniqueEmployees.map((emp) => (
                   <option key={emp.id} value={emp.id}>
                     {emp.name}

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
+import { formatTaskPreview } from "../../utils/taskFormatters";
+import ChecklistTaskRenderer from "../../components/ChecklistTaskRenderer.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import TaskDetails from "../../components/TaskDetails.jsx";
 
@@ -420,7 +422,7 @@ function ApprovalRow({
           {/* Description Hidden on mobile, visible on tablet/desktop */}
           <div className="hidden md:block ml-4 pl-4 border-l border-gray-4">
             <p className="text-sm font-semibold text-gray-11 line-clamp-1 max-w-md">
-              {task.taskDescription}
+              {formatTaskPreview(task.taskDescription)}
             </p>
           </div>
         </div>
@@ -456,9 +458,19 @@ function ApprovalRow({
               <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-2 block">
                 Task Description
               </label>
-              <div className="bg-gray-1 p-3 md:p-4 rounded-lg border border-gray-4 text-xs md:text-sm text-gray-12 whitespace-pre-wrap leading-relaxed shadow-inner">
-                {task.taskDescription}
-              </div>
+              {task.taskDescription && task.taskDescription.trim().startsWith('[') ? (
+                <div className="mt-1">
+                  <ChecklistTaskRenderer 
+                    description={task.taskDescription} 
+                    isOwner={false} 
+                    disabled={true} 
+                  />
+                </div>
+              ) : (
+                <div className="bg-gray-1 p-3 md:p-4 rounded-lg border border-gray-4 text-xs md:text-sm text-gray-12 whitespace-pre-wrap leading-relaxed shadow-inner">
+                  {formatTaskPreview(task.taskDescription)}
+                </div>
+              )}
             </div>
 
             {/* Right Col: Dynamic UI based on Role */}

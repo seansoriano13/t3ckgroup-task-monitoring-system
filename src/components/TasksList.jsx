@@ -15,6 +15,7 @@ import { Activity } from "lucide-react";
 import { Clock } from "lucide-react";
 import { TrendingUp } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
+import { formatTaskPreview } from "../utils/taskFormatters";
 
 function InsightBar({ label, count, total, color }) {
   const percentage = total === 0 ? 0 : Math.round((count / total) * 100);
@@ -245,6 +246,7 @@ export default function TasksList({ selectedMonth }) {
                           key={task.id}
                           task={task}
                           onView={() => handleOpenDrawer(task)}
+                          onSilentUpdate={(payload) => editTaskMutation.mutateAsync(payload)}
                         />
                       ))}
                     </div>
@@ -309,7 +311,7 @@ export default function TasksList({ selectedMonth }) {
                           <span className="font-bold">{task.categoryId}</span>
                         </p>
                         <p className="text-xs text-gray-9 truncate mt-0.5">
-                          {task.taskDescription}
+                          {formatTaskPreview(task.taskDescription)}
                         </p>
                       </div>
                       <div className="text-right shrink-0 flex flex-col items-end justify-between h-full gap-2">

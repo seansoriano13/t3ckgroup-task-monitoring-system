@@ -3,6 +3,7 @@ import { X, Users, Building2 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import toast from "react-hot-toast";
+import ChecklistTaskInput from "./ChecklistTaskInput.jsx";
 
 const getCurrentLocalTime = () => {
   const now = new Date();
@@ -134,8 +135,12 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   const isOthersGlobal = selectedCategoryObj?.category_id
     ?.toUpperCase()
     .includes("OTHERS") || selectedCategoryObj?.description
-    ?.toUpperCase()
-    .includes("OTHERS");
+      ?.toUpperCase()
+      .includes("OTHERS");
+
+  const isChecklistCategory =
+    selectedCategoryObj?.category_id?.toUpperCase().includes("CHECKLIST") ||
+    selectedCategoryObj?.description?.toUpperCase().includes("CHECKLIST");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -207,27 +212,33 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   });
 
   // --- DYNAMIC CATEGORY & DEPARTMENT DISPLAY LOGIC ---
-  // Find the selected employee's full data
   const selectedEmployeeInfo = employees.find(
     (emp) => emp.id === formData.loggedById,
   ) || {
     department: user?.department || "N/A",
     sub_department: user?.sub_department || user?.subDepartment || "N/A",
   };
-
   const filteredCategories = categories.filter((cat) => {
-    // 1. Universal Override: COMMITTEE and OTHERS must always be selectable by everyone
-    const catId = cat.category_id?.toUpperCase() || "";
-    const desc = cat.description?.toUpperCase() || "";
-    if (catId.includes("COMMITTEE") || catId.includes("OTHERS") || desc.includes("COMMITTEE") || desc.includes("OTHERS")) return true;
+      // 1. Universal Override: COMMITTEE and OTHERS must always be selectable by everyone
+      const catId = cat.category_id?.toUpperCase() || "";
+      const desc = cat.description?.toUpperCase() || "";
+      if (
+        catId.includes("COMMITTEE") || 
+        catId.includes("OTHERS") || 
+        catId.includes("CHECKLIST") || 
+        desc.includes("COMMITTEE") || 
+        desc.includes("OTHERS") || 
+        desc.includes("CHECKLIST") ||
+        cat.sub_department === "ALL"
+      ) return true;
 
-    // 2. If HR is actively using the dropdown filters, respect those first
-    if (isHr && hrSubDeptFilter) return cat.sub_department === hrSubDeptFilter;
-    if (isHr && hrDeptFilter) return cat.department === hrDeptFilter;
+      // 2. If HR is actively using the dropdown filters, respect those first
+      if (isHr && hrSubDeptFilter) return cat.sub_department === hrSubDeptFilter;
+      if (isHr && hrDeptFilter) return cat.department === hrDeptFilter;
 
-    // 3. Default behavior: Strictly lock to the Selected Employee's sub-department
-    return cat.sub_department === selectedEmployeeInfo.sub_department;
-  });
+      // 3. Default behavior: Strictly lock to the Selected Employee's sub-department
+      return cat.sub_department === selectedEmployeeInfo.sub_department;
+    });
 
   return (
     <>
@@ -441,20 +452,20 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
               {/* DYNAMIC OTHERS REMARKS */}
               {(isOthersGlobal ||
                 (isCommittee && committeeRole === "OTHERS")) && (
-                <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="text-[10px] font-bold text-red-500 uppercase tracking-wider pl-1 mb-1.5 block flex items-center gap-1.5">
-                    Specify Details (Required)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={othersRemarks}
-                    onChange={(e) => setOthersRemarks(e.target.value)}
-                    placeholder="Please elaborate on your exact role or task..."
-                    className="min-h-11 w-full bg-gray-1 border border-gray-6 focus:border-red-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm shadow-inner"
-                  />
-                </div>
-              )}
+                  <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-[10px] font-bold text-red-500 uppercase tracking-wider pl-1 mb-1.5 block flex items-center gap-1.5">
+                      Specify Details (Required)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={othersRemarks}
+                      onChange={(e) => setOthersRemarks(e.target.value)}
+                      placeholder="Please elaborate on your exact role or task..."
+                      className="min-h-11 w-full bg-gray-1 border border-gray-6 focus:border-red-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm shadow-inner"
+                    />
+                  </div>
+                )}
 
               {/* Time Tracking Row */}
               <div className="grid grid-cols-2 gap-4">
@@ -513,14 +524,21 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                 <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
                   Description
                 </label>
-                <textarea
-                  name="taskDescription"
-                  value={formData.taskDescription}
-                  onChange={handleChange}
-                  placeholder="Detail your completed work here..."
-                  className="w-full bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg p-4 outline-none transition-colors h-28 resize-none text-sm placeholder:text-gray-7"
-                  required
-                />
+                {isChecklistCategory ? (
+                  <ChecklistTaskInput 
+                    value={formData.taskDescription}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <textarea
+                    name="taskDescription"
+                    value={formData.taskDescription}
+                    onChange={handleChange}
+                    placeholder="Detail your completed work here..."
+                    className="w-full bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg p-4 outline-none transition-colors h-28 resize-none text-sm placeholder:text-gray-7"
+                    required
+                  />
+                )}
               </div>
 
               <div className="pt-4 flex justify-end gap-3 border-t border-gray-3 mt-2 pb-2">

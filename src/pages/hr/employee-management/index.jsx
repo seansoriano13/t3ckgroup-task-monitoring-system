@@ -363,7 +363,6 @@ function EmployeeFormModal({ employee, onClose }) {
                 Sub-Dept
               </label>
               <select
-                required
                 value={formData.subDepartment}
                 onChange={(e) =>
                   setFormData({ ...formData, subDepartment: e.target.value })
@@ -374,6 +373,7 @@ function EmployeeFormModal({ employee, onClose }) {
                 <option value="" disabled>
                   Select Sub-Dept
                 </option>
+                <option value="">None (Master Head)</option>
                 {uniqueSubDepts.map((s) => (
                   <option key={s} value={s}>
                     {s}
