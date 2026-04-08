@@ -51,6 +51,7 @@ export default function SideNav({ onOpenAddTask }) {
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
       { label: "For Approval", link: "/approvals", icon: ShieldCheck },
+      { label: "Sales Verification", link: "/approvals/sales", icon: ShieldCheck },
       { label: "Master Log", link: "/hr-master-log", icon: Database },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
@@ -73,12 +74,20 @@ export default function SideNav({ onOpenAddTask }) {
       );
     }
 
-    if (user?.isHead && !isSales) {
-      navLinks.push({
-        label: "For Approval",
-        link: "/approvals",
-        icon: ShieldCheck,
-      });
+    if (user?.isHead || user?.is_head) {
+      if (isSales) {
+        navLinks.push({
+          label: "Sales Verification",
+          link: "/approvals/sales",
+          icon: ShieldCheck,
+        });
+      } else {
+        navLinks.push({
+          label: "For Approval",
+          link: "/approvals",
+          icon: ShieldCheck,
+        });
+      }
     }
 
     if (user?.isHr) {

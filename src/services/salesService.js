@@ -35,7 +35,7 @@ export const salesService = {
 
     const { data, error } = await supabase
       .from("sales_revenue_logs")
-      .select("*, employees(name)")
+      .select("*, employees!sales_revenue_logs_employee_id_fkey(name)")
       .gte("date", startDate)
       .lt("date", endDate)
       .neq("is_deleted", true)          // exclude soft-deleted rows
@@ -132,7 +132,7 @@ export const salesService = {
       const { data: inserted, error: iErr } = await supabase
         .from("sales_activities")
         .insert(toInsert)
-        .select('*, employees(name)');
+        .select('*, employees!sales_activities_employee_id_fkey(name)');
       if (iErr) throw iErr;
       results = [...results, ...inserted];
 
@@ -219,7 +219,7 @@ export const salesService = {
        .from("sales_activities")
        .update({ status: targetStatus, details_daily, ...(targetStatus === REVENUE_STATUS.APPROVED && { completed_at: new Date().toISOString() }) })
        .eq("id", activityId)
-       .select('*, employees(name)')
+       .select('*, employees!sales_activities_employee_id_fkey(name)')
        .single();
 
      if (error) throw error;
@@ -252,13 +252,55 @@ export const salesService = {
      return activity;
   },
 
+  // === HEAD VERIFICATION ===
+  async getHeadPendingActivities() {
+      const { data, error } = await supabase
+        .from('sales_activities')
+        .select('*, employees!sales_activities_employee_id_fkey!inner(name, department, sub_department, is_super_admin)')
+        .is('head_verified_at', null)
+        .order('scheduled_date', { ascending: false });
+
+      if (error) throw error;
+      return data;
+  },
+
+  async verifyActivity(activityId, headRemarks, verifiedBy) {
+     const { data, error } = await supabase
+       .from('sales_activities')
+       .update({
+          head_remarks: headRemarks,
+          head_verified_at: new Date().toISOString(),
+          head_verified_by: verifiedBy
+       })
+       .eq('id', activityId)
+       .select()
+       .single();
+     if (error) throw error;
+     return data;
+  },
+
+  async bulkVerifyActivities(activityIds, headRemarks, verifiedBy) {
+     if (!activityIds || activityIds.length === 0) return [];
+     const { data, error } = await supabase
+       .from('sales_activities')
+       .update({
+          head_remarks: headRemarks,
+          head_verified_at: new Date().toISOString(),
+          head_verified_by: verifiedBy
+       })
+       .in('id', activityIds)
+       .select();
+     if (error) throw error;
+     return data;
+  },
+
   async approveExpenseActivity(activityId, isApproved) {
      const targetStatus = isApproved ? REVENUE_STATUS.APPROVED : REVENUE_STATUS.REJECTED;
      const { data: activity, error } = await supabase
        .from("sales_activities")
        .update({ status: targetStatus, completed_at: targetStatus === REVENUE_STATUS.APPROVED ? new Date().toISOString() : null })
        .eq("id", activityId)
-       .select('*, employees(name)')
+       .select('*, employees!sales_activities_employee_id_fkey(name)')
        .single();
 
      if (error) throw error;
@@ -425,7 +467,7 @@ export const salesService = {
   async getPendingExpenses(departmentStr = null) {
      let query = supabase
        .from('sales_activities')
-       .select('*, employees!inner(name, department, is_super_admin)')
+       .select('*, employees!sales_activities_employee_id_fkey!inner(name, department, is_super_admin)')
        .eq('status', REVENUE_STATUS.PENDING)
        .order('scheduled_date', { ascending: false });
 
@@ -441,7 +483,7 @@ export const salesService = {
   async getAllSalesActivities(monthFilter = null) {
      let query = supabase
        .from('sales_activities')
-       .select('*, employees(name, department, is_super_admin)')
+       .select('*, employees!sales_activities_employee_id_fkey(name, department, is_super_admin)')
        .order('scheduled_date', { ascending: false });
        
      if (monthFilter) {
