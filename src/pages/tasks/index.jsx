@@ -194,19 +194,22 @@ export default function TasksPage() {
   const statusTotals = useMemo(() => {
     const totals = {};
     [
-      "INCOMPLETE",
-      "COMPLETE_UNVERIFIED",
-      "COMPLETE_VERIFIED",
-      "NOT APPROVED",
-    ].forEach((key) => {
-      totals[key] = sortedAndFilteredTasks.filter((t) => {
-        if (key === "COMPLETE_UNVERIFIED")
-          return t.status === "COMPLETE" && !t.hrVerified;
-        if (key === "COMPLETE_VERIFIED")
-          return t.status === "COMPLETE" && t.hrVerified;
-        return t.status === key;
-      }).length;
-    });
+       "INCOMPLETE",
+       "AWAITING_APPROVAL",
+       "COMPLETE_UNVERIFIED",
+       "COMPLETE_VERIFIED",
+       "NOT APPROVED",
+     ].forEach((key) => {
+       totals[key] = sortedAndFilteredTasks.filter((t) => {
+         if (key === "COMPLETE_UNVERIFIED")
+           return t.status === "COMPLETE" && !t.hrVerified;
+         if (key === "COMPLETE_VERIFIED")
+           return t.status === "COMPLETE" && t.hrVerified;
+         if (key === "AWAITING_APPROVAL")
+           return t.status === "AWAITING APPROVAL";
+         return t.status === key;
+       }).length;
+     });
     return totals;
   }, [sortedAndFilteredTasks]);
 
@@ -343,6 +346,7 @@ export default function TasksPage() {
                 >
                   <option value="ALL">Status</option>
                   <option value="COMPLETE">Complete</option>
+                  <option value="AWAITING_APPROVAL">Awaiting Approval</option>
                   <option value="INCOMPLETE">Incomplete</option>
                   <option value="NOT APPROVED">Not Approved</option>
                 </select>
@@ -430,6 +434,7 @@ export default function TasksPage() {
       <div className="space-y-12 pb-10">
         {[
           "INCOMPLETE",
+          "AWAITING_APPROVAL",
           "COMPLETE_UNVERIFIED",
           "COMPLETE_VERIFIED",
           "NOT APPROVED",
@@ -439,6 +444,8 @@ export default function TasksPage() {
               return t.status === "COMPLETE" && !t.hrVerified;
             if (statusKey === "COMPLETE_VERIFIED")
               return t.status === "COMPLETE" && t.hrVerified;
+            if (statusKey === "AWAITING_APPROVAL")
+              return t.status === "AWAITING APPROVAL";
             return t.status === statusKey;
           });
           if (statusTasks.length === 0) return null;
@@ -448,29 +455,33 @@ export default function TasksPage() {
               <div className="flex items-center gap-3 border-b border-gray-4 pb-2 px-1">
                 <div
                   className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${statusKey === "COMPLETE_VERIFIED"
-                    ? "bg-green-500"
-                    : statusKey === "COMPLETE_UNVERIFIED"
-                      ? "bg-emerald-400"
-                      : statusKey === "NOT APPROVED"
-                        ? "bg-red-500"
-                        : "bg-amber-500"
-                    }`}
+                   ? "bg-green-500"
+                   : statusKey === "COMPLETE_UNVERIFIED"
+                     ? "bg-emerald-400"
+                     : statusKey === "AWAITING_APPROVAL"
+                       ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                       : statusKey === "NOT APPROVED"
+                         ? "bg-red-500"
+                         : "bg-amber-500"
+                   }`}
                 />
                 <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
                   {statusKey === "COMPLETE_VERIFIED"
                     ? "Verified"
                     : statusKey === "COMPLETE_UNVERIFIED"
                       ? "Completed (Unverified)"
-                      : statusKey === "NOT APPROVED"
-                        ? "Not Approved"
-                        : "Pending / In Progress"}
+                      : statusKey === "AWAITING_APPROVAL"
+                        ? "Awaiting Mgt Approval"
+                        : statusKey === "NOT APPROVED"
+                          ? "Not Approved"
+                          : "Pending / In Progress"}
                 </h3>
                 <span className="text-[10px] font-bold text-gray-8 bg-gray-2 px-2 py-0.5 rounded-full border border-gray-4 ml-auto">
                   {statusTotals[statusKey]} Total
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 items-start">
                 {statusTasks.map((task) => (
                   <TaskCard
                     key={task.id}

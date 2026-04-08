@@ -5,6 +5,7 @@
 
 export const TASK_STATUS = {
   INCOMPLETE: "INCOMPLETE",
+  AWAITING_APPROVAL: "AWAITING APPROVAL",
   COMPLETE: "COMPLETE",
   NOT_APPROVED: "NOT APPROVED", // Standardized to match database string
   DELETED: "DELETED",

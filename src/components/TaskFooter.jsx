@@ -6,6 +6,7 @@ import {
   CheckCircle,
   Loader2,
   XCircle,
+  Clock,
 } from "lucide-react";
 
 const TaskFooter = ({ actions, permissions, state }) => {
@@ -19,6 +20,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
     onHrVerify,
     onDelete,
     onUndoVerify,
+    onSubmitApproval,
   } = actions;
   const { canEdit, canEvaluate, isHr, isManagement, isOwner } = permissions;
   const { isEditing, isSubmitting, task, formIsValid } = state;
@@ -80,8 +82,30 @@ const TaskFooter = ({ actions, permissions, state }) => {
               </button>
             )}
 
+            {/* --- MARKETING SELF-COMPLETE --- */}
+            {state.isMarketing && isOwner && (task.status === "INCOMPLETE" || task.status === "NOT APPROVED") && (
+              <button
+                onClick={onSubmitApproval}
+                disabled={isSubmitting || !state.hasAttachments || state.task.status === "AWAITING APPROVAL"}
+                className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <CheckCircle size={16} />
+                )}
+                Mark as Done
+              </button>
+            )}
+
+            {state.isMarketing && isOwner && task.status === "AWAITING APPROVAL" && (
+                <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-3">
+                   <Clock size={16} /> Waiting for Boss
+                </div>
+            )}
+
             {/* --- HEAD ACTIONS (EVALUATION) --- */}
-            {canEvaluate && task.status === "INCOMPLETE" && (
+            {canEvaluate && (task.status === "INCOMPLETE" || task.status === "AWAITING APPROVAL") && (
               <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
                 <button
                   onClick={onHeadReject}

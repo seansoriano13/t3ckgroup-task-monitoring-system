@@ -198,6 +198,7 @@ export default function TasksList({ selectedMonth }) {
               {/* Categorized Containers */}
               {[
                 "INCOMPLETE",
+                "AWAITING APPROVAL",
                 "COMPLETE_UNVERIFIED",
                 "COMPLETE_VERIFIED",
                 "NOT APPROVED",
@@ -209,6 +210,8 @@ export default function TasksList({ selectedMonth }) {
                     return t.status === TASK_STATUS.COMPLETE && t.hrVerified;
                   if (statusKey === "INCOMPLETE")
                     return t.status === TASK_STATUS.INCOMPLETE;
+                  if (statusKey === "AWAITING APPROVAL")
+                    return t.status === TASK_STATUS.AWAITING_APPROVAL;
                   if (statusKey === "NOT APPROVED")
                     return t.status === TASK_STATUS.NOT_APPROVED;
                   return false;
@@ -225,9 +228,11 @@ export default function TasksList({ selectedMonth }) {
                             ? "bg-green-500"
                             : statusKey === "COMPLETE_UNVERIFIED"
                               ? "bg-emerald-400"
-                              : statusKey === "NOT APPROVED"
-                                ? "bg-red-500"
-                                : "bg-amber-500"
+                              : statusKey === "AWAITING APPROVAL"
+                                ? "bg-blue-500"
+                                : statusKey === "NOT APPROVED"
+                                  ? "bg-red-500"
+                                  : "bg-amber-500"
                         }`}
                       />
                       <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
@@ -235,12 +240,14 @@ export default function TasksList({ selectedMonth }) {
                           ? "HR Verified"
                           : statusKey === "COMPLETE_UNVERIFIED"
                             ? "Completed (Unverified)"
-                            : statusKey === "NOT APPROVED"
-                              ? "Not Approved"
-                              : "Active / Pending Action"}
+                            : statusKey === "AWAITING APPROVAL"
+                              ? "Awaiting Mgt Approval"
+                              : statusKey === "NOT APPROVED"
+                                ? "Not Approved"
+                                : "Active / Pending Action"}
                       </h3>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                       {filtered.slice(0, 3).map((task) => (
                         <TaskCard
                           key={task.id}
@@ -338,9 +345,11 @@ export default function TasksList({ selectedMonth }) {
                             className={`w-2.5 h-2.5 rounded-full shadow-sm ${
                               task.status === TASK_STATUS.COMPLETE
                                 ? "bg-green-500"
-                                : task.status === TASK_STATUS.NOT_APPROVED
-                                  ? "bg-red-500"
-                                  : "bg-amber-500"
+                                : task.status === TASK_STATUS.AWAITING_APPROVAL
+                                  ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                                  : task.status === TASK_STATUS.NOT_APPROVED
+                                    ? "bg-red-500"
+                                    : "bg-amber-500"
                             }`}
                             title={`Status: ${task.status}`}
                           />
@@ -377,6 +386,9 @@ export default function TasksList({ selectedMonth }) {
                   const draftCount = teamTasks.filter(
                     (t) => t.status === TASK_STATUS.INCOMPLETE,
                   ).length;
+                  const awaitingApprovalCount = teamTasks.filter(
+                    (t) => t.status === TASK_STATUS.AWAITING_APPROVAL,
+                  ).length;
                   const rejectedCount = teamTasks.filter(
                     (t) => t.status === TASK_STATUS.NOT_APPROVED,
                   ).length;
@@ -407,10 +419,16 @@ export default function TasksList({ selectedMonth }) {
                             label="Drafts (Working)"
                             count={draftCount}
                             total={total}
+                            color="bg-gray-400"
+                          />
+                          <InsightBar
+                            label="Awaiting Mgt Approval"
+                            count={awaitingApprovalCount}
+                            total={total}
                             color="bg-blue-500"
                           />
                           <InsightBar
-                            label="Manager Approved (Pending HR)"
+                            label="Approved (Pending HR)"
                             count={pendingHrCount}
                             total={total}
                             color="bg-amber-500"
@@ -430,10 +448,10 @@ export default function TasksList({ selectedMonth }) {
                       {isStrictlyHead && (
                         <>
                           <InsightBar
-                            label="Needs My Review"
-                            count={draftCount}
+                            label="Needs My Review (New)"
+                            count={awaitingApprovalCount}
                             total={total}
-                            color="bg-yellow-500"
+                            color="bg-blue-500"
                           />
                           <InsightBar
                             label="Rejected by Me"
@@ -442,10 +460,16 @@ export default function TasksList({ selectedMonth }) {
                             color="bg-red-400"
                           />
                           <InsightBar
+                            label="Subordinates Drafting"
+                            count={draftCount}
+                            total={total}
+                            color="bg-gray-400"
+                          />
+                          <InsightBar
                             label="Approved (Pending HR)"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-blue-500"
+                            color="bg-blue-400"
                           />
                           <InsightBar
                             label="Verified by HR"
@@ -466,6 +490,12 @@ export default function TasksList({ selectedMonth }) {
                             count={pendingHrCount}
                             total={total}
                             color="bg-amber-500"
+                          />
+                          <InsightBar
+                            label="Awaiting Manager Review"
+                            count={awaitingApprovalCount}
+                            total={total}
+                            color="bg-blue-300"
                           />
                           <InsightBar
                             label="Employees Working"

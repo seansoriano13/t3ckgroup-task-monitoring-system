@@ -10,6 +10,7 @@ import { PencilLine } from "lucide-react";
 import TaskFooter from "./TaskFooter";
 import ChecklistTaskInput from "./ChecklistTaskInput";
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
+import ImageAttachment from "./ImageAttachment";
 
 export default function TaskDetails({
   isOpen,
@@ -37,6 +38,7 @@ export default function TaskDetails({
     taskDescription: "",
     grade: 0,
     remarks: "",
+    attachments: [],
   });
 
   // 🔥 THE FIX: Pre-hydrate the form data immediately when the modal opens
@@ -71,6 +73,7 @@ export default function TaskDetails({
         taskDescription: task.taskDescription || "",
         grade: task.grade || 0,
         remarks: task.remarks || "",
+        attachments: task.attachments || [],
       });
     }
   }, [isOpen, task, user]);
@@ -138,6 +141,20 @@ export default function TaskDetails({
        hasUncheckedItems = formData.taskDescription.some(item => item && typeof item === 'object' && !item.checked);
     }
   }
+
+  const taskDept = formData.department || user?.department;
+  const taskSubDept = formData.subDepartment || user?.sub_department || user?.subDepartment;
+  const isMarketing = 
+    taskSubDept?.toUpperCase() === "MARKETING" || 
+    taskDept?.toUpperCase() === "MARKETING" ||
+    task?.categoryDesc?.toUpperCase()?.includes("MARKETING");
+
+  console.log("MARKETING DEBUG:", {
+    taskDept,
+    taskSubDept,
+    categoryDesc: task?.categoryDesc,
+    isMarketing
+  });
 
   // 🔥 THE FIX: Since useEffect handles the data now, this just toggles the UI
   const handleToggleEdit = () => {
@@ -275,6 +292,24 @@ export default function TaskDetails({
               )}
             </div>
 
+            {isMarketing && (
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
+                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                  Task Attachments {isOwner && "(Required to submit)"}
+                </label>
+                <ImageAttachment 
+                  taskId={task.id}
+                  userId={user.id}
+                  attachments={formData.attachments || []}
+                  onChange={(newAttachments) => {
+                     setFormData({ ...formData, attachments: newAttachments });
+                     executeUpdate({ id: task.id, attachments: newAttachments, editedBy: user.id }, true);
+                  }}
+                  readOnly={!canEdit || !isOwner}
+                />
+              </div>
+            )}
+
             <ManagerEvaluation
               isEditing={isEditing}
               canEvaluate={canEvaluate}
@@ -319,6 +354,13 @@ export default function TaskDetails({
                 editedBy: user.id, // (Optional: you can keep this if you still want the generic audit trail to fire too)
                 hrVerified: false,
                 hrRemarks: "",
+              }),
+
+            onSubmitApproval: () =>
+              executeUpdate({
+                id: task.id,
+                status: "AWAITING APPROVAL",
+                editedBy: user.id,
               }),
 
             onMarkComplete: () =>
@@ -371,6 +413,8 @@ export default function TaskDetails({
               formData.categoryId,
             canApprove: approvalGrade !== null && !hasUncheckedItems,
             approvalRemarks: approvalRemarks,
+            isMarketing,
+            hasAttachments: (formData.attachments && formData.attachments.length > 0),
           }}
         />
       </div>

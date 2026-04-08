@@ -62,7 +62,7 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
   };
 
   return (
-    <div className="bg-gray-2 shadow-lg p-5 rounded-xl gap-4 border border-gray-4 hover:border-gray-6 transition-all duration-300 group flex flex-col h-full">
+    <div className="bg-gray-2 shadow-lg p-5 rounded-xl gap-4 border border-gray-4 hover:border-gray-6 transition-all duration-300 group flex flex-col">
       {/* Top Row: Category, Priority & Status */}
       <div className="flex justify-between items-start gap-2">
         <div className="flex flex-wrap gap-2 items-center">

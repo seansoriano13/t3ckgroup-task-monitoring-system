@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService.js";
+import { supabase } from "../../lib/supabase.js";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import {
   CheckCircle2,
@@ -29,11 +30,18 @@ export default function ApprovalsPage() {
   const userSubDept = user?.sub_department || user?.subDepartment;
   const userDept = user?.department;
 
-  // 1. Fetch all tasks
   const { data: rawTasks = [], isLoading } = useQuery({
     queryKey: ["dashboardTasks", user?.id, "all"],
     queryFn: () => taskService.getAllTasks(),
     enabled: !!user?.id,
+  });
+
+  const { data: appSettings } = useQuery({
+    queryKey: ["appSettings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("*").single();
+      return data;
+    },
   });
 
   const location = useLocation();
@@ -67,14 +75,16 @@ export default function ApprovalsPage() {
         let matchesHrQueue = false;
         let matchesHeadQueue = false;
 
-        if (isHr) {
+        const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
+
+        if (isHr || isSuperAdmin) {
           // 🔥 HR QUEUE: Needs to be COMPLETE, but NOT YET VERIFIED
           const isComplete = t.status === "COMPLETE";
           const isNotVerified = !t.hrVerified;
           matchesHrQueue = isNotMe && isComplete && isNotVerified;
         }
 
-        if (isHead) {
+        if (isHead || isSuperAdmin) {
           // 🔥 HEAD QUEUE: Needs to be INCOMPLETE, and in their Sub-Department
           const taskSubDept =
             t.sub_department ||
@@ -94,8 +104,21 @@ export default function ApprovalsPage() {
             isMyDept = taskDept === userDept;
           }
 
-          const isIncomplete = t.status === "INCOMPLETE";
-          matchesHeadQueue = isNotMe && isMyDept && isIncomplete;
+          const isMarketing = taskSubDept === "MARKETING" || taskDept === "MARKETING";
+          let matchesHeadQueueForThisTask = false;
+
+          if (t.status === "INCOMPLETE") {
+             matchesHeadQueueForThisTask = isNotMe && isMyDept;
+          } else if (t.status === "AWAITING APPROVAL" && isMarketing) {
+             const isSuperAdmin = user?.is_super_admin || user?.isSuperAdmin;
+             const canOpsManagerApprove = appSettings?.marketing_approval_by_ops_manager && isMyDept;
+             
+             if (isSuperAdmin || canOpsManagerApprove) {
+                matchesHeadQueueForThisTask = isNotMe;
+             }
+          }
+
+          matchesHeadQueue = matchesHeadQueueForThisTask;
         }
 
         return matchesHrQueue || matchesHeadQueue;
@@ -105,7 +128,7 @@ export default function ApprovalsPage() {
         if (b.priority === "HIGH" && a.priority !== "HIGH") return 1;
         return new Date(a.createdAt) - new Date(b.createdAt);
       });
-  }, [rawTasks, user?.id, userDept, userSubDept, isHr, isHead]);
+  }, [rawTasks, user?.id, userDept, userSubDept, isHr, isHead, user?.is_super_admin, user?.isSuperAdmin, appSettings]);
 
   // Client-side filter + sort applied on top of the queue
   const filteredTasks = useMemo(() => {

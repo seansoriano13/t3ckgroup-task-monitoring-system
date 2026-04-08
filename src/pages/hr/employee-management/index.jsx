@@ -243,7 +243,7 @@ function EmployeeFormModal({ employee, onClose }) {
   // SALES has its own flow and is not in the categories table,
   // so we inject it manually as a hardcoded option.
   const SALES_DEPT = "SALES";
-  const SALES_SUB_DEPTS = ["GOV", "MARKETING", "NGO", "SALES"];
+  const SALES_SUB_DEPTS = ["GOV", "NGO", "SALES"];
 
   const uniqueDepts = useMemo(() => {
     const fromCategories = [
@@ -258,16 +258,29 @@ function EmployeeFormModal({ employee, onClose }) {
 
   const uniqueSubDepts = useMemo(() => {
     if (!formData.department) return [];
-    // SALES sub-depts are hardcoded since they don't exist in categories
-    if (formData.department === SALES_DEPT) return SALES_SUB_DEPTS;
-    return [
+    
+    let subDepts = [
       ...new Set(
         rawCategories
           .filter((c) => c.department === formData.department)
           .map((c) => c.subDepartment)
           .filter(Boolean),
       ),
-    ].sort();
+    ];
+
+    // Inject Hardcoded options
+    if (formData.department === SALES_DEPT) {
+      // Add hardcoded SALES sub-depts if they aren't in categories
+      SALES_SUB_DEPTS.forEach(s => {
+        if (!subDepts.includes(s)) subDepts.push(s);
+      });
+    }
+
+    if (formData.department === "OPERATIONS") {
+      if (!subDepts.includes("MARKETING")) subDepts.push("MARKETING");
+    }
+
+    return subDepts.sort();
   }, [rawCategories, formData.department]);
 
   const mutation = useMutation({

@@ -43,8 +43,9 @@ export const taskService = {
       remarks: task.remarks,
       hrRemarks: task.hr_remarks,
       grade: task.grade,
-      hrVerified: task.hr_verified,
       hrVerifiedAt: task.hr_verified_at,
+      hrVerified: task.hr_verified,
+      attachments: task.attachment_urls || [],
       createdAt: task.created_at,
     }));
   },
@@ -73,6 +74,7 @@ export const taskService = {
         hr_verified,
         hr_remarks,
         hr_verified_at,
+        attachment_urls,
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name), 
@@ -110,6 +112,7 @@ export const taskService = {
       hrVerified: task.hr_verified,
       hrVerifiedAt: task.hr_verified_at,
       grade: task.grade,
+      attachments: task.attachment_urls || [],
       createdAt: task.created_at,
     }));
   },
@@ -156,6 +159,7 @@ export const taskService = {
       grade: data.grade,
       hrVerified: data.hr_verified,
       hrVerifiedAt: data.hr_verified_at,
+      attachments: data.attachment_urls || [],
       createdAt: data.created_at,
     };
   },
@@ -194,6 +198,7 @@ export const taskService = {
           hr_verified_at: hrVerifiedAt,
           evaluated_by: evaluatedBy,
           evaluated_at: evaluatedAt,
+          attachment_urls: payload.attachments || [],
         },
       ])
       .select();
@@ -299,17 +304,17 @@ export const taskService = {
       payload?.evaluatedBy === undefined;
 
     if (isHeadApprove) {
-      if (current?.status !== TASK_STATUS.INCOMPLETE) {
+      if (current?.status !== TASK_STATUS.INCOMPLETE && current?.status !== TASK_STATUS.AWAITING_APPROVAL) {
         throw new Error(
-          `Invalid pipeline transition: can only approve tasks from INCOMPLETE`,
+          `Invalid pipeline transition: can only approve tasks from INCOMPLETE or AWAITING APPROVAL`,
         );
       }
     }
 
     if (isHeadReject) {
-      if (current?.status !== TASK_STATUS.INCOMPLETE) {
+      if (current?.status !== TASK_STATUS.INCOMPLETE && current?.status !== TASK_STATUS.AWAITING_APPROVAL) {
         throw new Error(
-          `Invalid pipeline transition: can only reject tasks from INCOMPLETE`,
+          `Invalid pipeline transition: can only reject tasks from INCOMPLETE or AWAITING APPROVAL`,
         );
       }
     }
@@ -441,6 +446,10 @@ export const taskService = {
 
     if (payload.hrRemarks !== undefined)
       updateData.hr_remarks = payload.hrRemarks;
+      
+    if (payload.attachments !== undefined) {
+      updateData.attachment_urls = payload.attachments;
+    }
 
     // 🔥 The Audit Trail Hookup
     if (payload.editedBy) {
@@ -460,6 +469,33 @@ export const taskService = {
     // 🔥 NOTIFICATION TRIGGERS 🔥
     if (current && payload.editedBy) {
       const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? "..." : ""}"`;
+      
+      const isEmployeeSelfComplete = payload?.status === TASK_STATUS.AWAITING_APPROVAL && current?.status !== TASK_STATUS.AWAITING_APPROVAL;
+      if (isEmployeeSelfComplete) {
+         notificationService.broadcastToRole(["SUPER_ADMIN"], {
+            sender_id: payload.editedBy,
+            type: "TASK_AWAITING_APPROVAL",
+            title: "Task Awaiting Approval",
+            message: `${current.creator?.name} has submitted a task for your approval: ${taskNameSnippet}.`,
+            reference_id: taskId,
+         });
+         
+         // If ops manager is enabled, they will see it too, so we could notify them. Let's look at their sub_department.
+         const empSubDept = current.creator?.sub_department;
+         if (empSubDept || current.creator?.department) {
+           notificationService.notifyHeadByDepartment(
+             current.creator?.department,
+             empSubDept,
+             {
+               sender_id: payload.editedBy,
+               type: "TASK_AWAITING_APPROVAL",
+               title: "Task Awaiting Approval",
+               message: `${current.creator?.name} has submitted a task for your approval: ${taskNameSnippet}.`,
+               reference_id: taskId,
+             },
+           );
+         }
+      }
 
       if (isHeadApprove) {
         // Notify HR only (not Super Admin — they have HR access already and get a richer signal on full completion)

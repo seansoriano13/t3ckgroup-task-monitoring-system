@@ -49,6 +49,8 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
           matchesStatus = task.status === TASK_STATUS.COMPLETE && !task.hrVerified;
         } else if (statusFilter === "COMPLETE_VERIFIED") {
           matchesStatus = task.status === TASK_STATUS.COMPLETE && task.hrVerified;
+        } else if (statusFilter === "AWAITING_APPROVAL") {
+          matchesStatus = task.status === TASK_STATUS.AWAITING_APPROVAL;
         } else if (statusFilter === "NOT APPROVED") {
           matchesStatus = task.status === TASK_STATUS.NOT_APPROVED;
         }
@@ -106,8 +108,9 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     // Strict Sorting Hierarchy
     return filtered.sort((a, b) => {
       const getStatusRank = (status) => {
-        if (status === "NOT APPROVED") return 3;
-        if (status === "COMPLETE") return 2;
+        if (status === TASK_STATUS.NOT_APPROVED) return 4;
+        if (status === TASK_STATUS.COMPLETE) return 3;
+        if (status === TASK_STATUS.AWAITING_APPROVAL) return 2;
         return 1;
       };
 
