@@ -6,7 +6,7 @@ import ManagementSection from "./ManagementSection";
 import StandardDetailsSection from "./StandardDetailsSection";
 import ManagerEvaluation from "./ManagerEvaluation";
 import { formatDate } from "../utils/formatDate";
-import { PencilLine, FolderKanban } from "lucide-react";
+import { PencilLine, FolderKanban, Receipt } from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
 import { TASK_STATUS } from "../constants/status.js";
 import ChecklistTaskInput from "./ChecklistTaskInput";
@@ -53,6 +53,7 @@ export default function TaskDetails({
     grade: 0,
     remarks: "",
     attachments: [],
+    paymentVoucher: "",
   });
 
   // 🔥 THE FIX: Pre-hydrate the form data immediately when the modal opens
@@ -89,6 +90,7 @@ export default function TaskDetails({
         grade: task.grade || 0,
         remarks: task.remarks || "",
         attachments: task.attachments || [],
+        paymentVoucher: task.paymentVoucher || "",
       });
     }
   }, [isOpen, task, user]);
@@ -321,6 +323,38 @@ export default function TaskDetails({
                   <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold text-violet-400 flex items-center gap-2">
                     <FolderKanban size={14} />
                     {formData.projectTitle}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* --- PAYMENT VOUCHER --- */}
+            {((isEditing &&
+              taskDept?.toUpperCase() === "ADMIN" &&
+              taskSubDept?.toUpperCase() === "ADMIN") ||
+              formData.paymentVoucher) && (
+              <div className="flex flex-col gap-1.5 pt-2">
+                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                  <Receipt size={12} /> Payment Voucher
+                  {isEditing && (
+                    <span className="font-normal text-gray-7 normal-case tracking-normal">
+                      (optional)
+                    </span>
+                  )}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="paymentVoucher"
+                    value={formData.paymentVoucher || ""}
+                    onChange={handleChange}
+                    placeholder="e.g. PV-2026-001"
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
+                  />
+                ) : (
+                  <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold flex items-center gap-2">
+                    <Receipt size={14} />
+                    {formData.paymentVoucher}
                   </div>
                 )}
               </div>

@@ -47,6 +47,7 @@ export const taskService = {
       grade: task.grade,
       hrVerifiedAt: task.hr_verified_at,
       hrVerified: task.hr_verified,
+      paymentVoucher: task.payment_voucher,
       attachments: task.attachment_urls || [],
       createdAt: task.created_at,
     }));
@@ -76,6 +77,7 @@ export const taskService = {
         hr_verified,
         hr_remarks,
         hr_verified_at,
+        payment_voucher,
         attachment_urls,
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
         editor:employees!tasks_edited_by_fk(name),
@@ -115,6 +117,7 @@ export const taskService = {
       hrVerified: task.hr_verified,
       hrVerifiedAt: task.hr_verified_at,
       grade: task.grade,
+      paymentVoucher: task.payment_voucher,
       attachments: task.attachment_urls || [],
       createdAt: task.created_at,
     }));
@@ -163,6 +166,7 @@ export const taskService = {
       grade: data.grade,
       hrVerified: data.hr_verified,
       hrVerifiedAt: data.hr_verified_at,
+      paymentVoucher: data.payment_voucher,
       attachments: data.attachment_urls || [],
       createdAt: data.created_at,
     };
@@ -203,6 +207,7 @@ export const taskService = {
           hr_verified_at: hrVerifiedAt,
           evaluated_by: evaluatedBy,
           evaluated_at: evaluatedAt,
+          payment_voucher: payload.paymentVoucher || null,
           attachment_urls: payload.attachments || [],
         },
       ])
@@ -435,6 +440,9 @@ export const taskService = {
       updateData.end_at = payload.endAt
         ? new Date(payload.endAt).toISOString()
         : null;
+    }
+    if (payload.paymentVoucher !== undefined) {
+      updateData.payment_voucher = payload.paymentVoucher || null;
     }
 
     // Manager/HR Fields

@@ -172,21 +172,13 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
 
-    if (
-      selectedEmployeeInfo.department?.toUpperCase() === "ADMIN" &&
-      selectedEmployeeInfo.sub_department?.toUpperCase() === "ADMIN" &&
-      formData.paymentVoucher?.trim()
-    ) {
-      mergedRemarks = `[PV: ${formData.paymentVoucher.trim()}] ` + mergedRemarks;
-      mergedRemarks = mergedRemarks.trim();
-    }
-
     const isAutoVerified = false;
 
     const payload = {
       ...formData,
       isAutoVerified,
       remarks: mergedRemarks,
+      paymentVoucher: formData.paymentVoucher?.trim() || null,
       submittedById: user.id,
       submittedByName: user.name,
     };
