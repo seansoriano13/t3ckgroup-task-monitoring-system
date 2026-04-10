@@ -294,7 +294,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
                           : 0;
                       const isTop = idx === 0 && pct > 0;
                       const isSelf = user?.id === emp.employee_id;
-                      const canSeeNumbers = user?.isSuperAdmin || isSelf;
+                      const canSeeNumbers = user?.isSuperAdmin || user?.is_super_admin || isSelf;
 
                       return (
                         <tr

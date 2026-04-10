@@ -241,7 +241,7 @@ export default function TasksList({ selectedMonth }) {
                           : statusKey === "COMPLETE_UNVERIFIED"
                             ? "Completed (Unverified)"
                             : statusKey === "AWAITING APPROVAL"
-                              ? "Awaiting Mgt Approval"
+                              ? "Awaiting Approval"
                               : statusKey === "NOT APPROVED"
                                 ? "Not Approved"
                                 : "Active / Pending Action"}

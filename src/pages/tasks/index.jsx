@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import TaskDetails from "../../components/TaskDetails.jsx";
 import TaskCard from "../../components/TaskCard";
+import TaskFilters from "../../components/TaskFilters.jsx";
 import { useAuth } from "../../context/AuthContext";
 import { taskService } from "../../services/taskService.js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -272,139 +273,28 @@ export default function TasksPage() {
       </div>
 
       {/* FILTER CONTROL BARS */}
-      <div className="grid gap-3 md:gap-4">
-        {/* Row 1: Search & Base Filters */}
-        <div className="border border-gray-4 p-3 md:p-4 rounded-xl flex flex-col lg:flex-row gap-3 md:gap-4  relative z-20">
-          {/* Search - Grows to fill space */}
-          <div className="relative flex-1">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-primary transition-colors placeholder:text-gray-7 text-sm md:text-base"
-            />
-          </div>
-
-          {/* Date & Selects Group */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* DATE PICKER - Full width on mobile */}
-            <div className="relative flex-1 sm:flex-initial">
-              <div className="flex items-center bg-gray-1 border border-gray-4 rounded-lg px-3 py-2.5 h-[46px]">
-                <CalendarIcon size={16} className="text-gray-8 mr-2 shrink-0" />
-                <DatePicker
-                  selectsRange={true}
-                  startDate={startDate}
-                  endDate={endDate}
-                  onChange={(update) => setDateRange(update)}
-                  isClearable={true}
-                  placeholderText="Date Range"
-                  className="bg-transparent outline-none text-gray-12 w-full sm:w-[150px] text-sm cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Status & Priority - Side by side on small screens */}
-            <div className="flex gap-2 flex-1 sm:flex-initial">
-              <div className="relative flex-1">
-                <Filter
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-                  size={14}
-                />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-4 py-2.5 outline-none text-xs md:text-sm h-[46px]"
-                >
-                  <option value="ALL">Status</option>
-                  <option value="COMPLETE">Complete</option>
-                  <option value="AWAITING_APPROVAL">Awaiting Approval</option>
-                  <option value="INCOMPLETE">Incomplete</option>
-                  <option value="NOT APPROVED">Not Approved</option>
-                </select>
-              </div>
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="flex-1 appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2.5 outline-none text-xs md:text-sm h-[46px]"
-              >
-                <option value="ALL">Priority</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Row 2: Management Filters - 1 Column on Mobile, 3 on Tablet */}
-        {isManagement && (!isHr || hrViewMode === "ALL") && (
-          <div className="bg-gray-1 border border-gray-4 p-4 rounded-xl  grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
-            <div className="space-y-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
-                <Building2 size={12} /> Dept
-              </label>
-              <select
-                value={deptFilter}
-                onChange={(e) => {
-                  setDeptFilter(e.target.value);
-                  setSubDeptFilter("ALL");
-                }}
-                disabled={!isHr}
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50"
-              >
-                <option value="ALL">All Depts</option>
-                {uniqueDepts.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
-                <Building2 size={12} /> Sub-Dept
-              </label>
-              <select
-                value={subDeptFilter}
-                onChange={(e) => setSubDeptFilter(e.target.value)}
-                disabled={deptFilter === "ALL"}
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50"
-              >
-                <option value="ALL">All Sub-Depts</option>
-                {uniqueSubDepts.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1 sm:col-span-2 md:col-span-1">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
-                <Users size={12} /> Team Member
-              </label>
-              <select
-                value={employeeFilter}
-                onChange={(e) => setEmployeeFilter(e.target.value)}
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 font-semibold text-sm"
-              >
-                <option value="ALL">Everyone</option>
-                {uniqueEmployees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
-      </div>
+      <TaskFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        priorityFilter={priorityFilter}
+        setPriorityFilter={setPriorityFilter}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        deptFilter={deptFilter}
+        setDeptFilter={setDeptFilter}
+        subDeptFilter={subDeptFilter}
+        setSubDeptFilter={setSubDeptFilter}
+        employeeFilter={employeeFilter}
+        setEmployeeFilter={setEmployeeFilter}
+        isManagement={isManagement}
+        isHr={isHr}
+        hrViewMode={hrViewMode}
+        uniqueDepts={uniqueDepts}
+        uniqueSubDepts={uniqueSubDepts}
+        uniqueEmployees={uniqueEmployees}
+      />
 
       {/* THE CATEGORIZED GRID — each group has its own pagination */}
       <div className="space-y-12 pb-10">
@@ -456,7 +346,7 @@ export default function TasksPage() {
                     : statusKey === "COMPLETE_UNVERIFIED"
                       ? "Completed (Unverified)"
                       : statusKey === "AWAITING_APPROVAL"
-                        ? "Awaiting Mgt Approval"
+                        ? "Awaiting Approval"
                         : statusKey === "NOT APPROVED"
                           ? "Not Approved"
                           : "Pending / In Progress"}

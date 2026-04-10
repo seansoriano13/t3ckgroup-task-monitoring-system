@@ -131,6 +131,8 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
     </div>
   );
 
+  console.log(appSettings)
+
   if (pendingExpenses.length === 0) return (
     <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-sm mb-6 px-5 py-4 flex items-center justify-between">
       <div className="flex items-center gap-3">

@@ -16,12 +16,18 @@ import {
   ChevronUp,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import SalesFilters from "../../../components/SalesFilters.jsx";
 
 export default function SalesHeadApprovalsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterEmp, setFilterEmp] = useState("ALL");
+  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filterType, setFilterType] = useState("ALL");
+  const [timeframe, setTimeframe] = useState("MONTHLY");
+  const [selectedDateFilter, setSelectedDateFilter] = useState("");
 
   // Only Head/SuperAdmin can access, but protected route handles that.
   // We'll fetch all pending. The filtering will be done locally based on user's department.
@@ -29,6 +35,18 @@ export default function SalesHeadApprovalsPage() {
     queryKey: ["salesHeadPending"],
     queryFn: () => salesService.getHeadPendingActivities(),
   });
+
+  const uniqueEmployees = useMemo(() => {
+    const map = new Map();
+    rawPending.forEach((act) => {
+      if (act.employees?.name && !map.has(act.employee_id)) {
+        map.set(act.employee_id, act.employees.name);
+      }
+    });
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [rawPending]);
 
   const processedActivities = useMemo(() => {
     let list = rawPending;
@@ -54,8 +72,6 @@ export default function SalesHeadApprovalsPage() {
     }
 
     // Status Filter: Head only verifies completed activities OR planned activities?
-    // Based on user: they verify the actual work, so statuses like 'APPROVED' or 'PENDING' (expenses) or 'REJECTED' might be verified.
-    // Or maybe they just verify everything that isn't INCOMPLETE.
     list = list.filter((act) => act.status !== "INCOMPLETE");
 
     // Search filter
@@ -70,8 +86,55 @@ export default function SalesHeadApprovalsPage() {
       );
     }
 
+    if (filterEmp !== "ALL") list = list.filter((a) => a.employee_id === filterEmp);
+
+    if (filterStatus !== "ALL") {
+      if (filterStatus === "APPROVED" || filterStatus === "DONE") {
+        list = list.filter((a) => a.status === "APPROVED" || a.status === "DONE");
+      } else if (filterStatus === "PENDING") {
+        list = list.filter((a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL");
+      } else if (filterStatus === "INCOMPLETE") {
+        list = list.filter((a) => a.status === "INCOMPLETE" || a.status === "REJECTED");
+      } else {
+        list = list.filter((a) => a.status === filterStatus);
+      }
+    }
+
+    if (filterType !== "ALL") {
+      list = list.filter((a) => {
+        const aType = (a.activity_type || "").replace(/[-_]/g, " ").toUpperCase();
+        const fType = filterType.replace(/[-_]/g, " ").toUpperCase();
+        return aType === fType;
+      });
+    }
+
+    if (selectedDateFilter) {
+      list = list.filter((a) => {
+        if (!a.scheduled_date) return false;
+        if (timeframe === "DAILY") return a.scheduled_date === selectedDateFilter;
+        if (timeframe === "MONTHLY") return a.scheduled_date.startsWith(selectedDateFilter);
+        if (timeframe === "YEARLY") return a.scheduled_date.startsWith(selectedDateFilter);
+        if (timeframe === "WEEKLY") {
+          const selectedD = new Date(selectedDateFilter);
+          const day = selectedD.getDay();
+          const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
+          const startOfWeek = new Date(selectedD);
+          startOfWeek.setDate(diff);
+          startOfWeek.setHours(0, 0, 0, 0);
+
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23, 59, 59, 999);
+
+          const actDate = new Date(a.scheduled_date);
+          return actDate >= startOfWeek && actDate <= endOfWeek;
+        }
+        return true;
+      });
+    }
+
     return list;
-  }, [rawPending, user, searchQuery]);
+  }, [rawPending, user, searchQuery, filterEmp, filterStatus, filterType, timeframe, selectedDateFilter]);
 
   // Group by Employee -> Date
   const groupedData = useMemo(() => {
@@ -151,18 +214,29 @@ export default function SalesHeadApprovalsPage() {
           </div>
         </div>
 
-        {/* SEARCH BAR */}
+        {/* SEARCH & FILTERS */}
         {rawPending.length > 0 && (
-          <div className="bg-gray-1 border border-gray-4 rounded-xl p-3 shadow-sm flex items-center gap-3 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-            <Search size={18} className="text-gray-8 shrink-0 ml-1" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by employee, account, or activity type..."
-              className="flex-1 bg-transparent text-sm text-gray-12 placeholder-gray-7 outline-none py-1"
-            />
-          </div>
+          <SalesFilters
+            activeTab="ACTIVITIES"
+            viewMode="BOARD"
+            showDateFilter={true}
+            searchTerm={searchQuery}
+            setSearchTerm={setSearchQuery}
+            timeframe={timeframe}
+            setTimeframe={setTimeframe}
+            selectedDateFilter={selectedDateFilter}
+            setSelectedDateFilter={setSelectedDateFilter}
+            filterEmp={filterEmp}
+            setFilterEmp={setFilterEmp}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            filterType={filterType}
+            setFilterType={setFilterType}
+            canViewAllSales={true}
+            user={user}
+            uniqueEmployees={uniqueEmployees}
+            isVerificationEnforced={false}
+          />
         )}
 
         {/* EMPTY STATE */}
@@ -338,7 +412,7 @@ function ActivityCard({ activity, verifyMutation }) {
           disabled={isSubmitting}
           className="flex items-center justify-center gap-1.5 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 border border-green-200 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
         >
-          <CheckCircle2 size={14} /> Verify Obj
+          <CheckCircle2 size={14} /> Verify Activity
         </button>
       </div>
     </div>

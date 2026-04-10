@@ -202,6 +202,53 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
+
+            {/* Ops Manager Marketing Approvals Toggle */}
+            <div className="p-5 flex items-center justify-between hover:bg-gray-1/50 transition-colors relative z-10 border-t border-gray-3">
+              <div className="flex items-center gap-4">
+                <div className="text-gray-9">
+                  <Shield
+                    size={20}
+                    className={
+                      appSettings?.marketing_approval_by_ops_manager
+                        ? "text-primary"
+                        : ""
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-12">
+                    Ops Manager Marketing Approvals
+                  </p>
+                  <p className="text-sm text-gray-9 max-w-sm">
+                    When ON, the Operations Manager can also approve/reject 'Awaiting Approval' tasks created by Marketing employees. When OFF, only Super Admins can process these.
+                  </p>
+                </div>
+              </div>
+              {loadingSettings ? (
+                <Loader2 size={16} className="animate-spin text-gray-9" />
+              ) : (
+                <div
+                  onClick={() =>
+                    !mutation.isPending &&
+                    mutation.mutate({ marketing_approval_by_ops_manager: !appSettings?.marketing_approval_by_ops_manager })
+                  }
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
+                    appSettings?.marketing_approval_by_ops_manager
+                      ? "bg-primary"
+                      : "bg-gray-4"
+                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                >
+                  <div
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
+                      appSettings?.marketing_approval_by_ops_manager
+                        ? "right-1"
+                        : "left-1"
+                    }`}
+                  ></div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

@@ -348,11 +348,13 @@ export const salesService = {
   // === REVENUE TRACKING ===
   async getEmployeeRevenue(employeeId, yearMonthStr) {
      // yearMonthStr e.g. '2026-03'
+     const { startDate, endDate } = getMonthBoundaries(yearMonthStr);
      const { data, error } = await supabase
        .from("sales_revenue_logs")
        .select("*")
        .eq("employee_id", employeeId)
-       .like("date", `${yearMonthStr}-%`);
+       .gte("date", startDate)
+       .lt("date", endDate);
 
      if (error) throw error;
      return data;
@@ -487,7 +489,8 @@ export const salesService = {
        .order('scheduled_date', { ascending: false });
        
      if (monthFilter) {
-        query = query.like('scheduled_date', `${monthFilter}-%`);
+        const { startDate, endDate } = getMonthBoundaries(monthFilter);
+        query = query.gte('scheduled_date', startDate).lt('scheduled_date', endDate);
      }
      
      const { data, error } = await query;

@@ -262,6 +262,7 @@ export default function SideNav({ onOpenAddTask }) {
                 <NavLink
                   key={navLink.label}
                   to={navLink.link}
+                  end={navLink.link === '/' || navLink.link === '/approvals'}
                   onClick={() => setIsExpanded(false)} // 👈 Closes sidebar upon navigation!
                   className={({ isActive }) =>
                     `flex gap-3 items-center px-3 py-3 rounded-lg font-semibold transition-all ${isActive

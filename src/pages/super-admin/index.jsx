@@ -9,7 +9,6 @@ import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.js
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
-import SuperAdminSettings from "../../components/SuperAdminSettings.jsx";
 
 const EMPTY_ARRAY = [];
 
@@ -164,7 +163,6 @@ export default function SuperAdminDashboard() {
 
         <ExpenseApprovalQueue isSuperAdmin={true} />
 
-        <SuperAdminSettings />
 
         <div className="bg-gray-1 border border-gray-4 p-4 sm:p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">

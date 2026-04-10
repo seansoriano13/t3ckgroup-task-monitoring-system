@@ -20,6 +20,7 @@ import { formatTaskPreview } from "../../utils/taskFormatters";
 import ChecklistTaskRenderer from "../../components/ChecklistTaskRenderer.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import TaskDetails from "../../components/TaskDetails.jsx";
+import TaskFilters from "../../components/TaskFilters.jsx";
 
 export default function ApprovalsPage() {
   const { user } = useAuth();
@@ -53,6 +54,45 @@ export default function ApprovalsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("ALL"); // ALL | HIGH | NORMAL
   const [sortBy, setSortBy] = useState("OLDEST"); // OLDEST | NEWEST | NAME
+
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [deptFilter, setDeptFilter] = useState("ALL");
+  const [subDeptFilter, setSubDeptFilter] = useState("ALL");
+  const [employeeFilter, setEmployeeFilter] = useState("ALL");
+
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
+
+  useEffect(() => {
+    if (!isHead && !isHr) return;
+    const fetchTopology = async () => {
+      const { employeeService } = await import("../../services/employeeService.js");
+      const employees = await employeeService.getAllEmployees();
+      if (employees) setAllEmployees(employees);
+
+      const categories = await employeeService.getAllCategories();
+      if (categories) setAllCategories(categories);
+    };
+    fetchTopology();
+  }, [isHead, isHr]);
+
+  const uniqueDepts = useMemo(() => {
+    return [...new Set(allCategories.map((c) => c.department).filter(Boolean))].sort();
+  }, [allCategories]);
+
+  const uniqueSubDepts = useMemo(() => {
+    const filteredCats = deptFilter === "ALL" ? allCategories : allCategories.filter((c) => c.department === deptFilter);
+    return [...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean))].sort();
+  }, [allCategories, deptFilter]);
+
+  const uniqueEmployees = useMemo(() => {
+    let pool = allEmployees.filter((e) => !e.is_super_admin);
+    if (deptFilter !== "ALL") pool = pool.filter((e) => e.department === deptFilter);
+    if (subDeptFilter !== "ALL") pool = pool.filter((e) => e.subDepartment === subDeptFilter);
+    return pool.sort((a, b) => a.name.localeCompare(b.name));
+  }, [allEmployees, deptFilter, subDeptFilter]);
 
   // 🔥 DEEP LINKING HOOK
   useEffect(() => {
@@ -151,6 +191,43 @@ export default function ApprovalsPage() {
     if (priorityFilter === "NORMAL")
       result = result.filter((t) => t.priority !== "HIGH");
 
+    // Status filter
+    if (statusFilter !== "ALL") {
+      if (statusFilter === "INCOMPLETE") result = result.filter(t => t.status === "INCOMPLETE");
+      else if (statusFilter === "COMPLETE") result = result.filter(t => t.status === "COMPLETE");
+      else if (statusFilter === "COMPLETE_UNVERIFIED") result = result.filter(t => t.status === "COMPLETE" && !t.hrVerified);
+      else if (statusFilter === "COMPLETE_VERIFIED") result = result.filter(t => t.status === "COMPLETE" && t.hrVerified);
+      else if (statusFilter === "AWAITING_APPROVAL") result = result.filter(t => t.status === "AWAITING APPROVAL");
+      else if (statusFilter === "NOT APPROVED") result = result.filter(t => t.status === "NOT APPROVED");
+    }
+
+    // Date Range
+    if (startDate && endDate) {
+      const filterStart = new Date(startDate).setHours(0, 0, 0, 0);
+      const filterEnd = new Date(endDate).setHours(23, 59, 59, 999);
+      result = result.filter((t) => {
+        const taskDate = new Date(t.createdAt).getTime();
+        return taskDate >= filterStart && taskDate <= filterEnd;
+      });
+    }
+
+    // Department / Sub-Dept / Employee
+    if (deptFilter !== "ALL" || subDeptFilter !== "ALL" || employeeFilter !== "ALL") {
+      const empMap = new Map();
+      for (const emp of allEmployees) empMap.set(emp.id, emp);
+
+      result = result.filter(task => {
+        let matchesDept = true, matchesSubDept = true, matchesEmp = true;
+        const taskOwner = empMap.get(task.loggedById);
+
+        if (deptFilter !== "ALL") matchesDept = taskOwner?.department === deptFilter;
+        if (subDeptFilter !== "ALL") matchesSubDept = taskOwner?.subDepartment === subDeptFilter;
+        if (employeeFilter !== "ALL") matchesEmp = task.loggedById === employeeFilter;
+
+        return matchesDept && matchesSubDept && matchesEmp;
+      });
+    }
+
     // Sort
     if (sortBy === "NEWEST")
       result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -162,7 +239,7 @@ export default function ApprovalsPage() {
       );
 
     return result;
-  }, [pendingTasks, searchQuery, priorityFilter, sortBy]);
+  }, [pendingTasks, searchQuery, priorityFilter, sortBy, statusFilter, startDate, endDate, deptFilter, subDeptFilter, employeeFilter, allEmployees]);
 
   // 3. The Approval/Verification Mutation
   const editTaskMutation = useMutation({
@@ -223,61 +300,31 @@ export default function ApprovalsPage() {
 
         {/* FILTER BAR */}
         {pendingTasks.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center bg-gray-2 border border-gray-4 rounded-xl px-3 py-2.5">
-            {/* Search */}
-            <div className="flex items-center gap-2 flex-1 min-w-0 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5">
-              <Search size={13} className="text-gray-8 shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, category, or description…"
-                className="flex-1 bg-transparent text-sm text-gray-12 placeholder-gray-7 outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="text-gray-7 hover:text-gray-11 transition-colors"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </div>
-
-            {/* Priority toggle */}
-            <div className="flex gap-1 bg-gray-1 border border-gray-4 rounded-lg p-1 shrink-0">
-              {[
-                ["ALL", "All"],
-                ["HIGH", "High"],
-                ["NORMAL", "Normal"],
-              ].map(([val, label]) => (
-                <button
-                  key={val}
-                  onClick={() => setPriorityFilter(val)}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${priorityFilter === val
-                      ? "bg-primary text-white shadow"
-                      : "text-gray-9 hover:text-gray-12"
-                    }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Sort */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <SlidersHorizontal size={13} className="text-gray-8" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="bg-gray-1 border border-gray-4 text-xs font-bold text-gray-11 rounded-lg px-2 py-1.5 outline-none cursor-pointer"
-              >
-                <option value="OLDEST">Oldest first</option>
-                <option value="NEWEST">Newest first</option>
-                <option value="NAME">By name</option>
-              </select>
-            </div>
-          </div>
+          <TaskFilters
+            searchTerm={searchQuery}
+            setSearchTerm={setSearchQuery}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            deptFilter={deptFilter}
+            setDeptFilter={setDeptFilter}
+            subDeptFilter={subDeptFilter}
+            setSubDeptFilter={setSubDeptFilter}
+            employeeFilter={employeeFilter}
+            setEmployeeFilter={setEmployeeFilter}
+            isManagement={true}
+            isHr={false} // Approvals page hierarchy behaves like Head even for HR since it's just sorting pending
+            hrViewMode="ALL"
+            uniqueDepts={uniqueDepts}
+            uniqueSubDepts={uniqueSubDepts}
+            uniqueEmployees={uniqueEmployees}
+            showStatusFilter={true}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+          />
         )}
 
         {/* FINANCIAL QUEUE (only for Sales Heads) */}
