@@ -7,7 +7,9 @@ import {
   Loader2,
   XCircle,
   Clock,
+  Clock,
 } from "lucide-react";
+import { TASK_STATUS } from "../constants/status.js";
 
 const TaskFooter = ({ actions, permissions, state }) => {
   const {
@@ -90,7 +92,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 disabled={
                   isSubmitting ||
                   (state.isMarketing && !state.hasAttachments) || // Only enforce attachment check for Marketing
-                  state.task.status === "AWAITING APPROVAL"
+                  state.task.status === TASK_STATUS.AWAITING_APPROVAL
                 }
                 className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
               >
@@ -103,14 +105,14 @@ const TaskFooter = ({ actions, permissions, state }) => {
               </button>
             )}
 
-            {(state.isMarketing || state.universalTaskSubmission) && isOwner && task.status === "AWAITING APPROVAL" && (
+            {(state.isMarketing || state.universalTaskSubmission) && isOwner && task.status === TASK_STATUS.AWAITING_APPROVAL && (
                 <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-3">
                    <Clock size={16} /> Waiting for Review
                 </div>
             )}
 
             {/* --- HEAD ACTIONS (EVALUATION) --- */}
-            {canEvaluate && (task.status === "INCOMPLETE" || task.status === "AWAITING APPROVAL") && (
+            {canEvaluate && (task.status === TASK_STATUS.INCOMPLETE || task.status === TASK_STATUS.AWAITING_APPROVAL) && (
               <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
                 <button
                   onClick={onHeadReject}

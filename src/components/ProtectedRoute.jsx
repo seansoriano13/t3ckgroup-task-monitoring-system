@@ -38,7 +38,7 @@ export default function ProtectedRoute({
   }
 
   //   If not HR and not Head
-  if (requireHead && !isHeadUser && !isHrUser) {
+  if (requireHead && !isHeadUser && !isHrUser && !isSA) {
     return <Navigate to="/" replace />;
   }
 

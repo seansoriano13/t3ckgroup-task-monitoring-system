@@ -4,6 +4,7 @@ import { notificationService } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
 import { Bell, X, CheckCheck, ShieldAlert, CheckCircle2, Clock, XCircle, FileText, Briefcase, TrendingUp, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { supabase } from '../lib/supabase';
 
 export default function NotificationDrawer({ isOpen, onClose }) {
   const { user } = useAuth();
@@ -26,7 +27,9 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         queryClient.setQueryData(['notifications', user.id], (old = []) => [newNotif, ...old]);
      });
      return () => {
-        if (subscription) subscription.unsubscribe();
+        if (subscription) {
+            supabase.removeChannel(subscription);
+        }
      };
   }, [user?.id, queryClient]);
 

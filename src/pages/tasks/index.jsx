@@ -7,6 +7,8 @@ import {
   Building2,
   Calendar as CalendarIcon,
 } from "lucide-react";
+import TaskSummaryChart from "../../components/TaskSummaryChart.jsx";
+import { TASK_STATUS } from "../../constants/status.js";
 import TaskDetails from "../../components/TaskDetails.jsx";
 import TaskCard from "../../components/TaskCard";
 import TaskFilters from "../../components/TaskFilters.jsx";
@@ -311,8 +313,9 @@ export default function TasksPage() {
               return t.status === "COMPLETE" && !t.hrVerified;
             if (statusKey === "COMPLETE_VERIFIED")
               return t.status === "COMPLETE" && t.hrVerified;
-            if (statusKey === "AWAITING_APPROVAL")
-              return t.status === "AWAITING APPROVAL";
+            if (statusKey === "AWAITING_APPROVAL") {
+              return t.status === TASK_STATUS.AWAITING_APPROVAL;
+            }
             return t.status === statusKey;
           });
           if (allGroupTasks.length === 0) return null;

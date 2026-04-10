@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase.js";
 import { notificationService } from "./notificationService.js";
+import { storageService } from "./storageService.js";
 import { TASK_STATUS } from "../constants/status.js";
 
 export const taskService = {
@@ -407,6 +408,7 @@ export const taskService = {
         payload.priority,
         payload.startAt,
         payload.endAt,
+        payload.attachments,
       ].some((val) => val !== undefined);
 
       if (attemptedCoreEdits) {
@@ -586,6 +588,40 @@ export const taskService = {
 
   // 5. DELETE
   async deleteTask(taskId, userId) {
+    const { data: userRole } = await supabase
+      .from("employees")
+      .select("is_super_admin, is_head, is_hr")
+      .eq("id", userId)
+      .single();
+
+    const { data: task } = await supabase
+      .from("tasks")
+      .select("logged_by, hr_verified, attachment_urls")
+      .eq("id", taskId)
+      .single();
+
+    if (!task) throw new Error("Task not found");
+
+    const isManager = userRole?.is_super_admin || userRole?.is_head || userRole?.is_hr;
+
+    if (task.logged_by !== userId && !isManager) {
+      throw new Error("Unauthorized to delete this task");
+    }
+
+    if (task.hr_verified === true && !userRole?.is_super_admin) {
+      throw new Error("Cannot delete tasks that are already verified by HR.");
+    }
+
+    if (task.attachment_urls && task.attachment_urls.length > 0) {
+      for (const url of task.attachment_urls) {
+        try {
+           await storageService.deleteAttachment(url);
+        } catch (e) {
+           console.error("Failed to clean up attachment", url, e);
+        }
+      }
+    }
+
     const { error } = await supabase
       .from("tasks")
       .update({

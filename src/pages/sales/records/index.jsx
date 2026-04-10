@@ -377,8 +377,8 @@ export default function SalesRecordsPage() {
           return logDate.getFullYear() === startOfDay.getFullYear();
         } else if (timeframe === "WEEKLY") {
           const day = startOfDay.getDay();
-          const diff = startOfDay.getDate() - day + (day === 0 ? -6 : 1);
-          const startOfWeek = new Date(startOfDay.setDate(diff));
+          const startOfWeek = new Date(startOfDay);
+          startOfWeek.setDate(startOfWeek.getDate() - day + (day === 0 ? -6 : 1));
           startOfWeek.setHours(0, 0, 0, 0);
           const endOfWeek = new Date(startOfWeek);
           endOfWeek.setDate(startOfWeek.getDate() + 6);

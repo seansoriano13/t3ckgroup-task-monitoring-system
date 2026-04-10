@@ -7,12 +7,14 @@ import StandardDetailsSection from "./StandardDetailsSection";
 import ManagerEvaluation from "./ManagerEvaluation";
 import { formatDate } from "../utils/formatDate";
 import { PencilLine, FolderKanban } from "lucide-react";
-import TaskFooter from "./TaskFooter";
+import TaskFooter from "./TaskFooter.jsx";
+import { TASK_STATUS } from "../constants/status.js";
 import ChecklistTaskInput from "./ChecklistTaskInput";
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import ImageAttachment from "./ImageAttachment";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.js";
+import { toast } from "react-hot-toast";
 
 export default function TaskDetails({
   isOpen,
@@ -206,18 +208,39 @@ export default function TaskDetails({
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this task? It will be removed from the active queues.",
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <span className="font-bold text-sm text-gray-12">
+            Are you sure you want to delete this task? It will be removed from the active queues.
+          </span>
+          <div className="flex gap-2">
+            <button
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm font-bold transition-colors"
+              onClick={async () => {
+                toast.dismiss(t.id);
+                setIsSubmitting(true);
+                try {
+                  await onDeleteTask({ id: task.id, userId: user.id });
+                  onClose();
+                } catch {
+                  setIsSubmitting(false);
+                }
+              }}
+            >
+              Confirm Delete
+            </button>
+            <button
+              className="bg-gray-3 hover:bg-gray-4 text-gray-11 px-4 py-1.5 rounded text-sm font-bold transition-colors border border-gray-4"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity, id: 'delete-confirm' }
     );
-    if (confirmed) {
-      setIsSubmitting(true);
-      try {
-        await onDeleteTask({ id: task.id, userId: user.id });
-        onClose();
-      } catch {
-        setIsSubmitting(false);
-      }
-    }
   };
 
   return (
@@ -377,7 +400,7 @@ export default function TaskDetails({
             onHeadReject: () =>
               executeUpdate({
                 id: task.id,
-                status: "NOT APPROVED", // Global text update applied!
+                status: TASK_STATUS.NOT_APPROVED, // Global text update applied!
                 endAt: new Date().toISOString(),
                 grade: 0, // 👈 Fix: Rejection grade contaminates analytics
                 remarks: approvalRemarks,
@@ -390,14 +413,14 @@ export default function TaskDetails({
             onSubmitApproval: () =>
               executeUpdate({
                 id: task.id,
-                status: "AWAITING APPROVAL",
+                status: TASK_STATUS.AWAITING_APPROVAL,
                 editedBy: user.id,
               }),
 
             onMarkComplete: () =>
               executeUpdate({
                 id: task.id,
-                status: "COMPLETE",
+                status: TASK_STATUS.COMPLETE,
                 endAt: new Date().toISOString(),
                 grade: approvalGrade,
                 remarks: approvalRemarks,
@@ -410,22 +433,20 @@ export default function TaskDetails({
             onUndoVerify: () =>
               executeUpdate({
                 id: task.id,
-                status: "COMPLETE",
+                status: TASK_STATUS.COMPLETE,
                 hrVerified: false,
                 hrRemarks: "",
                 editedBy: user.id,
               }),
 
             onHrVerify: () => {
-              if (task.status !== "COMPLETE") {
-                alert(
-                  "Exploit Prevention: Only COMPLETE tasks can be verified.",
-                );
+              if (task.status !== TASK_STATUS.COMPLETE) {
+                toast.error("Security policy limits verification exclusively to fully COMPLETE entries.", { icon: "🔒" });
                 return;
               }
               executeUpdate({
                 id: task.id,
-                status: "COMPLETE",
+                status: TASK_STATUS.COMPLETE,
                 hrVerified: true,
                 hrVerifiedAt: new Date().toISOString(),
                 editedBy: user.id,

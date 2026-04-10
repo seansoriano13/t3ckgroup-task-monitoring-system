@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService.js";
 import { supabase } from "../../lib/supabase.js";
+import { TASK_STATUS } from "../../constants/status.js";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import {
   CheckCircle2,
@@ -27,7 +28,8 @@ export default function ApprovalsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const isHr = user?.is_hr === true || user?.isHr === true;
+  const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isHr = user?.is_hr === true || user?.isHr === true || isSuperAdmin;
   const isHead = user?.is_head === true || user?.isHead === true;
   const userSubDept = user?.sub_department || user?.subDepartment;
   const userDept = user?.department;
@@ -116,9 +118,7 @@ export default function ApprovalsPage() {
         let matchesHrQueue = false;
         let matchesHeadQueue = false;
 
-        const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
-
-        if (isHr || isSuperAdmin) {
+        if (isHr) {
           // 🔥 HR QUEUE: Needs to be COMPLETE, but NOT YET VERIFIED
           const isComplete = t.status === "COMPLETE";
           const isNotVerified = !t.hrVerified;
@@ -150,8 +150,7 @@ export default function ApprovalsPage() {
 
           if (t.status === "INCOMPLETE") {
              matchesHeadQueueForThisTask = isNotMe && isMyDept;
-          } else if (t.status === "AWAITING APPROVAL") {
-             const isSuperAdmin = user?.is_super_admin || user?.isSuperAdmin;
+          } else if (t.status === TASK_STATUS.AWAITING_APPROVAL) {
              const canOpsManagerApprove = appSettings?.marketing_approval_by_ops_manager && isMyDept;
 
              // Marketing path: always routed to Super Admin / Ops Manager (existing behaviour)
@@ -203,12 +202,12 @@ export default function ApprovalsPage() {
 
     // Status filter
     if (statusFilter !== "ALL") {
-      if (statusFilter === "INCOMPLETE") result = result.filter(t => t.status === "INCOMPLETE");
-      else if (statusFilter === "COMPLETE") result = result.filter(t => t.status === "COMPLETE");
-      else if (statusFilter === "COMPLETE_UNVERIFIED") result = result.filter(t => t.status === "COMPLETE" && !t.hrVerified);
-      else if (statusFilter === "COMPLETE_VERIFIED") result = result.filter(t => t.status === "COMPLETE" && t.hrVerified);
-      else if (statusFilter === "AWAITING_APPROVAL") result = result.filter(t => t.status === "AWAITING APPROVAL");
-      else if (statusFilter === "NOT APPROVED") result = result.filter(t => t.status === "NOT APPROVED");
+      if (statusFilter === "INCOMPLETE") result = result.filter(t => t.status === TASK_STATUS.INCOMPLETE);
+      else if (statusFilter === "COMPLETE") result = result.filter(t => t.status === TASK_STATUS.COMPLETE);
+      else if (statusFilter === "COMPLETE_UNVERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && !t.hrVerified);
+      else if (statusFilter === "COMPLETE_VERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && t.hrVerified);
+      else if (statusFilter === "AWAITING_APPROVAL") result = result.filter(t => t.status === TASK_STATUS.AWAITING_APPROVAL);
+      else if (statusFilter === "NOT APPROVED") result = result.filter(t => t.status === TASK_STATUS.NOT_APPROVED);
     }
 
     // Date Range

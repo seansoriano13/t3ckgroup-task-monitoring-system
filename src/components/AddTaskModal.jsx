@@ -108,7 +108,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     };
 
     fetchDropdownData();
-  }, [isOpen, user, isHr, isHead]);
+  }, [isOpen, user, isHr, isHead, isSuperAdmin]);
 
   // Handle Input Changes
   const handleChange = (e) => {

@@ -11,13 +11,13 @@ export const AuthProvider = ({ children }) => {
   const [isAuthLoading, setIsAuthLoading] = useState(true); // Always start loading to verify session integrity
   const [initFinished, setInitFinished] = useState(false); // New flag to prevent infinite loops
   const userEmailRef = useRef(null);
+  const settledRef = useRef(false); // ensures setIsAuthLoading(false) only fires once
 
   useEffect(() => {
     userEmailRef.current = user?.email;
   }, [user]);
 
   useEffect(() => {
-    let settled = false; // ensures setIsAuthLoading(false) only fires once
 
     // Shared helper — looks up the employee record from DB and merges Google metadata.
     // Only called on initial session load or explicit SIGNED_IN — NOT on TOKEN_REFRESHED.
@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }) => {
     // release the loading gate after 10s so the user reaches the login page
     // instead of being stuck on "Loading Portal..." forever.
     const timeout = setTimeout(() => {
-      if (!settled) {
-        settled = true;
+      if (!settledRef.current) {
+        settledRef.current = true;
         console.warn("Auth: session resolution timed out — releasing loading gate");
         setIsAuthLoading(false);
       }
