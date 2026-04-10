@@ -31,12 +31,14 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       if (task.status === "DELETED") return false;
 
       const desc = task.taskDescription || "";
+      const project = task.projectTitle || "";
       const cat = task.categoryId || "";
       const empName = task.loggedByName || "";
 
       // Search
       const matchesSearch =
         desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cat.toLowerCase().includes(searchTerm.toLowerCase()) ||
         empName.toLowerCase().includes(searchTerm.toLowerCase());
 
