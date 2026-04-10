@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
+import { TASK_STATUS, REVENUE_STATUS, SALES_PLAN_STATUS } from "../../constants/status";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -18,16 +19,21 @@ export default function ProfilePage() {
     queryFn: async () => {
       if (user?.isSuperAdmin) return null;
 
+      const userDept = user?.department || "";
+      const isSales = userDept.toLowerCase().includes("sales");
+
       if (user?.isHr || user?.is_hr) {
+        // HR Access
         const { count: pendingVerifications } = await supabase
           .from("tasks")
           .select("*", { count: "exact", head: true })
-          .eq("hrVerified", false)
-          .eq("status", "COMPLETE");
+          .eq("hr_verified", false)
+          .eq("status", TASK_STATUS.COMPLETE);
         const { count: totalVerified } = await supabase
           .from("tasks")
           .select("*", { count: "exact", head: true })
-          .eq("hrVerified", true);
+          .eq("hr_verified", true);
+
         return {
           primary: pendingVerifications || 0,
           primaryLabel: "Pending HR Verifications",
@@ -35,39 +41,97 @@ export default function ProfilePage() {
           secondaryLabel: "Total Verified",
         };
       } else if (user?.isHead || user?.is_head) {
-        const { count: pendingApprovals } = await supabase
-          .from("tasks")
-          .select("*", { count: "exact", head: true })
-          .eq("department", user.department)
-          .neq("status", "COMPLETE")
-          .neq("status", "NOT APPROVED");
-        const { count: totalApproved } = await supabase
-          .from("tasks")
-          .select("*", { count: "exact", head: true })
-          .eq("department", user.department)
-          .in("status", ["COMPLETE", "NOT APPROVED"]);
-        return {
-          primary: pendingApprovals || 0,
-          primaryLabel: "Awaiting Your Approval",
-          secondary: totalApproved || 0,
-          secondaryLabel: "Your Evaluated Tasks",
-        };
+        // Department Head logic
+        if (isSales) {
+          // Sales Head specific stats
+          const { count: pendingExpenses } = await supabase
+            .from("sales_activities")
+            .select("*", { count: "exact", head: true })
+            .eq("status", REVENUE_STATUS.PENDING)
+            .neq("is_deleted", true);
+
+          const { count: pendingPlans } = await supabase
+            .from("sales_weekly_plans")
+            .select("*", { count: "exact", head: true })
+            .in("status", [SALES_PLAN_STATUS.SUBMITTED, SALES_PLAN_STATUS.REVISION]);
+
+          const { count: totalVerifiedSales } = await supabase
+            .from("sales_activities")
+            .select("*", { count: "exact", head: true })
+            .not("head_verified_at", "is", null)
+            .neq("is_deleted", true);
+
+          return {
+            primary: (pendingExpenses || 0) + (pendingPlans || 0),
+            primaryLabel: "Sales Approvals Needed",
+            secondary: totalVerifiedSales || 0,
+            secondaryLabel: "Sales Evaluated",
+          };
+        } else {
+          // Regular Dept Head stats
+          const { count: pendingApprovals } = await supabase
+            .from("tasks")
+            .select("*", { count: "exact", head: true })
+            .eq("department", userDept)
+            .eq("status", TASK_STATUS.AWAITING_APPROVAL);
+
+          const { count: totalApproved } = await supabase
+            .from("tasks")
+            .select("*", { count: "exact", head: true })
+            .eq("department", userDept)
+            .in("status", [TASK_STATUS.COMPLETE, TASK_STATUS.NOT_APPROVED]);
+
+          return {
+            primary: pendingApprovals || 0,
+            primaryLabel: "Awaiting Your Approval",
+            secondary: totalApproved || 0,
+            secondaryLabel: "Your Evaluated Tasks",
+          };
+        }
       } else {
-        const { count: totalLogged } = await supabase
-          .from("tasks")
-          .select("*", { count: "exact", head: true })
-          .eq("loggedById", user.id);
-        const { count: totalDone } = await supabase
-          .from("tasks")
-          .select("*", { count: "exact", head: true })
-          .eq("loggedById", user.id)
-          .eq("status", "COMPLETE");
-        return {
-          primary: totalLogged || 0,
-          primaryLabel: "Total Tasks Logged",
-          secondary: totalDone || 0,
-          secondaryLabel: "Activities Completed",
-        };
+        // Regular Employee logic
+        if (isSales) {
+          // Sales Representative specific stats
+          const { count: totalActivities } = await supabase
+            .from("sales_activities")
+            .select("*", { count: "exact", head: true })
+            .eq("employee_id", user.id)
+            .neq("is_deleted", true);
+
+          const { count: totalSalesOrders } = await supabase
+            .from("sales_revenue_logs")
+            .select("*", { count: "exact", head: true })
+            .eq("employee_id", user.id)
+            .eq("record_type", "SALES_ORDER")
+            .neq("is_deleted", true);
+
+          return {
+            primary: totalActivities || 0,
+            primaryLabel: "Activities Tracked",
+            secondary: totalSalesOrders || 0,
+            secondaryLabel: "Sales Orders Won",
+          };
+        } else {
+          // Standard Task-based stats
+          const { count: totalLogged } = await supabase
+            .from("tasks")
+            .select("*", { count: "exact", head: true })
+            .eq("logged_by", user.id)
+            .neq("status", TASK_STATUS.DELETED);
+
+          const { count: totalDone } = await supabase
+            .from("tasks")
+            .select("*", { count: "exact", head: true })
+            .eq("logged_by", user.id)
+            .eq("status", TASK_STATUS.COMPLETE);
+
+          return {
+            primary: totalLogged || 0,
+            primaryLabel: "Total Tasks Logged",
+            secondary: totalDone || 0,
+            secondaryLabel: "Activities Completed",
+          };
+        }
       }
     },
     enabled: !!user?.id,
