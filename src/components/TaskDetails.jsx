@@ -254,7 +254,10 @@ export default function TaskDetails({
           </div>
         </div>
       ),
-      { duration: Infinity, id: "delete-confirm" },
+      {
+        duration: Infinity,
+        id: "delete-confirm",
+      },
     );
   };
 

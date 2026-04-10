@@ -63,26 +63,35 @@ createRoot(document.getElementById("root")).render(
               toastOptions={{
                 duration: 3000,
                 style: {
-                  background: "#1f1f1f",
-                  color: "#fff",
-                  borderRadius: "12px",
-                  fontWeight: "600",
-                  padding: "14px 18px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
-                  fontFamily: "'Inter', sans-serif",
+                  background: "var(--gray-2)",
+                  color: "var(--gray-12)",
+                  borderRadius: "16px",
+                  fontWeight: "700",
+                  padding: "12px 20px",
+                  boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                  fontFamily: "inherit",
+                  border: "1px solid var(--gray-4)",
                 },
                 success: {
                   duration: 2500,
                   iconTheme: { primary: "#22c55e", secondary: "#fff" },
-                  style: { background: "#22c55e", color: "#fff" },
+                  style: { 
+                    background: "var(--gray-2)", 
+                    color: "var(--gray-12)",
+                    borderLeft: "4px solid #22c55e"
+                  },
                 },
                 error: {
                   duration: 4000,
-                  iconTheme: { primary: "#ef4444", secondary: "#fff" },
-                  style: { background: "#ef4444", color: "#fff" },
+                  iconTheme: { primary: "var(--red-9)", secondary: "#fff" },
+                  style: { 
+                    background: "var(--gray-2)", 
+                    color: "var(--gray-12)",
+                    borderLeft: "4px solid var(--red-9)"
+                  },
                 },
                 loading: {
-                  style: { background: "#facc15", color: "#000" },
+                  style: { background: "var(--gray-2)", color: "var(--gray-12)" },
                 },
               }}
             />
