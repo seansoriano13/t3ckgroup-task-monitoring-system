@@ -19,6 +19,8 @@ import { useMemo } from "react";
 export default function TasksPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // --- ROLE CHECKS ---
   const isSA = user?.is_super_admin === true || user?.isSuperAdmin === true;
@@ -50,12 +52,22 @@ export default function TasksPage() {
   // 2. Filter State (Management Cascading)
   // Pre-fill with user's dept/subdept if they are a HEAD, otherwise default to "ALL"
   const [deptFilter, setDeptFilter] = useState(
-    isHr ? "ALL" : userDept || "ALL",
+    location.state?.filterEmployeeId ? "ALL" : (isHr ? "ALL" : userDept || "ALL"),
   );
   const [subDeptFilter, setSubDeptFilter] = useState(
-    isHr ? "ALL" : userSubDept || "ALL",
+    location.state?.filterEmployeeId ? "ALL" : (isHr ? "ALL" : userSubDept || "ALL"),
   );
-  const [employeeFilter, setEmployeeFilter] = useState("ALL");
+  const [employeeFilter, setEmployeeFilter] = useState(
+    location.state?.filterEmployeeId || "ALL"
+  );
+
+  useEffect(() => {
+    if (location.state?.filterEmployeeId) {
+      const newState = { ...location.state };
+      delete newState.filterEmployeeId;
+      navigate(location.pathname, { replace: true, state: newState });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   // --- DB DATA STATES FOR DROPDOWNS ---
   const [allEmployees, setAllEmployees] = useState([]);
@@ -108,9 +120,6 @@ export default function TasksPage() {
         : taskService.getMyTasks(user?.id),
     enabled: !!user?.id,
   });
-
-  const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state?.openTaskId && rawTasks.length > 0) {

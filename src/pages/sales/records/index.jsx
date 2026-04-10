@@ -59,6 +59,11 @@ export default function SalesRecordsPage() {
   const itemsPerPage = 15;
 
   const queryClient = useQueryClient();
+  const { data: appSettings } = useQuery({
+    queryKey: ["appSettings"],
+    queryFn: () => salesService.getAppSettings(),
+    enabled: !!user?.id,
+  });
 
   const updateRevMutation = useMutation({
     mutationFn: ({ id, payload }) => salesService.updateRevenueLog(id, payload),
@@ -125,11 +130,6 @@ export default function SalesRecordsPage() {
     queryKey: ["allRevenueLogs"],
     queryFn: () => salesService.getAllRevenueLogs(),
     enabled: !!user?.id,
-  });
-
-  const { data: appSettings } = useQuery({
-    queryKey: ["appSettings"],
-    queryFn: () => salesService.getAppSettings(),
   });
 
   const isVerificationEnforced =
@@ -620,157 +620,162 @@ export default function SalesRecordsPage() {
                         (activitiesPage - 1) * itemsPerPage,
                         activitiesPage * itemsPerPage,
                       )
-                      .map((act) => (
-                        <tr
-                          key={act.id}
-                          onClick={() => setSelectedActivity(act)}
-                          className="hover:bg-gray-3/50 cursor-pointer transition-colors"
-                        >
-                          <td className="p-4 flex flex-col items-start gap-1">
-                            <span className="font-mono text-sm font-bold text-gray-12">
-                              {act.scheduled_date}
-                            </span>
-                            <div className="flex flex-wrap items-center gap-1">
-                              <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
-                                {act.time_of_day}
-                              </span>
-                              {act.sales_weekly_plans?.status === "DRAFT" && (
-                                <span
-                                  className="text-[10px] bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
-                                  title="Draft Plan"
-                                >
-                                  DRAFT
-                                </span>
-                              )}
-                              {act.sales_weekly_plans?.status ===
-                                "SUBMITTED" && (
-                                <span
-                                  className="text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
-                                  title="Submitted Plan"
-                                >
-                                  SUBMITTED
-                                </span>
-                              )}
-                              {act.sales_weekly_plans?.status ===
-                                "APPROVED" && (
-                                <span
-                                  className="text-[10px] bg-green-500/10 text-green-600 border border-green-500/30 px-2 py-0.5 rounded uppercase tracking-widest font-black"
-                                  title="Approved Plan"
-                                >
-                                  APPROVED
-                                </span>
-                              )}
-                              {!act.sales_weekly_plans?.status && (
-                                <span
-                                  className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
-                                  title="Unplanned Injection"
-                                >
-                                  UNPLANNED
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <p className="font-bold text-sm text-gray-12">
-                              {act.employees?.name || "Unknown"}
-                            </p>
-                            <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
-                              {act.employees?.department}
-                            </p>
-                          </td>
-                          <td
-                            className="p-4 font-bold text-sm text-gray-12 max-w-[200px] truncate"
-                            title={act.account_name}
+                      .map((act) => {
+                        const isDone = act.status === "DONE" || act.status === "APPROVED";
+                        const showApprovedStatus = act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses;
+
+                        return (
+                          <tr
+                            key={act.id}
+                            onClick={() => setSelectedActivity(act)}
+                            className="hover:bg-gray-3/50 cursor-pointer transition-colors"
                           >
-                            {act.account_name || (
-                              <span className="text-gray-8 italic font-normal">
-                                No Account
+                            <td className="p-4 flex flex-col items-start gap-1">
+                              <span className="font-mono text-sm font-bold text-gray-12">
+                                {act.scheduled_date}
                               </span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            <span className="text-xs font-semibold text-gray-11">
-                              {act.activity_type}
-                            </span>
-                            {act.is_unplanned && (
-                              <span className="block mt-1 text-[10px] text-blue-500 bg-blue-500/10 w-max px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
-                                Unplanned
-                              </span>
-                            )}
-                          </td>
-                          <td
-                            className="p-4 text-xs text-gray-11 max-w-[250px] truncate"
-                            title={act.details_daily}
-                          >
-                            {act.details_daily || act.remarks_plan || (
-                              <span className="text-gray-7 italic">Blank</span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            <div className="flex flex-col gap-1">
-                              {act.reference_number && (
-                                <span className="text-[10px] font-black text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
-                                  {act.reference_number}
+                              <div className="flex flex-wrap items-center gap-1">
+                                <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
+                                  {act.time_of_day}
                                 </span>
-                              )}
-                              {act.expense_amount && (
-                                <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full w-max">
-                                  ₱{" "}
-                                  {Number(act.expense_amount).toLocaleString()}
-                                </span>
-                              )}
-                              {act.sales_outcome === "WON" && (
-                                <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">
-                                  WON
-                                </span>
-                              )}
-                              {act.sales_outcome === "LOST" && (
-                                <span className="text-[10px] font-black text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full w-max">
-                                  LOST
-                                </span>
-                              )}
-                              {!act.reference_number &&
-                                !act.expense_amount &&
-                                !act.sales_outcome && (
-                                  <span className="text-gray-7 italic text-[10px]">
-                                    —
+                                {act.sales_weekly_plans?.status === "DRAFT" && (!isDone || showApprovedStatus) && (
+                                  <span
+                                    className="text-[10px] bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                    title="Draft Plan"
+                                  >
+                                    DRAFT
                                   </span>
                                 )}
-                            </div>
-                          </td>
-                          <td className="p-4 text-center">
-                            {act.status === "APPROVED" ? (
-                              <div className="flex flex-col items-center gap-1 text-green-500">
-                                <CheckCircle2 size={18} />
-                                <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded">
-                                  APPROVED
-                                </span>
+                                {act.sales_weekly_plans?.status === "SUBMITTED" && (!isDone || showApprovedStatus) && (
+                                  <span
+                                    className="text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                    title="Submitted Plan"
+                                  >
+                                    SUBMITTED
+                                  </span>
+                                )}
+                                {act.sales_weekly_plans?.status === "APPROVED" && (!isDone || showApprovedStatus) && (
+                                  <span
+                                    className="text-[10px] bg-green-500/10 text-green-600 border border-green-500/30 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                    title="Approved Plan"
+                                  >
+                                    APPROVED
+                                  </span>
+                                )}
+                                {!act.sales_weekly_plans?.status && (!isDone || showApprovedStatus) && (
+                                  <span
+                                    className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                    title="Unplanned Injection"
+                                  >
+                                    UNPLANNED
+                                  </span>
+                                )}
                               </div>
-                            ) : act.status === "PENDING" ? (
-                              <div className="flex flex-col items-center gap-1 text-amber-500">
-                                <Clock size={18} />
-                                <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded">
-                                  PENDING
+                            </td>
+                            <td className="p-4">
+                              <p className="font-bold text-sm text-gray-12">
+                                {act.employees?.name || "Unknown"}
+                              </p>
+                              <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+                                {act.employees?.department}
+                              </p>
+                            </td>
+                            <td
+                              className="p-4 font-bold text-sm text-gray-12 max-w-[200px] truncate"
+                              title={act.account_name}
+                            >
+                              {act.account_name || (
+                                <span className="text-gray-8 italic font-normal">
+                                  No Account
                                 </span>
-                              </div>
-                            ) : act.status === "REJECTED" ? (
-                              <div className="flex flex-col items-center gap-1 text-red-500">
-                                <XCircle size={18} />
-                                <span className="text-[10px] font-black uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded">
-                                  REJECTED
+                              )}
+                            </td>
+                            <td className="p-4">
+                              <span className="text-xs font-semibold text-gray-11">
+                                {act.activity_type}
+                              </span>
+                              {act.is_unplanned && (
+                                <span className="block mt-1 text-[10px] text-blue-500 bg-blue-500/10 w-max px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
+                                  Unplanned
                                 </span>
+                              )}
+                            </td>
+                            <td
+                              className="p-4 text-xs text-gray-11 max-w-[250px] truncate"
+                              title={act.details_daily}
+                            >
+                              {act.details_daily || act.remarks_plan || (
+                                <span className="text-gray-7 italic">Blank</span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col gap-1">
+                                {act.reference_number && (
+                                  <span className="text-[10px] font-black text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
+                                    {act.reference_number}
+                                  </span>
+                                )}
+                                {act.expense_amount && (
+                                  <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full w-max">
+                                    ₱{" "}
+                                    {Number(act.expense_amount).toLocaleString()}
+                                  </span>
+                                )}
+                                {act.sales_outcome === "WON" && (
+                                  <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">
+                                    WON
+                                  </span>
+                                )}
+                                {act.sales_outcome === "LOST" && (
+                                  <span className="text-[10px] font-black text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full w-max">
+                                    LOST
+                                  </span>
+                                )}
+                                {!act.reference_number &&
+                                  !act.expense_amount &&
+                                  !act.sales_outcome && (
+                                    <span className="text-gray-7 italic text-[10px]">
+                                      —
+                                    </span>
+                                  )}
                               </div>
-                            ) : (
-                              <div className="flex flex-col items-center gap-1 text-gray-8">
-                                <Circle size={18} />
-                                <span className="text-[10px] font-bold uppercase tracking-widest">
-                                  Incomplete
-                                </span>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                            <td className="p-4 text-center">
+                              {act.status === "APPROVED" ? (
+                                <div className="flex flex-col items-center gap-1 text-green-500">
+                                  <CheckCircle2 size={18} />
+                                  {showApprovedStatus && (
+                                    <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded">
+                                      APPROVED
+                                    </span>
+                                  )}
+                                </div>
+                              ) : act.status === "PENDING" ? (
+                                <div className="flex flex-col items-center gap-1 text-amber-500">
+                                  <Clock size={18} />
+                                  <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded">
+                                    PENDING
+                                  </span>
+                                </div>
+                              ) : act.status === "REJECTED" ? (
+                                <div className="flex flex-col items-center gap-1 text-red-500">
+                                  <XCircle size={18} />
+                                  <span className="text-[10px] font-black uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded">
+                                    REJECTED
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center gap-1 text-gray-8">
+                                  <Circle size={18} />
+                                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                                    Incomplete
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                   )}
                 </tbody>
               </table>
@@ -829,6 +834,7 @@ export default function SalesRecordsPage() {
                           <ExpandableSummaryCard
                             key={dateBlock.dateStr}
                             dateBlock={dateBlock}
+                            appSettings={appSettings}
                             label={
                               timeframe === "MONTHLY"
                                 ? new Date(
@@ -874,6 +880,7 @@ export default function SalesRecordsPage() {
                                     key={act.id}
                                     act={act}
                                     onClick={() => setSelectedActivity(act)}
+                                    appSettings={appSettings}
                                   />
                                 ))}
                               </div>
@@ -1102,24 +1109,10 @@ export default function SalesRecordsPage() {
                               {/* Super Admin soft-delete button */}
                               {user?.isSuperAdmin && (
                                 <button
-                                  title={
-                                    log.is_verified &&
-                                    log.record_type !== "SALES_QUOTATION"
-                                      ? "Un-verify before deleting"
-                                      : "Remove log"
-                                  }
+                                  title="Remove log"
                                   disabled={deleteRevenueMutation.isPending}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (
-                                      log.is_verified &&
-                                      log.record_type !== "SALES_QUOTATION"
-                                    ) {
-                                      toast.error(
-                                        "Remove the verification stamp before deleting.",
-                                      );
-                                      return;
-                                    }
                                     if (
                                       window.confirm(
                                         `Delete this ${log.record_type === "SALES_QUOTATION" ? "quotation" : "sales order"} (₱${Number(log.revenue_amount).toLocaleString()} – ${log.account})? This is a soft-delete and can be recovered from the database if needed.`,
@@ -1128,12 +1121,7 @@ export default function SalesRecordsPage() {
                                       deleteRevenueMutation.mutate(log.id);
                                     }
                                   }}
-                                  className={`p-1.5 rounded-lg transition-colors ${
-                                    log.is_verified &&
-                                    log.record_type !== "SALES_QUOTATION"
-                                      ? "text-gray-6 cursor-not-allowed"
-                                      : "text-gray-8 hover:text-red-500 hover:bg-red-500/10"
-                                  }`}
+                                  className="p-1.5 rounded-lg transition-colors text-gray-8 hover:text-red-500 hover:bg-red-500/10"
                                 >
                                   <Trash2 size={14} />
                                 </button>
@@ -1182,6 +1170,7 @@ export default function SalesRecordsPage() {
         isOpen={!!selectedActivity}
         onClose={() => setSelectedActivity(null)}
         activity={selectedActivity}
+        appSettings={appSettings}
       />
       <EditRevenueModal
         key={editingRevenue?.id}
@@ -1197,7 +1186,7 @@ export default function SalesRecordsPage() {
   );
 }
 
-function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
+function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings }) {
   const [expanded, setExpanded] = useState(false);
   const total = dateBlock.all.length;
   const done = dateBlock.all.filter(
@@ -1319,6 +1308,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
                             key={act.id}
                             act={act}
                             onClick={() => onActivityClick(act)}
+                            appSettings={appSettings}
                           />
                         ))}
                       </div>
@@ -1335,6 +1325,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
                             key={act.id}
                             act={act}
                             onClick={() => onActivityClick(act)}
+                            appSettings={appSettings}
                           />
                         ))}
                       </div>
@@ -1350,7 +1341,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
   );
 }
 
-function BoardActivityCard({ act, onClick }) {
+function BoardActivityCard({ act, onClick, appSettings }) {
   const isDone = act.status === "DONE" || act.status === "APPROVED";
   const isLost = act.sales_outcome === "LOST";
   const isWon = act.sales_outcome === "WON";
@@ -1383,22 +1374,22 @@ function BoardActivityCard({ act, onClick }) {
           <span className="text-[9px] uppercase font-bold text-gray-10 truncate max-w-[80px]">
             {act.activity_type}
           </span>
-          {act.sales_weekly_plans?.status === "DRAFT" && (
+          {act.sales_weekly_plans?.status === "DRAFT" && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
             <span className="shrink-0 text-[8px] bg-yellow-500/10 text-yellow-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               DRAFT
             </span>
           )}
-          {act.sales_weekly_plans?.status === "SUBMITTED" && (
+          {act.sales_weekly_plans?.status === "SUBMITTED" && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               SUBMITTED
             </span>
           )}
-          {act.sales_weekly_plans?.status === "APPROVED" && (
+          {act.sales_weekly_plans?.status === "APPROVED" && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               APPROVED
             </span>
           )}
-          {!act.sales_weekly_plans?.status && (
+          {!act.sales_weekly_plans?.status && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
             <span className="shrink-0 text-[8px] bg-blue-500/10 text-blue-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               UNPLANNED
             </span>

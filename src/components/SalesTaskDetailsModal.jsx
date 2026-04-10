@@ -15,7 +15,7 @@ import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
-export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
+export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSettings }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [localOutcome, setLocalOutcome] = useState(
@@ -75,7 +75,13 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
               <span
                 className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${activity.status === "DONE" || activity.status === "APPROVED" ? "bg-green-500/10 text-green-500" : activity.status === "PENDING" ? "bg-amber-500/10 text-amber-500" : "bg-gray-4 text-gray-11"}`}
               >
-                {activity.status}
+                {activity.status === "APPROVED" &&
+                activity.expense_amount > 0 &&
+                !appSettings?.sales_self_approve_expenses
+                  ? "APPROVED"
+                  : activity.status === "APPROVED"
+                    ? "DONE"
+                    : activity.status}
               </span>
               {/* Sales Outcome Badge */}
               {localOutcome === "WON" && (

@@ -712,34 +712,21 @@ export const salesService = {
       .from("app_settings")
       .select("*")
       .maybeSingle();
+
     if (error && error.code !== "PGRST116") {
       console.error("Critical error fetching app settings", error);
       throw error;
     }
 
-    if (!data) {
-      // Fallback initialized row
-      try {
-        const { data: d, error: upsertError } = await supabase
-          .from("app_settings")
-          .upsert({
-            id: true,
-            require_revenue_verification: false,
-            sales_self_approve_expenses: false,
-          })
-          .select()
-          .single();
-        if (upsertError) throw upsertError;
-        return d;
-      } catch (e) {
-        console.warn(
-          "Failed to initialize app settings (usually due to lack of RLS insert permission for non-Admins), using default values",
-          e,
-        );
-        return null; // Return null so that caller knows it's resolved but empty
+    // Default configuration if no row exists or if fetch failed
+    return (
+      data || {
+        require_revenue_verification: false,
+        sales_self_approve_expenses: false,
+        universal_task_submission: false,
+        marketing_approval_by_ops_manager: false,
       }
-    }
-    return data;
+    );
   },
 
   async updateAppSettings(payload) {
@@ -821,10 +808,6 @@ export const salesService = {
 
     if (fetchErr) throw new Error(fetchErr.message);
     if (log?.is_deleted) throw new Error("This log has already been removed.");
-    if (log?.is_verified)
-      throw new Error(
-        "Cannot delete a verified revenue log. Remove the verification stamp first.",
-      );
 
     const { error } = await supabase
       .from("sales_revenue_logs")

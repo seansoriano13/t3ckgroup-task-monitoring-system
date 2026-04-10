@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Activity, ShieldAlert, Star, Users, TrendingUp, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 
 export default function EmployeePipelineMatrix({ selectedMonth }) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isHead = user?.is_head === true || user?.isHead === true;
@@ -170,7 +172,8 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
         {filteredStats.map((emp) => (
           <div
             key={emp.id}
-            className="min-w-[280px] sm:min-w-[320px] bg-gray-2 border border-gray-4 rounded-xl p-4 flex flex-col gap-4 snap-start hover:border-gray-5 transition-colors"
+            onClick={() => navigate("/tasks", { state: { filterEmployeeId: emp.id } })}
+            className="cursor-pointer min-w-[280px] sm:min-w-[320px] bg-gray-2 border border-gray-4 rounded-xl p-4 flex flex-col gap-4 snap-start hover:border-gray-5 transition-colors"
           >
             {/* Header: Avatar & Name */}
             <div className="flex justify-between items-start gap-3">
