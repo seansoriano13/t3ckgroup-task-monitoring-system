@@ -119,6 +119,74 @@ export const salesService = {
     return data;
   },
 
+  async requestPlanAmendment(planId, reason, userObj) {
+    // Take a snapshot of the current activities
+    const { data: activities } = await supabase.from('sales_activities').select('*').eq('plan_id', planId).neq('is_deleted', true);
+    
+    const payload = {
+      status: SALES_PLAN_STATUS.REVISION,
+      amendment_reason: reason,
+      amendment_requested_at: new Date().toISOString(),
+      amendment_snapshot: activities
+    };
+
+    const { data, error } = await supabase.from('sales_weekly_plans').update(payload).eq('id', planId).select().single();
+    if (error) throw error;
+
+    return data;
+  },
+
+  async resolvePlanAmendment(planId, isApproved, userObj) {
+    const { data: currentPlan } = await supabase.from('sales_weekly_plans').select('amendment_snapshot, employee_id').eq('id', planId).single();
+    
+    // Once resolved, it goes back to SUBMITTED and we clear the amendment fields
+    const payload = {
+      status: SALES_PLAN_STATUS.SUBMITTED,
+      amendment_reason: null,
+      amendment_requested_at: null,
+      amendment_snapshot: null
+    };
+
+    if (isApproved) {
+      // Keep the new activities
+      const { data, error } = await supabase.from('sales_weekly_plans').update(payload).eq('id', planId).select().single();
+      if (error) throw error;
+      
+      notificationService.createNotification({
+          recipient_id: currentPlan.employee_id,
+          sender_id: userObj?.id,
+          type: 'PLAN_AMENDMENT_RESULT',
+          title: 'Amendment Approved',
+          message: `Your requested plan changes were approved.`,
+          reference_id: planId
+      });
+      return data;
+    } else {
+      // Revert to snapshot
+      // 1. Delete current activities for the plan
+      await supabase.from('sales_activities').delete().eq('plan_id', planId);
+      
+      // 2. Re-insert the snapshot
+      if (currentPlan.amendment_snapshot && currentPlan.amendment_snapshot.length > 0) {
+        await supabase.from('sales_activities').insert(currentPlan.amendment_snapshot);
+      }
+
+      const { data, error } = await supabase.from('sales_weekly_plans').update(payload).eq('id', planId).select().single();
+      if (error) throw error;
+
+      notificationService.createNotification({
+          recipient_id: currentPlan.employee_id,
+          sender_id: userObj?.id,
+          type: 'PLAN_AMENDMENT_RESULT',
+          title: 'Amendment Rejected',
+          message: `Your requested plan changes were rejected. The plan has been reverted to its previous state.`,
+          reference_id: planId
+      });
+
+      return data;
+    }
+  },
+
   async bulkUpsertActivities(activitiesArray) {
     if (!activitiesArray || activitiesArray.length === 0) return [];
     
@@ -187,6 +255,115 @@ export const salesService = {
     if (error) throw error;
   },
 
+  async requestActivityDeletion(activityId, reason, userId) {
+    const payload = {
+      delete_reason: reason,
+      delete_requested_by: userId
+    };
+    const { data, error } = await supabase.from('sales_activities').update(payload).eq('id', activityId).select('*, employees!sales_activities_employee_id_fkey(name)').single();
+    if (error) throw error;
+
+    notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
+      sender_id: userId,
+      type: 'ACTIVITY_DELETE_REQUESTED',
+      title: 'Activity Deletion Request',
+      message: `${data.employees?.name} requested to delete an activity. Reason: ${reason}`,
+      reference_id: activityId
+    });
+
+    return data;
+  },
+
+  async resolveActivityDeletion(activityId, isApproved, adminId) {
+    const payload = {};
+    if (isApproved) {
+      payload.is_deleted = true;
+      payload.deleted_at = new Date().toISOString();
+      payload.delete_reason = null;
+      payload.delete_requested_by = null;
+    } else {
+      payload.delete_reason = null;
+      payload.delete_requested_by = null;
+    }
+    const { data, error } = await supabase.from('sales_activities').update(payload).eq('id', activityId).select('id, employee_id, account_name').single();
+    if (error) throw error;
+
+    notificationService.createNotification({
+        recipient_id: data.employee_id,
+        sender_id: adminId,
+        type: 'ACTIVITY_DELETE_RESULT',
+        title: isApproved ? 'Deletion Approved' : 'Deletion Denied',
+        message: isApproved ? `Your request to delete activity for ${data.account_name || 'an account'} was approved.` : `Your request to delete activity for ${data.account_name || 'an account'} was denied.`,
+        reference_id: activityId
+    });
+
+    return data;
+  },
+
+  async requestDayDeletion(employeeId, dateStr, reason, userId) {
+    const payload = {
+      delete_reason: reason,
+      delete_requested_by: userId
+    };
+    
+    // Update all activities for that day
+    const { data: activities, error: updateErr } = await supabase
+      .from('sales_activities')
+      .update(payload)
+      .eq('employee_id', employeeId)
+      .eq('scheduled_date', dateStr)
+      .neq('is_deleted', true)
+      .select('id, account_name, employees!sales_activities_employee_id_fkey(name)');
+
+    if (updateErr) throw updateErr;
+
+    if (activities && activities.length > 0) {
+      notificationService.broadcastToRole(['SUPER_ADMIN', 'HEAD'], {
+        sender_id: userId,
+        type: 'DAY_DELETE_REQUESTED',
+        title: 'Full Day Deletion Request',
+        message: `${activities[0].employees?.name || 'A Sales Rep'} requested to delete ALL activities on ${dateStr}. Reason: ${reason}`,
+        reference_id: dateStr 
+      });
+    }
+
+    return activities;
+  },
+
+  async resolveDayDeletion(employeeId, dateStr, isApproved, adminId) {
+    const payload = {};
+    if (isApproved) {
+      payload.is_deleted = true;
+      payload.deleted_at = new Date().toISOString();
+      payload.delete_reason = null;
+      payload.delete_requested_by = null;
+    } else {
+      payload.delete_reason = null;
+      payload.delete_requested_by = null;
+    }
+
+    const { data, error } = await supabase
+      .from('sales_activities')
+      .update(payload)
+      .eq('employee_id', employeeId)
+      .eq('scheduled_date', dateStr)
+      .not('delete_requested_by', 'is', null) 
+      .select('id, account_name');
+
+    if (error) throw error;
+
+    notificationService.createNotification({
+        recipient_id: employeeId,
+        sender_id: adminId,
+        type: 'DAY_DELETE_RESULT',
+        title: isApproved ? 'Day Deletion Approved' : 'Day Deletion Denied',
+        message: isApproved ? `Your request to wipe activities for ${dateStr} was approved.` : `Your request to wipe activities for ${dateStr} was denied.`,
+        reference_id: dateStr
+    });
+
+    return data;
+  },
+
   async deleteWeeklyPlan(planId) {
     if (!planId) return;
     const { error } = await supabase.from('sales_weekly_plans').delete().eq('id', planId);
@@ -197,9 +374,10 @@ export const salesService = {
   async getDailyActivities(employeeId, dateStr) {
      const { data, error } = await supabase
        .from("sales_activities")
-       .select("*")
+       .select("*, employees!sales_activities_employee_id_fkey(name)")
        .eq("employee_id", employeeId)
-       .eq("scheduled_date", dateStr);
+       .eq("scheduled_date", dateStr)
+       .neq("is_deleted", true);
 
      if (error) throw error;
      return data;
@@ -259,6 +437,7 @@ export const salesService = {
         .from('sales_activities')
         .select('*, employees!sales_activities_employee_id_fkey!inner(name, department, sub_department, is_super_admin)')
         .is('head_verified_at', null)
+        .neq('is_deleted', true)
         .order('scheduled_date', { ascending: false });
 
       if (error) throw error;
@@ -479,6 +658,7 @@ export const salesService = {
        .from('sales_activities')
        .select('*, employees!sales_activities_employee_id_fkey!inner(name, department, is_super_admin)')
        .eq('status', REVENUE_STATUS.PENDING)
+       .neq('is_deleted', true)
        .order('scheduled_date', { ascending: false });
 
      if (departmentStr) {
@@ -493,7 +673,8 @@ export const salesService = {
   async getAllSalesActivities(monthFilter = null) {
      let query = supabase
        .from('sales_activities')
-       .select('*, employees!sales_activities_employee_id_fkey(name, department, is_super_admin)')
+       .select('*, employees!sales_activities_employee_id_fkey(name, department, is_super_admin), sales_weekly_plans!sales_activities_plan_id_fkey(status)')
+       .neq('is_deleted', true)
        .order('scheduled_date', { ascending: false });
        
      if (monthFilter) {

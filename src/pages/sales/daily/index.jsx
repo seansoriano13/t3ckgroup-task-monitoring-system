@@ -189,6 +189,28 @@ export default function DailyExecutionPage() {
     onError: (err) => toast.error(err.message),
   });
 
+  const [isRequestingDayDelete, setIsRequestingDayDelete] = useState(false);
+  const [dayDeleteReason, setDayDeleteReason] = useState("");
+
+  const requestDayDeleteMutation = useMutation({
+    mutationFn: () =>
+      salesService.requestDayDeletion(
+        user.id,
+        selectedDate,
+        dayDeleteReason,
+        user.id,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["dailyActivities", user?.id, selectedDate],
+      });
+      toast.success("Day deletion request submitted!");
+      setIsRequestingDayDelete(false);
+      setDayDeleteReason("");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const handleAddUnplanned = (payload) => {
     const hasExpense = Number(payload.expense_amount) > 0;
     const needsApproval =
@@ -229,18 +251,67 @@ export default function DailyExecutionPage() {
               targets.
             </p>
           </div>
-          <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
-            <CalendarIcon size={16} className="text-gray-8 mr-2" />
-            <input
-              type="date"
-              value={formatDateToYMD(currentDateObj)}
-              onChange={(e) => {
-                const d = new Date(e.target.value);
-                setCurrentDateObj(d);
-                setSelectedDate(formatDateToYMD(d));
-              }}
-              className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer text-sm"
-            />
+          <div className="flex items-center gap-3">
+            <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
+              <CalendarIcon size={16} className="text-gray-8 mr-2" />
+              <input
+                type="date"
+                value={formatDateToYMD(currentDateObj)}
+                onChange={(e) => {
+                  const d = new Date(e.target.value);
+                  setCurrentDateObj(d);
+                  setSelectedDate(formatDateToYMD(d));
+                }}
+                className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer text-sm"
+              />
+            </div>
+
+            {activities.length > 0 && !isAdminView && (
+              <div className="relative">
+                {!isRequestingDayDelete ? (
+                  <button
+                    onClick={() => setIsRequestingDayDelete(true)}
+                    className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 rounded-lg text-xs font-bold transition-all border border-red-500/20"
+                  >
+                    Request Deletion
+                  </button>
+                ) : (
+                  <div className="absolute right-0 top-12 z-50 bg-white border border-red-500/30 rounded-xl shadow-xl p-4 w-[300px] animate-in slide-in-from-right-2">
+                    <label className="text-[10px] font-bold text-red-600 uppercase tracking-widest block mb-1">
+                      Reason for Deleting this day?
+                    </label>
+                    <textarea
+                      autoFocus
+                      value={dayDeleteReason}
+                      onChange={(e) => setDayDeleteReason(e.target.value)}
+                      placeholder="E.g. Public holiday, system error..."
+                      className="w-full bg-gray-1 border border-red-500/20 rounded-lg p-3 text-sm text-gray-12 outline-none focus:border-red-500 mb-3"
+                      rows={2}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => setIsRequestingDayDelete(false)}
+                        className="px-3 py-1.5 text-xs text-gray-8 font-bold"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => requestDayDeleteMutation.mutate()}
+                        disabled={
+                          !dayDeleteReason.trim() ||
+                          requestDayDeleteMutation.isPending
+                        }
+                        className="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50"
+                      >
+                        {requestDayDeleteMutation.isPending
+                          ? "Submitting..."
+                          : "Submit Request"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

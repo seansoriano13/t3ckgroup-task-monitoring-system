@@ -103,7 +103,7 @@ export default function SalesRecordsPage() {
       if (canViewAllSales) {
         // HR, Admins & Master Heads: Default to current Month & Year
         setTimeframe("MONTHLY");
-        setSelectedDateFilter(`${y}`);
+        setSelectedDateFilter(`${y}-${m}`);
       } else {
         // Standard Employees: Default to strictly Today
         setTimeframe("DAILY");
@@ -622,9 +622,31 @@ export default function SalesRecordsPage() {
                             <span className="font-mono text-sm font-bold text-gray-12">
                               {act.scheduled_date}
                             </span>
-                            <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
-                              {act.time_of_day}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-1">
+                              <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
+                                {act.time_of_day}
+                              </span>
+                              {act.sales_weekly_plans?.status === 'DRAFT' && (
+                                <span className="text-[10px] bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Draft Plan">
+                                  DRAFT
+                                </span>
+                              )}
+                              {act.sales_weekly_plans?.status === 'SUBMITTED' && (
+                                <span className="text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Submitted Plan">
+                                  SUBMITTED
+                                </span>
+                              )}
+                              {act.sales_weekly_plans?.status === 'APPROVED' && (
+                                <span className="text-[10px] bg-green-500/10 text-green-600 border border-green-500/30 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Approved Plan">
+                                  APPROVED
+                                </span>
+                              )}
+                              {!act.sales_weekly_plans?.status && (
+                                <span className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Unplanned Injection">
+                                  UNPLANNED
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4">
                             <p className="font-bold text-sm text-gray-12">
@@ -1334,9 +1356,31 @@ function BoardActivityCard({ act, onClick }) {
         )}
       </p>
       <div className="flex items-center justify-between mt-1">
-        <span className="text-[9px] uppercase font-bold text-gray-10 truncate max-w-[120px]">
-          {act.activity_type}
-        </span>
+        <div className="flex items-center gap-1 overflow-hidden">
+          <span className="text-[9px] uppercase font-bold text-gray-10 truncate max-w-[80px]">
+            {act.activity_type}
+          </span>
+          {act.sales_weekly_plans?.status === 'DRAFT' && (
+             <span className="shrink-0 text-[8px] bg-yellow-500/10 text-yellow-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+               DRAFT
+             </span>
+          )}
+          {act.sales_weekly_plans?.status === 'SUBMITTED' && (
+             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+               SUBMITTED
+             </span>
+          )}
+          {act.sales_weekly_plans?.status === 'APPROVED' && (
+             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+               APPROVED
+             </span>
+          )}
+          {!act.sales_weekly_plans?.status && (
+             <span className="shrink-0 text-[8px] bg-blue-500/10 text-blue-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+               UNPLANNED
+             </span>
+          )}
+        </div>
         {isDone ? (
           <CheckCircle2 size={12} className="text-green-500 shrink-0" />
         ) : (

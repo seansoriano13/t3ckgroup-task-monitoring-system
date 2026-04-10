@@ -18,6 +18,31 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
     setLocalOutcome(activity.sales_outcome || '');
   }, [activity.id, activity.sales_outcome]);
 
+  const [deleteReason, setDeleteReason] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const requestDeletionMutation = useMutation({
+    mutationFn: () => salesService.requestActivityDeletion(activity.id, deleteReason, user.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
+      toast.success("Deletion request sent!");
+      onClose();
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const resolveDeletionMutation = useMutation({
+    mutationFn: (isApproved) => salesService.resolveActivityDeletion(activity.id, isApproved, user.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
+      toast.success("Deletion request resolved!");
+      onClose();
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
   const outcomeMutation = useMutation({
     mutationFn: ({ id, outcome }) => salesService.updateActivityOutcome(id, outcome),
     onSuccess: () => {
@@ -187,6 +212,37 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity }) {
                </div>
              );
            })()}
+
+            {/* Delete Request Section */}
+            {activity.delete_requested_by ? (
+                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5 shadow-sm space-y-3 mt-4">
+                     <h3 className="font-bold text-red-600 text-sm uppercase tracking-wider flex items-center gap-2">Deletion Requested</h3>
+                     <p className="text-xs text-red-700 font-medium">Reason: {activity.delete_reason}</p>
+                     {isAdminView && (
+                         <div className="flex gap-2 mt-2">
+                            <button onClick={() => resolveDeletionMutation.mutate(true)} disabled={resolveDeletionMutation.isPending} className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded shadow-sm transition-colors">Approve Deletion</button>
+                            <button onClick={() => resolveDeletionMutation.mutate(false)} disabled={resolveDeletionMutation.isPending} className="px-3 py-1.5 bg-gray-3 hover:bg-gray-4 text-gray-10 text-xs font-bold rounded border border-gray-4 transition-colors">Deny Request</button>
+                         </div>
+                     )}
+                 </div>
+            ) : !isAdminView && activity.status !== 'DONE' && activity.status !== 'APPROVED' ? (
+                 <div className="mt-4 pt-4 border-t border-gray-4">
+                     {!isDeleting ? (
+                        <button onClick={() => setIsDeleting(true)} className="text-xs font-bold text-red-500 hover:bg-red-500/10 px-3 py-1.5 rounded transition">Request Activity Deletion...</button>
+                     ) : (
+                        <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 space-y-3">
+                           <label className="text-[10px] font-bold text-red-600 uppercase tracking-wider block">Why are you deleting this?</label>
+                           <textarea autoFocus value={deleteReason} onChange={e => setDeleteReason(e.target.value)} placeholder="E.g., Client cancelled, wrong entry..." className="w-full bg-white dark:bg-gray-3 text-sm p-3 rounded-lg border border-red-500/30 focus:border-red-500 outline-none text-gray-12" rows={2}></textarea>
+                           <div className="flex gap-2 justify-end">
+                               <button onClick={() => setIsDeleting(false)} className="px-4 py-1.5 text-xs font-bold text-gray-8 hover:text-gray-11 transition-colors">Cancel</button>
+                               <button onClick={() => requestDeletionMutation.mutate()} disabled={!deleteReason.trim() || requestDeletionMutation.isPending} className="px-4 py-1.5 text-xs font-bold bg-red-500 hover:bg-red-600 shadow shadow-red-500/20 text-white rounded disabled:opacity-50 transition-all">
+                                   {requestDeletionMutation.isPending ? 'Submitting...' : 'Submit Request'}
+                               </button>
+                           </div>
+                        </div>
+                     )}
+                 </div>
+            ) : null}
 
         </div>
       </div>

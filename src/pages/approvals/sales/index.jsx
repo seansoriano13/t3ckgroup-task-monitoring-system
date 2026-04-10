@@ -19,6 +19,8 @@ import {
 import toast from "react-hot-toast";
 import SalesFilters from "../../../components/SalesFilters.jsx";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
+import PlanAmendmentApprovalQueue from "../../../components/PlanAmendmentApprovalQueue.jsx";
+import DayDeletionApprovalQueue from "../../../components/DayDeletionApprovalQueue.jsx";
 
 export default function SalesHeadApprovalsPage() {
   const { user } = useAuth();
@@ -241,6 +243,12 @@ export default function SalesHeadApprovalsPage() {
             isVerificationEnforced={false}
           />
         )}
+
+        {/* APPROVAL QUEUES */}
+        <div className="space-y-6">
+           <PlanAmendmentApprovalQueue />
+           <DayDeletionApprovalQueue />
+        </div>
 
         {/* EMPTY STATE */}
         {groupedData.length === 0 ? (

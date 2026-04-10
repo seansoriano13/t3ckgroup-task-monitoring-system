@@ -337,7 +337,9 @@ export default function ApprovalsPage() {
         )}
 
         {/* FINANCIAL QUEUE (only for Sales Heads) */}
-        {!isHr && <ExpenseApprovalQueue isSuperAdmin={false} />}
+        {!isHr && (
+          <ExpenseApprovalQueue isSuperAdmin={false} />
+        )}
 
         {/* THE QUEUE */}
         {filteredTasks.length > 0 ? (
