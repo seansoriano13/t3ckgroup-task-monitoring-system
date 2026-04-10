@@ -16,9 +16,7 @@ import {
   Package,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { supabase } from "../lib/supabase";
 import StatusBadge from "./StatusBadge.jsx";
-import DatePicker from "react-datepicker";
 
 function formatDate(date) {
   return formatDateToYMD(date);
@@ -33,6 +31,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
   // === OVERVIEW STATE ===
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
+  // eslint-disable-next-line no-unused-vars
   const [internalMonth, setInternalMonth] = useState(currentMonthYear);
 
   // Sync with prop if provided, otherwise use internal
@@ -40,8 +39,6 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
   // Standardize to YYYY-MM and YYYY-MM-01
   const selectedMonth =
     rawMonth?.length > 7 ? rawMonth.slice(0, 7) : rawMonth || currentMonthYear;
-  const fullMonthDate = `${selectedMonth}-01`;
-  const setSelectedMonth = setInternalMonth;
 
   // === ANALYTICS STATE ===
   const [startDate, setStartDate] = useState(
@@ -90,7 +87,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
   const isVerificationEnforced =
     appSettings?.require_revenue_verification === true;
 
-  const { data: overviewLogs = [], isLoading: isOverviewLogsLoading } =
+  const { data: overviewLogs = [] } =
     useQuery({
       queryKey: ["salesRevenueLogs", selectedMonth],
       queryFn: () => salesService.getRevenueLogsByMonth(selectedMonth),
@@ -98,7 +95,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
     });
 
   // === FETCH ANALYTICS QUERIES ===
-  const { data: analyticsLogs = [], isLoading: isAnLoading } = useQuery({
+  const { data: analyticsLogs = [] } = useQuery({
     queryKey: ["salesAnalytics", startDate, endDate],
     queryFn: () => salesService.getRevenueAnalysis(startDate, endDate),
     enabled: activeTab === "ANALYTICS" && !!startDate && !!endDate,
@@ -596,7 +593,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
                     No products matched query.
                   </p>
                 ) : (
-                  anAggs.prodArr.map((prod, i) => (
+                  anAggs.prodArr.map((prod) => (
                     <div
                       key={prod.name}
                       className="bg-gray-2 p-4 rounded-xl border border-gray-3 transition-transform hover:-translate-y-0.5 shadow-sm"

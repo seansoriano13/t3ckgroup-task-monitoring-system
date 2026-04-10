@@ -170,14 +170,23 @@ export default function ApprovalsPage() {
           matchesHeadQueue = matchesHeadQueueForThisTask;
         }
 
-        return matchesHrQueue || matchesHeadQueue;
+    return matchesHrQueue || matchesHeadQueue;
       })
       .sort((a, b) => {
         if (a.priority === "HIGH" && b.priority !== "HIGH") return -1;
         if (b.priority === "HIGH" && a.priority !== "HIGH") return 1;
         return new Date(a.createdAt) - new Date(b.createdAt);
       });
-  }, [rawTasks, user?.id, userDept, userSubDept, isHr, isHead, user?.is_super_admin, user?.isSuperAdmin, appSettings]);
+  }, [
+    rawTasks,
+    user?.id,
+    userDept,
+    userSubDept,
+    isHr,
+    isHead,
+    isSuperAdmin,
+    appSettings,
+  ]);
 
   // Client-side filter + sort applied on top of the queue
   const filteredTasks = useMemo(() => {
@@ -422,7 +431,9 @@ function ApprovalRow({
   const [hrRemarks, setHrRemarks] = useState(""); // 👈 New state for HR
 
   useEffect(() => {
-    if (defaultExpanded) setExpanded(true);
+    if (defaultExpanded) {
+      queueMicrotask(() => setExpanded(true));
+    }
   }, [defaultExpanded]);
 
   // --- HEAD HANDLERS ---

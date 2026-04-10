@@ -16,6 +16,7 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import StatusBadge from "../../../components/StatusBadge.jsx";
+import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 
 function getStartOfWeek(date) {
   let d;
@@ -55,6 +56,8 @@ export default function DailyExecutionPage() {
     if (location.state?.date) return location.state.date;
     return formatDateToYMD(new Date());
   });
+
+  const [viewActivity, setViewActivity] = useState(null);
   const highlightActivityId = location.state?.highlightActivityId || null;
 
   // Pull weekly plan so we know which days actually have tasks for the dot indicator
@@ -64,7 +67,7 @@ export default function DailyExecutionPage() {
     queryFn: () => salesService.getWeeklyPlan(user?.id, weekStartStr),
     enabled: !!user?.id,
   });
-  const weeklyActivities = planWrapper?.sales_activities || [];
+  const weeklyActivities = useMemo(() => planWrapper?.sales_activities || [], [planWrapper]);
   const planStatus = planWrapper?.status || "DRAFT";
   const isGreen = planStatus === "SUBMITTED" || planStatus === "APPROVED";
 
@@ -135,6 +138,15 @@ export default function DailyExecutionPage() {
     queryFn: () => salesService.getDailyActivities(user.id, selectedDate),
     enabled: !!user?.id,
   });
+
+  useEffect(() => {
+    if (highlightActivityId && activities.length > 0) {
+      const found = activities.find((a) => a.id === highlightActivityId);
+      if (found) {
+        queueMicrotask(() => setViewActivity(found));
+      }
+    }
+  }, [highlightActivityId, activities]);
 
   const plannedAM = useMemo(
     () => activities.filter((a) => !a.is_unplanned && a.time_of_day === "AM"),
@@ -485,6 +497,12 @@ export default function DailyExecutionPage() {
           </div>
         </div>
       </div>
+
+      <SalesTaskDetailsModal
+        isOpen={!!viewActivity}
+        onClose={() => setViewActivity(null)}
+        activity={viewActivity}
+      />
     </ProtectedRoute>
   );
 }

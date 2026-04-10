@@ -71,10 +71,12 @@ export default function TasksList({ selectedMonth }) {
         (t) => t.id === location.state.openTaskId,
       );
       if (targetTask) {
-        setSelectedTask(targetTask);
-        setIsDrawerOpen(true);
-        // Clear state to prevent re-firing on hot reload
-        navigate(location.pathname, { replace: true, state: {} });
+        queueMicrotask(() => {
+          setSelectedTask(targetTask);
+          setIsDrawerOpen(true);
+          // Clear state to prevent re-firing on hot reload
+          navigate(location.pathname, { replace: true, state: {} });
+        });
       }
     }
   }, [location.state, rawTasks, navigate, location.pathname]);
@@ -84,7 +86,7 @@ export default function TasksList({ selectedMonth }) {
     if (selectedTask && rawTasks.length > 0) {
       const fresh = rawTasks.find((t) => t.id === selectedTask.id);
       if (fresh && JSON.stringify(fresh) !== JSON.stringify(selectedTask)) {
-        setSelectedTask(fresh);
+        queueMicrotask(() => setSelectedTask(fresh));
       }
     }
   }, [rawTasks, selectedTask]);

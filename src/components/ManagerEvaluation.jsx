@@ -4,7 +4,6 @@ import { FieldBox } from "./FieldBox";
 export default function ManagerEvaluation({
   isEditing,
   canEvaluate,
-  isHr = false,
   task,
   approvalGrade,
   setApprovalGrade,

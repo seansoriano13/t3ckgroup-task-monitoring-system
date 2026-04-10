@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { AlertCircle, ChevronDown, ChevronUp, FolderKanban } from "lucide-react";
+import {
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  FolderKanban,
+} from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import { ArrowRight, PencilLine } from "lucide-react";
 import { Clock } from "lucide-react";
@@ -27,29 +32,42 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
   let checkedItems = 0;
 
   if (task.taskDescription) {
-    const trimmed = typeof task.taskDescription === 'string' ? task.taskDescription.trim() : "";
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    const trimmed =
+      typeof task.taskDescription === "string"
+        ? task.taskDescription.trim()
+        : "";
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
-         const parsed = JSON.parse(trimmed);
-         if (Array.isArray(parsed)) {
-            isChecklistFormat = true;
-            totalItems = parsed.length;
-            checkedItems = parsed.filter(item => item && typeof item === 'object' && item.checked).length;
-         }
-      } catch(e) {}
-    } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          isChecklistFormat = true;
+          totalItems = parsed.length;
+          checkedItems = parsed.filter(
+            (item) => item && typeof item === "object" && item.checked,
+          ).length;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
-         const parsed = JSON.parse(trimmed);
-         if (parsed && Array.isArray(parsed.items)) {
-            isChecklistFormat = true;
-            totalItems = parsed.items.length;
-            checkedItems = parsed.items.filter(item => item && typeof item === 'object' && item.checked).length;
-         }
-      } catch(e) {}
+        const parsed = JSON.parse(trimmed);
+        if (parsed && Array.isArray(parsed.items)) {
+          isChecklistFormat = true;
+          totalItems = parsed.items.length;
+          checkedItems = parsed.items.filter(
+            (item) => item && typeof item === "object" && item.checked,
+          ).length;
+        }
+      } catch (e) {
+        console.error(e);
+      }
     } else if (Array.isArray(task.taskDescription)) {
-       isChecklistFormat = true;
-       totalItems = task.taskDescription.length;
-       checkedItems = task.taskDescription.filter(item => item && typeof item === 'object' && item.checked).length;
+      isChecklistFormat = true;
+      totalItems = task.taskDescription.length;
+      checkedItems = task.taskDescription.filter(
+        (item) => item && typeof item === "object" && item.checked,
+      ).length;
     }
   }
 
@@ -57,7 +75,11 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
 
   const handleInlineCheck = (newDesc) => {
     if (onSilentUpdate) {
-      onSilentUpdate({ id: task.id, taskDescription: newDesc, editedBy: user?.id });
+      onSilentUpdate({
+        id: task.id,
+        taskDescription: newDesc,
+        editedBy: user?.id,
+      });
     }
   };
 
@@ -106,10 +128,15 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
 
           {/* Checklist Progress Badge */}
           {isChecklistFormat && totalItems > 0 && (
-             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20 cursor-pointer"
-                   onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}>
-                {checkedItems}/{totalItems} Done
-             </span>
+            <span
+              className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {checkedItems}/{totalItems} Done
+            </span>
           )}
         </div>
 
@@ -127,11 +154,11 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
 
         {isChecklistFormat && isExpanded && (
           <div className="mt-4 pt-4 border-t border-gray-3">
-            <ChecklistTaskRenderer 
-               description={task.taskDescription}
-               isOwner={isOwner}
-               disabled={!isOwner || task.status === "COMPLETE"}
-               onInlineCheck={handleInlineCheck}
+            <ChecklistTaskRenderer
+              description={task.taskDescription}
+              isOwner={isOwner}
+              disabled={!isOwner || task.status === "COMPLETE"}
+              onInlineCheck={handleInlineCheck}
             />
           </div>
         )}
@@ -154,13 +181,16 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
           )}
 
           {isChecklistFormat && (
-             <button
-                onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-                className="text-gray-9 hover:text-gray-12 transition-colors flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
-             >
-                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                {isExpanded ? "Collapse" : "Expand"}
-             </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="text-gray-9 hover:text-gray-12 transition-colors flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
+            >
+              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {isExpanded ? "Collapse" : "Expand"}
+            </button>
           )}
         </div>
 

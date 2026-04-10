@@ -190,17 +190,16 @@ export default function TasksPage() {
     },
   );
 
-  useEffect(() => {
+  // --- HANDLERS TO RESET PAGINATION ---
+  const wrapFilter = (setter) => (val) => {
+    setter(val);
     setGroupPages({});
-  }, [
-    searchTerm,
-    statusFilter,
-    priorityFilter,
-    dateRange,
-    deptFilter,
-    subDeptFilter,
-    employeeFilter,
-  ]);
+  };
+
+  const handleDateRangeChange = (update) => {
+    setDateRange(update);
+    setGroupPages({});
+  };
 
   // --- LOADING / ERROR STATES ---
   if (isLoading) {
@@ -277,19 +276,19 @@ export default function TasksPage() {
       {/* FILTER CONTROL BARS */}
       <TaskFilters
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={wrapFilter(setSearchTerm)}
         statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
+        setStatusFilter={wrapFilter(setStatusFilter)}
         priorityFilter={priorityFilter}
-        setPriorityFilter={setPriorityFilter}
+        setPriorityFilter={wrapFilter(setPriorityFilter)}
         dateRange={dateRange}
-        setDateRange={setDateRange}
+        setDateRange={handleDateRangeChange}
         deptFilter={deptFilter}
-        setDeptFilter={setDeptFilter}
+        setDeptFilter={wrapFilter(setDeptFilter)}
         subDeptFilter={subDeptFilter}
-        setSubDeptFilter={setSubDeptFilter}
+        setSubDeptFilter={wrapFilter(setSubDeptFilter)}
         employeeFilter={employeeFilter}
-        setEmployeeFilter={setEmployeeFilter}
+        setEmployeeFilter={wrapFilter(setEmployeeFilter)}
         isManagement={isManagement}
         isHr={isHr}
         hrViewMode={hrViewMode}

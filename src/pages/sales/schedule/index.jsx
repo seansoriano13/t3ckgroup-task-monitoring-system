@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import toast from "react-hot-toast";
 import {
   Calendar as CalendarIcon,
@@ -16,6 +16,7 @@ import {
   Trash2,
   Settings,
   Plus,
+  X,
 } from "lucide-react";
 
 // Utility to get the next Monday
@@ -60,6 +61,25 @@ export default function SalesSchedulePage() {
     enabled: !!user?.id,
   });
 
+  const location = useLocation();
+  useEffect(() => {
+    const fetchHighlightPlan = async () => {
+      if (location.state?.highlightPlanId) {
+        try {
+          const planData = await salesService.getPlanById(
+            location.state.highlightPlanId,
+          );
+          if (planData?.week_start_date) {
+            setWeekStartDate(planData.week_start_date);
+          }
+        } catch (err) {
+          console.error("Failed to load highlighted plan:", err);
+        }
+      }
+    };
+    fetchHighlightPlan();
+  }, [location.state?.highlightPlanId]);
+
   const plan = planWrapper || { status: "DRAFT", sales_activities: [] };
   const isLocked = plan.status === "SUBMITTED" || plan.status === "APPROVED";
   const planStatus = plan?.status || "DRAFT";
@@ -79,16 +99,22 @@ export default function SalesSchedulePage() {
         bucketCounts[key]++;
         return updated;
       });
-      setActivitiesData(reconstructed);
 
       const newCounts = {};
       Object.entries(bucketCounts).forEach(([k, count]) => {
         newCounts[k] = Math.max(5, count);
       });
-      setSlotCounts(newCounts);
+
+      // Avoid synchronous setState in effect warning
+      queueMicrotask(() => {
+        setActivitiesData(reconstructed);
+        setSlotCounts(newCounts);
+      });
     } else {
-      setActivitiesData([]);
-      setSlotCounts({});
+      queueMicrotask(() => {
+        setActivitiesData([]);
+        setSlotCounts({});
+      });
     }
   }, [planWrapper]);
 
@@ -111,12 +137,6 @@ export default function SalesSchedulePage() {
     return dates;
   }, [weekStartDate, includeSaturday, includeSunday]);
 
-  // Clamp activeTab if Saturday is toggled off while on Saturday tab
-  useEffect(() => {
-    if (activeTab >= weekDates.length) {
-      setActiveTab(weekDates.length - 1);
-    }
-  }, [weekDates.length, activeTab]);
 
   const { data: dbCategories = [] } = useQuery({
     queryKey: ["salesCategories"],
@@ -416,13 +436,22 @@ export default function SalesSchedulePage() {
   const deletePlanMutation = useMutation({
     mutationFn: async () => {
       if (!plan?.id) return;
-      await salesService.deleteWeeklyPlan(plan.id);
+      if (plan.status === 'REVISION') {
+        // Discarding an amendment doesn't delete the plan, it reverts to snapshot
+        await salesService.resolvePlanAmendment(plan.id, false, user);
+      } else {
+        // Actually delete the draft plan record
+        await salesService.deleteWeeklyPlan(plan.id);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["weeklyPlan", user.id, weekStartDate],
       });
-      toast.success("Draft Plan Successfully Deleted!");
+      const msg = plan.status === 'REVISION' 
+        ? "Amendment Discarded. Plan reverted to approved state." 
+        : "Draft Plan Successfully Deleted!";
+      toast.success(msg);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -491,8 +520,15 @@ export default function SalesSchedulePage() {
                     type="checkbox"
                     checked={includeSaturday}
                     onChange={(e) => {
-                      setIncludeSaturday(e.target.checked);
-                      if (!e.target.checked) setIncludeSunday(false);
+                      const checked = e.target.checked;
+                      setIncludeSaturday(checked);
+                      if (!checked) {
+                        setIncludeSunday(false);
+                        // Clamp activeTab if we are on Sat/Sun
+                        if (activeTab >= 5) {
+                          setActiveTab(4); // Back to Friday
+                        }
+                      }
                     }}
                     className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
                   />
@@ -504,7 +540,13 @@ export default function SalesSchedulePage() {
                   <input
                     type="checkbox"
                     checked={includeSunday}
-                    onChange={(e) => setIncludeSunday(e.target.checked)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setIncludeSunday(checked);
+                      if (!checked && activeTab === 6) {
+                        setActiveTab(5); // Back to Saturday
+                      }
+                    }}
                     disabled={!includeSaturday}
                     className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
                   />
@@ -547,11 +589,10 @@ export default function SalesSchedulePage() {
               {plan?.id && (
                 <button
                   onClick={() => {
-                    if (
-                      window.confirm(
-                        "Are you sure you want to completely delete this Draft plan and all its activities?",
-                      )
-                    ) {
+                    const confirmMsg = plan.status === 'REVISION'
+                      ? "Are you sure you want to discard your amendment? All current changes will be lost and the plan will revert to its previously approved state."
+                      : "Are you sure you want to completely delete this Draft plan and all its activities?";
+                    if (window.confirm(confirmMsg)) {
                       deletePlanMutation.mutate();
                     }
                   }}
@@ -564,10 +605,12 @@ export default function SalesSchedulePage() {
                 >
                   {deletePlanMutation.isPending ? (
                     <Loader2 size={16} className="animate-spin" />
+                  ) : plan.status === 'REVISION' ? (
+                    <X size={16} />
                   ) : (
                     <Trash2 size={16} />
                   )}{" "}
-                  Delete Draft
+                  {plan.status === 'REVISION' ? 'Discard Amendment' : 'Delete Draft'}
                 </button>
               )}
               <button

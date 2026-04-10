@@ -43,6 +43,7 @@ function GlobalErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 function ThemeApplier({ children }) {
   useTheme();
   return children;

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
@@ -27,7 +27,6 @@ import { formatTaskPreview } from "../../utils/taskFormatters";
 
 export default function HrMasterLogPage() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   // --- 1. THE MEGA FILTER STATES ---
   const [searchTerm, setSearchTerm] = useState("");
@@ -171,20 +170,6 @@ export default function HrMasterLogPage() {
     toast.success("CSV Exported Successfully!");
   };
 
-  // --- 6. VERIFY MUTATION ---
-  const verifyMutation = useMutation({
-    mutationFn: (id) =>
-      taskService.updateTask(id, {
-        hrVerified: true,
-        hrVerifiedAt: new Date().toISOString(),
-        editedBy: user.id,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["allTasks"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      toast.success("Task forcefully verified.");
-    },
-  });
 
   return (
     <ProtectedRoute requireHr={true}>

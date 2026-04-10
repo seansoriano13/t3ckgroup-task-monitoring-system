@@ -6,10 +6,10 @@ import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { ClipboardList, Clock, CheckCircle2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 
-export default function PlanAmendmentApprovalQueue() {
+export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [expandedId, setExpandedId] = useState(null);
+  const [expandedId, setExpandedId] = useState(initialExpandedId || null);
 
   const { data: amendments = [], isLoading } = useQuery({
     queryKey: ["planAmendments", user?.department],

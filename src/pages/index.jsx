@@ -1,13 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
-import { taskService } from "../services/taskService.js";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardHeader from "../components/DashboardHeader.jsx";
 import TasksList from "../components/TasksList.jsx";
-import toast from "react-hot-toast";
 import SalesDashboard from "../components/SalesDashboard.jsx";
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
 import SalesPerformanceMetrics from "../components/SalesPerformanceMetrics.jsx";
 import { Calendar } from "lucide-react";
@@ -17,7 +13,6 @@ import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   const isSales =
     user?.department?.toLowerCase().includes("sales") ||
@@ -27,9 +22,6 @@ export default function Dashboard() {
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
   const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
-
-  const location = useLocation();
-  const navigate = useNavigate();
 
   // Omni Dashboard exclusively for HR and Super Admins
   if (user?.is_hr || user?.isHr || user?.isSuperAdmin) {

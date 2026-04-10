@@ -454,7 +454,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
               title="Won Investments"
               amount={expenseSummary.wonExpense}
               count={expenseSummary.wonCount}
-              Icon={Trophy}
+              icon={Trophy}
               accentClass="text-green-500"
               borderClass="border-green-500/20 hover:border-green-500/40"
               bgClass="bg-green-500/5"
@@ -463,7 +463,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
               title="Lost Investments"
               amount={expenseSummary.lostExpense}
               count={expenseSummary.lostCount}
-              Icon={XCircle}
+              icon={XCircle}
               accentClass="text-red-500"
               borderClass="border-red-500/20 hover:border-red-500/40"
               bgClass="bg-red-500/5"
@@ -472,7 +472,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
               title="Pending Verdict"
               amount={expenseSummary.pendingExpense}
               count={expenseSummary.pendingCount}
-              Icon={Clock}
+              icon={Clock}
               accentClass="text-amber-500"
               borderClass="border-amber-500/20 hover:border-amber-500/40"
               bgClass="bg-amber-500/5"
@@ -481,7 +481,7 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
               title="Operations"
               amount={expenseSummary.bizDevExpense}
               count={expenseSummary.bizDevCount}
-              Icon={Briefcase}
+              icon={Briefcase}
               accentClass="text-blue-500"
               borderClass="border-blue-500/20 hover:border-blue-500/40"
               bgClass="bg-blue-500/5"
@@ -575,7 +575,16 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
   );
 }
 
-function OutcomeCard({ title, amount, count, Icon, accentClass, borderClass, bgClass }) {
+function OutcomeCard({
+  title,
+  amount,
+  count,
+  icon,
+  accentClass,
+  borderClass,
+  bgClass,
+}) {
+  const Icon = icon;
   return (
     <div
       className={`${bgClass} border ${borderClass} rounded-2xl p-5 flex flex-col relative overflow-hidden group transition-all`}

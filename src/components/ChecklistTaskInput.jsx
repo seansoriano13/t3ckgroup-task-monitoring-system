@@ -17,25 +17,26 @@ export default function ChecklistTaskInput({
         if (trimmed.startsWith("[")) {
           const parsed = JSON.parse(trimmed);
           if (Array.isArray(parsed)) {
-            setItems(parsed);
+            queueMicrotask(() => setItems(parsed));
             return;
           }
         } else if (trimmed.startsWith("{")) {
           // Legacy format: {title, items} — migrate items out, title is now a native field
           const parsed = JSON.parse(trimmed);
           if (parsed && Array.isArray(parsed.items)) {
-            setItems(parsed.items);
+            queueMicrotask(() => setItems(parsed.items));
             return;
           }
         }
       }
-    } catch (e) {
+    } catch {
       // Not valid JSON, ignore
     }
     // Starting state
     if (!value && items.length === 0) {
-      setItems([{ text: "", checked: false }]);
+      queueMicrotask(() => setItems([{ text: "", checked: false }]));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only on mount
 
   const emitChange = (newItems) => {
@@ -74,7 +75,7 @@ export default function ChecklistTaskInput({
     // Set transparent drag image or basic format
   };
 
-  const handleDragOver = (e, index) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   };
@@ -127,7 +128,7 @@ export default function ChecklistTaskInput({
             key={index}
             draggable
             onDragStart={(e) => handleDragStart(e, index)}
-            onDragOver={(e) => handleDragOver(e, index)}
+            onDragOver={(e) => handleDragOver(e)}
             onDrop={(e) => handleDrop(e, index)}
             className={`flex items-center gap-2 group transition-all rounded p-1 ${
               draggedIndex === index ? "opacity-50" : "hover:bg-gray-2"

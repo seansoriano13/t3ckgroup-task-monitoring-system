@@ -54,11 +54,14 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
 
   // Sync selection state when data changes (avoid stale IDs)
   useEffect(() => {
-    setSelected(prev => {
-      const validIds = new Set(pendingExpenseIds ? pendingExpenseIds.split(",") : []);
-      return new Set([...prev].filter(id => validIds.has(id)));
+    queueMicrotask(() => {
+      setSelected((prev) => {
+        const validIds = new Set(
+          pendingExpenseIds ? pendingExpenseIds.split(",") : [],
+        );
+        return new Set([...prev].filter((id) => validIds.has(id)));
+      });
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingExpenseIds]);
 
   // Scroll to highlighted item from notification

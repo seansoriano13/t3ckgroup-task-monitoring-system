@@ -137,7 +137,6 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     subDeptFilter,
     employeeFilter,
     employeeMap,
-    allEmployees,
     isManagement,
   ]);
 

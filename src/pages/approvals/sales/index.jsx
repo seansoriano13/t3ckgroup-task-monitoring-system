@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useLocation } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../../context/AuthContext";
 import { salesService } from "../../../services/salesService";
@@ -40,6 +41,18 @@ export default function SalesHeadApprovalsPage() {
     queryKey: ["salesHeadPending"],
     queryFn: () => salesService.getHeadPendingActivities(),
   });
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.highlightActivityId && rawPending.length > 0) {
+      const found = rawPending.find(
+        (a) => a.id === location.state.highlightActivityId,
+      );
+      if (found) {
+        queueMicrotask(() => setViewActivity(found));
+      }
+    }
+  }, [location.state?.highlightActivityId, rawPending]);
 
   const uniqueEmployees = useMemo(() => {
     const map = new Map();
@@ -246,8 +259,8 @@ export default function SalesHeadApprovalsPage() {
 
         {/* APPROVAL QUEUES */}
         <div className="space-y-6">
-           <PlanAmendmentApprovalQueue />
-           <DayDeletionApprovalQueue />
+           <PlanAmendmentApprovalQueue initialExpandedId={location.state?.highlightPlanId} />
+           <DayDeletionApprovalQueue initialHighlightDate={location.state?.highlightDeletionDate} />
         </div>
 
         {/* EMPTY STATE */}

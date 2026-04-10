@@ -89,11 +89,11 @@ export const AuthProvider = ({ children }) => {
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
-  }, []);
+  }, [initFinished]);
 
 
 
-  const handleLogin = async (googleEmail, googlePictureUrl) => {
+  const handleLogin = async (googleEmail) => {
     // handleLogin no longer manually updates state. 
     // It just validates that the employee exists before allowing the flow.
     // The onAuthStateChange listener will handle the actual state update once 

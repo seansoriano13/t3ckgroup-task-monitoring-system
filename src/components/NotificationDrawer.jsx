@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
-import { Bell, X, CheckCheck, ShieldAlert, CheckCircle2, Clock, XCircle, FileText, Briefcase, TrendingUp, Trophy } from 'lucide-react';
+import { Bell, X, CheckCheck, ShieldAlert, CheckCircle2, Clock, XCircle, FileText, Briefcase, TrendingUp, Trophy, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '../lib/supabase';
 
@@ -63,9 +63,12 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         case 'REVENUE_EDIT_REQUESTED': return <Clock size={18} className="text-orange-500" />;
         case 'REVENUE_EDIT_RESULT': return <TrendingUp size={18} className="text-primary" />;
         case 'SALES_PLAN_SUBMITTED': return <Briefcase size={18} className="text-purple-500" />;
+        case 'PLAN_AMENDMENT_RESULT': return <CheckCircle2 size={18} className="text-blue-600" />;
         case 'SALES_DAY_CONQUERED': return <CheckCheck size={18} className="text-green-500" />;
         case 'SALES_WEEK_CONQUERED': return <Trophy size={18} className="text-yellow-500" />;
         case 'UNPLANNED_ACTIVITY': return <FileText size={18} className="text-blue-500" />;
+        case 'DAY_DELETE_REQUESTED': return <XCircle size={18} className="text-red-600" />;
+        case 'DAY_DELETE_RESULT': return <Trash2 size={18} className="text-gray-12" />;
         default: return <Bell size={18} className="text-gray-9" />;
      }
   };
@@ -95,30 +98,42 @@ export default function NotificationDrawer({ isOpen, onClose }) {
          } else {
             navigate('/', { state: { openTaskId: notif.reference_id } });
          }
-     } else if (notif.type === 'UNPLANNED_ACTIVITY' || notif.type === 'SALES_DAY_CONQUERED' || notif.type === 'SALES_PLAN_SUBMITTED') {
-        const fallbackDate = notif.created_at ? notif.created_at.split('T')[0] : null;
-        navigate('/sales/records', { 
-           state: { 
-              openEventId: notif.reference_id, 
-              fallbackEmpId: notif.sender_id, 
-              fallbackDate: fallbackDate,
-              eventType: notif.type
-           } 
-        });
-     } else if (notif.type.includes('REVENUE')) {
-        navigate('/sales/records', { state: { openRevenueId: notif.reference_id } });
-     } else if (notif.type === 'SALES_EXPENSE_PENDING') {
-        // Admins/Heads: route them to the approval queue and highlight the item
-        if (user?.isSuperAdmin) {
-           navigate('/super-admin', { state: { highlightExpenseId: notif.reference_id } });
-        } else {
-           navigate('/approvals', { state: { highlightExpenseId: notif.reference_id } });
-        }
-     } else if (notif.type === 'SALES_EXPENSE_PROCESSED') {
-        // Sales rep: go to their daily execution for that day
-        const dateStr = notif.created_at ? notif.created_at.split('T')[0] : null;
-        navigate('/sales/daily', { state: { highlightActivityId: notif.reference_id, date: dateStr } });
-     }
+      } else if (notif.type === 'SALES_PLAN_SUBMITTED') {
+         // Manager/Head: Go to sales approvals page
+         if (user?.isSuperAdmin || user?.isHead || user?.is_super_admin || user?.is_head) {
+            navigate('/approvals/sales', { state: { highlightPlanId: notif.reference_id } });
+         } else {
+            // Employee: Go to their schedule
+            navigate('/sales/schedule');
+         }
+      } else if (notif.type === 'PLAN_AMENDMENT_RESULT') {
+         // Sales Rep: Go to their schedule to see approved/rejected result
+         navigate('/sales/schedule', { state: { highlightPlanId: notif.reference_id } });
+      } else if (notif.type === 'UNPLANNED_ACTIVITY') {
+         // Go to records and open that activity
+         navigate('/sales/records', { state: { openActivityId: notif.reference_id } });
+      } else if (notif.type === 'SALES_DAY_CONQUERED') {
+         const date = notif.created_at ? notif.created_at.split('T')[0] : null;
+         navigate('/sales/daily', { state: { date } });
+      } else if (notif.type.includes('REVENUE')) {
+         navigate('/sales/records', { state: { openRevenueId: notif.reference_id } });
+      } else if (notif.type === 'SALES_EXPENSE_PENDING') {
+         // Admins/Heads: route them to the sales approval queue specialized for activities
+         if (user?.isSuperAdmin || user?.isHead || user?.is_super_admin || user?.is_head) {
+            navigate('/approvals/sales', { state: { highlightActivityId: notif.reference_id } });
+         } else {
+            navigate('/approvals', { state: { highlightExpenseId: notif.reference_id } });
+         }
+      } else if (notif.type === 'SALES_EXPENSE_PROCESSED') {
+         // Sales rep: go to their daily execution for that day
+         navigate('/sales/daily', { state: { highlightActivityId: notif.reference_id } });
+      } else if (notif.type === 'DAY_DELETE_REQUESTED') {
+         // Manager: go to approvals and expand deletion queue for that date/emp
+         navigate('/approvals/sales', { state: { highlightDeletionDate: notif.reference_id } });
+      } else if (notif.type === 'DAY_DELETE_RESULT') {
+         // Sales Rep: go to their daily tracker for that day
+         navigate('/sales/daily', { state: { date: notif.reference_id } });
+      }
      
      onClose(); // collapse drawer
   };
@@ -193,7 +208,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
                      onClick={() => handleNotificationClick(notif)}
                      className={`p-4 rounded-xl border transition-all cursor-pointer hover:border-gray-6 
                         ${notif.type === 'TASK_ASSIGNED' && !notif.is_read ? 'bg-purple-500/5 border-purple-500/30' : ''}
-                        ${notif.is_read ? 'bg-gray-2/50 border-gray-3 opacity-75' : 'bg-gray-1 border-gray-5 shadow-md'}`}
+                        ${notif.is_read ? 'bg-gray-2/50 border-gray-3 opacity-75' : 'bg-gray-1 border-gray-1 shadow-md'}`}
                   >
                      <div className="flex gap-3 items-start">
                         <div className={`p-2 rounded-full shrink-0 ${notif.is_read ? 'bg-gray-3' : 'bg-blue-500/10'}`}>

@@ -19,7 +19,6 @@ import {
   Users,
   Edit,
   X,
-  Save,
   Lock,
   Unlock,
   MessageSquare,
@@ -31,6 +30,7 @@ import SalesFilters from "../../../components/SalesFilters.jsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Clock } from "lucide-react";
+import { useRef } from "react";
 
 export default function SalesRecordsPage() {
   const { user } = useAuth();
@@ -48,7 +48,6 @@ export default function SalesRecordsPage() {
   const [filterType, setFilterType] = useState("ALL");
   const [filterRecordType, setFilterRecordType] = useState("ALL");
   const [timeframe, setTimeframe] = useState("MONTHLY");
-  const [isInitialized, setIsInitialized] = useState(false);
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
 
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -84,11 +83,11 @@ export default function SalesRecordsPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 🔥 ROLE-BASED DEFAULT DATE HOOK
+  const initializedRef = useRef(false);
   useEffect(() => {
     // Wait until the user object is ready and we haven't initialized yet
-    if (user?.id && !isInitialized) {
-      setIsInitialized(true); // Lock it down so it only runs once
+    if (user?.id && !initializedRef.current) {
+      initializedRef.current = true; // Lock it down so it only runs once
       // Stop here if they came from a notification (let the deep link hook handle it)
 
       if (location.state?.eventType || location.state?.openRevenueId) {
@@ -100,17 +99,19 @@ export default function SalesRecordsPage() {
       const m = String(today.getMonth() + 1).padStart(2, "0");
       const d = String(today.getDate()).padStart(2, "0");
 
-      if (canViewAllSales) {
-        // HR, Admins & Master Heads: Default to current Month & Year
-        setTimeframe("MONTHLY");
-        setSelectedDateFilter(`${y}-${m}`);
-      } else {
-        // Standard Employees: Default to strictly Today
-        setTimeframe("DAILY");
-        setSelectedDateFilter(`${y}-${m}-${d}`);
-      }
+      queueMicrotask(() => {
+        if (canViewAllSales) {
+          // HR, Admins & Master Heads: Default to current Month & Year
+          setTimeframe("MONTHLY");
+          setSelectedDateFilter(`${y}-${m}`);
+        } else {
+          // Standard Employees: Default to strictly Today
+          setTimeframe("DAILY");
+          setSelectedDateFilter(`${y}-${m}-${d}`);
+        }
+      });
     }
-  }, [user, isInitialized, location.state]);
+  }, [user, canViewAllSales, location.state]);
 
   // Fetch all activities
   const { data: rawActivities = [], isLoading: isActLoading } = useQuery({
@@ -141,24 +142,29 @@ export default function SalesRecordsPage() {
         (r) => r.id === location.state.openRevenueId,
       );
       if (targetRev) {
-        setActiveTab("REVENUE");
-        setEditingRevenue(targetRev);
-        // Clear state to prevent re-firing down the line
-        navigate(location.pathname, { replace: true, state: {} });
+        queueMicrotask(() => {
+          setActiveTab("REVENUE");
+          setEditingRevenue(targetRev);
+          // Clear state to prevent re-firing down the line
+          navigate(location.pathname, { replace: true, state: {} });
+        });
       }
-    } else if (location.state?.eventType && rawActivities.length > 0) {
+    } else if (
+      (location.state?.eventType || location.state?.openActivityId) &&
+      rawActivities.length > 0
+    ) {
       const eventType = location.state.eventType;
+      const activityId =
+        location.state.openActivityId || location.state.openEventId;
 
       let targetAct = null;
       if (eventType === "SALES_PLAN_SUBMITTED") {
         targetAct = rawActivities.find(
-          (a) => String(a.plan_id) === String(location.state.openEventId),
+          (a) => String(a.plan_id) === String(activityId),
         );
       } else {
-        targetAct = location.state.openEventId
-          ? rawActivities.find(
-              (a) => String(a.id) === String(location.state.openEventId),
-            )
+        targetAct = activityId
+          ? rawActivities.find((a) => String(a.id) === String(activityId))
           : null;
       }
 
@@ -168,18 +174,22 @@ export default function SalesRecordsPage() {
         : location.state.fallbackDate;
 
       if (targetEmp && targetDate) {
-        setActiveTab("ACTIVITIES");
-        setViewMode("BOARD");
-        setTimeframe(eventType === "SALES_PLAN_SUBMITTED" ? "WEEKLY" : "DAILY");
-        setSelectedDateFilter(targetDate);
-        setFilterEmp(targetEmp);
+        queueMicrotask(() => {
+          setActiveTab("ACTIVITIES");
+          setViewMode("BOARD");
+          setTimeframe(
+            eventType === "SALES_PLAN_SUBMITTED" ? "WEEKLY" : "DAILY",
+          );
+          setSelectedDateFilter(targetDate);
+          setFilterEmp(targetEmp);
 
-        // Pop open the detailed view modal if a specific activity was targeted
-        if (targetAct && eventType !== "SALES_PLAN_SUBMITTED") {
-          queueMicrotask(() => setSelectedActivity(targetAct));
-        }
+          // Pop open the detailed view modal if a specific activity was targeted
+          if (targetAct && eventType !== "SALES_PLAN_SUBMITTED") {
+            setSelectedActivity(targetAct);
+          }
 
-        navigate(location.pathname, { replace: true, state: {} });
+          navigate(location.pathname, { replace: true, state: {} });
+        });
       }
     }
   }, [location.state, rawRevenue, rawActivities, navigate, location.pathname]);
@@ -378,7 +388,9 @@ export default function SalesRecordsPage() {
         } else if (timeframe === "WEEKLY") {
           const day = startOfDay.getDay();
           const startOfWeek = new Date(startOfDay);
-          startOfWeek.setDate(startOfWeek.getDate() - day + (day === 0 ? -6 : 1));
+          startOfWeek.setDate(
+            startOfWeek.getDate() - day + (day === 0 ? -6 : 1),
+          );
           startOfWeek.setHours(0, 0, 0, 0);
           const endOfWeek = new Date(startOfWeek);
           endOfWeek.setDate(startOfWeek.getDate() + 6);
@@ -410,19 +422,15 @@ export default function SalesRecordsPage() {
     selectedDateFilter,
     timeframe,
     filterRecordType,
+    isVerificationEnforced,
   ]);
 
-  useEffect(() => {
+  // --- WRAP SETTERS TO RESET PAGINATION ---
+  const wrapFilter = (setter) => (val) => {
+    setter(val);
     setActivitiesPage(1);
     setRevenuePage(1);
-  }, [
-    searchTerm,
-    filterEmp,
-    filterStatus,
-    filterType,
-    filterRecordType,
-    selectedDateFilter,
-  ]);
+  };
 
   // Group activities for BOARD view: (Employee) -> (Date/Month/Year) -> AM/PM/All
   const boardData = useMemo(() => {
@@ -537,19 +545,19 @@ export default function SalesRecordsPage() {
           activeTab={activeTab}
           viewMode={viewMode}
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          setSearchTerm={wrapFilter(setSearchTerm)}
           timeframe={timeframe}
-          setTimeframe={setTimeframe}
+          setTimeframe={wrapFilter(setTimeframe)}
           selectedDateFilter={selectedDateFilter}
-          setSelectedDateFilter={setSelectedDateFilter}
+          setSelectedDateFilter={wrapFilter(setSelectedDateFilter)}
           filterEmp={filterEmp}
-          setFilterEmp={setFilterEmp}
+          setFilterEmp={wrapFilter(setFilterEmp)}
           filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
+          setFilterStatus={wrapFilter(setFilterStatus)}
           filterType={filterType}
-          setFilterType={setFilterType}
+          setFilterType={wrapFilter(setFilterType)}
           filterRecordType={filterRecordType}
-          setFilterRecordType={setFilterRecordType}
+          setFilterRecordType={wrapFilter(setFilterRecordType)}
           canViewAllSales={canViewAllSales}
           user={user}
           uniqueEmployees={uniqueEmployees}
@@ -626,23 +634,37 @@ export default function SalesRecordsPage() {
                               <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
                                 {act.time_of_day}
                               </span>
-                              {act.sales_weekly_plans?.status === 'DRAFT' && (
-                                <span className="text-[10px] bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Draft Plan">
+                              {act.sales_weekly_plans?.status === "DRAFT" && (
+                                <span
+                                  className="text-[10px] bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                  title="Draft Plan"
+                                >
                                   DRAFT
                                 </span>
                               )}
-                              {act.sales_weekly_plans?.status === 'SUBMITTED' && (
-                                <span className="text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Submitted Plan">
+                              {act.sales_weekly_plans?.status ===
+                                "SUBMITTED" && (
+                                <span
+                                  className="text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                  title="Submitted Plan"
+                                >
                                   SUBMITTED
                                 </span>
                               )}
-                              {act.sales_weekly_plans?.status === 'APPROVED' && (
-                                <span className="text-[10px] bg-green-500/10 text-green-600 border border-green-500/30 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Approved Plan">
+                              {act.sales_weekly_plans?.status ===
+                                "APPROVED" && (
+                                <span
+                                  className="text-[10px] bg-green-500/10 text-green-600 border border-green-500/30 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                  title="Approved Plan"
+                                >
                                   APPROVED
                                 </span>
                               )}
                               {!act.sales_weekly_plans?.status && (
-                                <span className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded uppercase tracking-widest font-black" title="Unplanned Injection">
+                                <span
+                                  className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
+                                  title="Unplanned Injection"
+                                >
                                   UNPLANNED
                                 </span>
                               )}
@@ -1162,6 +1184,7 @@ export default function SalesRecordsPage() {
         activity={selectedActivity}
       />
       <EditRevenueModal
+        key={editingRevenue?.id}
         isOpen={!!editingRevenue}
         onClose={() => setEditingRevenue(null)}
         log={editingRevenue}
@@ -1360,25 +1383,25 @@ function BoardActivityCard({ act, onClick }) {
           <span className="text-[9px] uppercase font-bold text-gray-10 truncate max-w-[80px]">
             {act.activity_type}
           </span>
-          {act.sales_weekly_plans?.status === 'DRAFT' && (
-             <span className="shrink-0 text-[8px] bg-yellow-500/10 text-yellow-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
-               DRAFT
-             </span>
+          {act.sales_weekly_plans?.status === "DRAFT" && (
+            <span className="shrink-0 text-[8px] bg-yellow-500/10 text-yellow-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+              DRAFT
+            </span>
           )}
-          {act.sales_weekly_plans?.status === 'SUBMITTED' && (
-             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
-               SUBMITTED
-             </span>
+          {act.sales_weekly_plans?.status === "SUBMITTED" && (
+            <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+              SUBMITTED
+            </span>
           )}
-          {act.sales_weekly_plans?.status === 'APPROVED' && (
-             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
-               APPROVED
-             </span>
+          {act.sales_weekly_plans?.status === "APPROVED" && (
+            <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+              APPROVED
+            </span>
           )}
           {!act.sales_weekly_plans?.status && (
-             <span className="shrink-0 text-[8px] bg-blue-500/10 text-blue-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
-               UNPLANNED
-             </span>
+            <span className="shrink-0 text-[8px] bg-blue-500/10 text-blue-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
+              UNPLANNED
+            </span>
           )}
         </div>
         {isDone ? (
@@ -1425,20 +1448,20 @@ const EditRevenueModal = ({
   currentUser,
   isVerificationEnforced,
 }) => {
-  if (!isOpen || !log) return null;
-
-  const isVerifiedAndLocked =
-    isVerificationEnforced &&
-    log.is_verified === true &&
-    !currentUser?.isSuperAdmin;
-  const hasPendingRequest =
-    isVerificationEnforced && log.edit_request_status === "PENDING";
-
-  // Request Edit State
+  // --- HOOKS MUST BE AT TOP LEVEL ---
   const [requestMode, setRequestMode] = useState(false);
   const [requestData, setRequestData] = useState({
-    amount: log.revenue_amount || "",
+    amount: log?.revenue_amount || "",
     reason: "",
+  });
+  const [formData, setFormData] = useState({
+    account: log?.account || "",
+    product_item_sold: log?.product_item_sold || "",
+    revenue_amount: log?.revenue_amount || "",
+    status: log?.status || "COMPLETED SALES",
+    remarks: log?.remarks || "",
+    date: log?.date || "",
+    is_verified: log?.is_verified !== false,
   });
 
   const queryClient = useQueryClient();
@@ -1446,7 +1469,7 @@ const EditRevenueModal = ({
   const requestMutation = useMutation({
     mutationFn: (payload) =>
       salesService.requestRevenueEdit(
-        log.id,
+        log?.id,
         payload.amount,
         payload.reason,
         currentUser.id,
@@ -1462,9 +1485,9 @@ const EditRevenueModal = ({
   const resolveMutation = useMutation({
     mutationFn: ({ isApproved }) =>
       salesService.resolveEditRequest(
-        log.id,
+        log?.id,
         isApproved,
-        log.edit_request_amount,
+        log?.edit_request_amount,
         currentUser.id,
       ),
     onSuccess: (data, variables) => {
@@ -1479,34 +1502,17 @@ const EditRevenueModal = ({
     onError: (err) => toast.error(err.message),
   });
 
-  const [formData, setFormData] = useState({
-    account: log.account || "",
-    product_item_sold: log.product_item_sold || "",
-    revenue_amount: log.revenue_amount || "",
-    status: log.status || "COMPLETED SALES",
-    remarks: log.remarks || "",
-    date: log.date || "",
-    is_verified: log.is_verified !== false,
-  });
+  // --- HOOKS REMOVAL: State is now synced via remounting (key={log?.id}) ---
 
-  useEffect(() => {
-    if (log) {
-      setFormData({
-        account: log.account || "",
-        product_item_sold: log.product_item_sold || "",
-        revenue_amount: log.revenue_amount || "",
-        status: log.status || "COMPLETED SALES",
-        remarks: log.remarks || "",
-        date: log.date || "",
-        is_verified: log.is_verified !== false,
-      });
-      setRequestData({
-        amount: log.revenue_amount || "",
-        reason: "",
-      });
-      setRequestMode(false);
-    }
-  }, [log?.id]);
+  // --- CONDITIONAL RETURN AFTER HOOKS ---
+  if (!isOpen || !log) return null;
+
+  const isVerifiedAndLocked =
+    isVerificationEnforced &&
+    log.is_verified === true &&
+    !currentUser?.isSuperAdmin;
+  const hasPendingRequest =
+    isVerificationEnforced && log.edit_request_status === "PENDING";
 
   const handleSubmit = (e) => {
     e.preventDefault();

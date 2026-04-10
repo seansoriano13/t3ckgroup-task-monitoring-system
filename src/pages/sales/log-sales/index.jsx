@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";

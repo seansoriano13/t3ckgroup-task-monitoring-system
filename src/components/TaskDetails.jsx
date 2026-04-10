@@ -59,10 +59,6 @@ export default function TaskDetails({
   // 🔥 THE FIX: Pre-hydrate the form data immediately when the modal opens
   useEffect(() => {
     if (isOpen && task) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setApprovalGrade(null);
-      setApprovalRemarks("");
-
       // Grab department from the joined task data (works for Employees too!)
       const taskDept =
         task.creator?.department ||
@@ -75,22 +71,27 @@ export default function TaskDetails({
         task.sub_department ||
         "";
 
-      setFormData({
-        department: taskDept || user?.department || "",
-        subDepartment:
-          taskSubDept || user?.sub_department || user?.subDepartment || "",
-        loggedById: task.loggedById || "",
-        categoryId: task.categoryId || "",
-        priority: task.priority || "LOW",
-        status: task.status || "INCOMPLETE",
-        startAt: task.startAt ? task.startAt.slice(0, 16) : "",
-        endAt: task.endAt ? task.endAt.slice(0, 16) : "",
-        projectTitle: task.projectTitle || "",
-        taskDescription: task.taskDescription || "",
-        grade: task.grade || 0,
-        remarks: task.remarks || "",
-        attachments: task.attachments || [],
-        paymentVoucher: task.paymentVoucher || "",
+      queueMicrotask(() => {
+        setApprovalGrade(null);
+        setApprovalRemarks("");
+
+        setFormData({
+          department: taskDept || user?.department || "",
+          subDepartment:
+            taskSubDept || user?.sub_department || user?.subDepartment || "",
+          loggedById: task.loggedById || "",
+          categoryId: task.categoryId || "",
+          priority: task.priority || "LOW",
+          status: task.status || "INCOMPLETE",
+          startAt: task.startAt ? task.startAt.slice(0, 16) : "",
+          endAt: task.endAt ? task.endAt.slice(0, 16) : "",
+          projectTitle: task.projectTitle || "",
+          taskDescription: task.taskDescription || "",
+          grade: task.grade || 0,
+          remarks: task.remarks || "",
+          attachments: task.attachments || [],
+          paymentVoucher: task.paymentVoucher || "",
+        });
       });
     }
   }, [isOpen, task, user]);
@@ -151,7 +152,9 @@ export default function TaskDetails({
             (item) => item && typeof item === "object" && !item.checked,
           );
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+      }
     } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
         const parsed = JSON.parse(trimmed);
@@ -161,7 +164,9 @@ export default function TaskDetails({
             (item) => item && typeof item === "object" && !item.checked,
           );
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+      }
     } else if (Array.isArray(formData.taskDescription)) {
       isChecklistFormat = true;
       hasUncheckedItems = formData.taskDescription.some(

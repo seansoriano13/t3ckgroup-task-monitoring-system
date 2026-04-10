@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect } from "react";
 import { Search, Bell, AlertCircle, ArrowRight } from "lucide-react";
 import { INPUT_STYLE } from "../pages/login";
 import { useAuth } from "../context/AuthContext";
@@ -11,7 +11,6 @@ import { ThemeToggle } from "./ThemeToggle";
 function DashboardHeader() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [hasNewAlert, setHasNewAlert] = useState(false);
 
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isHead = user?.is_head === true || user?.isHead === true;
@@ -46,8 +45,6 @@ function DashboardHeader() {
           queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
           queryClient.invalidateQueries({ queryKey: ["allTasks"] });
           queryClient.invalidateQueries({ queryKey: ["tasks"] });
-
-          setHasNewAlert(true);
         },
       )
       .subscribe();
@@ -71,19 +68,17 @@ function DashboardHeader() {
           t.creator?.sub_department ||
           t.employees?.sub_department ||
           "";
-          
+
         const taskDept = t.creator?.department || t.employees?.department || "";
-        
+
         let isMyDept = false;
         if (userSubDept) {
           isMyDept = taskSubDept === userSubDept;
         } else {
           isMyDept = taskDept === userDept;
         }
-        
-        return (
-          isNotMe && isMyDept && t.status === "INCOMPLETE"
-        );
+
+        return isNotMe && isMyDept && t.status === "INCOMPLETE";
       }
       return false;
     }).length;
@@ -104,8 +99,6 @@ function DashboardHeader() {
             className="absolute text-gray-6 right-3 top-1/2 -translate-y-1/2"
           />
         </div>
-
-     
 
         <ThemeToggle />
       </div>

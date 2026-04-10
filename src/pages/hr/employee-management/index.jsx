@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { employeeService } from "../../../services/employeeService";
-import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
 import {
@@ -206,6 +205,11 @@ export default function EmployeeManagement() {
   );
 }
 
+// SALES has its own flow and is not in the categories table,
+// so we inject it manually as a hardcoded option.
+const SALES_DEPT = "SALES";
+const SALES_SUB_DEPTS = ["GOV", "NGO", "SALES"];
+
 function EmployeeFormModal({ employee, onClose }) {
   const queryClient = useQueryClient();
   const isEditing = !!employee;
@@ -240,10 +244,7 @@ function EmployeeFormModal({ employee, onClose }) {
     queryFn: () => employeeService.getAllCategories(),
   });
 
-  // SALES has its own flow and is not in the categories table,
-  // so we inject it manually as a hardcoded option.
-  const SALES_DEPT = "SALES";
-  const SALES_SUB_DEPTS = ["GOV", "NGO", "SALES"];
+  const { department } = formData;
 
   const uniqueDepts = useMemo(() => {
     const fromCategories = [
@@ -257,31 +258,31 @@ function EmployeeFormModal({ employee, onClose }) {
   }, [rawCategories]);
 
   const uniqueSubDepts = useMemo(() => {
-    if (!formData.department) return [];
-    
+    if (!department) return [];
+
     let subDepts = [
       ...new Set(
         rawCategories
-          .filter((c) => c.department === formData.department)
+          .filter((c) => c.department === department)
           .map((c) => c.subDepartment)
           .filter(Boolean),
       ),
     ];
 
     // Inject Hardcoded options
-    if (formData.department === SALES_DEPT) {
+    if (department === SALES_DEPT) {
       // Add hardcoded SALES sub-depts if they aren't in categories
-      SALES_SUB_DEPTS.forEach(s => {
+      SALES_SUB_DEPTS.forEach((s) => {
         if (!subDepts.includes(s)) subDepts.push(s);
       });
     }
 
-    if (formData.department === "OPERATIONS") {
+    if (department === "OPERATIONS") {
       if (!subDepts.includes("MARKETING")) subDepts.push("MARKETING");
     }
 
     return subDepts.sort();
-  }, [rawCategories, formData.department]);
+  }, [rawCategories, department]);
 
   const mutation = useMutation({
     mutationFn: (data) =>

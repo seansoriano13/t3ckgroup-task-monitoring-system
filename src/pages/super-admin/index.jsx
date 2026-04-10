@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
-import { useAuth } from "../../context/AuthContext";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
 import { Loader2, CheckCheck, PhilippinePeso, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,7 +12,6 @@ import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
 const EMPTY_ARRAY = [];
 
 export default function SuperAdminDashboard() {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const currentDate = new Date();
@@ -37,11 +35,6 @@ export default function SuperAdminDashboard() {
     queryFn: () => salesService.getQuotasByMonth(selectedMonth),
   });
 
-  // 3. Fetch all activities for Stats
-  const { data: allActivities = EMPTY_ARRAY, isLoading: loadingAct } = useQuery({
-    queryKey: ["allSalesActivitiesAdmin"],
-    queryFn: () => salesService.getAllSalesActivities(),
-  });
 
   // Derive server quota map
   const quotaMap = useMemo(() => {
@@ -61,7 +54,7 @@ export default function SuperAdminDashboard() {
         freshDraft[emp.id] = String(quotaMap[emp.id] ?? 0);
       });
     setDraftQuotas(freshDraft);
-  }, [quotas, salesEmployees]);
+  }, [quotaMap, salesEmployees]);
 
   // Check if any draft differs from server value
   const hasPendingChanges = useMemo(() => {

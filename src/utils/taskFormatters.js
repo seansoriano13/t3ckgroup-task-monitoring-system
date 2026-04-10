@@ -19,7 +19,7 @@ export const formatTaskPreview = (description) => {
       if (Array.isArray(parsed)) {
         return `Checklist: ${parsed.length} Items`;
       }
-    } catch (e) {
+    } catch {
       // Not valid JSON
     }
   } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
@@ -30,7 +30,7 @@ export const formatTaskPreview = (description) => {
           ? `${parsed.title} (${parsed.items.length} Items)` 
           : `Checklist: ${parsed.items.length} Items`;
       }
-    } catch (e) {
+    } catch {
       // Not valid JSON
     }
   }
