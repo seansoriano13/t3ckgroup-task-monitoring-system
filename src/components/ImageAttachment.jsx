@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { X, ImagePlus, Loader2, Maximize2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { X, ImagePlus, Loader2, Maximize2, ClipboardPaste } from "lucide-react";
 import { storageService } from "../services/storageService";
 import toast from "react-hot-toast";
 
@@ -15,6 +15,63 @@ export default function ImageAttachment({
   const [isLoadingUrls, setIsLoadingUrls] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Core upload logic — shared by file picker and paste handler
+  const uploadFiles = useCallback(async (files) => {
+    if (!files || files.length === 0) return;
+
+    if (attachments.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed per task.");
+      return;
+    }
+
+    setIsUploading(true);
+    const newPaths = [...attachments];
+
+    try {
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} is not an image.`);
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large (max 5MB).`);
+          continue;
+        }
+        const path = await storageService.uploadTaskAttachment(userId, taskId, file);
+        newPaths.push(path);
+      }
+      onChange(newPaths);
+      toast.success("Attachment uploaded!");
+    } catch (err) {
+      toast.error("Failed to upload: " + err.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [attachments, taskId, userId, onChange]);
+
+  // Clipboard paste handler — intercepts Ctrl+V screenshots
+  useEffect(() => {
+    if (readOnly || taskId === "NEW") return;
+
+    const handlePaste = (e) => {
+      const items = Array.from(e.clipboardData?.items || []);
+      const imageItems = items.filter((item) => item.type.startsWith("image/"));
+      if (imageItems.length === 0) return;
+
+      e.preventDefault();
+      toast("Screenshot detected — uploading...", { icon: "📋" });
+      const files = imageItems.map((item) => {
+        const blob = item.getAsFile();
+        return new File([blob], `paste_${Date.now()}.png`, { type: blob.type });
+      });
+      uploadFiles(files);
+    };
+
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, [readOnly, taskId, uploadFiles]);
 
   // Load signed URLs whenever the attachments array changes
   useEffect(() => {
@@ -44,40 +101,7 @@ export default function ImageAttachment({
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-    
-    if (attachments.length + files.length > 5) {
-       toast.error("Maximum 5 images allowed per task.");
-       return;
-    }
-
-    setIsUploading(true);
-    const newPaths = [...attachments];
-    
-    try {
-      for (const file of files) {
-        if (!file.type.startsWith('image/')) {
-           toast.error(`${file.name} is not an image.`);
-           continue;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-           toast.error(`${file.name} is too large (max 5MB).`);
-           continue;
-        }
-
-        const path = await storageService.uploadTaskAttachment(userId, taskId, file);
-        newPaths.push(path);
-      }
-      
-      onChange(newPaths);
-      toast.success("Attachments uploaded!");
-    } catch (err) {
-      toast.error("Failed to upload: " + err.message);
-    } finally {
-      setIsUploading(false);
-      // Reset input so the same file could be selected again if needed
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+    await uploadFiles(files);
   };
 
   const handleDelete = async (pathToRemove) => {
@@ -147,24 +171,32 @@ export default function ImageAttachment({
 
       {/* Upload Button */}
       {!readOnly && attachments.length < 5 && (
-         <button 
-           type="button"
-           onClick={() => fileInputRef.current?.click()}
-           disabled={isUploading || taskId === "NEW"}
-           className="w-full py-4 border-2 border-dashed border-gray-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-gray-9 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-         >
-           {isUploading ? (
-              <>
-                 <Loader2 size={18} className="animate-spin" /> Uploading...
-              </>
-           ) : taskId === "NEW" ? (
-             "Save task first to upload attachments"
-           ) : (
-              <>
-                 <ImagePlus size={18} /> Add Images (Max 5)
-              </>
+         <div className="space-y-2">
+           <button 
+             type="button"
+             onClick={() => fileInputRef.current?.click()}
+             disabled={isUploading || taskId === "NEW"}
+             className="w-full py-4 border-2 border-dashed border-gray-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-gray-9 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+           >
+             {isUploading ? (
+                <>
+                   <Loader2 size={18} className="animate-spin" /> Uploading...
+                </>
+             ) : taskId === "NEW" ? (
+               "Save task first to upload attachments"
+             ) : (
+                <>
+                   <ImagePlus size={18} /> Add Images (Max 5)
+                </>
+             )}
+           </button>
+           {taskId !== "NEW" && !isUploading && (
+             <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-7 font-medium">
+               <ClipboardPaste size={12} />
+               Or paste a screenshot directly (Ctrl+V)
+             </p>
            )}
-         </button>
+         </div>
       )}
 
       {/* Fullscreen Lightbox */}

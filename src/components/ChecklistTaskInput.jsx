@@ -6,11 +6,10 @@ export default function ChecklistTaskInput({
   onChange,
   name = "taskDescription",
 }) {
-  const [title, setTitle] = useState("");
   const [items, setItems] = useState([]);
   const [draggedIndex, setDraggedIndex] = useState(null);
 
-  // Parse JSON on mount
+  // Parse JSON on mount — supports both legacy {title, items} and plain array formats
   useEffect(() => {
     try {
       if (value) {
@@ -22,9 +21,9 @@ export default function ChecklistTaskInput({
             return;
           }
         } else if (trimmed.startsWith("{")) {
+          // Legacy format: {title, items} — migrate items out, title is now a native field
           const parsed = JSON.parse(trimmed);
           if (parsed && Array.isArray(parsed.items)) {
-            setTitle(parsed.title || "");
             setItems(parsed.items);
             return;
           }
@@ -39,40 +38,33 @@ export default function ChecklistTaskInput({
     }
   }, []); // Only on mount
 
-  const emitChange = (newTitle, newItems) => {
-    // If there is no title, we could save it as an array to save space, but an object is consistent
+  const emitChange = (newItems) => {
     onChange({
       target: {
         name,
-        value: JSON.stringify({ title: newTitle, items: newItems }),
+        value: JSON.stringify(newItems),
       },
     });
-  };
-
-  const handleTitleChange = (e) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
-    emitChange(newTitle, items);
   };
 
   const handleTextChange = (index, newText) => {
     const newItems = [...items];
     newItems[index].text = newText;
     setItems(newItems);
-    emitChange(title, newItems);
+    emitChange(newItems);
   };
 
   const addItem = () => {
     const newItems = [...items, { text: "", checked: false }];
     setItems(newItems);
-    emitChange(title, newItems);
+    emitChange(newItems);
   };
 
   const removeItem = (index) => {
     if (items.length === 1) return; // Always keep at least 1
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);
-    emitChange(title, newItems);
+    emitChange(newItems);
   };
 
   // Drag and Drop Handlers
@@ -97,7 +89,7 @@ export default function ChecklistTaskInput({
     newItems.splice(targetIndex, 0, draggedItem);
 
     setItems(newItems);
-    emitChange(title, newItems);
+    emitChange(newItems);
     setDraggedIndex(null);
   };
 
@@ -121,22 +113,13 @@ export default function ChecklistTaskInput({
 
         newItems.splice(index + 1, 0, ...additionalItems);
         setItems(newItems);
-        emitChange(title, newItems);
+        emitChange(newItems);
       }
     }
   };
 
   return (
     <div className="bg-gray-1 border border-gray-4 rounded-lg p-3 space-y-4">
-      <div className="border-b border-gray-3 pb-3">
-        <input
-          type="text"
-          value={title}
-          onChange={handleTitleChange}
-          placeholder="Checklist Title (Optional)"
-          className="w-full bg-transparent border-none outline-none font-bold text-sm text-gray-12 placeholder:text-gray-9"
-        />
-      </div>
 
       <div className="space-y-2">
         {items.map((item, index) => (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Users, Building2 } from "lucide-react";
+import { X, Users, Building2, FolderKanban } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import toast from "react-hot-toast";
@@ -32,6 +32,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     loggedById: user?.id || "",
     categoryId: "",
+    projectTitle: "",
     taskDescription: "",
     startAt: getCurrentLocalTime(),
     endAt: "",
@@ -91,6 +92,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         setFormData({
           loggedById: user.id,
           categoryId: "",
+          projectTitle: "",
           taskDescription: "",
           startAt: getCurrentLocalTime(),
           endAt: "",
@@ -369,6 +371,22 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* --- PROJECT TITLE --- */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                  <FolderKanban size={12} /> Project / Campaign Title
+                  <span className="font-normal text-gray-7 normal-case tracking-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="projectTitle"
+                  value={formData.projectTitle}
+                  onChange={handleChange}
+                  placeholder="e.g. Q2 Brand Awareness Campaign"
+                  className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
+                />
               </div>
 
               {/* --- TASK DETAILS SECTION --- */}

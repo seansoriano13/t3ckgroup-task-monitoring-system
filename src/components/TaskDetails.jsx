@@ -6,11 +6,13 @@ import ManagementSection from "./ManagementSection";
 import StandardDetailsSection from "./StandardDetailsSection";
 import ManagerEvaluation from "./ManagerEvaluation";
 import { formatDate } from "../utils/formatDate";
-import { PencilLine } from "lucide-react";
+import { PencilLine, FolderKanban } from "lucide-react";
 import TaskFooter from "./TaskFooter";
 import ChecklistTaskInput from "./ChecklistTaskInput";
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import ImageAttachment from "./ImageAttachment";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase.js";
 
 export default function TaskDetails({
   isOpen,
@@ -22,6 +24,15 @@ export default function TaskDetails({
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: appSettings } = useQuery({
+    queryKey: ["appSettings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("*").single();
+      return data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 mins — setting rarely changes
+  });
 
   const [approvalGrade, setApprovalGrade] = useState(null);
   const [approvalRemarks, setApprovalRemarks] = useState("");
@@ -35,6 +46,7 @@ export default function TaskDetails({
     status: "INCOMPLETE",
     startAt: "",
     endAt: "",
+    projectTitle: "",
     taskDescription: "",
     grade: 0,
     remarks: "",
@@ -70,6 +82,7 @@ export default function TaskDetails({
         status: task.status || "INCOMPLETE",
         startAt: task.startAt ? task.startAt.slice(0, 16) : "",
         endAt: task.endAt ? task.endAt.slice(0, 16) : "",
+        projectTitle: task.projectTitle || "",
         taskDescription: task.taskDescription || "",
         grade: task.grade || 0,
         remarks: task.remarks || "",
@@ -144,17 +157,11 @@ export default function TaskDetails({
 
   const taskDept = formData.department || user?.department;
   const taskSubDept = formData.subDepartment || user?.sub_department || user?.subDepartment;
-  const isMarketing = 
-    taskSubDept?.toUpperCase() === "MARKETING" || 
+  // Used by TaskFooter to gate the marketing submit-for-approval button
+  const isMarketing =
+    taskSubDept?.toUpperCase() === "MARKETING" ||
     taskDept?.toUpperCase() === "MARKETING" ||
     task?.categoryDesc?.toUpperCase()?.includes("MARKETING");
-
-  console.log("MARKETING DEBUG:", {
-    taskDept,
-    taskSubDept,
-    categoryDesc: task?.categoryDesc,
-    isMarketing
-  });
 
   // 🔥 THE FIX: Since useEffect handles the data now, this just toggles the UI
   const handleToggleEdit = () => {
@@ -254,6 +261,31 @@ export default function TaskDetails({
               task={task}
             />
 
+            {/* --- PROJECT / CAMPAIGN TITLE --- */}
+            {(isEditing || formData.projectTitle) && (
+              <div className="flex flex-col gap-1.5 pt-2">
+                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                  <FolderKanban size={12} /> Project / Campaign Title
+                  {isEditing && <span className="font-normal text-gray-7 normal-case tracking-normal">(optional)</span>}
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="projectTitle"
+                    value={formData.projectTitle}
+                    onChange={handleChange}
+                    placeholder="e.g. Q2 Brand Awareness Campaign"
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
+                  />
+                ) : (
+                  <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold text-violet-400 flex items-center gap-2">
+                    <FolderKanban size={14} />
+                    {formData.projectTitle}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-col gap-1.5 pt-2">
               <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
                 Description
@@ -292,23 +324,22 @@ export default function TaskDetails({
               )}
             </div>
 
-            {isMarketing && (
-              <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
-                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
-                  Task Attachments {isOwner && "(Required to submit)"}
-                </label>
-                <ImageAttachment 
-                  taskId={task.id}
-                  userId={user.id}
-                  attachments={formData.attachments || []}
-                  onChange={(newAttachments) => {
-                     setFormData({ ...formData, attachments: newAttachments });
-                     executeUpdate({ id: task.id, attachments: newAttachments, editedBy: user.id }, true);
-                  }}
-                  readOnly={!canEdit || !isOwner}
-                />
-              </div>
-            )}
+            {/* --- ATTACHMENTS (all tasks, owner only) --- */}
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
+              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                Attachments
+              </label>
+              <ImageAttachment
+                taskId={task.id}
+                userId={user.id}
+                attachments={formData.attachments || []}
+                onChange={(newAttachments) => {
+                   setFormData({ ...formData, attachments: newAttachments });
+                   executeUpdate({ id: task.id, attachments: newAttachments, editedBy: user.id }, true);
+                }}
+                readOnly={!canEdit || !isOwner}
+              />
+            </div>
 
             <ManagerEvaluation
               isEditing={isEditing}
@@ -414,6 +445,7 @@ export default function TaskDetails({
             canApprove: approvalGrade !== null && !hasUncheckedItems,
             approvalRemarks: approvalRemarks,
             isMarketing,
+            universalTaskSubmission: appSettings?.universal_task_submission === true,
             hasAttachments: (formData.attachments && formData.attachments.length > 0),
           }}
         />

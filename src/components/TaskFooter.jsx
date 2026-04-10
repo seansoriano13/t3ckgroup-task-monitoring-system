@@ -83,10 +83,15 @@ const TaskFooter = ({ actions, permissions, state }) => {
             )}
 
             {/* --- MARKETING SELF-COMPLETE --- */}
-            {state.isMarketing && isOwner && (task.status === "INCOMPLETE" || task.status === "NOT APPROVED") && (
+            {/* --- SUBMIT FOR REVIEW (Marketing always / All when setting enabled) --- */}
+            {(state.isMarketing || state.universalTaskSubmission) && isOwner && (task.status === "INCOMPLETE" || task.status === "NOT APPROVED") && (
               <button
                 onClick={onSubmitApproval}
-                disabled={isSubmitting || !state.hasAttachments || state.task.status === "AWAITING APPROVAL"}
+                disabled={
+                  isSubmitting ||
+                  (state.isMarketing && !state.hasAttachments) || // Only enforce attachment check for Marketing
+                  state.task.status === "AWAITING APPROVAL"
+                }
                 className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
@@ -94,13 +99,13 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 ) : (
                   <CheckCircle size={16} />
                 )}
-                Mark as Done
+                {state.isMarketing ? "Mark as Done" : "Submit for Review"}
               </button>
             )}
 
-            {state.isMarketing && isOwner && task.status === "AWAITING APPROVAL" && (
+            {(state.isMarketing || state.universalTaskSubmission) && isOwner && task.status === "AWAITING APPROVAL" && (
                 <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-3">
-                   <Clock size={16} /> Waiting for Boss
+                   <Clock size={16} /> Waiting for Review
                 </div>
             )}
 

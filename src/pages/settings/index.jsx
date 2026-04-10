@@ -249,6 +249,53 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
+
+            {/* Universal Task Submission Toggle */}
+            <div className="p-5 flex items-center justify-between hover:bg-gray-1/50 transition-colors relative z-10 border-t border-gray-3">
+              <div className="flex items-center gap-4">
+                <div className="text-gray-9">
+                  <Shield
+                    size={20}
+                    className={
+                      appSettings?.universal_task_submission
+                        ? "text-primary"
+                        : ""
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-12">
+                    Universal Task Submission (Beta)
+                  </p>
+                  <p className="text-sm text-gray-9 max-w-sm">
+                    When ON, all employees (not just Marketing) can explicitly submit tasks for manager review before approval. Currently in proposal — enable only after team alignment.
+                  </p>
+                </div>
+              </div>
+              {loadingSettings ? (
+                <Loader2 size={16} className="animate-spin text-gray-9" />
+              ) : (
+                <div
+                  onClick={() =>
+                    !mutation.isPending &&
+                    mutation.mutate({ universal_task_submission: !appSettings?.universal_task_submission })
+                  }
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
+                    appSettings?.universal_task_submission
+                      ? "bg-primary"
+                      : "bg-gray-4"
+                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                >
+                  <div
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
+                      appSettings?.universal_task_submission
+                        ? "right-1"
+                        : "left-1"
+                    }`}
+                  ></div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

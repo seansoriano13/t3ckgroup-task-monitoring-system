@@ -150,11 +150,20 @@ export default function ApprovalsPage() {
 
           if (t.status === "INCOMPLETE") {
              matchesHeadQueueForThisTask = isNotMe && isMyDept;
-          } else if (t.status === "AWAITING APPROVAL" && isMarketing) {
+          } else if (t.status === "AWAITING APPROVAL") {
              const isSuperAdmin = user?.is_super_admin || user?.isSuperAdmin;
              const canOpsManagerApprove = appSettings?.marketing_approval_by_ops_manager && isMyDept;
-             
-             if (isSuperAdmin || canOpsManagerApprove) {
+
+             // Marketing path: always routed to Super Admin / Ops Manager (existing behaviour)
+             if (isMarketing && (isSuperAdmin || canOpsManagerApprove)) {
+                matchesHeadQueueForThisTask = isNotMe;
+             }
+             // Universal path: when setting is ON, all AWAITING APPROVAL tasks come to the Head
+             else if (!isMarketing && appSettings?.universal_task_submission && isMyDept) {
+                matchesHeadQueueForThisTask = isNotMe;
+             }
+             // Super Admin fallback: sees all AWAITING APPROVAL regardless of setting
+             else if (isSuperAdmin) {
                 matchesHeadQueueForThisTask = isNotMe;
              }
           }

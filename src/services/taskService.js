@@ -24,6 +24,7 @@ export const taskService = {
     return data.map((task) => ({
       id: task.id,
       taskDescription: task.task_description,
+      projectTitle: task.project_title || null,
       categoryId: task.category_id,
       categoryDesc: task.categories?.description,
       loggedById: task.logged_by,
@@ -92,6 +93,7 @@ export const taskService = {
     return data.map((task) => ({
       id: task.id,
       taskDescription: task.task_description,
+      projectTitle: task.project_title || null,
       categoryId: task.category_id,
       categoryDesc: task.categories?.description,
       loggedById: task.logged_by,
@@ -138,6 +140,7 @@ export const taskService = {
     return {
       id: data.id,
       taskDescription: data.task_description,
+      projectTitle: data.project_title || null,
       categoryId: data.category_id,
       categoryDesc: data.categories?.description,
       loggedById: data.logged_by,
@@ -185,6 +188,7 @@ export const taskService = {
       .insert([
         {
           task_description: payload.taskDescription,
+          project_title: payload.projectTitle || null,
           category_id: payload.categoryId,
           logged_by: payload.loggedById,
           start_at: payload.startAt
@@ -398,6 +402,7 @@ export const taskService = {
     if (current?.hr_verified === true && !isHrUndo) {
       const attemptedCoreEdits = [
         payload.taskDescription,
+        payload.projectTitle,
         payload.categoryId,
         payload.priority,
         payload.startAt,
@@ -414,6 +419,8 @@ export const taskService = {
     // Employee Edit Fields
     if (payload.taskDescription !== undefined)
       updateData.task_description = payload.taskDescription;
+    if (payload.projectTitle !== undefined)
+      updateData.project_title = payload.projectTitle || null;
     if (payload.categoryId !== undefined)
       updateData.category_id = payload.categoryId;
     if (payload.priority !== undefined) updateData.priority = payload.priority;

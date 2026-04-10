@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, FolderKanban } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import { ArrowRight, PencilLine } from "lucide-react";
 import { Clock } from "lucide-react";
@@ -70,6 +70,14 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
           <span className="text-xs font-bold text-gray-11 bg-gray-3 px-2 py-1 rounded border border-gray-4">
             {task.categoryId}
           </span>
+
+          {/* Project Title Badge */}
+          {task.projectTitle && (
+            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border text-violet-400 bg-violet-500/10 border-violet-500/20 max-w-[180px] truncate">
+              <FolderKanban size={10} className="shrink-0" />
+              <span className="truncate">{task.projectTitle}</span>
+            </span>
+          )}
 
           {/* Priority Badge */}
           <span
