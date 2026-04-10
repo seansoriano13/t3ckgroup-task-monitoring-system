@@ -7,8 +7,7 @@ import {
   Loader2,
   XCircle,
   Clock,
-  Clock,
-} from "lucide-react";
+  } from "lucide-react";
 import { TASK_STATUS } from "../constants/status.js";
 
 const TaskFooter = ({ actions, permissions, state }) => {
@@ -40,18 +39,19 @@ const TaskFooter = ({ actions, permissions, state }) => {
           {isEditing ? "Cancel" : "Close"}
         </button>
 
-        {!isEditing && (isManagement || (isOwner && task.status === "INCOMPLETE")) && (
-          <button
-            onClick={onDelete}
-            disabled={isSubmitting}
-            className="text-sm font-bold text-gray-9 hover:text-red-11 hover:bg-red-a3 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
-            title="Delete Task"
-          >
-            <Trash2 size={16} />
-            <span className="hidden sm:inline">Delete</span>{" "}
-            {/* Hides text on tiny screens */}
-          </button>
-        )}
+        {!isEditing &&
+          (isManagement || (isOwner && task.status === "INCOMPLETE")) && (
+            <button
+              onClick={onDelete}
+              disabled={isSubmitting}
+              className="text-sm font-bold text-gray-9 hover:text-red-11 hover:bg-red-a3 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              title="Delete Task"
+            >
+              <Trash2 size={16} />
+              <span className="hidden sm:inline">Delete</span>{" "}
+              {/* Hides text on tiny screens */}
+            </button>
+          )}
       </div>
 
       {/* ========================================= */}
@@ -86,61 +86,68 @@ const TaskFooter = ({ actions, permissions, state }) => {
 
             {/* --- MARKETING SELF-COMPLETE --- */}
             {/* --- SUBMIT FOR REVIEW (Marketing always / All when setting enabled) --- */}
-            {(state.isMarketing || state.universalTaskSubmission) && isOwner && (task.status === "INCOMPLETE" || task.status === "NOT APPROVED") && (
-              <button
-                onClick={onSubmitApproval}
-                disabled={
-                  isSubmitting ||
-                  (state.isMarketing && !state.hasAttachments) || // Only enforce attachment check for Marketing
-                  state.task.status === TASK_STATUS.AWAITING_APPROVAL
-                }
-                className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <CheckCircle size={16} />
-                )}
-                {state.isMarketing ? "Mark as Done" : "Submit for Review"}
-              </button>
-            )}
-
-            {(state.isMarketing || state.universalTaskSubmission) && isOwner && task.status === TASK_STATUS.AWAITING_APPROVAL && (
-                <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-3">
-                   <Clock size={16} /> Waiting for Review
-                </div>
-            )}
-
-            {/* --- HEAD ACTIONS (EVALUATION) --- */}
-            {canEvaluate && (task.status === TASK_STATUS.INCOMPLETE || task.status === TASK_STATUS.AWAITING_APPROVAL) && (
-              <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
+            {(state.isMarketing || state.universalTaskSubmission) &&
+              isOwner &&
+              (task.status === "INCOMPLETE" ||
+                task.status === "NOT APPROVED") && (
                 <button
-                  onClick={onHeadReject}
-                  // 🔥 Disables if submitting OR if remarks are empty/whitespace
+                  onClick={onSubmitApproval}
                   disabled={
                     isSubmitting ||
-                    !state.approvalRemarks ||
-                    state.approvalRemarks.trim() === ""
+                    (state.isMarketing && !state.hasAttachments) || // Only enforce attachment check for Marketing
+                    state.task.status === TASK_STATUS.AWAITING_APPROVAL
                   }
-                  className="bg-gray-2 border border-gray-4 text-gray-11 hover:text-red-11 hover:border-red-a5 text-sm font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <XCircle size={16} /> Not Approve
-                </button>
-
-                <button
-                  onClick={onMarkComplete}
-                  disabled={isSubmitting || !state.canApprove}
-                  className="bg-green-600 hover:bg-green-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-green-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 size={16} className="animate-spin" />
                   ) : (
                     <CheckCircle size={16} />
                   )}
-                  Approve
+                  {state.isMarketing ? "Mark as Done" : "Submit for Review"}
                 </button>
-              </div>
-            )}
+              )}
+
+            {(state.isMarketing || state.universalTaskSubmission) &&
+              isOwner &&
+              task.status === TASK_STATUS.AWAITING_APPROVAL && (
+                <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-3">
+                  <Clock size={16} /> Waiting for Review
+                </div>
+              )}
+
+            {/* --- HEAD ACTIONS (EVALUATION) --- */}
+            {canEvaluate &&
+              (task.status === TASK_STATUS.INCOMPLETE ||
+                task.status === TASK_STATUS.AWAITING_APPROVAL) && (
+                <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
+                  <button
+                    onClick={onHeadReject}
+                    // 🔥 Disables if submitting OR if remarks are empty/whitespace
+                    disabled={
+                      isSubmitting ||
+                      !state.approvalRemarks ||
+                      state.approvalRemarks.trim() === ""
+                    }
+                    className="bg-gray-2 border border-gray-4 text-gray-11 hover:text-red-11 hover:border-red-a5 text-sm font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <XCircle size={16} /> Not Approve
+                  </button>
+
+                  <button
+                    onClick={onMarkComplete}
+                    disabled={isSubmitting || !state.canApprove}
+                    className="bg-green-600 hover:bg-green-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-green-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <CheckCircle size={16} />
+                    )}
+                    Approve
+                  </button>
+                </div>
+              )}
 
             {/* --- HR ACTIONS (VERIFICATION) --- */}
             {isHr && task.status === "COMPLETE" && !task.hrVerified && (

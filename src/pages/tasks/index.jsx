@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
-import {
-  Search,
-  Filter,
-  Users,
-  Building2,
-  Calendar as CalendarIcon,
-} from "lucide-react";
-import TaskSummaryChart from "../../components/TaskSummaryChart.jsx";
 import { TASK_STATUS } from "../../constants/status.js";
 import TaskDetails from "../../components/TaskDetails.jsx";
 import TaskCard from "../../components/TaskCard";
@@ -97,8 +89,12 @@ export default function TasksPage() {
 
   // Fetch all tasks
   const fetchStrategy = isHr
-    ? (hrViewMode === "ALL" ? "all" : "personal")
-    : (isManagement ? "all" : "personal");
+    ? hrViewMode === "ALL"
+      ? "all"
+      : "personal"
+    : isManagement
+      ? "all"
+      : "personal";
 
   const {
     data: rawTasks = [],
@@ -172,7 +168,8 @@ export default function TasksPage() {
   }, [allEmployees, deptFilter, subDeptFilter, isManagement]);
 
   // --- THE MASTER FILTER ENGINE ---
-  const filteredEmployeesForFilters = isHr && hrViewMode === "PERSONAL" ? [] : allEmployees;
+  const filteredEmployeesForFilters =
+    isHr && hrViewMode === "PERSONAL" ? [] : allEmployees;
 
   const { filteredTasks: sortedAndFilteredTasks } = useTaskFilters(
     rawTasks,
@@ -187,10 +184,11 @@ export default function TasksPage() {
       subDeptFilter,
       employeeFilter,
     },
-    { isManagement: isHr && hrViewMode === "PERSONAL" ? false : isManagement, allEmployees: filteredEmployeesForFilters },
+    {
+      isManagement: isHr && hrViewMode === "PERSONAL" ? false : isManagement,
+      allEmployees: filteredEmployeesForFilters,
+    },
   );
-
-
 
   useEffect(() => {
     setGroupPages({});
@@ -254,19 +252,21 @@ export default function TasksPage() {
           <div className="flex bg-gray-2 border border-gray-4 rounded-lg overflow-hidden shrink-0">
             <button
               onClick={() => setHrViewMode("ALL")}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-gray-4 ${hrViewMode === "ALL"
-                ? "bg-primary text-white shadow-inner"
-                : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
-                }`}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-gray-4 ${
+                hrViewMode === "ALL"
+                  ? "bg-primary text-white shadow-inner"
+                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
+              }`}
             >
               Company
             </button>
             <button
               onClick={() => setHrViewMode("PERSONAL")}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${hrViewMode === "PERSONAL"
-                ? "bg-primary text-white shadow-inner"
-                : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
-                }`}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                hrViewMode === "PERSONAL"
+                  ? "bg-primary text-white shadow-inner"
+                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
+              }`}
             >
               My Tasks
             </button>
@@ -321,7 +321,9 @@ export default function TasksPage() {
           if (allGroupTasks.length === 0) return null;
 
           const currentGroupPage = groupPages[statusKey] || 1;
-          const totalGroupPages = Math.ceil(allGroupTasks.length / ITEMS_PER_GROUP);
+          const totalGroupPages = Math.ceil(
+            allGroupTasks.length / ITEMS_PER_GROUP,
+          );
           const groupTasks = allGroupTasks.slice(
             (currentGroupPage - 1) * ITEMS_PER_GROUP,
             currentGroupPage * ITEMS_PER_GROUP,
@@ -332,7 +334,8 @@ export default function TasksPage() {
               {/* Group Header */}
               <div className="flex items-center gap-3 border-b border-gray-4 pb-2 px-1">
                 <div
-                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${statusKey === "COMPLETE_VERIFIED"
+                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${
+                    statusKey === "COMPLETE_VERIFIED"
                       ? "bg-green-500"
                       : statusKey === "COMPLETE_UNVERIFIED"
                         ? "bg-emerald-400"
@@ -341,7 +344,7 @@ export default function TasksPage() {
                           : statusKey === "NOT APPROVED"
                             ? "bg-red-500"
                             : "bg-amber-500"
-                    }`}
+                  }`}
                 />
                 <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
                   {statusKey === "COMPLETE_VERIFIED"
@@ -366,7 +369,9 @@ export default function TasksPage() {
                     key={task.id}
                     task={task}
                     onView={() => setViewTask(task)}
-                    onSilentUpdate={(payload) => editTaskMutation.mutateAsync(payload)}
+                    onSilentUpdate={(payload) =>
+                      editTaskMutation.mutateAsync(payload)
+                    }
                   />
                 ))}
               </div>
@@ -380,27 +385,35 @@ export default function TasksPage() {
                   <div className="flex gap-1">
                     <button
                       disabled={currentGroupPage === 1}
-                      onClick={() => setGroupPage(statusKey, currentGroupPage - 1)}
+                      onClick={() =>
+                        setGroupPage(statusKey, currentGroupPage - 1)
+                      }
                       className="px-3 py-1 rounded bg-gray-3 border border-gray-4 text-gray-12 text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
                     >
                       ←
                     </button>
                     {/* Page number pills */}
-                    {Array.from({ length: totalGroupPages }, (_, i) => i + 1).map((p) => (
+                    {Array.from(
+                      { length: totalGroupPages },
+                      (_, i) => i + 1,
+                    ).map((p) => (
                       <button
                         key={p}
                         onClick={() => setGroupPage(statusKey, p)}
-                        className={`w-7 h-7 rounded text-xs font-bold transition-all border ${p === currentGroupPage
+                        className={`w-7 h-7 rounded text-xs font-bold transition-all border ${
+                          p === currentGroupPage
                             ? "bg-primary text-white border-primary"
                             : "bg-gray-3 text-gray-10 border-gray-4 hover:border-gray-6"
-                          }`}
+                        }`}
                       >
                         {p}
                       </button>
                     ))}
                     <button
                       disabled={currentGroupPage === totalGroupPages}
-                      onClick={() => setGroupPage(statusKey, currentGroupPage + 1)}
+                      onClick={() =>
+                        setGroupPage(statusKey, currentGroupPage + 1)
+                      }
                       className="px-3 py-1 rounded bg-gray-3 border border-gray-4 text-gray-12 text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
                     >
                       →

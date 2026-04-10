@@ -94,10 +94,15 @@ export default function TaskDetails({
   }, [isOpen, task, user]);
 
   // Role Checks
-  const isHr = user?.is_hr === true || user?.isHr === true || user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isHr =
+    user?.is_hr === true ||
+    user?.isHr === true ||
+    user?.is_super_admin === true ||
+    user?.isSuperAdmin === true;
   const isHead = user?.is_head === true || user?.isHead === true;
   const isManagement = isHr || isHead;
-  const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isSuperAdmin =
+    user?.is_super_admin === true || user?.isSuperAdmin === true;
   const canEvaluate = isHead || isSuperAdmin;
 
   // Custom Data Hook
@@ -124,41 +129,48 @@ export default function TaskDetails({
   const isOwner = user?.id === task.loggedById;
   // Employees can only edit their own tasks when INCOMPLETE or Head-rejected (NOT APPROVED + grade=0).
   // HR-rejected tasks (NOT APPROVED + grade>0) must NOT be editable by the employee.
-  const isHrRejected =
-    task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
+  const isHrRejected = task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
   const canEdit =
-    isHr ||
-    isHead ||
-    (isOwner && task.status !== "COMPLETE" && !isHrRejected);
+    isHr || isHead || (isOwner && task.status !== "COMPLETE" && !isHrRejected);
 
   let isChecklistFormat = false;
   let hasUncheckedItems = false;
   if (formData.taskDescription) {
-    const trimmed = typeof formData.taskDescription === 'string' ? formData.taskDescription.trim() : "";
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    const trimmed =
+      typeof formData.taskDescription === "string"
+        ? formData.taskDescription.trim()
+        : "";
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
-         const parsed = JSON.parse(trimmed);
-         if (Array.isArray(parsed)) {
-            isChecklistFormat = true;
-            hasUncheckedItems = parsed.some(item => item && typeof item === 'object' && !item.checked);
-         }
-      } catch(e) {}
-    } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          isChecklistFormat = true;
+          hasUncheckedItems = parsed.some(
+            (item) => item && typeof item === "object" && !item.checked,
+          );
+        }
+      } catch (e) {}
+    } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
-         const parsed = JSON.parse(trimmed);
-         if (parsed && Array.isArray(parsed.items)) {
-            isChecklistFormat = true;
-            hasUncheckedItems = parsed.items.some(item => item && typeof item === 'object' && !item.checked);
-         }
-      } catch(e) {}
+        const parsed = JSON.parse(trimmed);
+        if (parsed && Array.isArray(parsed.items)) {
+          isChecklistFormat = true;
+          hasUncheckedItems = parsed.items.some(
+            (item) => item && typeof item === "object" && !item.checked,
+          );
+        }
+      } catch (e) {}
     } else if (Array.isArray(formData.taskDescription)) {
-       isChecklistFormat = true;
-       hasUncheckedItems = formData.taskDescription.some(item => item && typeof item === 'object' && !item.checked);
+      isChecklistFormat = true;
+      hasUncheckedItems = formData.taskDescription.some(
+        (item) => item && typeof item === "object" && !item.checked,
+      );
     }
   }
 
   const taskDept = formData.department || user?.department;
-  const taskSubDept = formData.subDepartment || user?.sub_department || user?.subDepartment;
+  const taskSubDept =
+    formData.subDepartment || user?.sub_department || user?.subDepartment;
   // Used by TaskFooter to gate the marketing submit-for-approval button
   const isMarketing =
     taskSubDept?.toUpperCase() === "MARKETING" ||
@@ -212,7 +224,8 @@ export default function TaskDetails({
       (t) => (
         <div className="flex flex-col gap-3">
           <span className="font-bold text-sm text-gray-12">
-            Are you sure you want to delete this task? It will be removed from the active queues.
+            Are you sure you want to delete this task? It will be removed from
+            the active queues.
           </span>
           <div className="flex gap-2">
             <button
@@ -239,7 +252,7 @@ export default function TaskDetails({
           </div>
         </div>
       ),
-      { duration: Infinity, id: 'delete-confirm' }
+      { duration: Infinity, id: "delete-confirm" },
     );
   };
 
@@ -289,7 +302,11 @@ export default function TaskDetails({
               <div className="flex flex-col gap-1.5 pt-2">
                 <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
                   <FolderKanban size={12} /> Project / Campaign Title
-                  {isEditing && <span className="font-normal text-gray-7 normal-case tracking-normal">(optional)</span>}
+                  {isEditing && (
+                    <span className="font-normal text-gray-7 normal-case tracking-normal">
+                      (optional)
+                    </span>
+                  )}
                 </label>
                 {isEditing ? (
                   <input
@@ -315,7 +332,7 @@ export default function TaskDetails({
               </label>
               {isEditing ? (
                 isChecklistFormat ? (
-                  <ChecklistTaskInput 
+                  <ChecklistTaskInput
                     value={formData.taskDescription}
                     onChange={handleChange}
                   />
@@ -328,22 +345,30 @@ export default function TaskDetails({
                     className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 transition-colors h-24 resize-none text-sm"
                   />
                 )
+              ) : isChecklistFormat ? (
+                <ChecklistTaskRenderer
+                  description={task.taskDescription}
+                  isOwner={isOwner}
+                  disabled={!canEdit || !isOwner}
+                  onInlineCheck={(newDesc) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      taskDescription: newDesc,
+                    }));
+                    executeUpdate(
+                      {
+                        id: task.id,
+                        taskDescription: newDesc,
+                        editedBy: user.id,
+                      },
+                      true,
+                    );
+                  }}
+                />
               ) : (
-                isChecklistFormat ? (
-                  <ChecklistTaskRenderer 
-                    description={task.taskDescription}
-                    isOwner={isOwner}
-                    disabled={!canEdit || !isOwner}
-                    onInlineCheck={(newDesc) => {
-                       setFormData(prev => ({...prev, taskDescription: newDesc}));
-                       executeUpdate({ id: task.id, taskDescription: newDesc, editedBy: user.id }, true);
-                    }}
-                  />
-                ) : (
-                  <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
-                    {task.taskDescription}
-                  </div>
-                )
+                <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
+                  {task.taskDescription}
+                </div>
               )}
             </div>
 
@@ -357,10 +382,21 @@ export default function TaskDetails({
                 userId={user.id}
                 attachments={formData.attachments || []}
                 onChange={(newAttachments) => {
-                   setFormData({ ...formData, attachments: newAttachments });
-                   executeUpdate({ id: task.id, attachments: newAttachments, editedBy: user.id }, true);
+                  setFormData({ ...formData, attachments: newAttachments });
+                  executeUpdate(
+                    {
+                      id: task.id,
+                      attachments: newAttachments,
+                      editedBy: user.id,
+                    },
+                    true,
+                  );
                 }}
-                readOnly={!canEdit || !isOwner}
+                readOnly={
+                  !canEdit ||
+                  !isOwner ||
+                  task.status === TASK_STATUS.NOT_APPROVED
+                }
               />
             </div>
 
@@ -441,7 +477,10 @@ export default function TaskDetails({
 
             onHrVerify: () => {
               if (task.status !== TASK_STATUS.COMPLETE) {
-                toast.error("Security policy limits verification exclusively to fully COMPLETE entries.", { icon: "🔒" });
+                toast.error(
+                  "Security policy limits verification exclusively to fully COMPLETE entries.",
+                  { icon: "🔒" },
+                );
                 return;
               }
               executeUpdate({
@@ -466,8 +505,10 @@ export default function TaskDetails({
             canApprove: approvalGrade !== null && !hasUncheckedItems,
             approvalRemarks: approvalRemarks,
             isMarketing,
-            universalTaskSubmission: appSettings?.universal_task_submission === true,
-            hasAttachments: (formData.attachments && formData.attachments.length > 0),
+            universalTaskSubmission:
+              appSettings?.universal_task_submission === true,
+            hasAttachments:
+              formData.attachments && formData.attachments.length > 0,
           }}
         />
       </div>

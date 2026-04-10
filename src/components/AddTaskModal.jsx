@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Users, Building2, FolderKanban } from "lucide-react";
+import { X, Users, Building2, FolderKanban, Receipt } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import toast from "react-hot-toast";
@@ -37,6 +37,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     startAt: getCurrentLocalTime(),
     endAt: "",
     priority: "LOW",
+    paymentVoucher: "",
   });
 
   // Dynamic Committee/Others State
@@ -97,6 +98,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
           startAt: getCurrentLocalTime(),
           endAt: "",
           priority: "LOW",
+          paymentVoucher: "",
         });
         setCommitteeRole("");
         setOthersRemarks("");
@@ -168,6 +170,15 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
         return;
       }
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
+    }
+
+    if (
+      selectedEmployeeInfo.department?.toUpperCase() === "ADMIN" &&
+      selectedEmployeeInfo.sub_department?.toUpperCase() === "ADMIN" &&
+      formData.paymentVoucher?.trim()
+    ) {
+      mergedRemarks = `[PV: ${formData.paymentVoucher.trim()}] ` + mergedRemarks;
+      mergedRemarks = mergedRemarks.trim();
     }
 
     const isAutoVerified = false;
@@ -388,6 +399,25 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                   className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
                 />
               </div>
+
+              {/* --- PAYMENT VOUCHER (ADMIN - ADMIN ONLY) --- */}
+              {selectedEmployeeInfo.department?.toUpperCase() === "ADMIN" &&
+               selectedEmployeeInfo.sub_department?.toUpperCase() === "ADMIN" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                    <Receipt size={12} /> Payment Voucher
+                    <span className="font-normal text-gray-7 normal-case tracking-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="paymentVoucher"
+                    value={formData.paymentVoucher}
+                    onChange={handleChange}
+                    placeholder="e.g. PV001-2024"
+                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
+                  />
+                </div>
+              )}
 
               {/* --- TASK DETAILS SECTION --- */}
               <div className="grid grid-cols-2 gap-4">
