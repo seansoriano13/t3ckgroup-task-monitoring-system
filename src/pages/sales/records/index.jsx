@@ -34,7 +34,10 @@ import { Clock } from "lucide-react";
 
 export default function SalesRecordsPage() {
   const { user } = useAuth();
-  const isMasterHead = (user?.is_head || user?.isHead) && (!user?.sub_department && !user?.subDepartment);
+  const isMasterHead =
+    (user?.is_head || user?.isHead) &&
+    !user?.sub_department &&
+    !user?.subDepartment;
   const canViewAllSales = user?.isSuperAdmin || user?.isHr || isMasterHead;
   const [activeTab, setActiveTab] = useState("ACTIVITIES"); // ACTIVITIES or REVENUE
   const [viewMode, setViewMode] = useState("BOARD");
@@ -43,6 +46,7 @@ export default function SalesRecordsPage() {
   const [filterEmp, setFilterEmp] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterType, setFilterType] = useState("ALL");
+  const [filterRecordType, setFilterRecordType] = useState("ALL");
   const [timeframe, setTimeframe] = useState("MONTHLY");
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
@@ -183,7 +187,7 @@ export default function SalesRecordsPage() {
   // Extract unique employees for dropdown (merging both sets for consistency)
   const uniqueEmployees = useMemo(() => {
     const map = new Map();
-    
+
     // Helper to check if employee should be included
     const isValidEmployee = (emp) => {
       if (!emp) return false;
@@ -192,16 +196,26 @@ export default function SalesRecordsPage() {
     };
 
     rawActivities.forEach((act) => {
-      if (act.employees?.name && !map.has(act.employee_id) && isValidEmployee(act.employees)) {
+      if (
+        act.employees?.name &&
+        !map.has(act.employee_id) &&
+        isValidEmployee(act.employees)
+      ) {
         map.set(act.employee_id, act.employees.name);
       }
     });
     rawRevenue.forEach((rev) => {
-      if (rev.employees?.name && !map.has(rev.employee_id) && isValidEmployee(rev.employees)) {
+      if (
+        rev.employees?.name &&
+        !map.has(rev.employee_id) &&
+        isValidEmployee(rev.employees)
+      ) {
         map.set(rev.employee_id, rev.employees.name);
       }
     });
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name })).sort((a,b) => a.name.localeCompare(b.name));
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [rawActivities, rawRevenue]);
 
   // Access lists
@@ -223,13 +237,17 @@ export default function SalesRecordsPage() {
     if (filterStatus !== "ALL") {
       if (filterStatus === "APPROVED" || filterStatus === "DONE") {
         // "Completed" means APPROVED or DONE status
-        filtered = filtered.filter((a) => a.status === "APPROVED" || a.status === "DONE");
+        filtered = filtered.filter(
+          (a) => a.status === "APPROVED" || a.status === "DONE",
+        );
       } else if (filterStatus === "PENDING") {
         // "Pending Expense" — waiting for expense approval
         filtered = filtered.filter((a) => a.status === "PENDING");
       } else if (filterStatus === "INCOMPLETE") {
         // "Planned / Incomplete" — not yet executed
-        filtered = filtered.filter((a) => a.status === "INCOMPLETE" || a.status === "REJECTED");
+        filtered = filtered.filter(
+          (a) => a.status === "INCOMPLETE" || a.status === "REJECTED",
+        );
       } else {
         filtered = filtered.filter((a) => a.status === filterStatus);
       }
@@ -250,7 +268,8 @@ export default function SalesRecordsPage() {
           (a.employees?.name &&
             a.employees.name.toLowerCase().includes(lower)) ||
           (a.details_daily && a.details_daily.toLowerCase().includes(lower)) ||
-          (a.reference_number && a.reference_number.toLowerCase().includes(lower)),
+          (a.reference_number &&
+            a.reference_number.toLowerCase().includes(lower)),
       );
     }
 
@@ -306,18 +325,29 @@ export default function SalesRecordsPage() {
     if (filterEmp !== "ALL")
       filtered = filtered.filter((a) => a.employee_id === filterEmp);
 
+    // A2. Record Type Filter
+    if (filterRecordType !== "ALL")
+      filtered = filtered.filter(
+        (a) =>
+          a.record_type === filterRecordType ||
+          (filterRecordType === "SALES_ORDER" && !a.record_type),
+      ); // fallback legacy data to SO
+
     // B. Status Filter
     if (filterStatus !== "ALL") {
       // Map the common filtering dropdown to Revenue exact terms
       if (filterStatus === "APPROVED" || filterStatus === "DONE")
         filtered = filtered.filter(
           (a) =>
-            (a.status?.toUpperCase().includes("COMPLETED") || a.status?.toUpperCase() === "APPROVED") &&
+            (a.status?.toUpperCase().includes("COMPLETED") ||
+              a.status?.toUpperCase() === "APPROVED") &&
             (!isVerificationEnforced || a.is_verified !== false),
         );
       if (filterStatus === "INCOMPLETE")
         filtered = filtered.filter(
-          (a) => a.status?.toUpperCase().includes("LOST") || a.status?.toUpperCase() === "REJECTED",
+          (a) =>
+            a.status?.toUpperCase().includes("LOST") ||
+            a.status?.toUpperCase() === "REJECTED",
         );
       if (filterStatus === "UNVERIFIED")
         filtered = filtered.filter((a) => a.is_verified === false);
@@ -379,13 +409,20 @@ export default function SalesRecordsPage() {
     searchTerm,
     selectedDateFilter,
     timeframe,
+    filterRecordType,
   ]);
 
-  // --- PAGINATION RESETS ---
   useEffect(() => {
     setActivitiesPage(1);
     setRevenuePage(1);
-  }, [searchTerm, filterEmp, filterStatus, filterType, selectedDateFilter]);
+  }, [
+    searchTerm,
+    filterEmp,
+    filterStatus,
+    filterType,
+    filterRecordType,
+    selectedDateFilter,
+  ]);
 
   // Group activities for BOARD view: (Employee) -> (Date/Month/Year) -> AM/PM/All
   const boardData = useMemo(() => {
@@ -446,7 +483,7 @@ export default function SalesRecordsPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3 tracking-tight">
-                Sales Records 
+                Sales Records
               </h1>
               <p className="text-gray-9 mt-1 font-medium text-sm">
                 Comprehensive filtering view for Sales Activities and Logged
@@ -511,10 +548,13 @@ export default function SalesRecordsPage() {
           setFilterStatus={setFilterStatus}
           filterType={filterType}
           setFilterType={setFilterType}
+          filterRecordType={filterRecordType}
+          setFilterRecordType={setFilterRecordType}
           canViewAllSales={canViewAllSales}
           user={user}
           uniqueEmployees={uniqueEmployees}
           isVerificationEnforced={isVerificationEnforced}
+          showDateFilter={true}
         />
 
         {/* TABLE BODY (ACTIVITIES) */}
@@ -631,18 +671,27 @@ export default function SalesRecordsPage() {
                               )}
                               {act.expense_amount && (
                                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full w-max">
-                                  ₱ {Number(act.expense_amount).toLocaleString()}
+                                  ₱{" "}
+                                  {Number(act.expense_amount).toLocaleString()}
                                 </span>
                               )}
-                              {act.sales_outcome === 'WON' && (
-                                <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">WON</span>
+                              {act.sales_outcome === "WON" && (
+                                <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">
+                                  WON
+                                </span>
                               )}
-                              {act.sales_outcome === 'LOST' && (
-                                <span className="text-[10px] font-black text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full w-max">LOST</span>
+                              {act.sales_outcome === "LOST" && (
+                                <span className="text-[10px] font-black text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full w-max">
+                                  LOST
+                                </span>
                               )}
-                              {!act.reference_number && !act.expense_amount && !act.sales_outcome && (
-                                <span className="text-gray-7 italic text-[10px]">—</span>
-                              )}
+                              {!act.reference_number &&
+                                !act.expense_amount &&
+                                !act.sales_outcome && (
+                                  <span className="text-gray-7 italic text-[10px]">
+                                    —
+                                  </span>
+                                )}
                             </div>
                           </td>
                           <td className="p-4 text-center">
@@ -738,7 +787,12 @@ export default function SalesRecordsPage() {
                             dateBlock={dateBlock}
                             label={
                               timeframe === "MONTHLY"
-                                ? new Date(dateBlock.dateStr + "-01").toLocaleDateString("en-US", { month: "long", year: "numeric" })
+                                ? new Date(
+                                    dateBlock.dateStr + "-01",
+                                  ).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    year: "numeric",
+                                  })
                                 : dateBlock.dateStr
                             }
                             onActivityClick={(act) => setSelectedActivity(act)}
@@ -813,167 +867,268 @@ export default function SalesRecordsPage() {
 
         {/* TABLE BODY (REVENUE) */}
         {activeTab === "REVENUE" && (
-          <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-2 border-b border-gray-4">
-                    <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
-                      Sales Rep
-                    </th>
-                    <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
-                      Account
-                    </th>
-                    <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
-                      Product Sold
-                    </th>
-                    <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-right">
-                      Value (₱)
-                    </th>
-                    <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center">
-                      Status
-                    </th>
-                    {user?.isSuperAdmin && (
-                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center w-12">
-                        
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-4">
-                  {isRevLoading ? (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="p-10 text-center text-gray-9 font-bold"
-                      >
-                        Loading Revenue Logs...
-                      </td>
-                    </tr>
-                  ) : filteredRevenue.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="p-10 text-center text-gray-9 font-bold flex justify-center gap-2 items-center"
-                      >
-                        <AlertCircle /> No log entries match the filters.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredRevenue
-                      .slice(
-                        (revenuePage - 1) * itemsPerPage,
-                        revenuePage * itemsPerPage,
-                      )
-                      .map((log) => (
-                        <tr
-                          key={log.id}
-                          onClick={() => setEditingRevenue(log)}
-                          className="hover:bg-gray-3/50 cursor-pointer transition-colors"
-                        >
-                          <td className="p-4">
-                            <span className="font-mono text-sm font-bold text-gray-12">
-                              {log.date}
-                            </span>
-                          </td>
-                          <td className="p-4 text-sm">
-                            <p className="font-bold text-gray-12">
-                              {log.employees?.name || "Unknown"}
-                            </p>
-                            <p className="text-[10px] font-bold text-gray-9 uppercase">
-                              {log.creator_sub_dept}
-                            </p>
-                          </td>
-                          <td className="p-4 font-bold text-sm text-gray-12">
-                            {log.account}
-                          </td>
-                          <td className="p-4 text-xs font-semibold text-gray-11">
-                            {log.product_item_sold}
-                          </td>
-                          <td className="p-4 text-right font-black text-green-600">
-                            ₱{log.revenue_amount?.toLocaleString() || "0"}
-                          </td>
-                          <td className="p-4 text-center">
-                            {isVerificationEnforced &&
-                            log.is_verified === false ? (
-                              <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
-                                PENDING
-                              </span>
-                            ) : log.status?.toUpperCase().includes("COMPLETED") ? (
-                              <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
-                                COMPLETED
-                              </span>
-                            ) : (
-                              <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
-                                LOST
-                              </span>
-                            )}
-                          </td>
-                          {/* Super Admin soft-delete button */}
-                          {user?.isSuperAdmin && (
-                            <td
-                              className="p-4 text-center"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                title={log.is_verified ? "Un-verify before deleting" : "Remove log"}
-                                disabled={deleteRevenueMutation.isPending}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (log.is_verified) {
-                                    toast.error("Remove the verification stamp before deleting.");
-                                    return;
-                                  }
-                                  if (window.confirm(`Delete this revenue log (₱${Number(log.revenue_amount).toLocaleString()} – ${log.account})? This is a soft-delete and can be recovered from the database if needed.`)) {
-                                    deleteRevenueMutation.mutate(log.id);
-                                  }
-                                }}
-                                className={`p-1.5 rounded-lg transition-colors ${
-                                  log.is_verified
-                                    ? "text-gray-6 cursor-not-allowed"
-                                    : "text-gray-8 hover:text-red-500 hover:bg-red-500/10"
-                                }`}
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
+          <div className="space-y-4">
+            {/* Record Type Sub-filter */}
+            <div className="flex gap-2 bg-gray-2 p-1 rounded-lg border border-gray-4 shadow-inner overflow-x-auto w-max mb-2">
+              {["ALL", "SALES_ORDER", "SALES_QUOTATION"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setFilterRecordType(type)}
+                  className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${
+                    filterRecordType === type
+                      ? type === "SALES_QUOTATION"
+                        ? "bg-blue-600 text-white shadow"
+                        : "bg-gray-12 text-gray-1 shadow"
+                      : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+                  }`}
+                >
+                  {type === "ALL"
+                    ? "ALL LOGS"
+                    : type === "SALES_ORDER"
+                      ? "SALES ORDERS"
+                      : "QUOTATIONS"}
+                </button>
+              ))}
             </div>
 
-            {/* REVENUE PAGINATION */}
-            {filteredRevenue.length > itemsPerPage && (
-              <div className="p-4 border-t border-gray-4 bg-gray-2 flex items-center justify-center gap-4">
-                <button
-                  disabled={revenuePage === 1}
-                  onClick={() => setRevenuePage((p) => p - 1)}
-                  className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
-                >
-                  Prev
-                </button>
-                <span className="text-xs font-black text-gray-12 uppercase tracking-tighter">
-                  Page {revenuePage} of{" "}
-                  {Math.ceil(filteredRevenue.length / itemsPerPage)}
-                </span>
-                <button
-                  disabled={
-                    revenuePage ===
-                    Math.ceil(filteredRevenue.length / itemsPerPage)
-                  }
-                  onClick={() => setRevenuePage((p) => p + 1)}
-                  className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
-                >
-                  Next
-                </button>
+            <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-gray-2 border-b border-gray-4">
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
+                        Sales Rep
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
+                        Account
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
+                        Product Sold
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-right">
+                        {filterRecordType === "SALES_ORDER"
+                          ? "Revenue (₱)"
+                          : filterRecordType === "SALES_QUOTATION"
+                            ? "Quotation (₱)"
+                            : "Value (₱)"}
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center">
+                        Status
+                      </th>
+                      {user?.isSuperAdmin && (
+                        <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center w-12"></th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-4">
+                    {isRevLoading ? (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="p-10 text-center text-gray-9 font-bold"
+                        >
+                          Loading Revenue Logs...
+                        </td>
+                      </tr>
+                    ) : filteredRevenue.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="p-10 text-center text-gray-9 font-bold flex justify-center gap-2 items-center"
+                        >
+                          <AlertCircle /> No log entries match the filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredRevenue
+                        .slice(
+                          (revenuePage - 1) * itemsPerPage,
+                          revenuePage * itemsPerPage,
+                        )
+                        .map((log) => (
+                          <tr
+                            key={log.id}
+                            onClick={() => setEditingRevenue(log)}
+                            className="hover:bg-gray-3/50 cursor-pointer transition-colors"
+                          >
+                            <td className="p-4">
+                              <span className="font-mono text-sm font-bold text-gray-12">
+                                {log.date}
+                              </span>
+                            </td>
+                            <td className="p-4 text-sm">
+                              <p className="font-bold text-gray-12">
+                                {log.employees?.name || "Unknown"}
+                              </p>
+                              <p className="text-[10px] font-bold text-gray-9 uppercase">
+                                {log.creator_sub_dept}
+                              </p>
+                            </td>
+                            <td className="p-4 font-bold text-sm text-gray-12">
+                              {log.account}
+                            </td>
+                            <td className="p-4 text-xs font-semibold text-gray-11">
+                              {log.product_item_sold}
+                            </td>
+                            <td className="p-4 text-center">
+                              {log.record_type === "SALES_QUOTATION" ? (
+                                <span
+                                  className="bg-blue-500/10 text-blue-600 border border-blue-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
+                                  title="Sales Quotation"
+                                >
+                                  QN
+                                </span>
+                              ) : (
+                                <span
+                                  className="bg-green-500/10 text-green-600 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
+                                  title="Sales Order"
+                                >
+                                  SO
+                                </span>
+                              )}
+                            </td>
+                            <td
+                              className={`p-4 text-right font-black ${log.record_type === "SALES_QUOTATION" ? "text-blue-600" : "text-green-600"}`}
+                            >
+                              ₱{log.revenue_amount?.toLocaleString() || "0"}
+                            </td>
+                            <td className="p-4 text-center">
+                              {isVerificationEnforced &&
+                              log.record_type !== "SALES_QUOTATION" &&
+                              log.is_verified === false ? (
+                                <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+                                  PENDING
+                                </span>
+                              ) : log.status
+                                  ?.toUpperCase()
+                                  .includes("COMPLETED") ||
+                                log.status
+                                  ?.toUpperCase()
+                                  .includes("SUBMITTED") ? (
+                                <span
+                                  className={`${log.record_type === "SALES_QUOTATION" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-green-500/10 text-green-500 border-green-500/20"} border px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest`}
+                                >
+                                  {log.record_type === "SALES_QUOTATION"
+                                    ? "SUBMITTED"
+                                    : "COMPLETED"}
+                                </span>
+                              ) : (
+                                <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+                                  LOST
+                                </span>
+                              )}
+                            </td>
+                            <td
+                              className="p-4 text-center flex items-center justify-center gap-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {/* Convert to SO Button for Quotations */}
+                              {log.record_type === "SALES_QUOTATION" && (
+                                <button
+                                  title="Convert to Sales Order"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate("/sales/log-sales", {
+                                      state: {
+                                        prefill: {
+                                          ...log,
+                                          record_type: "SALES_ORDER",
+                                          date: new Date()
+                                            .toISOString()
+                                            .split("T")[0],
+                                        },
+                                      },
+                                    });
+                                  }}
+                                  className="flex-center gap-1 p-1.5 rounded-lg text-blue-600 hover:bg-blue-500/10 transition-colors"
+                                >
+                                  <p className="font-bold text-sm uppercase">
+                                    Convert
+                                  </p>{" "}
+                                  <Briefcase size={14} />
+                                </button>
+                              )}
+
+                              {/* Super Admin soft-delete button */}
+                              {user?.isSuperAdmin && (
+                                <button
+                                  title={
+                                    log.is_verified &&
+                                    log.record_type !== "SALES_QUOTATION"
+                                      ? "Un-verify before deleting"
+                                      : "Remove log"
+                                  }
+                                  disabled={deleteRevenueMutation.isPending}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (
+                                      log.is_verified &&
+                                      log.record_type !== "SALES_QUOTATION"
+                                    ) {
+                                      toast.error(
+                                        "Remove the verification stamp before deleting.",
+                                      );
+                                      return;
+                                    }
+                                    if (
+                                      window.confirm(
+                                        `Delete this ${log.record_type === "SALES_QUOTATION" ? "quotation" : "sales order"} (₱${Number(log.revenue_amount).toLocaleString()} – ${log.account})? This is a soft-delete and can be recovered from the database if needed.`,
+                                      )
+                                    ) {
+                                      deleteRevenueMutation.mutate(log.id);
+                                    }
+                                  }}
+                                  className={`p-1.5 rounded-lg transition-colors ${
+                                    log.is_verified &&
+                                    log.record_type !== "SALES_QUOTATION"
+                                      ? "text-gray-6 cursor-not-allowed"
+                                      : "text-gray-8 hover:text-red-500 hover:bg-red-500/10"
+                                  }`}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
               </div>
-            )}
+
+              {/* REVENUE PAGINATION */}
+              {filteredRevenue.length > itemsPerPage && (
+                <div className="p-4 border-t border-gray-4 bg-gray-2 flex items-center justify-center gap-4">
+                  <button
+                    disabled={revenuePage === 1}
+                    onClick={() => setRevenuePage((p) => p - 1)}
+                    className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs font-black text-gray-12 uppercase tracking-tighter">
+                    Page {revenuePage} of{" "}
+                    {Math.ceil(filteredRevenue.length / itemsPerPage)}
+                  </span>
+                  <button
+                    disabled={
+                      revenuePage ===
+                      Math.ceil(filteredRevenue.length / itemsPerPage)
+                    }
+                    onClick={() => setRevenuePage((p) => p + 1)}
+                    className="px-4 py-1.5 bg-gray-1 border border-gray-4 rounded-lg text-xs font-bold text-gray-11 disabled:opacity-30 hover:bg-gray-3 transition-colors uppercase tracking-widest"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -1000,13 +1155,20 @@ export default function SalesRecordsPage() {
 function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
   const [expanded, setExpanded] = useState(false);
   const total = dateBlock.all.length;
-  const done = dateBlock.all.filter(a => a.status === "DONE" || a.status === "APPROVED").length;
-  const pending = dateBlock.all.filter(a => a.status === "PENDING_APPROVAL" || a.status === "PENDING").length;
+  const done = dateBlock.all.filter(
+    (a) => a.status === "DONE" || a.status === "APPROVED",
+  ).length;
+  const pending = dateBlock.all.filter(
+    (a) => a.status === "PENDING_APPROVAL" || a.status === "PENDING",
+  ).length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-  const pctColor = pct >= 80 ? "text-green-600 bg-green-500/10 border-green-500/20"
-    : pct >= 50 ? "text-yellow-600 bg-yellow-500/10 border-yellow-500/20"
-    : "text-red-600 bg-red-500/10 border-red-500/20";
+  const pctColor =
+    pct >= 80
+      ? "text-green-600 bg-green-500/10 border-green-500/20"
+      : pct >= 50
+        ? "text-yellow-600 bg-yellow-500/10 border-yellow-500/20"
+        : "text-red-600 bg-red-500/10 border-red-500/20";
 
   // Group activities by actual date for a much better UX
   const activitiesByDate = useMemo(() => {
@@ -1025,14 +1187,18 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
     <div className="min-w-[300px] shrink-0 bg-white rounded-xl border border-gray-200 shadow-sm snap-start flex flex-col overflow-hidden transition-all">
       {/* Summary header — entire row is clickable */}
       <button
-        onClick={() => setExpanded(v => !v)}
+        onClick={() => setExpanded((v) => !v)}
         className="w-full text-left p-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors"
       >
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5 truncate">{label}</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5 truncate">
+            {label}
+          </p>
           <p className="text-2xl font-black text-gray-800 leading-tight">
             {total}
-            <span className="text-xs font-semibold text-gray-400 ml-1.5">activities</span>
+            <span className="text-xs font-semibold text-gray-400 ml-1.5">
+              activities
+            </span>
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -1041,11 +1207,24 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
               {pending} pending
             </span>
           )}
-          <span className={`text-xs font-black px-2.5 py-1 rounded-full border ${pctColor}`}>
+          <span
+            className={`text-xs font-black px-2.5 py-1 rounded-full border ${pctColor}`}
+          >
             {pct}%
           </span>
-          <span className={`text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          <span
+            className={`text-gray-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
           </span>
         </div>
       </button>
@@ -1053,7 +1232,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
       {/* Completion bar */}
       <div className="h-1 bg-gray-100 mx-4 rounded-full mb-1">
         <div
-          className={`h-1 rounded-full transition-all duration-500 ${pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-400' : 'bg-red-400'}`}
+          className={`h-1 rounded-full transition-all duration-500 ${pct >= 80 ? "bg-green-500" : pct >= 50 ? "bg-yellow-400" : "bg-red-400"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -1062,38 +1241,63 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
       {expanded && (
         <div className="bg-gray-50 border-t border-gray-100 p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[60vh] overflow-y-auto custom-scrollbar">
           {datesSorted.length === 0 ? (
-             <p className="text-xs text-gray-400 italic text-center py-2">No activities</p>
+            <p className="text-xs text-gray-400 italic text-center py-2">
+              No activities
+            </p>
           ) : (
-             datesSorted.map((d) => (
-               <div key={d} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
-                 <h4 className="text-xs font-bold text-gray-800 mb-3 border-b border-gray-100 pb-1 flex justify-between items-center">
-                   {new Date(d).toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' })}
-                   <span className="text-[10px] text-gray-500 font-normal bg-gray-100 px-1.5 py-0.5 rounded text-center">{activitiesByDate[d].AM.length + activitiesByDate[d].PM.length} tasks</span>
-                 </h4>
-                 <div className="space-y-3">
-                   {activitiesByDate[d].AM.length > 0 && (
-                     <div>
-                       <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                          <Clock size={10} /> AM Block
-                       </p>
-                       <div className="space-y-1.5">
-                          {activitiesByDate[d].AM.map(act => <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />)}
-                       </div>
-                     </div>
-                   )}
-                   {activitiesByDate[d].PM.length > 0 && (
-                     <div>
-                       <p className="text-[9px] font-black text-purple-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 mt-2">
-                          <Clock size={10} /> PM Block
-                       </p>
-                       <div className="space-y-1.5">
-                          {activitiesByDate[d].PM.map(act => <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} />)}
-                       </div>
-                     </div>
-                   )}
-                 </div>
-               </div>
-             ))
+            datesSorted.map((d) => (
+              <div
+                key={d}
+                className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm"
+              >
+                <h4 className="text-xs font-bold text-gray-800 mb-3 border-b border-gray-100 pb-1 flex justify-between items-center">
+                  {new Date(d).toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                  <span className="text-[10px] text-gray-500 font-normal bg-gray-100 px-1.5 py-0.5 rounded text-center">
+                    {activitiesByDate[d].AM.length +
+                      activitiesByDate[d].PM.length}{" "}
+                    tasks
+                  </span>
+                </h4>
+                <div className="space-y-3">
+                  {activitiesByDate[d].AM.length > 0 && (
+                    <div>
+                      <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <Clock size={10} /> AM Block
+                      </p>
+                      <div className="space-y-1.5">
+                        {activitiesByDate[d].AM.map((act) => (
+                          <BoardActivityCard
+                            key={act.id}
+                            act={act}
+                            onClick={() => onActivityClick(act)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {activitiesByDate[d].PM.length > 0 && (
+                    <div>
+                      <p className="text-[9px] font-black text-purple-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 mt-2">
+                        <Clock size={10} /> PM Block
+                      </p>
+                      <div className="space-y-1.5">
+                        {activitiesByDate[d].PM.map((act) => (
+                          <BoardActivityCard
+                            key={act.id}
+                            act={act}
+                            onClick={() => onActivityClick(act)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
           )}
         </div>
       )}
@@ -1103,17 +1307,22 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick }) {
 
 function BoardActivityCard({ act, onClick }) {
   const isDone = act.status === "DONE" || act.status === "APPROVED";
-  const isLost = act.sales_outcome === 'LOST';
-  const isWon  = act.sales_outcome === 'WON';
+  const isLost = act.sales_outcome === "LOST";
+  const isWon = act.sales_outcome === "WON";
   return (
     <div
       onClick={onClick}
       className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm
-        ${isLost ? 'bg-red-500/5 border-red-500/30' : 
-          isWon ? 'bg-green-500/10 border-green-500/20' : 
-          isDone ? 'bg-gray-2 border-gray-4' : 
-          'bg-gray-1 border-gray-3 hover:border-gray-5'}
-        ${act.is_unplanned && 'bg-gray-a2! border-0'}
+        ${
+          isLost
+            ? "bg-red-500/5 border-red-500/30"
+            : isWon
+              ? "bg-green-500/10 border-green-500/20"
+              : isDone
+                ? "bg-gray-2 border-gray-4"
+                : "bg-gray-1 border-gray-3 hover:border-gray-5"
+        }
+        ${act.is_unplanned && "bg-gray-a2! border-0"}
       `}
     >
       <p
@@ -1138,13 +1347,25 @@ function BoardActivityCard({ act, onClick }) {
       {(act.reference_number || act.expense_amount || act.sales_outcome) && (
         <div className="flex flex-wrap gap-1 mt-1.5">
           {act.reference_number && (
-            <span className="text-[8px] font-black text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 truncate max-w-[80px]">{act.reference_number}</span>
+            <span className="text-[8px] font-black text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 truncate max-w-[80px]">
+              {act.reference_number}
+            </span>
           )}
           {act.expense_amount && (
-            <span className="text-[8px] font-black text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">₱{Number(act.expense_amount).toLocaleString()}</span>
+            <span className="text-[8px] font-black text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+              ₱{Number(act.expense_amount).toLocaleString()}
+            </span>
           )}
-          {isWon && <span className="text-[8px] font-black text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">WON</span>}
-          {isLost && <span className="text-[8px] font-black text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20">LOST</span>}
+          {isWon && (
+            <span className="text-[8px] font-black text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">
+              WON
+            </span>
+          )}
+          {isLost && (
+            <span className="text-[8px] font-black text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20">
+              LOST
+            </span>
+          )}
         </div>
       )}
     </div>

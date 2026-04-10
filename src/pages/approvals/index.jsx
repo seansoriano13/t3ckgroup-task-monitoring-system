@@ -13,6 +13,7 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Maximize2
 } from "lucide-react";
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
@@ -346,6 +347,7 @@ export default function ApprovalsPage() {
                 isHr={isHr}
                 currentUserId={user?.id}
                 defaultExpanded={task.id === autoOpenId}
+                onViewDetails={setViewTask}
                 onProcess={(payload) =>
                   editTaskMutation.mutateAsync({
                     ...payload,
@@ -402,6 +404,7 @@ function ApprovalRow({
   isSubmitting,
   currentUserId,
   defaultExpanded,
+  onViewDetails,
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(null);
@@ -512,6 +515,14 @@ function ApprovalRow({
               <div className="sm:hidden w-2 h-2 rounded-full bg-red-9 shadow-[0_0_8px_rgba(229,72,77,0.5)]" />
             </>
           )}
+
+          <button 
+            className="text-gray-8 hover:text-primary transition-colors p-1"
+            onClick={(e) => { e.stopPropagation(); onViewDetails(task); }}
+            title="Open Full Details"
+          >
+            <Maximize2 size={16} />
+          </button>
 
           <button className="text-gray-8 hover:text-gray-12 transition-colors p-1">
             {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}

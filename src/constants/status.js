@@ -20,6 +20,11 @@ export const REVENUE_STATUS = {
   DONE: "APPROVED", // Alias for backward compatibility and UI filters
 };
 
+export const RECORD_TYPE = {
+  SALES_ORDER: "SALES_ORDER",
+  SALES_QUOTATION: "SALES_QUOTATION",
+};
+
 export const SALES_PLAN_STATUS = {
   DRAFT: "DRAFT",
   SUBMITTED: "SUBMITTED",

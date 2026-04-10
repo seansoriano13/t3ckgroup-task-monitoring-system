@@ -121,11 +121,11 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="font-bold text-gray-12">
-                    Enforce Revenue Verification
+                    Enforce Sales Logging Verification
                   </p>
                   <p className="text-sm text-gray-9 max-w-sm">
                     Toggle whether sales personnel require an active Super Admin
-                    verification stamp upon logging revenue before it affects
+                    verification stamp upon logging sales before it affects
                     metrics.
                   </p>
                 </div>

@@ -23,9 +23,11 @@ export default function SalesFilters({
   uniqueEmployees = [],
   isVerificationEnforced = false,
   showDateFilter = null, // Can explicitly pass a boolean to override viewMode check
+  filterRecordType = "ALL",
+  setFilterRecordType = () => {},
 }) {
   const shouldShowDateFilter =
-    showDateFilter !== null ? showDateFilter : (viewMode === "BOARD" && activeTab === "ACTIVITIES");
+    showDateFilter !== null ? showDateFilter : (viewMode === "BOARD" || activeTab === "REVENUE");
 
   return (
     <div className="bg-gray-1 border border-gray-4 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4">
@@ -152,10 +154,22 @@ export default function SalesFilters({
             onChange={(e) => setFilterType(e.target.value)}
             className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus-within:border-gray-6 font-semibold flex-1 sm:flex-none cursor-pointer"
           >
-            <option value="ALL">All Types</option>
+            <option value="ALL">All Activity Types</option>
             <option value="Sales Call">Sales Call</option>
             <option value="In-House">In-House</option>
             <option value="None">Blank / None</option>
+          </select>
+        )}
+
+        {activeTab === "REVENUE" && (
+          <select
+            value={filterRecordType}
+            onChange={(e) => setFilterRecordType(e.target.value)}
+            className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus-within:border-gray-6 font-semibold flex-1 sm:flex-none cursor-pointer"
+          >
+            <option value="ALL">All Record Types</option>
+            <option value="SALES_ORDER">Sales Orders</option>
+            <option value="QUOTATION">Quotations</option>
           </select>
         )}
       </div>

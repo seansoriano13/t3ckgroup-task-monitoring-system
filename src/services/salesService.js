@@ -353,6 +353,7 @@ export const salesService = {
        .from("sales_revenue_logs")
        .select("*")
        .eq("employee_id", employeeId)
+       .eq("record_type", "SALES_ORDER")
        .gte("date", startDate)
        .lt("date", endDate);
 
@@ -537,6 +538,7 @@ export const salesService = {
      const { data, error } = await supabase
        .from('sales_revenue_logs')
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name)')
+       .eq('record_type', 'SALES_ORDER')
        .gte('date', startDate)
        .lte('date', endDate)
        .neq('is_deleted', true)          // exclude soft-deleted rows
@@ -573,6 +575,7 @@ export const salesService = {
     const { data: revenues, error: rErr } = await supabase
        .from('sales_revenue_logs')
        .select('*, employees!sales_revenue_logs_employee_id_fkey(name, is_super_admin)')
+       .eq('record_type', 'SALES_ORDER')
        .gte('date', startDate)
        .lt('date', endDate)
        .neq('is_deleted', true);          // exclude soft-deleted rows

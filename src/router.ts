@@ -12,7 +12,7 @@ export type Path =
   | `/login`
   | `/profile`
   | `/sales/daily`
-  | `/sales/log-revenue`
+  | `/sales/log-sales`
   | `/sales/records`
   | `/sales/schedule`
   | `/settings`

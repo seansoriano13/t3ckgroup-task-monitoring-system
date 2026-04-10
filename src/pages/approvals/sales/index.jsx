@@ -14,9 +14,11 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  Maximize2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import SalesFilters from "../../../components/SalesFilters.jsx";
+import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 
 export default function SalesHeadApprovalsPage() {
   const { user } = useAuth();
@@ -28,6 +30,7 @@ export default function SalesHeadApprovalsPage() {
   const [filterType, setFilterType] = useState("ALL");
   const [timeframe, setTimeframe] = useState("MONTHLY");
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
+  const [viewActivity, setViewActivity] = useState(null);
 
   // Only Head/SuperAdmin can access, but protected route handles that.
   // We'll fetch all pending. The filtering will be done locally based on user's department.
@@ -258,16 +261,23 @@ export default function SalesHeadApprovalsPage() {
                 empGroup={empGroup}
                 verifyMutation={verifyMutation}
                 bulkVerifyMutation={bulkVerifyMutation}
+                onViewDetails={setViewActivity}
               />
             ))}
           </div>
         )}
       </div>
+
+      <SalesTaskDetailsModal 
+        isOpen={!!viewActivity} 
+        onClose={() => setViewActivity(null)} 
+        activity={viewActivity} 
+      />
     </ProtectedRoute>
   );
 }
 
-function EmployeeBlock({ empGroup, verifyMutation, bulkVerifyMutation }) {
+function EmployeeBlock({ empGroup, verifyMutation, bulkVerifyMutation, onViewDetails }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -302,6 +312,7 @@ function EmployeeBlock({ empGroup, verifyMutation, bulkVerifyMutation }) {
               dateGroup={dateGroup}
               verifyMutation={verifyMutation}
               bulkVerifyMutation={bulkVerifyMutation}
+              onViewDetails={onViewDetails}
             />
           ))}
         </div>
@@ -310,7 +321,7 @@ function EmployeeBlock({ empGroup, verifyMutation, bulkVerifyMutation }) {
   );
 }
 
-function DateGroupBlock({ dateGroup, verifyMutation, bulkVerifyMutation }) {
+function DateGroupBlock({ dateGroup, verifyMutation, bulkVerifyMutation, onViewDetails }) {
   const [dayRemarks, setDayRemarks] = useState("");
   const isSubmittingBulk = bulkVerifyMutation.isPending;
 
@@ -353,14 +364,14 @@ function DateGroupBlock({ dateGroup, verifyMutation, bulkVerifyMutation }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {dateGroup.activities.map((act) => (
-          <ActivityCard key={act.id} activity={act} verifyMutation={verifyMutation} />
+          <ActivityCard key={act.id} activity={act} verifyMutation={verifyMutation} onViewDetails={onViewDetails} />
         ))}
       </div>
     </div>
   );
 }
 
-function ActivityCard({ activity, verifyMutation }) {
+function ActivityCard({ activity, verifyMutation, onViewDetails }) {
   const [remarks, setRemarks] = useState("");
   const isSubmitting = verifyMutation.isPending;
 
@@ -388,6 +399,13 @@ function ActivityCard({ activity, verifyMutation }) {
               Unplanned
             </span>
           )}
+          <button 
+            className="text-gray-8 hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); onViewDetails(activity); }}
+            title="Open Full Details"
+          >
+            <Maximize2 size={16} />
+          </button>
         </div>
       </div>
 

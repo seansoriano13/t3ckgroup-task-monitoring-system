@@ -375,7 +375,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
                 <div>
                   <h2 className="text-xs font-black uppercase tracking-widest text-gray-12 flex items-center gap-2">
                     <FileText className="text-primary" size={16} /> Approved
-                    Revenue Logs
+                    Sales Logs
                   </h2>
                 </div>
               </div>
