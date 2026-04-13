@@ -36,3 +36,7 @@ notes.txt
 testsprite_tests/
 TEST-SCENARIOS.md
 MEETING.MD
+
+supabase/.temp
+supabase/.branches
+supabase/.cache

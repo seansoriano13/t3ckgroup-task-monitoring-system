@@ -62,6 +62,7 @@ export const taskService = {
         id,
         created_at,
         task_description,
+        project_title,
         category_id,
         logged_by,
         edited_by,

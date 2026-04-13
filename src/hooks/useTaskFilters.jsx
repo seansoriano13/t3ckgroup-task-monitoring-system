@@ -39,7 +39,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       const matchesSearch =
         desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cat.toLowerCavse().includes(searchTerm.toLowerCase()) ||
+        cat.toLowerCase().includes(searchTerm.toLowerCase()) ||
         empName.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Status Filter Logic
