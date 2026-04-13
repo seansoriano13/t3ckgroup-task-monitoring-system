@@ -44,6 +44,7 @@ export default function TasksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
+  const [sortBy, setSortBy] = useState("NEWEST");
 
   // Date Picker State ([startDate, endDate])
   const [dateRange, setDateRange] = useState([null, null]);
@@ -192,6 +193,7 @@ export default function TasksPage() {
       deptFilter,
       subDeptFilter,
       employeeFilter,
+      sortBy,
     },
     {
       isManagement: isHr && hrViewMode === "PERSONAL" ? false : isManagement,
@@ -304,6 +306,8 @@ export default function TasksPage() {
         uniqueDepts={uniqueDepts}
         uniqueSubDepts={uniqueSubDepts}
         uniqueEmployees={uniqueEmployees}
+        sortBy={sortBy}
+        setSortBy={wrapFilter(setSortBy)}
       />
 
       {/* THE CATEGORIZED GRID — each group has its own pagination */}

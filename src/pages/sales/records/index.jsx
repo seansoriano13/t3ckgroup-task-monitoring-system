@@ -49,6 +49,7 @@ export default function SalesRecordsPage() {
   const [filterRecordType, setFilterRecordType] = useState("ALL");
   const [timeframe, setTimeframe] = useState("MONTHLY");
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
+  const [sortBy, setSortBy] = useState("NEWEST");
 
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [editingRevenue, setEditingRevenue] = useState(null);
@@ -315,6 +316,14 @@ export default function SalesRecordsPage() {
         return true;
       });
     }
+    // Sort
+    if (sortBy === "NEWEST") {
+      filtered.sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date));
+    } else if (sortBy === "OLDEST") {
+      filtered.sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date));
+    } else if (sortBy === "NAME") {
+      filtered.sort((a, b) => (a.employees?.name || "").localeCompare(b.employees?.name || ""));
+    }
 
     return filtered;
   }, [
@@ -325,6 +334,7 @@ export default function SalesRecordsPage() {
     searchTerm,
     selectedDateFilter,
     timeframe,
+    sortBy,
   ]);
 
   // Filter revenue logs
@@ -413,6 +423,15 @@ export default function SalesRecordsPage() {
           (a.employees?.name && a.employees.name.toLowerCase().includes(lower)),
       );
     }
+    // Sort
+    if (sortBy === "NEWEST") {
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else if (sortBy === "OLDEST") {
+      filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+    } else if (sortBy === "NAME") {
+      filtered.sort((a, b) => (a.employees?.name || "").localeCompare(b.employees?.name || ""));
+    }
+
     return filtered;
   }, [
     allowedRevenue,
@@ -423,6 +442,7 @@ export default function SalesRecordsPage() {
     timeframe,
     filterRecordType,
     isVerificationEnforced,
+    sortBy,
   ]);
 
   // --- WRAP SETTERS TO RESET PAGINATION ---
@@ -563,6 +583,8 @@ export default function SalesRecordsPage() {
           uniqueEmployees={uniqueEmployees}
           isVerificationEnforced={isVerificationEnforced}
           showDateFilter={true}
+          sortBy={sortBy}
+          setSortBy={wrapFilter(setSortBy)}
         />
 
         {/* TABLE BODY (ACTIVITIES) */}

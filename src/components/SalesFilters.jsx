@@ -1,5 +1,5 @@
 import React from "react";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -25,6 +25,8 @@ export default function SalesFilters({
   showDateFilter = null, // Can explicitly pass a boolean to override viewMode check
   filterRecordType = "ALL",
   setFilterRecordType = () => {},
+  sortBy,
+  setSortBy,
 }) {
   const shouldShowDateFilter =
     showDateFilter !== null ? showDateFilter : (viewMode === "BOARD" || activeTab === "REVENUE");
@@ -171,6 +173,24 @@ export default function SalesFilters({
             <option value="SALES_ORDER">Sales Orders</option>
             <option value="QUOTATION">Quotations</option>
           </select>
+        )}
+
+        {sortBy !== undefined && setSortBy && (
+          <div className="relative flex-1 sm:flex-none min-w-[130px]">
+            <SlidersHorizontal
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+              size={14}
+            />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full appearance-none bg-gray-2 border border-gray-4 rounded-lg pl-8 pr-4 py-2 text-sm text-gray-12 outline-none focus-within:border-gray-6 font-semibold cursor-pointer"
+            >
+              <option value="NEWEST">Newest first</option>
+              <option value="OLDEST">Oldest first</option>
+              <option value="NAME">By name</option>
+            </select>
+          </div>
         )}
       </div>
     </div>

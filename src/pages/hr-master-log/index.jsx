@@ -10,6 +10,7 @@ import {
   TrendingUp,
   BarChart3,
   CheckCircle,
+  SlidersHorizontal,
 } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
@@ -38,6 +39,7 @@ export default function HrMasterLogPage() {
   const [deptFilter, setDeptFilter] = useState("ALL");
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
   const [employeeFilter, setEmployeeFilter] = useState("ALL");
+  const [sortBy, setSortBy] = useState("NEWEST");
 
   // --- 2. TOPOLOGY STATES (For Dropdowns) ---
   const [allEmployees, setAllEmployees] = useState([]);
@@ -105,6 +107,7 @@ export default function HrMasterLogPage() {
       deptFilter,
       subDeptFilter,
       employeeFilter,
+      sortBy,
     },
     { isManagement: true, allEmployees }, // HR is always management
   );
@@ -262,6 +265,22 @@ export default function HrMasterLogPage() {
                 <option value="MEDIUM">Medium</option>
                 <option value="LOW">Low</option>
               </select>
+
+              <div className="relative flex-1 md:flex-none min-w-[130px]">
+                <SlidersHorizontal
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+                  size={14}
+                />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-4 py-2 h-[42px] outline-none text-sm cursor-pointer"
+                >
+                  <option value="NEWEST">Newest first</option>
+                  <option value="OLDEST">Oldest first</option>
+                  <option value="NAME">By name</option>
+                </select>
+              </div>
             </div>
           </div>
 

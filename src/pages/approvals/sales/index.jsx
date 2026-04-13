@@ -34,6 +34,7 @@ export default function SalesHeadApprovalsPage() {
   const [timeframe, setTimeframe] = useState("MONTHLY");
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
   const [viewActivity, setViewActivity] = useState(null);
+  const [sortBy, setSortBy] = useState("NEWEST");
 
   // Only Head/SuperAdmin can access, but protected route handles that.
   // We'll fetch all pending. The filtering will be done locally based on user's department.
@@ -156,9 +157,17 @@ export default function SalesHeadApprovalsPage() {
         return true;
       });
     }
+    // Sort
+    if (sortBy === "NEWEST") {
+      list.sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date));
+    } else if (sortBy === "OLDEST") {
+      list.sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date));
+    } else if (sortBy === "NAME") {
+      list.sort((a, b) => (a.employees?.name || "").localeCompare(b.employees?.name || ""));
+    }
 
     return list;
-  }, [rawPending, user, searchQuery, filterEmp, filterStatus, filterType, timeframe, selectedDateFilter]);
+  }, [rawPending, user, searchQuery, filterEmp, filterStatus, filterType, timeframe, selectedDateFilter, sortBy]);
 
   // Group by Employee -> Date
   const groupedData = useMemo(() => {
@@ -260,6 +269,8 @@ export default function SalesHeadApprovalsPage() {
             user={user}
             uniqueEmployees={uniqueEmployees}
             isVerificationEnforced={false}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
           />
         )}
 

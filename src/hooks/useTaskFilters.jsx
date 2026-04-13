@@ -12,6 +12,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     deptFilter = "ALL",
     subDeptFilter = "ALL",
     employeeFilter = "ALL",
+    sortBy = "NEWEST",
   } = filters;
 
   const { isManagement = false, allEmployees = [] } = options;
@@ -109,6 +110,12 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
 
     // Strict Sorting Hierarchy
     return filtered.sort((a, b) => {
+      // When NAME sort is selected, alphabetical name is the top priority
+      if (sortBy === "NAME") {
+        const nameCmp = (a.loggedByName || "").localeCompare(b.loggedByName || "");
+        if (nameCmp !== 0) return nameCmp;
+      }
+
       const getStatusRank = (status) => {
         if (status === TASK_STATUS.NOT_APPROVED) return 4;
         if (status === TASK_STATUS.COMPLETE) return 3;
@@ -125,6 +132,10 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       const weightB = priorityWeight[b.priority] || 0;
       if (weightA !== weightB) return weightB - weightA;
 
+      // Date tiebreaker: respects sortBy direction
+      if (sortBy === "OLDEST") {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      }
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
   }, [
@@ -140,6 +151,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     employeeFilter,
     employeeMap,
     isManagement,
+    sortBy,
   ]);
 
   // --- 2. THE EMPLOYEE DEEP-DIVE STATS ---
