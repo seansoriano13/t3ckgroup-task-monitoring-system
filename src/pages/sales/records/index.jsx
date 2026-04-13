@@ -862,11 +862,11 @@ export default function SalesRecordsPage() {
                             label={
                               timeframe === "MONTHLY"
                                 ? new Date(
-                                    dateBlock.dateStr + "-01",
-                                  ).toLocaleDateString("en-US", {
-                                    month: "long",
-                                    year: "numeric",
-                                  })
+                                  dateBlock.dateStr + "-01",
+                                ).toLocaleDateString("en-US", {
+                                  month: "long",
+                                  year: "numeric",
+                                })
                                 : dateBlock.dateStr
                             }
                             onActivityClick={(act) => setSelectedActivity(act)}
@@ -949,13 +949,12 @@ export default function SalesRecordsPage() {
                 <button
                   key={type}
                   onClick={() => setFilterRecordType(type)}
-                  className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${
-                    filterRecordType === type
-                      ? type === "SALES_QUOTATION"
-                        ? "bg-blue-600 text-white shadow"
-                        : "bg-gray-12 text-gray-1 shadow"
-                      : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${filterRecordType === type
+                    ? type === "SALES_QUOTATION"
+                      ? "bg-blue-600 text-white shadow"
+                      : "bg-gray-12 text-gray-1 shadow"
+                    : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+                    }`}
                 >
                   {type === "ALL"
                     ? "ALL LOGS"
@@ -1071,10 +1070,10 @@ export default function SalesRecordsPage() {
                                 </span>
                               )}
                             </td>
-                            <td className="p-4 font-mono text-xs font-bold text-gray-12 uppercase tracking-tight">
-                              {log.record_type === "SALES_QUOTATION" 
-                                ? (log.quotation_number || "—") 
-                                : (log.so_number || "—")}
+                            <td className="">
+                              <p className="text-[10px] font-black text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">{log.record_type === "SALES_QUOTATION"
+                                ? (log.quotation_number || "—")
+                                : (log.so_number || "—")}</p>
                             </td>
                             <td
                               className={`p-4 text-right font-black ${log.record_type === "SALES_QUOTATION" ? "text-blue-600" : "text-green-600"}`}
@@ -1083,14 +1082,14 @@ export default function SalesRecordsPage() {
                             </td>
                             <td className="p-4 text-center">
                               {isVerificationEnforced &&
-                              log.record_type !== "SALES_QUOTATION" &&
-                              log.is_verified === false ? (
+                                log.record_type !== "SALES_QUOTATION" &&
+                                log.is_verified === false ? (
                                 <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
                                   PENDING
                                 </span>
                               ) : log.status
-                                  ?.toUpperCase()
-                                  .includes("COMPLETED") ||
+                                ?.toUpperCase()
+                                .includes("COMPLETED") ||
                                 log.status
                                   ?.toUpperCase()
                                   .includes("SUBMITTED") ? (
@@ -1381,14 +1380,13 @@ function BoardActivityCard({ act, onClick, appSettings }) {
     <div
       onClick={onClick}
       className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm
-        ${
-          isLost
-            ? "bg-red-500/5 border-red-500/30"
-            : isWon
-              ? "bg-green-500/10 border-green-500/20"
-              : isDone
-                ? "bg-gray-2 border-gray-4"
-                : "bg-gray-1 border-gray-3 hover:border-gray-5"
+        ${isLost
+          ? "bg-red-500/5 border-red-500/30"
+          : isWon
+            ? "bg-green-500/10 border-green-500/20"
+            : isDone
+              ? "bg-gray-2 border-gray-4"
+              : "bg-gray-1 border-gray-3 hover:border-gray-5"
         }
         ${act.is_unplanned && "bg-gray-a2! border-0"}
       `}
@@ -1533,7 +1531,7 @@ const EditRevenueModal = ({
   if (!isOpen || !log) return null;
 
   const isOwnLog = log.employee_id === currentUser?.id;
-  const isHeadOfSubordinate = 
+  const isHeadOfSubordinate =
     ((currentUser?.is_head || currentUser?.isHead) && currentUser?.department === log.employees?.department && !isOwnLog);
 
   const canEditDirectly = currentUser?.isSuperAdmin || isHeadOfSubordinate;
@@ -1542,7 +1540,7 @@ const EditRevenueModal = ({
     isVerificationEnforced &&
     log.is_verified === true &&
     !canEditDirectly;
-    
+
   const hasPendingRequest =
     isVerificationEnforced && log.edit_request_status === "PENDING";
 
