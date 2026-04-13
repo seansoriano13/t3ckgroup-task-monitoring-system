@@ -420,7 +420,9 @@ export default function SalesRecordsPage() {
           (a.account && a.account.toLowerCase().includes(lower)) ||
           (a.product_item_sold &&
             a.product_item_sold.toLowerCase().includes(lower)) ||
-          (a.employees?.name && a.employees.name.toLowerCase().includes(lower)),
+          (a.employees?.name && a.employees.name.toLowerCase().includes(lower)) ||
+          (a.so_number && a.so_number.toLowerCase().includes(lower)) ||
+          (a.quotation_number && a.quotation_number.toLowerCase().includes(lower))
       );
     }
     // Sort
@@ -984,6 +986,9 @@ export default function SalesRecordsPage() {
                       <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
                         Type
                       </th>
+                      <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">
+                        Record #
+                      </th>
                       <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-right">
                         {filterRecordType === "SALES_ORDER"
                           ? "Revenue (₱)"
@@ -1065,6 +1070,11 @@ export default function SalesRecordsPage() {
                                   SO
                                 </span>
                               )}
+                            </td>
+                            <td className="p-4 font-mono text-xs font-bold text-gray-12 uppercase tracking-tight">
+                              {log.record_type === "SALES_QUOTATION" 
+                                ? (log.quotation_number || "—") 
+                                : (log.so_number || "—")}
                             </td>
                             <td
                               className={`p-4 text-right font-black ${log.record_type === "SALES_QUOTATION" ? "text-blue-600" : "text-green-600"}`}
@@ -1474,6 +1484,8 @@ const EditRevenueModal = ({
     status: log?.status || "COMPLETED SALES",
     remarks: log?.remarks || "",
     date: log?.date || "",
+    so_number: log?.so_number || "",
+    quotation_number: log?.quotation_number || "",
     is_verified: log?.is_verified !== false,
   });
 
@@ -1767,6 +1779,36 @@ const EditRevenueModal = ({
                 </select>
               </div>
             </div>
+
+            {log.record_type === "SALES_QUOTATION" ? (
+              <div>
+                <label className="text-[10px] font-bold text-gray-9 uppercase mb-1 block">
+                  Quotation Number
+                </label>
+                <input
+                  type="text"
+                  value={formData.quotation_number}
+                  onChange={(e) =>
+                    setFormData({ ...formData, quotation_number: e.target.value })
+                  }
+                  className="w-full bg-gray-2 border border-blue-500/30 rounded-lg px-3 py-2 text-sm font-mono text-gray-12 outline-none focus:border-blue-500"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="text-[10px] font-bold text-gray-9 uppercase mb-1 block">
+                  Sales Order (SO) Number
+                </label>
+                <input
+                  type="text"
+                  value={formData.so_number}
+                  onChange={(e) =>
+                    setFormData({ ...formData, so_number: e.target.value })
+                  }
+                  className="w-full bg-gray-2 border border-green-500/30 rounded-lg px-3 py-2 text-sm font-mono text-gray-12 outline-none focus:border-green-500"
+                />
+              </div>
+            )}
 
             <div>
               <label className="text-[10px] font-bold text-gray-9 uppercase mb-1 block">

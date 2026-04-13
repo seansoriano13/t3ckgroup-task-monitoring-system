@@ -44,6 +44,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   const [committeeRole, setCommitteeRole] = useState("");
   const [othersRemarks, setOthersRemarks] = useState("");
 
+  const [descriptionType, setDescriptionType] = useState("description");
+
   // Fetch Data when modal opens
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -141,10 +143,6 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     .includes("OTHERS") || selectedCategoryObj?.description
       ?.toUpperCase()
       .includes("OTHERS");
-
-  const isChecklistCategory =
-    selectedCategoryObj?.category_id?.toUpperCase().includes("CHECKLIST") ||
-    selectedCategoryObj?.description?.toUpperCase().includes("CHECKLIST");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -561,10 +559,33 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
 
               {/* Description */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
-                  Description
-                </label>
-                {isChecklistCategory ? (
+                <div className="flex items-center justify-between pl-1">
+                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+                    Task Details
+                  </label>
+                  <div className="flex gap-1 bg-gray-3 p-0.5 rounded-lg border border-gray-4">
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionType("description")}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
+                        descriptionType === "description" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
+                      }`}
+                    >
+                      Description
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionType("checklist")}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
+                        descriptionType === "checklist" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
+                      }`}
+                    >
+                      Checklist
+                    </button>
+                  </div>
+                </div>
+
+                {descriptionType === "checklist" ? (
                   <ChecklistTaskInput 
                     value={formData.taskDescription}
                     onChange={handleChange}
@@ -572,10 +593,15 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                 ) : (
                   <textarea
                     name="taskDescription"
-                    value={formData.taskDescription}
+                    value={
+                      typeof formData.taskDescription === "string" &&
+                      (formData.taskDescription.trim().startsWith("[") || formData.taskDescription.trim().startsWith("{"))
+                        ? ""
+                        : formData.taskDescription
+                    }
                     onChange={handleChange}
                     placeholder="Detail your completed work here..."
-                    className="w-full bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg p-4 outline-none transition-colors h-28 resize-none text-sm placeholder:text-gray-7"
+                    className="w-full bg-gray-1 border border-gray-4 focus:border-red-9 focus:ring-1 focus:ring-red-9 text-gray-12 rounded-lg p-4 outline-none transition-all h-28 resize-none text-sm placeholder:text-gray-7 shadow-inner"
                     required
                   />
                 )}

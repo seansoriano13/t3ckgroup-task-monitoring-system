@@ -405,22 +405,48 @@ export default function TasksPage() {
                       ←
                     </button>
                     {/* Page number pills */}
-                    {Array.from(
-                      { length: totalGroupPages },
-                      (_, i) => i + 1,
-                    ).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setGroupPage(statusKey, p)}
-                        className={`w-7 h-7 rounded text-xs font-bold transition-all border ${
-                          p === currentGroupPage
-                            ? "bg-primary text-white border-primary"
-                            : "bg-gray-3 text-gray-10 border-gray-4 hover:border-gray-6"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
+                    {(() => {
+                      let startPage = Math.max(1, currentGroupPage - 2);
+                      let endPage = Math.min(totalGroupPages, currentGroupPage + 2);
+                      
+                      if (currentGroupPage <= 3) {
+                        endPage = Math.min(totalGroupPages, 5);
+                      } else if (currentGroupPage >= totalGroupPages - 2) {
+                        startPage = Math.max(1, totalGroupPages - 4);
+                      }
+
+                      const pages = [];
+                      if (startPage > 1) {
+                        pages.push(1);
+                        if (startPage > 2) pages.push("...");
+                      }
+                      
+                      for (let i = startPage; i <= endPage; i++) {
+                        pages.push(i);
+                      }
+                      
+                      if (endPage < totalGroupPages) {
+                        if (endPage < totalGroupPages - 1) pages.push("...");
+                        pages.push(totalGroupPages);
+                      }
+
+                      return pages.map((p, idx) => (
+                        <button
+                          key={idx}
+                          disabled={p === "..."}
+                          onClick={() => p !== "..." && setGroupPage(statusKey, p)}
+                          className={`w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition-all border ${
+                            p === currentGroupPage
+                              ? "bg-primary text-white border-primary"
+                              : p === "..."
+                              ? "bg-transparent text-gray-10 border-transparent cursor-default"
+                              : "bg-gray-3 text-gray-10 border-gray-4 hover:border-gray-6"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ));
+                    })()}
                     <button
                       disabled={currentGroupPage === totalGroupPages}
                       onClick={() =>

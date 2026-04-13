@@ -38,6 +38,7 @@ export default function TaskDetails({
 
   const [approvalGrade, setApprovalGrade] = useState(null);
   const [approvalRemarks, setApprovalRemarks] = useState("");
+  const [descriptionType, setDescriptionType] = useState("description");
 
   const [formData, setFormData] = useState({
     department: "",
@@ -74,6 +75,16 @@ export default function TaskDetails({
       queueMicrotask(() => {
         setApprovalGrade(null);
         setApprovalRemarks("");
+
+        let initialDescriptionType = "description";
+        const desc = task.taskDescription;
+        if (desc) {
+          const trimmed = typeof desc === "string" ? desc.trim() : "";
+          if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}")) || Array.isArray(desc)) {
+            initialDescriptionType = "checklist";
+          }
+        }
+        setDescriptionType(initialDescriptionType);
 
         setFormData({
           department: taskDept || user?.department || "",
@@ -369,11 +380,40 @@ export default function TaskDetails({
             )}
 
             <div className="flex flex-col gap-1.5 pt-2">
-              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
-                Description
-              </label>
               {isEditing ? (
-                isChecklistFormat ? (
+                <div className="flex items-center justify-between pl-1">
+                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+                    Task Details
+                  </label>
+                  <div className="flex gap-1 bg-gray-3 p-0.5 rounded-lg border border-gray-4">
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionType("description")}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
+                        descriptionType === "description" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
+                      }`}
+                    >
+                      Description
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionType("checklist")}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
+                        descriptionType === "checklist" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
+                      }`}
+                    >
+                      Checklist
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                  Description
+                </label>
+              )}
+
+              {isEditing ? (
+                descriptionType === "checklist" ? (
                   <ChecklistTaskInput
                     value={formData.taskDescription}
                     onChange={handleChange}
@@ -381,10 +421,15 @@ export default function TaskDetails({
                 ) : (
                   <textarea
                     name="taskDescription"
-                    value={formData.taskDescription}
+                    value={
+                      typeof formData.taskDescription === "string" &&
+                      (formData.taskDescription.trim().startsWith("[") || formData.taskDescription.trim().startsWith("{"))
+                        ? ""
+                        : formData.taskDescription
+                    }
                     onChange={handleChange}
                     required
-                    className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 transition-colors h-24 resize-none text-sm"
+                    className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 focus:ring-1 focus:ring-red-9 transition-all h-24 resize-none text-sm shadow-inner"
                   />
                 )
               ) : isChecklistFormat ? (

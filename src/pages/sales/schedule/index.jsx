@@ -347,16 +347,28 @@ export default function SalesSchedulePage() {
     mutationFn: async (isSubmit = false) => {
       // 1.
       if (isSubmit) {
-        const validTaskCount = activitiesData.filter(
-          (a) =>
-            a.activity_type !== "None" ||
-            (a.account_name && a.account_name.trim() !== ""),
-        ).length;
-        if (validTaskCount === 0) {
+        let invalid = false;
+        weekDates.forEach((d) => {
+          const amCount = activitiesData.filter(
+            (a) =>
+              a.scheduled_date === d.dateStr &&
+              a.time_of_day === "AM" &&
+              (a.activity_type !== "None" || (a.account_name && a.account_name.trim() !== ""))
+          ).length;
+          const pmCount = activitiesData.filter(
+            (a) =>
+              a.scheduled_date === d.dateStr &&
+              a.time_of_day === "PM" &&
+              (a.activity_type !== "None" || (a.account_name && a.account_name.trim() !== ""))
+          ).length;
+          if (amCount < 5 || pmCount < 5) invalid = true;
+        });
+
+        if (invalid) {
           toast.error(
-            "You must fill out at least one task before submitting the plan.",
+            "You must plan at least 5 AM tasks and 5 PM tasks for ALL scheduled days before submitting.",
           );
-          throw new Error("No tasks to submit."); // Throw an error to stop the mutation chain
+          throw new Error("Invalid task counts."); // Throw an error to stop the mutation chain
         }
       }
 
@@ -489,16 +501,21 @@ export default function SalesSchedulePage() {
   const currentDateObj =
     weekDates[activeTab] || weekDates[weekDates.length - 1];
 
-  const mapDateToTasks = activitiesData.reduce((acc, a) => {
+  const mapDateToBlockCounts = activitiesData.reduce((acc, a) => {
     if (
       a.activity_type !== "None" ||
       (a.account_name && a.account_name.trim() !== "")
     ) {
-      acc[a.scheduled_date] = (acc[a.scheduled_date] || 0) + 1;
+      if (!acc[a.scheduled_date]) acc[a.scheduled_date] = { AM: 0, PM: 0 };
+      if (a.time_of_day === "AM") acc[a.scheduled_date].AM += 1;
+      if (a.time_of_day === "PM") acc[a.scheduled_date].PM += 1;
     }
     return acc;
   }, {});
-  const allDaysFilled = weekDates.every((d) => mapDateToTasks[d.dateStr] > 0);
+  const allDaysFilled = weekDates.every((d) => {
+    const counts = mapDateToBlockCounts[d.dateStr];
+    return counts && counts.AM >= 5 && counts.PM >= 5;
+  });
 
   return (
     <ProtectedRoute excludeSuperAdmin={true}>
@@ -638,7 +655,7 @@ export default function SalesSchedulePage() {
                 }
                 title={
                   !allDaysFilled
-                    ? "Please plan at least 1 activity for ALL days of the week to unlock submission."
+                    ? "Please plan at least 5 AM tasks and 5 PM tasks for ALL days of the week to unlock submission."
                     : ""
                 }
                 className={`px-4 py-2 ${allDaysFilled ? "bg-green-600 hover:bg-green-700 shadow-green-900/20 shadow-lg cursor-pointer" : "bg-green-900/50 text-white/50 cursor-not-allowed"} text-white rounded-lg font-bold flex items-center gap-2 transition-colors`}
@@ -732,7 +749,7 @@ export default function SalesSchedulePage() {
                 }
                 title={
                   !allDaysFilled
-                    ? "Please plan at least 1 activity for ALL days of the week to unlock submission."
+                    ? "Please plan at least 5 AM tasks and 5 PM tasks for ALL days of the week to unlock submission."
                     : ""
                 }
                 className={`px-4 py-2 ${allDaysFilled ? "bg-blue-600 hover:bg-blue-700 shadow-blue-900/20 shadow-lg cursor-pointer" : "bg-blue-900/50 text-white/50 cursor-not-allowed"} text-white rounded-lg font-bold flex items-center gap-2 transition-colors`}

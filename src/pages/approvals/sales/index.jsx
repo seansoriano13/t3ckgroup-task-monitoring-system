@@ -96,8 +96,8 @@ export default function SalesHeadApprovalsPage() {
       });
     }
 
-    // Status Filter: Head only verifies completed activities OR planned activities?
-    list = list.filter((act) => act.status !== "INCOMPLETE");
+    // Helper to check if employee has completed the activity
+    const isActDone = (s) => s === "DONE" || s === "APPROVED" || s === "PENDING" || s === "PENDING_APPROVAL";
 
     // Search filter
     const q = searchQuery.trim().toLowerCase();
@@ -113,13 +113,17 @@ export default function SalesHeadApprovalsPage() {
 
     if (filterEmp !== "ALL") list = list.filter((a) => a.employee_id === filterEmp);
 
-    if (filterStatus !== "ALL") {
+    if (filterStatus === "ALL") {
+      // By default, only show tasks that the employee has actually completed.
+      list = list.filter((act) => isActDone(act.status));
+    } else {
       if (filterStatus === "APPROVED" || filterStatus === "DONE") {
         list = list.filter((a) => a.status === "APPROVED" || a.status === "DONE");
       } else if (filterStatus === "PENDING") {
         list = list.filter((a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL");
       } else if (filterStatus === "INCOMPLETE") {
-        list = list.filter((a) => a.status === "INCOMPLETE" || a.status === "REJECTED");
+        // Show tasks not yet completed, or explicitly rejected
+        list = list.filter((a) => !isActDone(a.status) || a.status === "REJECTED");
       } else {
         list = list.filter((a) => a.status === filterStatus);
       }
