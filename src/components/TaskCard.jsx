@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronUp,
   FolderKanban,
+  User
 } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import { ArrowRight, PencilLine } from "lucide-react";
@@ -16,6 +17,14 @@ import { formatTaskPreview } from "../utils/taskFormatters";
 export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const isHr =
+    user?.is_hr === true ||
+    user?.isHr === true ||
+    user?.is_super_admin === true ||
+    user?.isSuperAdmin === true;
+  const isHead = user?.is_head === true || user?.isHead === true;
+  const isManagement = isHr || isHead;
 
   // 🔥 Dynamic styling for the Priority badge
   const priorityStyles = {
@@ -88,6 +97,14 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
       {/* Top Row: Category, Priority & Status */}
       <div className="flex justify-between items-start gap-2">
         <div className="flex flex-wrap gap-2 items-center">
+          {/* Employee Name (Visible to Management) */}
+          {isManagement && task.loggedByName && (
+            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border text-blue-500 bg-blue-500/10 border-blue-500/20 max-w-[140px] truncate" title={task.loggedByName}>
+              <User size={10} className="shrink-0" />
+              <span className="truncate">{task.loggedByName}</span>
+            </span>
+          )}
+
           {/* Category Badge */}
           <span className="text-xs font-bold text-gray-11 bg-gray-3 px-2 py-1 rounded border border-gray-4">
             {task.categoryId}
