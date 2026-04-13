@@ -746,7 +746,7 @@ export default function SalesRecordsPage() {
                                     {Number(act.expense_amount).toLocaleString()}
                                   </span>
                                 )}
-                                {act.sales_outcome === "WON" && (
+                                {act.sales_outcome === "COMPLETED" && (
                                   <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">
                                     WON
                                   </span>
@@ -1376,7 +1376,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
 function BoardActivityCard({ act, onClick, appSettings }) {
   const isDone = act.status === "DONE" || act.status === "APPROVED";
   const isLost = act.sales_outcome === "LOST";
-  const isWon = act.sales_outcome === "WON";
+  const isWon = act.sales_outcome === "COMPLETED";
   return (
     <div
       onClick={onClick}

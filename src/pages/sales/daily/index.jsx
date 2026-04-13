@@ -521,7 +521,7 @@ function ChecklistItem({
     data.status === "PENDING_APPROVAL" || data.status === "PENDING";
   const isHighlighted = data.id === highlightId;
   const isLost = data.sales_outcome === "LOST";
-  const isWon = data.sales_outcome === "WON";
+  const isWon = data.sales_outcome === "COMPLETED";
   const [details, setDetails] = useState(data.details_daily || "");
   const [isEditing, setIsEditing] = useState(false);
   const [justChecked, setJustChecked] = useState(false);
@@ -711,7 +711,7 @@ function ChecklistItem({
               className="text-[10px] font-bold uppercase bg-gray-2 border border-gray-4 rounded px-2 py-1 outline-none focus:border-primary cursor-pointer disabled:opacity-50"
             >
               <option value="">Pending</option>
-              <option value="WON"> WON</option>
+              <option value="COMPLETED"> WON</option>
               <option value="LOST"> LOST</option>
             </select>
             {outcomeMutation.isPending && (

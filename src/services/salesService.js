@@ -832,7 +832,7 @@ export const salesService = {
 
   // === SALES OUTCOME (Admin/Head only) ===
   async updateActivityOutcome(activityId, outcome) {
-    // outcome: 'WON' | 'LOST' | null
+    // outcome: 'COMPLETED' | 'LOST' | null
     const { data, error } = await supabase
       .from("sales_activities")
       .update({ sales_outcome: outcome || null })

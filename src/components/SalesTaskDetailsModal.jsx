@@ -84,7 +84,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                     : activity.status}
               </span>
               {/* Sales Outcome Badge */}
-              {localOutcome === "WON" && (
+              {localOutcome === "COMPLETED" && (
                 <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-green-500/10 text-green-500 border border-green-500/30">
                   WON
                 </span>
@@ -218,7 +218,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
             activity.so_number ||
             activity.expense_amount) && (
             <div
-              className={`bg-gray-1 border rounded-xl p-5 shadow-sm space-y-4 ${localOutcome === "LOST" ? "border-red-500/30 bg-red-500/5" : localOutcome === "WON" ? "border-green-500/30 bg-green-500/5" : "border-amber-500/30"}`}
+              className={`bg-gray-1 border rounded-xl p-5 shadow-sm space-y-4 ${localOutcome === "LOST" ? "border-red-500/30 bg-red-500/5" : localOutcome === "COMPLETED" ? "border-green-500/30 bg-green-500/5" : "border-amber-500/30"}`}
             >
               <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-3">
                 <DollarSign size={16} className="text-amber-500" />
@@ -287,7 +287,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                       ? "border-gray-3 opacity-60"
                       : localOutcome === "LOST"
                         ? "border-red-500/30"
-                        : localOutcome === "WON"
+                        : localOutcome === "COMPLETED"
                           ? "border-green-500/30"
                           : "border-gray-4"
                   }`}
@@ -303,7 +303,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                     )}
                   </div>
                   <div className="flex gap-3">
-                    {["", "WON", "LOST"].map((opt) => (
+                    {["", "COMPLETED", "LOST"].map((opt) => (
                       <button
                         key={opt}
                         onClick={() =>
@@ -319,7 +319,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                         }
                         className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border transition-all ${
                           localOutcome === opt
-                            ? opt === "WON"
+                            ? opt === "COMPLETED"
                               ? "bg-green-500 text-white border-green-500 shadow-green-500/25 shadow-lg"
                               : opt === "LOST"
                                 ? "bg-red-500 text-white border-red-500 shadow-red-500/25 shadow-lg"
@@ -329,7 +329,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                       >
                         {opt === ""
                           ? "Pending"
-                          : opt === "WON"
+                          : opt === "COMPLETED"
                             ? "WON"
                             : "LOST"}
                       </button>

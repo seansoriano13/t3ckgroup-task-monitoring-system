@@ -211,10 +211,10 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
         withRefExpense += amt;
         withRefCount++;
 
-        if (act.sales_outcome === "WON") {
+        if (act.sales_outcome === REVENUE_STATUS.COMPLETED) {
           wonExpense += amt; wonCount++;
           empMap[empId].won += amt; empMap[empId].wonCount++;
-        } else if (act.sales_outcome === "LOST") {
+        } else if (act.sales_outcome === REVENUE_STATUS.LOST) {
           lostExpense += amt; lostCount++;
           empMap[empId].lost += amt; empMap[empId].lostCount++;
         } else {
