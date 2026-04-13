@@ -119,7 +119,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
 
     analyticsLogs.forEach((log) => {
       const val = Number(log.revenue_amount) || 0;
-      const isWon = log.status?.toUpperCase().includes(REVENUE_STATUS.COMPLETED);
+      const isWon = log.status === REVENUE_STATUS.COMPLETED || log.status === REVENUE_STATUS.APPROVED;
 
       if (isWon) won += val;
       else lost += val;

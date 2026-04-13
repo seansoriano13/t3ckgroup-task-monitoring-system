@@ -13,6 +13,7 @@ import { CheckCircle2 } from "lucide-react";
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import { useAuth } from "../context/AuthContext";
 import { formatTaskPreview } from "../utils/taskFormatters";
+import { TASK_STATUS } from "../constants/status";
 
 export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
   const { user } = useAuth();
@@ -127,7 +128,7 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
           </span>
 
           {/* 🔥 HR VERIFICATION BADGE (Only shows when Manager has approved it) */}
-          {task.status === "COMPLETE" && (
+          {task.status === TASK_STATUS.COMPLETE && (
             <span
               className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${
                 task.hrVerified
@@ -174,7 +175,7 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
             <ChecklistTaskRenderer
               description={task.taskDescription}
               isOwner={isOwner}
-              disabled={!isOwner || task.status === "COMPLETE"}
+              disabled={!isOwner || task.status === TASK_STATUS.COMPLETE}
               onInlineCheck={handleInlineCheck}
             />
           </div>
@@ -184,7 +185,7 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
       {/* Bottom Row: Actions */}
       <div className="flex justify-between items-center pt-3 border-t border-gray-3 mt-auto">
         <div className="flex gap-3 items-center flex-1">
-          {onEdit && task.status !== "COMPLETE" && (
+          {onEdit && task.status !== TASK_STATUS.COMPLETE && (
             <button
               onClick={(e) => {
                 e.stopPropagation(); // Prevents triggering other click events

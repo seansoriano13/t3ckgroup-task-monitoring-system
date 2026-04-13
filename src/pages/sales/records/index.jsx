@@ -30,6 +30,7 @@ import SalesFilters from "../../../components/SalesFilters.jsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Clock } from "lucide-react";
+import { REVENUE_STATUS, RECORD_TYPE } from "../../../constants/status";
 import { useRef } from "react";
 
 export default function SalesRecordsPage() {
@@ -350,7 +351,7 @@ export default function SalesRecordsPage() {
       filtered = filtered.filter(
         (a) =>
           a.record_type === filterRecordType ||
-          (filterRecordType === "SALES_ORDER" && !a.record_type),
+          (filterRecordType === RECORD_TYPE.SALES_ORDER && !a.record_type),
       ); // fallback legacy data to SO
 
     // B. Status Filter
@@ -359,15 +360,15 @@ export default function SalesRecordsPage() {
       if (filterStatus === "APPROVED" || filterStatus === "DONE")
         filtered = filtered.filter(
           (a) =>
-            (a.status?.toUpperCase().includes("COMPLETED") ||
-              a.status?.toUpperCase() === "APPROVED") &&
+            (a.status === REVENUE_STATUS.COMPLETED ||
+              a.status === REVENUE_STATUS.APPROVED) &&
             (!isVerificationEnforced || a.is_verified !== false),
         );
       if (filterStatus === "INCOMPLETE")
         filtered = filtered.filter(
           (a) =>
-            a.status?.toUpperCase().includes("LOST") ||
-            a.status?.toUpperCase() === "REJECTED",
+            a.status === REVENUE_STATUS.LOST ||
+            a.status === REVENUE_STATUS.REJECTED,
         );
       if (filterStatus === "UNVERIFIED")
         filtered = filtered.filter((a) => a.is_verified === false);
@@ -1779,8 +1780,8 @@ const EditRevenueModal = ({
                   }
                   className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-bold"
                 >
-                  <option value="COMPLETED SALES">COMPLETED SALES</option>
-                  <option value="LOST SALES">LOST SALES</option>
+                  <option value={REVENUE_STATUS.COMPLETED}>COMPLETED</option>
+                  <option value={REVENUE_STATUS.LOST}>LOST</option>
                 </select>
               </div>
             </div>

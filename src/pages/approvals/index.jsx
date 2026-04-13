@@ -120,7 +120,7 @@ export default function ApprovalsPage() {
 
         if (isHr) {
           // 🔥 HR QUEUE: Needs to be COMPLETE, but NOT YET VERIFIED
-          const isComplete = t.status === "COMPLETE";
+          const isComplete = t.status === TASK_STATUS.COMPLETE;
           const isNotVerified = !t.hrVerified;
           matchesHrQueue = isNotMe && isComplete && isNotVerified;
         }
@@ -148,7 +148,7 @@ export default function ApprovalsPage() {
           const isMarketing = taskSubDept === "MARKETING" || taskDept === "MARKETING";
           let matchesHeadQueueForThisTask = false;
 
-          if (t.status === "INCOMPLETE") {
+          if (t.status === TASK_STATUS.INCOMPLETE) {
              matchesHeadQueueForThisTask = isNotMe && isMyDept;
           } else if (t.status === TASK_STATUS.AWAITING_APPROVAL) {
              const canOpsManagerApprove = appSettings?.marketing_approval_by_ops_manager && isMyDept;
@@ -211,8 +211,8 @@ export default function ApprovalsPage() {
 
     // Status filter
     if (statusFilter !== "ALL") {
-      if (statusFilter === "INCOMPLETE") result = result.filter(t => t.status === TASK_STATUS.INCOMPLETE);
-      else if (statusFilter === "COMPLETE") result = result.filter(t => t.status === TASK_STATUS.COMPLETE);
+      if (statusFilter === TASK_STATUS.INCOMPLETE) result = result.filter(t => t.status === TASK_STATUS.INCOMPLETE);
+      else if (statusFilter === TASK_STATUS.COMPLETE) result = result.filter(t => t.status === TASK_STATUS.COMPLETE);
       else if (statusFilter === "COMPLETE_UNVERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && !t.hrVerified);
       else if (statusFilter === "COMPLETE_VERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && t.hrVerified);
       else if (statusFilter === "AWAITING_APPROVAL") result = result.filter(t => t.status === TASK_STATUS.AWAITING_APPROVAL);
@@ -440,7 +440,7 @@ function ApprovalRow({
   const handleHeadApprove = () => {
     onProcess({
       id: task.id,
-      status: "COMPLETE",
+      status: TASK_STATUS.COMPLETE,
       grade: grade,
       remarks: remarks,
       endAt: new Date().toISOString(),
@@ -468,7 +468,7 @@ function ApprovalRow({
   const handleHrVerify = () => {
     onProcess({
       id: task.id,
-      status: "COMPLETE",
+      status: TASK_STATUS.COMPLETE,
       hrVerified: true,
       hrVerifiedAt: new Date().toISOString(),
       hrRemarks: hrRemarks, // Optional: HR can leave a note even when approving

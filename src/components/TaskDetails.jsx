@@ -145,7 +145,7 @@ export default function TaskDetails({
   // HR-rejected tasks (NOT APPROVED + grade>0) must NOT be editable by the employee.
   const isHrRejected = task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
   const canEdit =
-    isHr || isHead || (isOwner && task.status !== "COMPLETE" && !isHrRejected);
+    isHr || isHead || (isOwner && task.status !== TASK_STATUS.COMPLETE && !isHrRejected);
 
   let isChecklistFormat = false;
   let hasUncheckedItems = false;

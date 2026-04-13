@@ -1,11 +1,15 @@
+import { TASK_STATUS, SALES_STATUS } from "../constants/status";
+
 export default function StatusBadge({ status }) {
   const statusStyles = {
-    COMPLETE: "bg-gray-2 text-green-500 border-gray-4",
-    INCOMPLETE: "bg-gray-2 text-yellow-500 border-gray-4",
-    "AWAITING APPROVAL": "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    NOT_APPROVED: "bg-red-a2 text-red-9 border-red-a4",
-    "COMPLETED SALES": "bg-green-500/10 text-green-500 border-green-500/20",
-    "LOST SALES": "bg-red-500/10 text-red-500 border-red-500/20",
+    [TASK_STATUS.COMPLETE]: "bg-green-500/10 text-green-500 border-green-500/20",
+    [TASK_STATUS.INCOMPLETE]: "bg-gray-2 text-yellow-500 border-gray-4",
+    [TASK_STATUS.AWAITING_APPROVAL]: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    [TASK_STATUS.NOT_APPROVED]: "bg-red-a2 text-red-9 border-red-a4",
+    [SALES_STATUS.COMPLETED]: "bg-green-500/10 text-green-500 border-green-500/20",
+    [SALES_STATUS.LOST]: "bg-red-500/10 text-red-500 border-red-500/20",
+    
+    // Legacy / Other support
     WON: "bg-green-500/10 text-green-500 border-green-500/20",
     LOST: "bg-red-500/10 text-red-500 border-red-500/20",
     DRAFT: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",

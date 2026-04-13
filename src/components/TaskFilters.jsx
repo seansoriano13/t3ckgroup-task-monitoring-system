@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { TASK_STATUS } from "../constants/status";
 
 export default function TaskFilters({
   searchTerm,
@@ -88,7 +89,7 @@ export default function TaskFilters({
                   className="w-full appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-4 py-2.5 outline-none text-xs md:text-sm h-[46px] cursor-pointer"
                 >
                   <option value="ALL">Status</option>
-                  <option value="COMPLETE">Complete</option>
+                  <option value={TASK_STATUS.COMPLETE}>Complete</option>
                   <option value="AWAITING_APPROVAL">Awaiting Approval</option>
                   <option value="INCOMPLETE">Incomplete</option>
                   <option value="NOT APPROVED">Not Approved</option>

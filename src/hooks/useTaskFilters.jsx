@@ -29,7 +29,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
 
   const filteredTasks = useMemo(() => {
     const filtered = rawTasks.filter((task) => {
-      if (task.status === "DELETED") return false;
+      if (task.status === TASK_STATUS.DELETED) return false;
 
       const desc = task.taskDescription || "";
       const project = task.projectTitle || "";
@@ -66,7 +66,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       let matchesHr = true;
       if (hrFilter === "VERIFIED") matchesHr = task.hrVerified === true;
       if (hrFilter === "PENDING")
-        matchesHr = task.status === "COMPLETE" && !task.hrVerified;
+        matchesHr = task.status === TASK_STATUS.COMPLETE && !task.hrVerified;
 
       // Date Range
       let matchesDate = true;
@@ -161,7 +161,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
 
     const total = filteredTasks.length;
     const completed = filteredTasks.filter(
-      (t) => t.status === "COMPLETE",
+      (t) => t.status === TASK_STATUS.COMPLETE,
     ).length;
     const completionRate = Math.round((completed / total) * 100);
 
@@ -175,7 +175,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
         : "N/A";
 
     const pendingHr = filteredTasks.filter(
-      (t) => t.status === "COMPLETE" && !t.hrVerified,
+      (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
     ).length;
 
     return { total, completionRate, avgGrade, pendingHr };

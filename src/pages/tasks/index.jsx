@@ -322,9 +322,9 @@ export default function TasksPage() {
           // All tasks that belong to this group
           const allGroupTasks = sortedAndFilteredTasks.filter((t) => {
             if (statusKey === "COMPLETE_UNVERIFIED")
-              return t.status === "COMPLETE" && !t.hrVerified;
+              return t.status === TASK_STATUS.COMPLETE && !t.hrVerified;
             if (statusKey === "COMPLETE_VERIFIED")
-              return t.status === "COMPLETE" && t.hrVerified;
+              return t.status === TASK_STATUS.COMPLETE && t.hrVerified;
             if (statusKey === "AWAITING_APPROVAL") {
               return t.status === TASK_STATUS.AWAITING_APPROVAL;
             }

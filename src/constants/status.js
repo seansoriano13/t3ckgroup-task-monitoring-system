@@ -6,19 +6,22 @@
 export const TASK_STATUS = {
   INCOMPLETE: "INCOMPLETE",
   AWAITING_APPROVAL: "AWAITING APPROVAL",
-  COMPLETE: "COMPLETE",
-  NOT_APPROVED: "NOT APPROVED", // Standardized to match database string
+  COMPLETE: "COMPLETED",          // DB migrated: was "COMPLETE" → now "COMPLETED"
+  NOT_APPROVED: "NOT APPROVED",   // Standardized to match database string
   DELETED: "DELETED",
 };
 
 export const REVENUE_STATUS = {
   PENDING: "PENDING",
-  COMPLETED: "COMPLETED SALES",
-  LOST: "LOST SALES",
+  COMPLETED: "COMPLETED",         // DB migrated: was "COMPLETED SALES" → now "COMPLETED"
+  LOST: "LOST",                   // DB migrated: was "LOST SALES" → now "LOST"
   REJECTED: "REJECTED",
   APPROVED: "APPROVED",
   DONE: "APPROVED", // Alias for backward compatibility and UI filters
 };
+
+// Alias used in StatusBadge and sales-related UI components
+export const SALES_STATUS = REVENUE_STATUS;
 
 export const RECORD_TYPE = {
   SALES_ORDER: "SALES_ORDER",

@@ -1,5 +1,6 @@
 import React from "react";
 import { FieldBox } from "./FieldBox";
+import { TASK_STATUS } from "../constants/status";
 
 export default function ManagerEvaluation({
   isEditing,
@@ -12,8 +13,8 @@ export default function ManagerEvaluation({
 }) {
   if (isEditing) return null;
 
-  const isComplete = task.status === "COMPLETE";
-  const isNotApproved = task.status === "NOT APPROVED";
+  const isComplete = task.status === TASK_STATUS.COMPLETE;
+  const isNotApproved = task.status === TASK_STATUS.NOT_APPROVED;
 
   // 🔥 THE FIX: Both statuses mean the manager is done evaluating
   const isFinalized = isComplete || isNotApproved;

@@ -25,6 +25,7 @@ import { useTaskFilters } from "../../hooks/useTaskFilters"; // 🔥 The Custom 
 import { Users } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { formatTaskPreview } from "../../utils/taskFormatters";
+import { TASK_STATUS } from "../../constants/status";
 
 export default function HrMasterLogPage() {
   const { user } = useAuth();
@@ -236,9 +237,9 @@ export default function HrMasterLogPage() {
                 className="bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2 h-[42px] text-sm outline-none flex-1 md:flex-none"
               >
                 <option value="ALL">All Statuses</option>
-                <option value="COMPLETE">Complete</option>
-                <option value="INCOMPLETE">Incomplete</option>
-                <option value="NOT APPROVED">Not Approved</option>
+                <option value={TASK_STATUS.COMPLETE}>Complete</option>
+                <option value={TASK_STATUS.INCOMPLETE}>Incomplete</option>
+                <option value={TASK_STATUS.NOT_APPROVED}>Not Approved</option>
               </select>
 
               <select
@@ -462,7 +463,7 @@ export default function HrMasterLogPage() {
                         <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-500 uppercase tracking-wider bg-green-900/10 px-3 py-1.5 rounded-full border border-green-900/20">
                           <CheckSquare size={14} /> Verified
                         </span>
-                      ) : task.status === "COMPLETE" ? (
+                      ) : task.status === TASK_STATUS.COMPLETE ? (
                         <span className="text-xs text-amber-500 italic font-bold">
                           Pending HR Verification
                         </span>

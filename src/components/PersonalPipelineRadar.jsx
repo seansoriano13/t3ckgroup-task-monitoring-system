@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import { Activity, TrendingUp, Star, Clock, CheckCircle2 } from "lucide-react";
+import { TASK_STATUS } from "../constants/status";
 
 export default function PersonalPipelineRadar({ selectedMonth }) {
   const { user } = useAuth();
@@ -37,15 +38,15 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
       ) {
         return;
       }
-      if (task.status === "DELETED") return;
+      if (task.status === TASK_STATUS.DELETED) return;
 
       total++;
-      if (task.status === "INCOMPLETE") draft++;
-      if (task.status === "NOT APPROVED") rejected++;
-      if (task.status === "COMPLETE" && !task.hrVerified) pendingHr++;
+      if (task.status === TASK_STATUS.INCOMPLETE) draft++;
+      if (task.status === TASK_STATUS.NOT_APPROVED) rejected++;
+      if (task.status === TASK_STATUS.COMPLETE && !task.hrVerified) pendingHr++;
       if (task.hrVerified) verified++;
 
-      if (task.status === "COMPLETE" && task.grade > 0) {
+      if (task.status === TASK_STATUS.COMPLETE && task.grade > 0) {
         totalGrade += task.grade;
         gradedCount++;
       }

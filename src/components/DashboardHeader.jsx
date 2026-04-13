@@ -7,6 +7,7 @@ import { taskService } from "../services/taskService";
 import { Link } from "react-router";
 import { supabase } from "../lib/supabase.js";
 import { ThemeToggle } from "./ThemeToggle";
+import { TASK_STATUS } from "../constants/status";
 
 function DashboardHeader() {
   const { user } = useAuth();
@@ -60,7 +61,7 @@ function DashboardHeader() {
     return rawTasks.filter((t) => {
       const isNotMe = t.loggedById !== user?.id;
       if (isHr) {
-        return isNotMe && t.status === "COMPLETE" && !t.hrVerified;
+        return isNotMe && t.status === TASK_STATUS.COMPLETE && !t.hrVerified;
       } else if (isHead) {
         const taskSubDept =
           t.sub_department ||
@@ -78,7 +79,7 @@ function DashboardHeader() {
           isMyDept = taskDept === userDept;
         }
 
-        return isNotMe && isMyDept && t.status === "INCOMPLETE";
+        return isNotMe && isMyDept && t.status === TASK_STATUS.INCOMPLETE;
       }
       return false;
     }).length;

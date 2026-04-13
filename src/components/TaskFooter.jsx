@@ -40,7 +40,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
         </button>
 
         {!isEditing &&
-          (isManagement || (isOwner && task.status === "INCOMPLETE")) && (
+          (isManagement || (isOwner && task.status === TASK_STATUS.INCOMPLETE)) && (
             <button
               onClick={onDelete}
               disabled={isSubmitting}
@@ -88,8 +88,8 @@ const TaskFooter = ({ actions, permissions, state }) => {
             {/* --- SUBMIT FOR REVIEW (Marketing always / All when setting enabled) --- */}
             {(state.isMarketing || state.universalTaskSubmission) &&
               isOwner &&
-              (task.status === "INCOMPLETE" ||
-                task.status === "NOT APPROVED") && (
+              (task.status === TASK_STATUS.INCOMPLETE ||
+                task.status === TASK_STATUS.NOT_APPROVED) && (
                 <button
                   onClick={onSubmitApproval}
                   disabled={
@@ -150,7 +150,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
               )}
 
             {/* --- HR ACTIONS (VERIFICATION) --- */}
-            {isHr && task.status === "COMPLETE" && !task.hrVerified && (
+            {isHr && task.status === TASK_STATUS.COMPLETE && !task.hrVerified && (
               <button
                 onClick={onHrVerify}
                 disabled={isSubmitting}

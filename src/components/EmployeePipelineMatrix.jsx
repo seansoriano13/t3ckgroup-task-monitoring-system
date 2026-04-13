@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
+import { TASK_STATUS } from "../constants/status";
 
 export default function EmployeePipelineMatrix({ selectedMonth }) {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
     const empMap = {};
 
     rawTasks.forEach((task) => {
-      if (!task.loggedById || task.status === "DELETED") return;
+      if (!task.loggedById || task.status === TASK_STATUS.DELETED) return;
 
       const taskDate = new Date(task.createdAt);
       if (
@@ -74,14 +75,14 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
       emp.total++;
 
       // Bucket Logic
-      if (task.status === "INCOMPLETE") emp.draft++;
-      if (task.status === "NOT APPROVED") emp.rejected++;
-      if (task.status === "COMPLETE" && !task.hrVerified) emp.pendingHr++;
+      if (task.status === TASK_STATUS.INCOMPLETE) emp.draft++;
+      if (task.status === TASK_STATUS.NOT_APPROVED) emp.rejected++;
+      if (task.status === TASK_STATUS.COMPLETE && !task.hrVerified) emp.pendingHr++;
       if (task.hrVerified) emp.verified++;
 
       // Grade Logic
       // Only count finalized "COMPLETE" tasks toward average grade.
-      if (task.status === "COMPLETE" && task.grade > 0) {
+      if (task.status === TASK_STATUS.COMPLETE && task.grade > 0) {
         emp.totalGrade += task.grade;
         emp.gradedCount++;
       }

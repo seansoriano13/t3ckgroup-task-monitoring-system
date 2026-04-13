@@ -2,8 +2,8 @@ import { AlertCircle } from "lucide-react";
 import { formatDate } from "../utils/formatDate";
 import { FieldBox } from "./FieldBox";
 import StatusBadge from "./StatusBadge";
-import { Clock } from "lucide-react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Clock } from "lucide-react";
+import { TASK_STATUS } from "../constants/status";
 
 const StandardDetailsSection = ({
   isEditing,
@@ -110,7 +110,7 @@ const StandardDetailsSection = ({
         {!isEditing && (
           <FieldBox label="HR Verification Status" isEditing={false}>
             <div className="px-3 flex items-center">
-              {task.status !== "COMPLETE" ? (
+              {task.status !== TASK_STATUS.COMPLETE ? (
                 <span className="text-sm font-semibold text-gray-8">
                   N/A (Awaiting Manager)
                 </span>

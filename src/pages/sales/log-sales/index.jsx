@@ -6,7 +6,7 @@ import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
 import { DollarSign, Save, FileText, ShoppingCart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
-import { RECORD_TYPE } from "../../../constants/status";
+import { RECORD_TYPE, REVENUE_STATUS } from "../../../constants/status";
 
 export default function LogSalesPage() {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ export default function LogSalesPage() {
     quotation_number: prefill.quotation_number || "",
     reference_number: prefill.reference_number || "",
     remarks: prefill.remarks || "",
-    status: prefill.status || "COMPLETED",
+    status: prefill.status || REVENUE_STATUS.COMPLETED,
   });
 
   const isOrder = formData.record_type === RECORD_TYPE.SALES_ORDER;
@@ -169,18 +169,18 @@ export default function LogSalesPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setFormData({ ...formData, status: "COMPLETED" })
+                    setFormData({ ...formData, status: REVENUE_STATUS.COMPLETED })
                   }
-                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === "COMPLETED" ? (isOrder ? "bg-green-600 text-white shadow-md" : "bg-blue-600 text-white shadow-md") : "text-gray-9 hover:text-gray-12"}`}
+                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === REVENUE_STATUS.COMPLETED ? (isOrder ? "bg-green-600 text-white shadow-md" : "bg-blue-600 text-white shadow-md") : "text-gray-9 hover:text-gray-12"}`}
                 >
                   {isOrder ? "COMPLETED" : "SUBMITTED / LOGGED"}
                 </button>
                 <button
                   type="button"
                   onClick={() =>
-                    setFormData({ ...formData, status: "LOST SALES" })
+                    setFormData({ ...formData, status: REVENUE_STATUS.LOST })
                   }
-                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === "LOST SALES" ? "bg-red-500 text-white shadow-md" : "text-gray-9 hover:text-gray-12"}`}
+                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === REVENUE_STATUS.LOST ? "bg-red-500 text-white shadow-md" : "text-gray-9 hover:text-gray-12"}`}
                 >
                   LOST
                 </button>

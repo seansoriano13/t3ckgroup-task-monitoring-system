@@ -141,8 +141,8 @@ export default function SalesFilters({
             </>
           ) : (
             <>
-              <option value="APPROVED">Completed Sales</option>
-              <option value="INCOMPLETE">Lost Sales</option>
+              <option value="APPROVED">Completed</option>
+              <option value="INCOMPLETE">Lost</option>
               {isVerificationEnforced && (
                 <option value="UNVERIFIED">Pending Verification</option>
               )}

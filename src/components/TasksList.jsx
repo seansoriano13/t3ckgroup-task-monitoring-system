@@ -335,7 +335,7 @@ export default function TasksList({ selectedMonth }) {
                         {/* Lower Right: Status Indicators */}
                         <div className="flex items-center gap-1.5 mt-auto">
                           {/* HR Verified Icon (Only shows if task is Complete AND Verified) */}
-                          {task.status === "COMPLETE" && task.hrVerified && (
+                          {task.status === TASK_STATUS.COMPLETE && task.hrVerified && (
                             <CheckCircle2
                               className="text-green-700"
                               size={13}
