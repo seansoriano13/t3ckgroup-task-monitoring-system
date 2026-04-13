@@ -69,13 +69,19 @@ export default function SalesHeadApprovalsPage() {
   const processedActivities = useMemo(() => {
     let list = rawPending;
 
-    // Head filter: if they have a sub-department, filter by that. Otherwise, entire department.
+    // Head filter: master heads (no sub-department) see everything.
+    // Sub-department heads see only their sub-department's activities.
+    // Department heads with a sub-department see their entire department.
     if (!user?.is_super_admin && !user?.isSuperAdmin) {
       const userSubDept = user?.sub_department || user?.subDepartment;
       const userDept = user?.department;
+      const isMasterHead = !userSubDept; // No sub-department = oversees entire org
 
       list = list.filter((act) => {
         if (act.employee_id === user?.id) return false; // Don't verify own activities
+
+        // Master heads see all activities
+        if (isMasterHead) return true;
 
         const ts = act.employees?.sub_department || "";
         const td = act.employees?.department || "";

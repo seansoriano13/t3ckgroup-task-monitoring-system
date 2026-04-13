@@ -79,7 +79,16 @@ export default function SideNav({ onOpenAddTask }) {
     }
 
     if (user?.isHead || user?.is_head) {
-      if (isSales) {
+      const userSubDept = user?.subDepartment || user?.sub_department;
+      const isMasterHead = !userSubDept; // Department head without subdepartment = oversees everything
+
+      if (isMasterHead) {
+        // Master heads see both task approvals and sales verification
+        navLinks.push(
+          { label: "For Approval", link: "/approvals", icon: ShieldCheck },
+          { label: "Sales Verification", link: "/approvals/sales", icon: ShieldCheck },
+        );
+      } else if (isSales) {
         navLinks.push({
           label: "Sales Verification",
           link: "/approvals/sales",
