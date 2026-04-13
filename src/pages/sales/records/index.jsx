@@ -1532,10 +1532,17 @@ const EditRevenueModal = ({
   // --- CONDITIONAL RETURN AFTER HOOKS ---
   if (!isOpen || !log) return null;
 
+  const isOwnLog = log.employee_id === currentUser?.id;
+  const isHeadOfSubordinate = 
+    ((currentUser?.is_head || currentUser?.isHead) && currentUser?.department === log.employees?.department && !isOwnLog);
+
+  const canEditDirectly = currentUser?.isSuperAdmin || isHeadOfSubordinate;
+
   const isVerifiedAndLocked =
     isVerificationEnforced &&
     log.is_verified === true &&
-    !currentUser?.isSuperAdmin;
+    !canEditDirectly;
+    
   const hasPendingRequest =
     isVerificationEnforced && log.edit_request_status === "PENDING";
 
@@ -1584,7 +1591,7 @@ const EditRevenueModal = ({
 
         <div className="overflow-y-auto p-6 space-y-4 custom-scrollbar">
           {/* ADMIN OVERSIGHT NOTIFICATION FOR PENDING REQUESTS */}
-          {currentUser?.isSuperAdmin && hasPendingRequest && (
+          {canEditDirectly && hasPendingRequest && (
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 shadow-sm mb-2">
               <div className="flex items-start gap-3">
                 <div className="bg-blue-500/20 p-2 rounded-lg text-blue-500 mt-0.5">
@@ -1865,7 +1872,7 @@ const EditRevenueModal = ({
               </div>
             </div>
 
-            {currentUser?.isSuperAdmin &&
+            {canEditDirectly &&
               isVerificationEnforced &&
               log.is_verified === false &&
               !hasPendingRequest && (
@@ -1900,7 +1907,7 @@ const EditRevenueModal = ({
                 </div>
               )}
 
-            {currentUser?.isSuperAdmin &&
+            {canEditDirectly &&
               isVerificationEnforced &&
               log.is_verified === true &&
               !hasPendingRequest && (
