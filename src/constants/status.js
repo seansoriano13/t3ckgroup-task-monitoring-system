@@ -13,8 +13,8 @@ export const TASK_STATUS = {
 
 export const REVENUE_STATUS = {
   PENDING: "PENDING",
-  COMPLETED: "COMPLETED",
-  LOST: "LOST",
+  COMPLETED: "COMPLETED SALES",
+  LOST: "LOST SALES",
   REJECTED: "REJECTED",
   APPROVED: "APPROVED",
   DONE: "APPROVED", // Alias for backward compatibility and UI filters

@@ -94,6 +94,7 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
       refetchInterval: 15000,
     });
 
+
   // === FETCH ANALYTICS QUERIES ===
   const { data: analyticsLogs = [] } = useQuery({
     queryKey: ["salesAnalytics", startDate, endDate],

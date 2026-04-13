@@ -1740,8 +1740,8 @@ const EditRevenueModal = ({
                   }
                   className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-bold"
                 >
-                  <option value="COMPLETED">COMPLETED SALES</option>
-                  <option value="LOST">LOST SALES</option>
+                  <option value="COMPLETED SALES">COMPLETED SALES</option>
+                  <option value="LOST SALES">LOST SALES</option>
                 </select>
               </div>
             </div>
