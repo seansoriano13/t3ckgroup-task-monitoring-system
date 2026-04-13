@@ -143,6 +143,22 @@ export default function ChecklistTaskInput({
               value={item.text}
               onChange={(e) => handleTextChange(index, e.target.value)}
               onPaste={(e) => handlePaste(e, index)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Insert a new item right after this one and focus it
+                  const newItems = [...items];
+                  newItems.splice(index + 1, 0, { text: "", checked: false });
+                  setItems(newItems);
+                  emitChange(newItems);
+                  // Focus the newly created input on next render
+                  setTimeout(() => {
+                    const inputs = e.target.closest(".space-y-2")?.querySelectorAll('input[type="text"]');
+                    inputs?.[index + 1]?.focus();
+                  }, 0);
+                }
+              }}
               placeholder="Task detail..."
               className="flex-1 bg-transparent border-b border-transparent focus:border-red-9 outline-none text-gray-12 text-sm py-1 transition-colors"
             />
