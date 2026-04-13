@@ -239,6 +239,9 @@ function EmployeeFormModal({ employee, onClose }) {
     };
   });
 
+  const [isNewDept, setIsNewDept] = useState(false);
+  const [isNewSubDept, setIsNewSubDept] = useState(false);
+
   const { data: rawCategories = [] } = useQuery({
     queryKey: ["allCategories"],
     queryFn: () => employeeService.getAllCategories(),
@@ -347,53 +350,107 @@ function EmployeeFormModal({ employee, onClose }) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-gray-9 uppercase">
-                Department
-              </label>
-              <select
-                required
-                value={formData.department}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    department: e.target.value,
-                    subDepartment: "",
-                  })
-                }
-                className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
-              >
-                <option value="" disabled>
-                  Select Dept
-                </option>
-                {uniqueDepts.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-9 uppercase">
+                  Department
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewDept((v) => !v);
+                    setFormData((p) => ({ ...p, department: "", subDepartment: "" }));
+                    setIsNewSubDept(false);
+                  }}
+                  className="text-[11px] font-bold text-primary hover:text-primary-hover transition-colors"
+                >
+                  {isNewDept ? "← Select Existing" : "+ Add New"}
+                </button>
+              </div>
+              {isNewDept ? (
+                <input
+                  required
+                  type="text"
+                  placeholder="e.g. LOGISTICS"
+                  value={formData.department}
+                  onChange={(e) => {
+                    const val = e.target.value.toUpperCase();
+                    setFormData((p) => ({ ...p, department: val, subDepartment: "" }));
+                  }}
+                  className="w-full bg-gray-2 border border-primary/40 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 ring-1 ring-primary/20"
+                />
+              ) : (
+                <select
+                  required
+                  value={formData.department}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      department: e.target.value,
+                      subDepartment: "",
+                    });
+                    setIsNewSubDept(false);
+                  }}
+                  className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
+                >
+                  <option value="" disabled>
+                    Select Dept
                   </option>
-                ))}
-              </select>
+                  {uniqueDepts.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div>
-              <label className="text-xs font-bold text-gray-9 uppercase">
-                Sub-Dept
-              </label>
-              <select
-                value={formData.subDepartment}
-                onChange={(e) =>
-                  setFormData({ ...formData, subDepartment: e.target.value })
-                }
-                disabled={!formData.department}
-                className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 disabled:opacity-50"
-              >
-                <option value="" disabled>
-                  Select Sub-Dept
-                </option>
-                <option value="">None</option>
-                {uniqueSubDepts.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-9 uppercase">
+                  Sub-Dept
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewSubDept((v) => !v);
+                    setFormData((p) => ({ ...p, subDepartment: "" }));
+                  }}
+                  disabled={!formData.department}
+                  className="text-[11px] font-bold text-primary hover:text-primary-hover transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  {isNewSubDept ? "← Select Existing" : "+ Add New"}
+                </button>
+              </div>
+              {isNewSubDept ? (
+                <input
+                  type="text"
+                  placeholder="e.g. WAREHOUSE"
+                  value={formData.subDepartment}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, subDepartment: e.target.value.toUpperCase() }))
+                  }
+                  disabled={!formData.department}
+                  className="w-full bg-gray-2 border border-primary/40 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 ring-1 ring-primary/20 disabled:opacity-50"
+                />
+              ) : (
+                <select
+                  value={formData.subDepartment}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subDepartment: e.target.value })
+                  }
+                  disabled={!formData.department}
+                  className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    Select Sub-Dept
                   </option>
-                ))}
-              </select>
+                  <option value="">None</option>
+                  {uniqueSubDepts.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="col-span-2">
