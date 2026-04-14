@@ -14,6 +14,12 @@ export type Path =
   | `/sales/daily`
   | `/sales/log-sales`
   | `/sales/records`
+  | `/sales/records/ActivitiesBoard`
+  | `/sales/records/ActivitiesTable`
+  | `/sales/records/EditRevenueModal`
+  | `/sales/records/Pagination`
+  | `/sales/records/RecordsHeader`
+  | `/sales/records/RevenueTable`
   | `/sales/schedule`
   | `/settings`
   | `/super-admin`
