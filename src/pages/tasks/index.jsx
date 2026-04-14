@@ -379,7 +379,7 @@ export default function TasksPage() {
               </div>
 
               {/* Task Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 items-start">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 items-stretch">
                 {groupTasks.map((task) => (
                   <TaskCard
                     key={task.id}

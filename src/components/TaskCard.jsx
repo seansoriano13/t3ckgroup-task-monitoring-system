@@ -94,7 +94,7 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
   };
 
   return (
-    <div className="bg-gray-2 shadow-lg p-5 rounded-xl gap-4 border border-gray-4 hover:border-gray-6 transition-all duration-300 group flex flex-col">
+    <div className="bg-gray-2 shadow-lg p-5 rounded-xl gap-4 border border-gray-4 hover:border-gray-6 transition-all duration-300 group flex flex-col h-full">
       {/* Top Row: Category, Priority & Status */}
       <div className="flex justify-between items-start gap-2">
         <div className="flex flex-wrap gap-2 items-center">
@@ -165,7 +165,7 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
       {/* Main Content */}
       <div className="flex-1 space-y-3">
         {(!isChecklistFormat || !isExpanded) && (
-          <p className="font-semibold text-gray-12 line-clamp-2 leading-relaxed mt-4">
+          <p className="font-semibold text-gray-12 line-clamp-3 leading-relaxed mt-4">
             {formatTaskPreview(task.taskDescription)}
           </p>
         )}
