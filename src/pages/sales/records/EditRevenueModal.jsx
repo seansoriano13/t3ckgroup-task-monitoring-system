@@ -108,6 +108,7 @@ export default function EditRevenueModal({
     e.preventDefault();
     const num = parseFloat(requestData.amount);
     if (isNaN(num)) return toast.error("Invalid proposed amount");
+    if (num === parseFloat(log.revenue_amount)) return toast.error("Proposed amount is the same as the current amount.");
     if (!requestData.reason.trim()) return toast.error("Reason is required");
     requestMutation.mutate({ amount: num, reason: requestData.reason });
   };

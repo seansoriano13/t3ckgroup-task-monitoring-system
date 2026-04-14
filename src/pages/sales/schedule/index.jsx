@@ -81,7 +81,8 @@ export default function SalesSchedulePage() {
   }, [location.state?.highlightPlanId]);
 
   const plan = planWrapper || { status: "DRAFT", sales_activities: [] };
-  const isLocked = plan.status === "SUBMITTED" || plan.status === "APPROVED";
+  const canBypassLock = user?.id === plan.employee_id && (user?.is_head || user?.isHead || user?.isSuperAdmin || user?.is_super_admin);
+  const isLocked = !canBypassLock && (plan.status === "SUBMITTED" || plan.status === "APPROVED");
   const planStatus = plan?.status || "DRAFT";
   const isGreen = planStatus === "SUBMITTED" || planStatus === "APPROVED";
 
@@ -369,6 +370,31 @@ export default function SalesSchedulePage() {
             "You must plan at least 5 AM tasks and 5 PM tasks for ALL scheduled days before submitting.",
           );
           throw new Error("Invalid task counts."); // Throw an error to stop the mutation chain
+        }
+
+        if (plan?.status === "REVISION") {
+          const snapshot = plan.amendment_snapshot || [];
+          
+          const normalize = (activity) => ({
+            scheduled_date: activity.scheduled_date,
+            time_of_day: activity.time_of_day,
+            activity_type: activity.activity_type,
+            account_name: activity.account_name,
+            remarks_plan: activity.remarks_plan || "",
+            reference_number: activity.reference_number || "",
+            expense_amount: activity.expense_amount ? Number(activity.expense_amount) : null,
+          });
+
+          const currentNormalized = activitiesData
+            .filter((a) => a.activity_type !== "None" || (a.account_name && a.account_name.trim() !== ""))
+            .map(normalize)
+            .sort((a,b) => (a.scheduled_date+a.time_of_day).localeCompare(b.scheduled_date+b.time_of_day));
+          const snapshotNormalized = snapshot.map(normalize).sort((a,b) => (a.scheduled_date+a.time_of_day).localeCompare(b.scheduled_date+b.time_of_day));
+          
+          if (JSON.stringify(currentNormalized) === JSON.stringify(snapshotNormalized)) {
+            toast.error("No changes detected. Please make changes or discard the amendment.");
+            throw new Error("No changes made during amendment.");
+          }
         }
       }
 

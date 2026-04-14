@@ -114,16 +114,19 @@ export const salesService = {
     return data;
   },
   async submitPlan(planId, userObj) {
+    const isAutoApproved = userObj && (userObj.is_head || userObj.isHead || userObj.is_super_admin || userObj.isSuperAdmin);
+    const newStatus = isAutoApproved ? SALES_PLAN_STATUS.APPROVED : SALES_PLAN_STATUS.SUBMITTED;
+
     const { data, error } = await supabase
       .from("sales_weekly_plans")
-      .update({ status: SALES_PLAN_STATUS.SUBMITTED })
+      .update({ status: newStatus })
       .eq("id", planId)
       .select()
       .single();
 
     if (error) throw error;
 
-    if (userObj) {
+    if (userObj && !isAutoApproved) {
       notificationService.broadcastToRole(["HR", "SUPER_ADMIN"], {
         sender_id: userObj.id,
         type: "SALES_PLAN_SUBMITTED",
