@@ -150,7 +150,7 @@ export default function TaskDetails({
   // HR-rejected tasks (NOT APPROVED + grade>0) must NOT be editable by the employee.
   const isHrRejected = task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
   const canEdit =
-    isHr || isHead || (isOwner && task.status !== TASK_STATUS.COMPLETE && !isHrRejected);
+    isHr || isHead || (isOwner && task.status !== TASK_STATUS.COMPLETE && task.status !== TASK_STATUS.AWAITING_APPROVAL && !isHrRejected);
 
   let isChecklistFormat = false;
   let hasUncheckedItems = false;
@@ -599,6 +599,13 @@ export default function TaskDetails({
                 editedBy: user.id,
                 hrVerified: false,
                 hrRemarks: "",
+              }),
+
+            onRecallTask: () =>
+              executeUpdate({
+                id: task.id,
+                status: TASK_STATUS.INCOMPLETE,
+                editedBy: user.id,
               }),
           }}
           permissions={{ canEdit, canEvaluate, isHr, isManagement, isOwner }}

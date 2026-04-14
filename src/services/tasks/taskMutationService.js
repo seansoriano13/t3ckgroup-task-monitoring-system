@@ -1,6 +1,5 @@
 import { supabase } from "../../lib/supabase";
 import { notificationService } from "../notificationService";
-import { storageService } from "../storageService";
 import { TASK_STATUS } from "../../constants/status";
 
 export const taskMutationService = {
@@ -230,6 +229,8 @@ export const taskMutationService = {
         payload.startAt,
         payload.endAt,
         payload.attachments,
+        payload.grade,
+        payload.remarks,
       ].some((val) => val !== undefined);
 
       if (attemptedCoreEdits) {
@@ -435,15 +436,9 @@ export const taskMutationService = {
       throw new Error("Cannot delete tasks that are already verified by HR.");
     }
 
-    if (task.attachment_urls && task.attachment_urls.length > 0) {
-      for (const url of task.attachment_urls) {
-        try {
-           await storageService.deleteAttachment(url);
-        } catch (e) {
-           console.error("Failed to clean up attachment", url, e);
-        }
-      }
-    }
+    // NOTE: Attachments are intentionally preserved during soft deletes
+    // to maintain audit trail integrity. Physical cleanup should only
+    // happen during hard deletes or scheduled maintenance.
 
     const { error } = await supabase
       .from("tasks")
@@ -464,7 +459,7 @@ export const taskMutationService = {
 
     const { data: admin } = await supabase
       .from("employees")
-      .select("is_super_admin, is_head")
+      .select("is_super_admin, is_head, name")
       .eq("id", adminId)
       .single();
 
@@ -484,9 +479,38 @@ export const taskMutationService = {
         edited_at: new Date().toISOString(),
       })
       .in("id", taskIds)
-      .select();
+      .select("*, creator:employees!tasks_logged_by_fk(name, department, sub_department)");
 
     if (error) throw error;
+
+    // Notify HR that tasks were bulk-approved
+    notificationService.broadcastToRole(["HR"], {
+      sender_id: adminId,
+      type: "TASK_APPROVED_BY_HEAD",
+      title: "Bulk Tasks Approved",
+      message: `${admin?.name || "An Admin"} bulk-approved ${data.length} task(s). Ready for Verification.`,
+      excludeSuperAdmin: true,
+    }).catch(console.error);
+
+    // Notify each affected employee that their task was graded
+    const byEmployee = {};
+    data.forEach((t) => {
+      if (!byEmployee[t.logged_by]) byEmployee[t.logged_by] = [];
+      byEmployee[t.logged_by].push(t.task_description?.substring(0, 30) || "a task");
+    });
+
+    await Promise.allSettled(
+      Object.entries(byEmployee).map(([empId, descriptions]) =>
+        notificationService.createNotification({
+          recipient_id: empId,
+          sender_id: adminId,
+          type: "TASK_GRADED",
+          title: "Tasks Approved",
+          message: `${descriptions.length} task(s) bulk-approved with grade 3: ${descriptions.slice(0, 3).join(", ")}${descriptions.length > 3 ? "…" : ""}`,
+        })
+      )
+    );
+
     return data;
   },
 };

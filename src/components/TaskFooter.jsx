@@ -7,7 +7,8 @@ import {
   Loader2,
   XCircle,
   Clock,
-  } from "lucide-react";
+  Undo2,
+} from "lucide-react";
 import { TASK_STATUS } from "../constants/status.js";
 
 const TaskFooter = ({ actions, permissions, state }) => {
@@ -17,12 +18,13 @@ const TaskFooter = ({ actions, permissions, state }) => {
     onSave,
     onToggleEdit,
     onMarkComplete,
-    onHeadReject, // 🔥 New action added here
+    onHeadReject,
     onHrVerify,
     onDelete,
     onUndoVerify,
     onSubmitApproval,
     onSelfVerify,
+    onRecallTask,
   } = actions;
   const { canEdit, canEvaluate, isHr, isManagement, isOwner } = permissions;
   const { isEditing, isSubmitting, task, formIsValid } = state;
@@ -123,8 +125,17 @@ const TaskFooter = ({ actions, permissions, state }) => {
                     </button>
                   )}
 
+                  <button
+                    onClick={onRecallTask}
+                    disabled={isSubmitting}
+                    className="bg-gray-3 border border-gray-4 hover:border-orange-500 hover:text-orange-500 text-gray-11 text-xs font-bold px-3 py-2 rounded-lg transition-colors active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                    title="Recall this task to make edits"
+                  >
+                    <Undo2 size={14} /> Recall
+                  </button>
+
                   <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-1">
-                    <Clock size={16} /> 
+                    <Clock size={16} />
                     {state.isDelayed && state.enableVisualShaming ? (
                       <span className="text-red-500 animate-pulse">DELAYED (Pending Review)</span>
                     ) : (
