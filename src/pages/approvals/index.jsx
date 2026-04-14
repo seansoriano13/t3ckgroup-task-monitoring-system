@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../services/taskService.js";
 import { supabase } from "../../lib/supabase.js";
 import { TASK_STATUS } from "../../constants/status.js";
+import ImageAttachment from "../../components/ImageAttachment.jsx";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import {
   CheckCircle2,
@@ -14,7 +15,7 @@ import {
   Search,
   SlidersHorizontal,
   X,
-  Maximize2
+  Maximize2,
 } from "lucide-react";
 import { formatDate } from "../../utils/formatDate.js";
 import toast from "react-hot-toast";
@@ -28,7 +29,8 @@ export default function ApprovalsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isSuperAdmin =
+    user?.is_super_admin === true || user?.isSuperAdmin === true;
   const isHr = user?.is_hr === true || user?.isHr === true || isSuperAdmin;
   const isHead = user?.is_head === true || user?.isHead === true;
   const userSubDept = user?.sub_department || user?.subDepartment;
@@ -60,7 +62,15 @@ export default function ApprovalsPage() {
 
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
-  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  const isSuperAdminDept = user?.department === "SUPER ADMIN";
+
+  const [statusFilter, setStatusFilter] = useState(() => {
+    return isSuperAdmin && isSuperAdminDept
+      ? TASK_STATUS.AWAITING_APPROVAL
+      : "ALL";
+  });
+
   const [deptFilter, setDeptFilter] = useState("ALL");
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
   const [employeeFilter, setEmployeeFilter] = useState("ALL");
@@ -71,7 +81,8 @@ export default function ApprovalsPage() {
   useEffect(() => {
     if (!isHead && !isHr) return;
     const fetchTopology = async () => {
-      const { employeeService } = await import("../../services/employeeService.js");
+      const { employeeService } =
+        await import("../../services/employeeService.js");
       const employees = await employeeService.getAllEmployees();
       if (employees) setAllEmployees(employees);
 
@@ -82,25 +93,36 @@ export default function ApprovalsPage() {
   }, [isHead, isHr]);
 
   const uniqueDepts = useMemo(() => {
-    return [...new Set(allCategories.map((c) => c.department).filter(Boolean))].sort();
+    return [
+      ...new Set(allCategories.map((c) => c.department).filter(Boolean)),
+    ].sort();
   }, [allCategories]);
 
   const uniqueSubDepts = useMemo(() => {
-    const filteredCats = deptFilter === "ALL" ? allCategories : allCategories.filter((c) => c.department === deptFilter);
-    return [...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean))].sort();
+    const filteredCats =
+      deptFilter === "ALL"
+        ? allCategories
+        : allCategories.filter((c) => c.department === deptFilter);
+    return [
+      ...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean)),
+    ].sort();
   }, [allCategories, deptFilter]);
 
   const uniqueEmployees = useMemo(() => {
     let pool = allEmployees.filter((e) => !e.is_super_admin);
-    if (deptFilter !== "ALL") pool = pool.filter((e) => e.department === deptFilter);
-    if (subDeptFilter !== "ALL") pool = pool.filter((e) => e.subDepartment === subDeptFilter);
+    if (deptFilter !== "ALL")
+      pool = pool.filter((e) => e.department === deptFilter);
+    if (subDeptFilter !== "ALL")
+      pool = pool.filter((e) => e.subDepartment === subDeptFilter);
     return pool.sort((a, b) => a.name.localeCompare(b.name));
   }, [allEmployees, deptFilter, subDeptFilter]);
 
   // 🔥 DEEP LINKING HOOK
   useEffect(() => {
     if (location.state?.openTaskId && rawTasks.length > 0) {
-      const targetTask = rawTasks.find(t => t.id === location.state.openTaskId);
+      const targetTask = rawTasks.find(
+        (t) => t.id === location.state.openTaskId,
+      );
       queueMicrotask(() => {
         setAutoOpenId(location.state.openTaskId); // Still opens the row for context underneath
         if (targetTask) setViewTask(targetTask); // Pops the big modal
@@ -145,32 +167,38 @@ export default function ApprovalsPage() {
             isMyDept = taskDept === userDept;
           }
 
-          const isMarketing = taskSubDept === "MARKETING" || taskDept === "MARKETING";
+          const isMarketing =
+            taskSubDept === "MARKETING" || taskDept === "MARKETING";
           let matchesHeadQueueForThisTask = false;
 
           if (t.status === TASK_STATUS.INCOMPLETE) {
-             matchesHeadQueueForThisTask = isNotMe && isMyDept;
+            matchesHeadQueueForThisTask = isNotMe && isMyDept;
           } else if (t.status === TASK_STATUS.AWAITING_APPROVAL) {
-             const canOpsManagerApprove = appSettings?.marketing_approval_by_ops_manager && isMyDept;
+            const canOpsManagerApprove =
+              appSettings?.marketing_approval_by_ops_manager && isMyDept;
 
-             // Marketing path: always routed to Super Admin / Ops Manager (existing behaviour)
-             if (isMarketing && (isSuperAdmin || canOpsManagerApprove)) {
-                matchesHeadQueueForThisTask = isNotMe;
-             }
-             // Universal path: when setting is ON, all AWAITING APPROVAL tasks come to the Head
-             else if (!isMarketing && appSettings?.universal_task_submission && isMyDept) {
-                matchesHeadQueueForThisTask = isNotMe;
-             }
-             // Super Admin fallback: sees all AWAITING APPROVAL regardless of setting
-             else if (isSuperAdmin) {
-                matchesHeadQueueForThisTask = isNotMe;
-             }
+            // Marketing path: always routed to Super Admin / Ops Manager (existing behaviour)
+            if (isMarketing && (isSuperAdmin || canOpsManagerApprove)) {
+              matchesHeadQueueForThisTask = isNotMe;
+            }
+            // Universal path: when setting is ON, all AWAITING APPROVAL tasks come to the Head
+            else if (
+              !isMarketing &&
+              appSettings?.universal_task_submission &&
+              isMyDept
+            ) {
+              matchesHeadQueueForThisTask = isNotMe;
+            }
+            // Super Admin fallback: sees all AWAITING APPROVAL regardless of setting
+            else if (isSuperAdmin) {
+              matchesHeadQueueForThisTask = isNotMe;
+            }
           }
 
           matchesHeadQueue = matchesHeadQueueForThisTask;
         }
 
-    return matchesHrQueue || matchesHeadQueue;
+        return matchesHrQueue || matchesHeadQueue;
       })
       .sort((a, b) => {
         if (a.priority === "HIGH" && b.priority !== "HIGH") return -1;
@@ -211,12 +239,24 @@ export default function ApprovalsPage() {
 
     // Status filter
     if (statusFilter !== "ALL") {
-      if (statusFilter === TASK_STATUS.INCOMPLETE) result = result.filter(t => t.status === TASK_STATUS.INCOMPLETE);
-      else if (statusFilter === TASK_STATUS.COMPLETE) result = result.filter(t => t.status === TASK_STATUS.COMPLETE);
-      else if (statusFilter === "COMPLETE_UNVERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && !t.hrVerified);
-      else if (statusFilter === "COMPLETE_VERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && t.hrVerified);
-      else if (statusFilter === TASK_STATUS.AWAITING_APPROVAL) result = result.filter(t => t.status === TASK_STATUS.AWAITING_APPROVAL);
-      else if (statusFilter === "NOT APPROVED") result = result.filter(t => t.status === TASK_STATUS.NOT_APPROVED);
+      if (statusFilter === TASK_STATUS.INCOMPLETE)
+        result = result.filter((t) => t.status === TASK_STATUS.INCOMPLETE);
+      else if (statusFilter === TASK_STATUS.COMPLETE)
+        result = result.filter((t) => t.status === TASK_STATUS.COMPLETE);
+      else if (statusFilter === "COMPLETE_UNVERIFIED")
+        result = result.filter(
+          (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
+        );
+      else if (statusFilter === "COMPLETE_VERIFIED")
+        result = result.filter(
+          (t) => t.status === TASK_STATUS.COMPLETE && t.hrVerified,
+        );
+      else if (statusFilter === TASK_STATUS.AWAITING_APPROVAL)
+        result = result.filter(
+          (t) => t.status === TASK_STATUS.AWAITING_APPROVAL,
+        );
+      else if (statusFilter === "NOT APPROVED")
+        result = result.filter((t) => t.status === TASK_STATUS.NOT_APPROVED);
     }
 
     // Date Range
@@ -230,17 +270,26 @@ export default function ApprovalsPage() {
     }
 
     // Department / Sub-Dept / Employee
-    if (deptFilter !== "ALL" || subDeptFilter !== "ALL" || employeeFilter !== "ALL") {
+    if (
+      deptFilter !== "ALL" ||
+      subDeptFilter !== "ALL" ||
+      employeeFilter !== "ALL"
+    ) {
       const empMap = new Map();
       for (const emp of allEmployees) empMap.set(emp.id, emp);
 
-      result = result.filter(task => {
-        let matchesDept = true, matchesSubDept = true, matchesEmp = true;
+      result = result.filter((task) => {
+        let matchesDept = true,
+          matchesSubDept = true,
+          matchesEmp = true;
         const taskOwner = empMap.get(task.loggedById);
 
-        if (deptFilter !== "ALL") matchesDept = taskOwner?.department === deptFilter;
-        if (subDeptFilter !== "ALL") matchesSubDept = taskOwner?.subDepartment === subDeptFilter;
-        if (employeeFilter !== "ALL") matchesEmp = task.loggedById === employeeFilter;
+        if (deptFilter !== "ALL")
+          matchesDept = taskOwner?.department === deptFilter;
+        if (subDeptFilter !== "ALL")
+          matchesSubDept = taskOwner?.subDepartment === subDeptFilter;
+        if (employeeFilter !== "ALL")
+          matchesEmp = task.loggedById === employeeFilter;
 
         return matchesDept && matchesSubDept && matchesEmp;
       });
@@ -257,7 +306,19 @@ export default function ApprovalsPage() {
       );
 
     return result;
-  }, [pendingTasks, searchQuery, priorityFilter, sortBy, statusFilter, startDate, endDate, deptFilter, subDeptFilter, employeeFilter, allEmployees]);
+  }, [
+    pendingTasks,
+    searchQuery,
+    priorityFilter,
+    sortBy,
+    statusFilter,
+    startDate,
+    endDate,
+    deptFilter,
+    subDeptFilter,
+    employeeFilter,
+    allEmployees,
+  ]);
 
   // 3. The Approval/Verification Mutation
   const editTaskMutation = useMutation({
@@ -346,9 +407,7 @@ export default function ApprovalsPage() {
         )}
 
         {/* FINANCIAL QUEUE (only for Sales Heads) */}
-        {!isHr && (
-          <ExpenseApprovalQueue isSuperAdmin={false} />
-        )}
+        {!isHr && <ExpenseApprovalQueue isSuperAdmin={false} />}
 
         {/* THE QUEUE */}
         {filteredTasks.length > 0 ? (
@@ -409,7 +468,9 @@ export default function ApprovalsPage() {
         isOpen={!!viewTask}
         onClose={() => setViewTask(null)}
         task={viewTask}
-        onUpdateTask={(updatedTask) => editTaskMutation.mutateAsync(updatedTask)}
+        onUpdateTask={(updatedTask) =>
+          editTaskMutation.mutateAsync(updatedTask)
+        }
         onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
       />
     </ProtectedRoute>
@@ -488,10 +549,11 @@ function ApprovalRow({
 
   return (
     <div
-      className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${expanded
+      className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${
+        expanded
           ? "border-gray-6 shadow-lg"
           : "border-gray-4 hover:border-gray-6"
-        }`}
+      }`}
     >
       {/* COMPACT ROW */}
       <div
@@ -537,9 +599,12 @@ function ApprovalRow({
             </>
           )}
 
-          <button 
+          <button
             className="text-gray-8 hover:text-primary transition-colors p-1"
-            onClick={(e) => { e.stopPropagation(); onViewDetails(task); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(task);
+            }}
             title="Open Full Details"
           >
             <Maximize2 size={16} />
@@ -560,17 +625,34 @@ function ApprovalRow({
               <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-2 block">
                 Task Description
               </label>
-              {task.taskDescription && task.taskDescription.trim().startsWith('[') ? (
+              {task.taskDescription &&
+              task.taskDescription.trim().startsWith("[") ? (
                 <div className="mt-1">
-                  <ChecklistTaskRenderer 
-                    description={task.taskDescription} 
-                    isOwner={false} 
-                    disabled={true} 
+                  <ChecklistTaskRenderer
+                    description={task.taskDescription}
+                    isOwner={false}
+                    disabled={true}
                   />
                 </div>
               ) : (
                 <div className="bg-gray-1 p-3 md:p-4 rounded-lg border border-gray-4 text-xs md:text-sm text-gray-12 whitespace-pre-wrap leading-relaxed shadow-inner">
                   {formatTaskPreview(task.taskDescription)}
+                </div>
+              )}
+
+              {/* 🔥 Inline Image Preview for Quick Approval */}
+              {task.attachments && task.attachments.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-4/50">
+                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-2 block">
+                    Screenshots / Attachments
+                  </label>
+                  <ImageAttachment
+                    taskId={task.id}
+                    userId={currentUserId}
+                    attachments={task.attachments}
+                    readOnly={true}
+                    onChange={() => {}}
+                  />
                 </div>
               )}
             </div>
@@ -597,10 +679,11 @@ function ApprovalRow({
                         return (
                           <div
                             key={num}
-                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${isSelected
+                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${
+                              isSelected
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
                                 : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
-                              }`}
+                            }`}
                           >
                             {num}
                           </div>
@@ -669,10 +752,11 @@ function ApprovalRow({
                           <button
                             key={num}
                             onClick={() => setGrade(num)}
-                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${grade === num
+                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
+                              grade === num
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
                                 : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6 hover:bg-gray-3"
-                              }`}
+                            }`}
                           >
                             {num}
                           </button>
