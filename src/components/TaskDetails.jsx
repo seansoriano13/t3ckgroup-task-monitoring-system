@@ -5,7 +5,7 @@ import TaskHeader from "./TaskHeader";
 import ManagementSection from "./ManagementSection";
 import StandardDetailsSection from "./StandardDetailsSection";
 import ManagerEvaluation from "./ManagerEvaluation";
-import { formatDate } from "../utils/formatDate";
+import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
 import { PencilLine, FolderKanban, Receipt } from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
 import { TASK_STATUS } from "../constants/status.js";
@@ -94,8 +94,8 @@ export default function TaskDetails({
           categoryId: task.categoryId || "",
           priority: task.priority || "LOW",
           status: task.status || "INCOMPLETE",
-          startAt: task.startAt ? task.startAt.slice(0, 16) : "",
-          endAt: task.endAt ? task.endAt.slice(0, 16) : "",
+          startAt: task.startAt ? toLocalDatetimeString(task.startAt) : "",
+          endAt: task.endAt ? toLocalDatetimeString(task.endAt) : "",
           projectTitle: task.projectTitle || "",
           taskDescription: task.taskDescription || "",
           grade: task.grade || 0,
@@ -532,12 +532,17 @@ export default function TaskDetails({
                 hrRemarks: "",
               }),
 
-            onSubmitApproval: () =>
-              executeUpdate({
+            onSubmitApproval: () => {
+              const payload = {
                 id: task.id,
                 status: TASK_STATUS.AWAITING_APPROVAL,
                 editedBy: user.id,
-              }),
+              };
+              if (isMarketing) {
+                payload.endAt = task.endAt || new Date().toISOString();
+              }
+              return executeUpdate(payload);
+            },
 
             onMarkComplete: () =>
               executeUpdate({
