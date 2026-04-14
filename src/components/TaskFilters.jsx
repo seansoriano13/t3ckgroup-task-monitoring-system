@@ -33,6 +33,7 @@ export default function TaskFilters({
   uniqueSubDepts = [],
   uniqueEmployees = [],
   showStatusFilter = true,
+  disableDeptFilter,
   sortBy,
   setSortBy,
 }) {
@@ -144,7 +145,7 @@ export default function TaskFilters({
                 setDeptFilter(e.target.value);
                 setSubDeptFilter("ALL");
               }}
-              disabled={!isHr}
+              disabled={disableDeptFilter !== undefined ? disableDeptFilter : !isHr}
               className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50 cursor-pointer"
             >
               <option value="ALL">All Depts</option>

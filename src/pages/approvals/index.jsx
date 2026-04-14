@@ -397,6 +397,7 @@ export default function ApprovalsPage() {
             isManagement={true}
             isHr={false} // Approvals page hierarchy behaves like Head even for HR since it's just sorting pending
             hrViewMode="ALL"
+            disableDeptFilter={false} // Force enable dept filter for all roles in Approvals page
             uniqueDepts={uniqueDepts}
             uniqueSubDepts={uniqueSubDepts}
             uniqueEmployees={uniqueEmployees}
