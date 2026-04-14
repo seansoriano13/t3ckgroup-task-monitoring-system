@@ -6,12 +6,18 @@ import { components, hooks, utils } from '@generouted/react-router/client'
 export type Path =
   | `/`
   | `/approvals`
+  | `/approvals/components/ApprovalHeader`
+  | `/approvals/components/ApprovalRow`
   | `/approvals/sales`
   | `/hr-master-log`
   | `/hr/employee-management`
   | `/login`
   | `/profile`
   | `/sales/daily`
+  | `/sales/daily/components/AddUnplannedForm`
+  | `/sales/daily/components/ChecklistItem`
+  | `/sales/daily/components/DailyCoverageTabs`
+  | `/sales/daily/components/DailyTaskMatrix`
   | `/sales/log-sales`
   | `/sales/records`
   | `/sales/records/ActivitiesBoard`
@@ -21,6 +27,10 @@ export type Path =
   | `/sales/records/RecordsHeader`
   | `/sales/records/RevenueTable`
   | `/sales/schedule`
+  | `/sales/schedule/components/ScheduleActivityRow`
+  | `/sales/schedule/components/ScheduleDayView`
+  | `/sales/schedule/components/ScheduleHeader`
+  | `/sales/schedule/components/ScheduleTabs`
   | `/settings`
   | `/super-admin`
   | `/tasks`
