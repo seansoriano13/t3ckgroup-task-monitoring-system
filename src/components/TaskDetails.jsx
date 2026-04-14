@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTaskTopology } from "../hooks/useTaskTopology";
 import TaskHeader from "./TaskHeader";
 import ManagementSection from "./ManagementSection";
 import StandardDetailsSection from "./StandardDetailsSection";
-import ManagerEvaluation from "./ManagerEvaluation";
+import GradeSelector from "./GradeSelector";
+import TaskActivityTimeline from "./TaskActivityTimeline";
 import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
 import { PencilLine, FolderKanban, Receipt } from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
@@ -37,8 +38,11 @@ export default function TaskDetails({
   });
 
   const [approvalGrade, setApprovalGrade] = useState(null);
-  const [approvalRemarks, setApprovalRemarks] = useState("");
   const [descriptionType, setDescriptionType] = useState("description");
+
+  // Timeline message ref — used by the approval flow to grab the message
+  // from the timeline input box when the head clicks Approve/Reject
+  const timelineMessageRef = useRef("");
 
   const [formData, setFormData] = useState({
     department: "",
@@ -57,10 +61,9 @@ export default function TaskDetails({
     paymentVoucher: "",
   });
 
-  // 🔥 THE FIX: Pre-hydrate the form data immediately when the modal opens
+  // Pre-hydrate the form data immediately when the modal opens
   useEffect(() => {
     if (isOpen && task) {
-      // Grab department from the joined task data (works for Employees too!)
       const taskDept =
         task.creator?.department ||
         task.employees?.department ||
@@ -74,7 +77,7 @@ export default function TaskDetails({
 
       queueMicrotask(() => {
         setApprovalGrade(null);
-        setApprovalRemarks("");
+        timelineMessageRef.current = "";
 
         let initialDescriptionType = "description";
         const desc = task.taskDescription;
@@ -146,8 +149,6 @@ export default function TaskDetails({
 
   // Permissions & Handlers
   const isOwner = user?.id === task.loggedById;
-  // Employees can only edit their own tasks when INCOMPLETE or Head-rejected (NOT APPROVED + grade=0).
-  // HR-rejected tasks (NOT APPROVED + grade>0) must NOT be editable by the employee.
   const isHrRejected = task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
   const canEdit =
     isHr || isHead || (isOwner && task.status !== TASK_STATUS.COMPLETE && task.status !== TASK_STATUS.AWAITING_APPROVAL && !isHrRejected);
@@ -194,13 +195,15 @@ export default function TaskDetails({
   const taskDept = formData.department || user?.department;
   const taskSubDept =
     formData.subDepartment || user?.sub_department || user?.subDepartment;
-  // Used by TaskFooter to gate the marketing submit-for-approval button
   const isMarketing =
     taskSubDept?.toUpperCase() === "MARKETING" ||
     taskDept?.toUpperCase() === "MARKETING" ||
     task?.categoryDesc?.toUpperCase()?.includes("MARKETING");
 
-  // 🔥 THE FIX: Since useEffect handles the data now, this just toggles the UI
+  const isComplete = task.status === TASK_STATUS.COMPLETE;
+  const isNotApproved = task.status === TASK_STATUS.NOT_APPROVED;
+  const isFinalized = isComplete || isNotApproved;
+
   const handleToggleEdit = () => {
     setIsEditing(true);
   };
@@ -305,8 +308,9 @@ export default function TaskDetails({
               isHr={isHr}
               isHead={isHead}
               task={task}
-              formData={formData} // 👈 This now holds the correct department immediately
+              formData={formData}
               taskLoggedByName={task.loggedByName}
+              reportedToName={task.reportedToName}
               topologyData={topologyData}
               handlers={{
                 handleDeptChange,
@@ -491,18 +495,61 @@ export default function TaskDetails({
               />
             </div>
 
-            <ManagerEvaluation
-              isEditing={isEditing}
-              canEvaluate={canEvaluate}
-              isHr={isHr}
-              formData={formData}
-              handleChange={handleChange}
-              task={task}
-              approvalGrade={approvalGrade}
-              setApprovalGrade={setApprovalGrade}
-              approvalRemarks={approvalRemarks}
-              setApprovalRemarks={setApprovalRemarks}
-            />
+            {/* --- GRADE SELECTOR (for evaluation) --- */}
+            {!isEditing && (
+              <div className={`p-4 rounded-xl border ${
+                isComplete
+                  ? "bg-gray-3/50 border-gray-4"
+                  : isNotApproved
+                    ? "bg-red-a2 border-red-a5"
+                    : "border-gray-6"
+              }`}>
+                <div className="grid gap-1 mb-3">
+                  <div className="text-xs font-bold uppercase tracking-wider">
+                    {isFinalized
+                      ? "Performance Grade"
+                      : canEvaluate
+                        ? "Performance Grade (Required for Approval)"
+                        : "Evaluation Status (Not Yet Evaluated)"}
+                  </div>
+
+                  {isFinalized && task.evaluatedByName && (
+                    <div className="text-[11px] text-gray-8 flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        Evaluated by:{" "}
+                        <span className="font-bold text-gray-11">
+                          {task.evaluatedByName}
+                        </span>
+                      </div>
+                      {task.evaluatedById === task.loggedById && (
+                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-purple-500 text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
+                          Self-Verified
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <GradeSelector
+                  grade={isFinalized ? task.grade : approvalGrade}
+                  onSelect={setApprovalGrade}
+                  canEvaluate={canEvaluate && !isFinalized}
+                  finalized={isFinalized}
+                />
+              </div>
+            )}
+
+            {/* --- UNIFIED ACTIVITY TIMELINE --- */}
+            <div className="pt-2 border-t border-gray-4 mt-2">
+              <TaskActivityTimeline
+                taskId={task.id}
+                legacyRemarks={task.remarks}
+                legacyHrRemarks={task.hrRemarks}
+                evaluatedByName={task.evaluatedByName}
+                grade={task.grade}
+                disabled={isEditing || task.status === TASK_STATUS.DELETED}
+              />
+            </div>
 
             {!isEditing && task.editedById && (
               <div className="pt-4 border-t border-gray-4 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-gray-8">
@@ -527,12 +574,13 @@ export default function TaskDetails({
             onHeadReject: () =>
               executeUpdate({
                 id: task.id,
-                status: TASK_STATUS.NOT_APPROVED, // Global text update applied!
+                status: TASK_STATUS.NOT_APPROVED,
                 endAt: new Date().toISOString(),
-                grade: 0, // 👈 Fix: Rejection grade contaminates analytics
-                remarks: approvalRemarks,
-                evaluatedBy: user.id, // 🔥 Accountability Hook
-                editedBy: user.id, // (Optional: you can keep this if you still want the generic audit trail to fire too)
+                grade: 0,
+                remarks: "",
+                activityMessage: timelineMessageRef.current || "",
+                evaluatedBy: user.id,
+                editedBy: user.id,
                 hrVerified: false,
                 hrRemarks: "",
               }),
@@ -555,8 +603,9 @@ export default function TaskDetails({
                 status: TASK_STATUS.COMPLETE,
                 endAt: new Date().toISOString(),
                 grade: approvalGrade,
-                remarks: approvalRemarks,
-                evaluatedBy: user.id, // 🔥 Accountability Hook
+                remarks: "",
+                activityMessage: timelineMessageRef.current || "",
+                evaluatedBy: user.id,
                 editedBy: user.id,
                 hrVerified: false,
                 hrRemarks: "",
@@ -585,6 +634,7 @@ export default function TaskDetails({
                 hrVerified: true,
                 hrVerifiedAt: new Date().toISOString(),
                 editedBy: user.id,
+                activityMessage: timelineMessageRef.current || "",
               });
             },
 
@@ -593,9 +643,9 @@ export default function TaskDetails({
                 id: task.id,
                 status: TASK_STATUS.COMPLETE,
                 endAt: new Date().toISOString(),
-                grade: 3, // Auto-grade 3 for self-verification
+                grade: 3,
                 remarks: "Self-Verified (System Bypass)",
-                evaluatedBy: user.id, // Flagged for audit: log_by === evaluated_by
+                evaluatedBy: user.id,
                 editedBy: user.id,
                 hrVerified: false,
                 hrRemarks: "",
@@ -607,6 +657,10 @@ export default function TaskDetails({
                 status: TASK_STATUS.INCOMPLETE,
                 editedBy: user.id,
               }),
+
+            setTimelineMessage: (msg) => {
+              timelineMessageRef.current = msg;
+            },
           }}
           permissions={{ canEdit, canEvaluate, isHr, isManagement, isOwner }}
           state={{
@@ -619,7 +673,6 @@ export default function TaskDetails({
               !(isManagement && !formData.loggedById) &&
               formData.categoryId,
             canApprove: approvalGrade !== null && !hasUncheckedItems,
-            approvalRemarks: approvalRemarks,
             isMarketing,
             universalTaskSubmission:
               appSettings?.universal_task_submission === true,

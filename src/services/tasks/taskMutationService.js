@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { notificationService } from "../notificationService";
+import { taskActivityService } from "./taskActivityService";
 import { TASK_STATUS } from "../../constants/status";
 
 export const taskMutationService = {
@@ -40,31 +41,67 @@ export const taskMutationService = {
           evaluated_at: evaluatedAt,
           payment_voucher: payload.paymentVoucher || null,
           attachment_urls: payload.attachments || [],
+          reported_to: payload.reportedTo || null,
         },
       ])
       .select();
 
     if (error) throw error;
 
+    const taskId = data[0].id;
+
+    // Log system activity: Task created
+    taskActivityService.addSystemEvent(
+      taskId,
+      `Task submitted by ${payload.submittedByName || "an employee"}.`,
+      { event: "TASK_CREATED" },
+    );
+
+    if (payload.reportedTo) {
+      // Fetch head name for the activity log
+      const { data: head } = await supabase
+        .from("employees")
+        .select("name")
+        .eq("id", payload.reportedTo)
+        .single();
+
+      taskActivityService.addSystemEvent(
+        taskId,
+        `Reported to: ${head?.name || "a Head"}.`,
+        { event: "REPORTED_TO_ASSIGNED", headId: payload.reportedTo },
+      );
+    }
+
     // Trigger Notification: New Task Submitted -> Head
-    // We need to fetch the creator's department to notify the correct Head
     const { data: creator } = await supabase
       .from("employees")
       .select("name, department, sub_department")
       .eq("id", payload.loggedById)
       .single();
+
     if (creator) {
-      notificationService.notifyHeadByDepartment(
-        creator.department,
-        creator.sub_department,
-        {
-          sender_id: payload.submittedById || payload.loggedById,
-          type: "NEW_TASK_SUBMITTED",
-          title: "New Task Submitted",
-          message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
-          reference_id: data[0].id,
-        },
-      );
+      const notificationPayload = {
+        sender_id: payload.submittedById || payload.loggedById,
+        type: "NEW_TASK_SUBMITTED",
+        title: "New Task Submitted",
+        message: `${creator.name} submitted a new task: "${payload.taskDescription}".`,
+        reference_id: taskId,
+      };
+
+      // NEW: If reported_to is set, notify ONLY that specific head
+      if (payload.reportedTo) {
+        notificationService.createNotification({
+          recipient_id: payload.reportedTo,
+          ...notificationPayload,
+        });
+      } else {
+        // FALLBACK: broadcast to department heads (legacy behavior)
+        notificationService.notifyHeadByDepartment(
+          creator.department,
+          creator.sub_department,
+          notificationPayload,
+        );
+      }
 
       // Special Notification: If someone else (HR/Admin) created this task for the employee
       if (
@@ -77,7 +114,7 @@ export const taskMutationService = {
           type: "TASK_ASSIGNED",
           title: "New Task Assigned",
           message: `${payload.submittedByName || "An administrator"} assigned you a new task: "${payload.taskDescription}".`,
-          reference_id: data[0].id,
+          reference_id: taskId,
         });
       }
     }
@@ -121,7 +158,7 @@ export const taskMutationService = {
       const { data: cur, error: curErr } = await supabase
         .from("tasks")
         .select(
-          "status, hr_verified, evaluated_by, logged_by, task_description, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
+          "status, hr_verified, evaluated_by, logged_by, reported_to, task_description, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
         )
         .eq("id", taskId)
         .single();
@@ -300,34 +337,160 @@ export const taskMutationService = {
 
     if (error) throw error;
 
+    // ===========================
+    // ACTIVITY TIMELINE ENTRIES
+    // ===========================
+    if (current && payload.editedBy) {
+      const { data: editor } = await supabase
+        .from("employees")
+        .select("name")
+        .eq("id", payload.editedBy)
+        .single();
+
+      const editorName = editor?.name || "Someone";
+
+      // --- Status transition events ---
+      const isEmployeeSelfComplete = payload?.status === TASK_STATUS.AWAITING_APPROVAL && current?.status !== TASK_STATUS.AWAITING_APPROVAL;
+      if (isEmployeeSelfComplete) {
+        taskActivityService.addSystemEvent(
+          taskId,
+          `${current.creator?.name || "Employee"} submitted task for review.`,
+          { event: "STATUS_CHANGE", old_status: current.status, new_status: TASK_STATUS.AWAITING_APPROVAL },
+        );
+      }
+
+      if (isHeadApprove) {
+        // Write the approval entry with grade + message to the timeline
+        taskActivityService.addApprovalEntry(
+          taskId,
+          payload.editedBy,
+          payload.activityMessage || payload.remarks || "Approved",
+          { event: "APPROVED", grade: payload.grade },
+        );
+        taskActivityService.addSystemEvent(
+          taskId,
+          `Task approved by ${editorName} — Grade: ${payload.grade}`,
+          { event: "STATUS_CHANGE", old_status: current.status, new_status: TASK_STATUS.COMPLETE, grade: payload.grade },
+        );
+      }
+
+      if (isHeadReject) {
+        taskActivityService.addApprovalEntry(
+          taskId,
+          payload.editedBy,
+          payload.activityMessage || payload.remarks || "Not approved",
+          { event: "REJECTED", grade: 0 },
+        );
+        taskActivityService.addSystemEvent(
+          taskId,
+          `Task rejected by ${editorName}.`,
+          { event: "STATUS_CHANGE", old_status: current.status, new_status: TASK_STATUS.NOT_APPROVED },
+        );
+      }
+
+      if (payload.hrVerified === true && current.hr_verified === false) {
+        taskActivityService.addHrEntry(
+          taskId,
+          payload.editedBy,
+          payload.activityMessage || "Verified",
+          { event: "HR_VERIFIED" },
+        );
+        taskActivityService.addSystemEvent(
+          taskId,
+          `Task verified by HR (${editorName}).`,
+          { event: "HR_VERIFIED" },
+        );
+      }
+
+      if (isHrReject) {
+        taskActivityService.addHrEntry(
+          taskId,
+          payload.editedBy,
+          payload.activityMessage || payload.hrRemarks || "Rejected by HR",
+          { event: "HR_REJECTED" },
+        );
+        taskActivityService.addSystemEvent(
+          taskId,
+          `Task rejected by HR (${editorName}).`,
+          { event: "HR_REJECTED" },
+        );
+      }
+
+      if (isHrUndo) {
+        taskActivityService.addSystemEvent(
+          taskId,
+          `HR verification undone by ${editorName}.`,
+          { event: "HR_UNDO" },
+        );
+      }
+
+      // Self-verify
+      const isSelfVerify =
+        payload?.status === TASK_STATUS.COMPLETE &&
+        payload?.evaluatedBy !== undefined &&
+        payload?.remarks === "Self-Verified (System Bypass)";
+      if (isSelfVerify) {
+        taskActivityService.addSystemEvent(
+          taskId,
+          `Self-verified by ${editorName} (System Bypass).`,
+          { event: "SELF_VERIFIED", grade: payload.grade },
+        );
+      }
+
+      // Task recalled
+      const isRecall =
+        payload?.status === TASK_STATUS.INCOMPLETE &&
+        current?.status === TASK_STATUS.AWAITING_APPROVAL;
+      if (isRecall) {
+        taskActivityService.addSystemEvent(
+          taskId,
+          `Task recalled by ${editorName}.`,
+          { event: "STATUS_CHANGE", old_status: TASK_STATUS.AWAITING_APPROVAL, new_status: TASK_STATUS.INCOMPLETE },
+        );
+      }
+    }
+
     // NOTIFICATION TRIGGERS
     if (current && payload.editedBy) {
       const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? "..." : ""}"`;
       
       const isEmployeeSelfComplete = payload?.status === TASK_STATUS.AWAITING_APPROVAL && current?.status !== TASK_STATUS.AWAITING_APPROVAL;
       if (isEmployeeSelfComplete) {
-         notificationService.broadcastToRole(["SUPER_ADMIN"], {
+        // NEW: If task has reported_to, notify ONLY that head
+        if (current.reported_to) {
+          notificationService.createNotification({
+            recipient_id: current.reported_to,
             sender_id: payload.editedBy,
             type: "TASK_AWAITING_APPROVAL",
             title: "Task Awaiting Approval",
             message: `${current.creator?.name} has submitted a task for your approval: ${taskNameSnippet}.`,
             reference_id: taskId,
-         });
+          });
+        } else {
+          // FALLBACK: broadcast to all heads + super admins
+          notificationService.broadcastToRole(["SUPER_ADMIN"], {
+            sender_id: payload.editedBy,
+            type: "TASK_AWAITING_APPROVAL",
+            title: "Task Awaiting Approval",
+            message: `${current.creator?.name} has submitted a task for your approval: ${taskNameSnippet}.`,
+            reference_id: taskId,
+          });
          
-         const empSubDept = current.creator?.sub_department;
-         if (empSubDept || current.creator?.department) {
-           notificationService.notifyHeadByDepartment(
-             current.creator?.department,
-             empSubDept,
-             {
-               sender_id: payload.editedBy,
-               type: "TASK_AWAITING_APPROVAL",
-               title: "Task Awaiting Approval",
-               message: `${current.creator?.name} has submitted a task for your approval: ${taskNameSnippet}.`,
-               reference_id: taskId,
-             },
-           );
-         }
+          const empSubDept = current.creator?.sub_department;
+          if (empSubDept || current.creator?.department) {
+            notificationService.notifyHeadByDepartment(
+              current.creator?.department,
+              empSubDept,
+              {
+                sender_id: payload.editedBy,
+                type: "TASK_AWAITING_APPROVAL",
+                title: "Task Awaiting Approval",
+                message: `${current.creator?.name} has submitted a task for your approval: ${taskNameSnippet}.`,
+                reference_id: taskId,
+              },
+            );
+          }
+        }
       }
 
       if (isHeadApprove) {
@@ -364,20 +527,31 @@ export const taskMutationService = {
           reference_id: taskId,
         });
 
-        // Also keep the Head in the loop
-        const empSubDept = current.creator?.sub_department;
-        if (empSubDept || current.creator?.department) {
-          notificationService.notifyHeadByDepartment(
-            current.creator?.department,
-            empSubDept,
-            {
-              sender_id: payload.editedBy,
-              type: "TASK_VERIFIED",
-              title: "Staff Task Verified by HR",
-              message: `Task ${taskNameSnippet} by ${current.creator?.name} under your department was verified by HR.`,
-              reference_id: taskId,
-            },
-          );
+        // Also keep the Head in the loop — use reported_to if available
+        if (current.reported_to) {
+          notificationService.createNotification({
+            recipient_id: current.reported_to,
+            sender_id: payload.editedBy,
+            type: "TASK_VERIFIED",
+            title: "Staff Task Verified by HR",
+            message: `Task ${taskNameSnippet} by ${current.creator?.name} under your team was verified by HR.`,
+            reference_id: taskId,
+          });
+        } else {
+          const empSubDept = current.creator?.sub_department;
+          if (empSubDept || current.creator?.department) {
+            notificationService.notifyHeadByDepartment(
+              current.creator?.department,
+              empSubDept,
+              {
+                sender_id: payload.editedBy,
+                type: "TASK_VERIFIED",
+                title: "Staff Task Verified by HR",
+                message: `Task ${taskNameSnippet} by ${current.creator?.name} under your department was verified by HR.`,
+                reference_id: taskId,
+              },
+            );
+          }
         }
 
         // Notify Super Admin
@@ -450,6 +624,20 @@ export const taskMutationService = {
       .eq("id", taskId);
 
     if (error) throw error;
+
+    // Log deletion to activity timeline
+    const { data: deleter } = await supabase
+      .from("employees")
+      .select("name")
+      .eq("id", userId)
+      .single();
+
+    taskActivityService.addSystemEvent(
+      taskId,
+      `Task deleted by ${deleter?.name || "someone"}.`,
+      { event: "DELETED" },
+    );
+
     return true;
   },
 
@@ -482,6 +670,21 @@ export const taskMutationService = {
       .select("*, creator:employees!tasks_logged_by_fk(name, department, sub_department)");
 
     if (error) throw error;
+
+    // Log activity for each bulk-approved task
+    for (const task of data) {
+      taskActivityService.addApprovalEntry(
+        task.id,
+        adminId,
+        "Bulk approved via system bypass",
+        { event: "APPROVED", grade: 3, bulk: true },
+      );
+      taskActivityService.addSystemEvent(
+        task.id,
+        `Task bulk-approved by ${admin?.name || "Admin"} — Grade: 3`,
+        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.COMPLETE, grade: 3 },
+      );
+    }
 
     // Notify HR that tasks were bulk-approved
     notificationService.broadcastToRole(["HR"], {

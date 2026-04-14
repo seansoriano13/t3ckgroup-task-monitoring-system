@@ -87,7 +87,6 @@ const TaskFooter = ({ actions, permissions, state }) => {
               </button>
             )}
 
-            {/* --- MARKETING SELF-COMPLETE --- */}
             {/* --- SUBMIT FOR REVIEW (Marketing always / All when setting enabled) --- */}
             {(state.isMarketing || state.universalTaskSubmission) &&
               isOwner &&
@@ -97,7 +96,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   onClick={onSubmitApproval}
                   disabled={
                     isSubmitting ||
-                    (state.isMarketing && !state.hasAttachments) || // Only enforce attachment check for Marketing
+                    (state.isMarketing && !state.hasAttachments) ||
                     state.task.status === TASK_STATUS.AWAITING_APPROVAL
                   }
                   className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
@@ -152,12 +151,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
                   <button
                     onClick={onHeadReject}
-                    // 🔥 Disables if submitting OR if remarks are empty/whitespace
-                    disabled={
-                      isSubmitting ||
-                      !state.approvalRemarks ||
-                      state.approvalRemarks.trim() === ""
-                    }
+                    disabled={isSubmitting}
                     className="bg-gray-2 border border-gray-4 text-gray-11 hover:text-red-11 hover:border-red-a5 text-sm font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <XCircle size={16} /> Not Approve

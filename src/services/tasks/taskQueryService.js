@@ -12,6 +12,7 @@ export const taskQueryService = {
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email, is_super_admin),
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
+        reportedToHead:employees!tasks_reported_to_fkey(name),
         categories(description)
       `,
       )
@@ -36,6 +37,8 @@ export const taskQueryService = {
       evaluatedById: task.evaluated_by,
       evaluatedByName: task.evaluator?.name,
       evaluatedAt: task.evaluated_at,
+      reportedTo: task.reported_to,
+      reportedToName: task.reportedToHead?.name || null,
       startAt: task.start_at,
       endAt: task.end_at,
       status: task.status,
@@ -67,6 +70,7 @@ export const taskQueryService = {
         edited_at,
         evaluated_by,
         evaluated_at,
+        reported_to,
         start_at,
         end_at,
         status,
@@ -80,7 +84,8 @@ export const taskQueryService = {
         attachment_urls,
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email),
         editor:employees!tasks_edited_by_fk(name),
-        evaluator:employees!tasks_evaluated_by_fkey(name), 
+        evaluator:employees!tasks_evaluated_by_fkey(name),
+        reportedToHead:employees!tasks_reported_to_fkey(name),
         categories(description)
       `,
       )
@@ -105,6 +110,8 @@ export const taskQueryService = {
       evaluatedById: task.evaluated_by,
       evaluatedByName: task.evaluator?.name,
       evaluatedAt: task.evaluated_at,
+      reportedTo: task.reported_to,
+      reportedToName: task.reportedToHead?.name || null,
       startAt: task.start_at,
       endAt: task.end_at,
       status: task.status,
@@ -130,6 +137,7 @@ export const taskQueryService = {
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email, is_super_admin),
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
+        reportedToHead:employees!tasks_reported_to_fkey(name),
         categories(description)
       `,
       )
@@ -154,6 +162,8 @@ export const taskQueryService = {
       evaluatedById: data.evaluated_by,
       evaluatedByName: data.evaluator?.name,
       evaluatedAt: data.evaluated_at,
+      reportedTo: data.reported_to,
+      reportedToName: data.reportedToHead?.name || null,
       startAt: data.start_at,
       endAt: data.end_at,
       status: data.status,

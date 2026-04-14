@@ -3,6 +3,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  ClipboardList,
   FolderKanban,
   User
 } from "lucide-react";
@@ -126,6 +127,14 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
             {task.priority === "HIGH" && <AlertCircle size={12} />}
             {task.priority}
           </span>
+
+          {/* Reported To Badge (Management only) */}
+          {isManagement && task.reportedToName && (
+            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border text-amber-500 bg-amber-500/10 border-amber-500/20 max-w-[140px] truncate" title={`Reported to ${task.reportedToName}`}>
+              <ClipboardList size={10} className="shrink-0" />
+              <span className="truncate">{task.reportedToName}</span>
+            </span>
+          )}
 
           {/* 🔥 HR VERIFICATION BADGE (Only shows when Manager has approved it) */}
           {task.status === TASK_STATUS.COMPLETE && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Users, Building2, FolderKanban, Receipt } from "lucide-react";
+import { X, Users, Building2, FolderKanban, Receipt, ClipboardList } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import toast from "react-hot-toast";
@@ -23,6 +23,10 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
   const [categories, setCategories] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Head Selection States
+  const [availableHeads, setAvailableHeads] = useState([]);
+  const [selectedHead, setSelectedHead] = useState("");
 
   // HR Specific Filter States
   const [hrDeptFilter, setHrDeptFilter] = useState("");
@@ -72,7 +76,6 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
           .neq("is_deleted", true);
 
         if (isSuperAdmin) {
-          // Super Admin can see everyone except other Super Admins (to keep it clean)
           empQuery = empQuery.or(`is_super_admin.eq.false,is_super_admin.is.null,id.eq.${user.id}`);
         } else if (!isHr && isHead) {
           if (userSubDept) {
@@ -88,6 +91,36 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
 
         if (empError) console.error("Employee Fetch Error:", empError);
         else if (empData) setEmployees(empData);
+
+        // 3. Fetch Available Heads + Super Admins for "Report To" dropdown
+        const { data: headsData } = await supabase
+          .from("employees")
+          .select("id, name, department, sub_department, is_head, is_super_admin")
+          .or("is_head.eq.true,is_super_admin.eq.true")
+          .neq("is_deleted", true)
+          .order("name");
+
+        if (headsData) {
+          setAvailableHeads(headsData);
+
+          // Pre-select logic for regular employees
+          if (!isHead && !isHr && !isSuperAdmin) {
+            const matchingHeads = headsData.filter((h) => {
+              if (userSubDept && h.sub_department) {
+                return h.sub_department.trim().toLowerCase() === userSubDept.trim().toLowerCase();
+              }
+              return h.department?.trim().toLowerCase() === user.department?.trim().toLowerCase();
+            });
+
+            if (matchingHeads.length > 0) {
+              setSelectedHead(matchingHeads[0].id);
+            }
+          }
+          // For Heads assigning tasks — auto-assign to themselves
+          else if (isHead && !isHr && !isSuperAdmin) {
+            setSelectedHead(user.id);
+          }
+        }
 
         // Reset form data and filters for fresh open
         setHrDeptFilter(isHr && !isSuperAdmin ? (user.department || "ADMIN") : "");
@@ -113,6 +146,31 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
 
     fetchDropdownData();
   }, [isOpen, user, isHr, isHead, isSuperAdmin]);
+
+  // Update head pre-selection when assignee changes (for HR/SA who can pick different employees)
+  useEffect(() => {
+    if (!formData.loggedById || !availableHeads.length) return;
+    if (isHead && !isHr && !isSuperAdmin) return; // Heads are locked to themselves
+
+    const selectedEmployee = employees.find((e) => e.id === formData.loggedById);
+    if (!selectedEmployee) return;
+
+    const empSubDept = selectedEmployee.sub_department;
+    const empDept = selectedEmployee.department;
+
+    const matchingHeads = availableHeads.filter((h) => {
+      if (empSubDept && h.sub_department) {
+        return h.sub_department.trim().toLowerCase() === empSubDept.trim().toLowerCase();
+      }
+      return h.department?.trim().toLowerCase() === empDept?.trim().toLowerCase();
+    });
+
+    if (matchingHeads.length > 0) {
+      setSelectedHead(matchingHeads[0].id);
+    } else {
+      setSelectedHead("");
+    }
+  }, [formData.loggedById, availableHeads, employees, isHead, isHr, isSuperAdmin]);
 
   // Handle Input Changes
   const handleChange = (e) => {
@@ -179,6 +237,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       paymentVoucher: formData.paymentVoucher?.trim() || null,
       submittedById: user.id,
       submittedByName: user.name,
+      reportedTo: selectedHead || null,
     };
 
     if (onSubmit) onSubmit(payload);
@@ -242,6 +301,28 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
       // 3. Default behavior: Strictly lock to the Selected Employee's sub-department
       return cat.sub_department === selectedEmployeeInfo.sub_department;
     });
+
+  // --- HEADS DROPDOWN LOGIC ---
+  // For regular employees: show heads matching the selected employee's dept
+  // For HR/SA: show all heads
+  // For Heads: hidden (auto-set to themselves)
+  const filteredHeads = (() => {
+    if (isHead && !isHr && !isSuperAdmin) return []; // Hidden for heads
+    if (isSuperAdmin || isHr) return availableHeads; // All heads for HR/SA
+
+    // Employee view: filter heads by their dept/subdept
+    const empSubDept = selectedEmployeeInfo.sub_department;
+    const empDept = selectedEmployeeInfo.department;
+
+    return availableHeads.filter((h) => {
+      if (empSubDept && h.sub_department) {
+        return h.sub_department.trim().toLowerCase() === empSubDept?.trim().toLowerCase();
+      }
+      return h.department?.trim().toLowerCase() === empDept?.trim().toLowerCase();
+    });
+  })();
+
+  const showHeadDropdown = !isHead || isHr || isSuperAdmin;
 
   return (
     <>
@@ -368,6 +449,32 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                     {isHr && filteredEmployees.length === 0 && (
                       <p className="text-[10px] text-red-500 mt-2 font-bold">
                         No employees found in this filter.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* REPORT TO (Head Selection) */}
+                {showHeadDropdown && (
+                  <div className="col-span-2 pt-2 border-t border-gray-3">
+                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-1 mt-1">
+                      <ClipboardList size={12} /> Report To (Head)
+                    </label>
+                    <select
+                      value={selectedHead}
+                      onChange={(e) => setSelectedHead(e.target.value)}
+                      className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-amber-500 text-gray-12 rounded-lg px-3 outline-none transition-colors font-semibold text-sm"
+                    >
+                      <option value="">— No specific head —</option>
+                      {filteredHeads.map((head) => (
+                        <option key={head.id} value={head.id}>
+                          {head.name} — {head.sub_department || head.department}{head.is_super_admin ? " (Admin)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {filteredHeads.length === 0 && formData.loggedById && (
+                      <p className="text-[10px] text-gray-7 mt-1 font-bold">
+                        No heads found for this department.
                       </p>
                     )}
                   </div>

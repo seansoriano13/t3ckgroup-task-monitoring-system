@@ -137,49 +137,68 @@ export default function ApprovalsPage() {
         }
 
         if (isHead || isSuperAdmin) {
-          const taskSubDept =
-            t.sub_department ||
-            t.subDepartment ||
-            t.creator?.sub_department ||
-            t.employees?.sub_department ||
-            "";
-
-          const taskDept =
-            t.creator?.department || t.employees?.department || "";
-
-          let isMyDept = false;
-          if (userSubDept) {
-            isMyDept = taskSubDept === userSubDept;
+          // NEW: If task has explicit reported_to, only show to THAT head
+          // Super Admins still see everything regardless.
+          if (t.reportedTo) {
+            if (isSuperAdmin) {
+              // Super Admins can see all reported tasks
+              matchesHeadQueue = isNotMe && (
+                t.status === TASK_STATUS.INCOMPLETE ||
+                t.status === TASK_STATUS.AWAITING_APPROVAL
+              );
+            } else {
+              // Regular heads: only see tasks reported to them
+              matchesHeadQueue = isNotMe && t.reportedTo === user?.id && (
+                t.status === TASK_STATUS.INCOMPLETE ||
+                t.status === TASK_STATUS.AWAITING_APPROVAL
+              );
+            }
           } else {
-            isMyDept = taskDept === userDept;
+            // FALLBACK: legacy tasks without reported_to use department matching
+            const taskSubDept =
+              t.sub_department ||
+              t.subDepartment ||
+              t.creator?.sub_department ||
+              t.employees?.sub_department ||
+              "";
+
+            const taskDept =
+              t.creator?.department || t.employees?.department || "";
+
+            let isMyDept = false;
+            if (userSubDept) {
+              isMyDept = taskSubDept === userSubDept;
+            } else {
+              isMyDept = taskDept === userDept;
+            }
+
+            const isMarketing =
+              taskSubDept === "MARKETING" || taskDept === "MARKETING";
+            let matchesHeadQueueForThisTask = false;
+
+            if (t.status === TASK_STATUS.INCOMPLETE) {
+              matchesHeadQueueForThisTask = isNotMe && isMyDept;
+            } else if (t.status === TASK_STATUS.AWAITING_APPROVAL) {
+              const canOpsManagerApprove =
+                appSettings?.marketing_approval_by_ops_manager && isMyDept;
+
+              if (isMarketing && (isSuperAdmin || canOpsManagerApprove)) {
+                matchesHeadQueueForThisTask = isNotMe;
+              }
+              else if (
+                !isMarketing &&
+                appSettings?.universal_task_submission &&
+                isMyDept
+              ) {
+                matchesHeadQueueForThisTask = isNotMe;
+              }
+              else if (isSuperAdmin) {
+                matchesHeadQueueForThisTask = isNotMe;
+              }
+            }
+
+            matchesHeadQueue = matchesHeadQueueForThisTask;
           }
-
-          const isMarketing =
-            taskSubDept === "MARKETING" || taskDept === "MARKETING";
-          let matchesHeadQueueForThisTask = false;
-
-          if (t.status === TASK_STATUS.INCOMPLETE) {
-            matchesHeadQueueForThisTask = isNotMe && isMyDept;
-          } else if (t.status === TASK_STATUS.AWAITING_APPROVAL) {
-            const canOpsManagerApprove =
-              appSettings?.marketing_approval_by_ops_manager && isMyDept;
-
-            if (isMarketing && (isSuperAdmin || canOpsManagerApprove)) {
-              matchesHeadQueueForThisTask = isNotMe;
-            }
-            else if (
-              !isMarketing &&
-              appSettings?.universal_task_submission &&
-              isMyDept
-            ) {
-              matchesHeadQueueForThisTask = isNotMe;
-            }
-            else if (isSuperAdmin) {
-              matchesHeadQueueForThisTask = isNotMe;
-            }
-          }
-
-          matchesHeadQueue = matchesHeadQueueForThisTask;
         }
 
         return matchesHrQueue || matchesHeadQueue;

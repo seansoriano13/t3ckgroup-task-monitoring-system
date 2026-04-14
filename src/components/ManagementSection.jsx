@@ -1,4 +1,5 @@
 import { FieldBox } from "./FieldBox";
+import { ClipboardList } from "lucide-react";
 
 const ManagementSection = ({
   isEditing,
@@ -8,6 +9,7 @@ const ManagementSection = ({
   handlers,
   topologyData,
   taskLoggedByName,
+  reportedToName,
 }) => {
   const { handleDeptChange, handleSubDeptChange, handleAssigneeChange } =
     handlers;
@@ -101,6 +103,18 @@ const ManagementSection = ({
           )}
         </FieldBox>
       </div>
+
+      {/* 4. Reported To (Head) — Read-only display */}
+      {!isEditing && reportedToName && (
+        <div className="col-span-2 pt-2 border-t border-gray-4 border-dashed">
+          <FieldBox label="Reported To (Head)" isEditing={false}>
+            <p className="px-3 text-sm font-bold text-amber-400 flex items-center gap-2">
+              <ClipboardList size={14} className="text-amber-500/60" />
+              {reportedToName}
+            </p>
+          </FieldBox>
+        </div>
+      )}
     </div>
   );
 };
