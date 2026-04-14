@@ -131,7 +131,7 @@ export function useSalesRecordsFilters(user) {
         location.state.openActivityId || location.state.openEventId;
 
       let targetAct = null;
-      if (eventType === "SALES_PLAN_SUBMITTED") {
+      if (eventType === "SALES_PLAN_SUBMITTED" || eventType === "SALES_WEEK_CONQUERED") {
         targetAct = rawActivities.find(
           (a) => String(a.plan_id) === String(activityId),
         );
@@ -151,12 +151,12 @@ export function useSalesRecordsFilters(user) {
           setActiveTab("ACTIVITIES");
           setViewMode("BOARD");
           setTimeframe(
-            eventType === "SALES_PLAN_SUBMITTED" ? "WEEKLY" : "DAILY",
+            (eventType === "SALES_PLAN_SUBMITTED" || eventType === "SALES_WEEK_CONQUERED") ? "WEEKLY" : "DAILY",
           );
           setSelectedDateFilter(targetDate);
           setFilterEmp(targetEmp);
 
-          if (targetAct && eventType !== "SALES_PLAN_SUBMITTED") {
+          if (targetAct && eventType !== "SALES_PLAN_SUBMITTED" && eventType !== "SALES_WEEK_CONQUERED") {
             setSelectedActivity(targetAct);
           }
 

@@ -86,7 +86,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         markReadMutation.mutate(notif.id);
      }
 
-     if (!notif.reference_id) return; // No deep link
+     if (!notif.reference_id && !notif.type.includes('CONQUERED')) return; // No deep link unless there is a fallback
 
       // Deep Routing Logic
       if (notif.type.includes('TASK')) {
@@ -112,9 +112,14 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       } else if (notif.type === 'UNPLANNED_ACTIVITY') {
          // Go to records and open that activity
          navigate('/sales/records', { state: { openActivityId: notif.reference_id } });
-      } else if (notif.type === 'SALES_DAY_CONQUERED') {
+      } else if (notif.type === 'SALES_DAY_CONQUERED' || notif.type === 'SALES_WEEK_CONQUERED') {
          const date = notif.reference_id || (notif.created_at ? notif.created_at.split('T')[0] : null);
-         navigate('/sales/daily', { state: { date } });
+         const isManagement = user?.isSuperAdmin || user?.isHead || user?.isHr || user?.is_super_admin || user?.is_head || user?.is_hr;
+         if (isManagement) {
+            navigate('/sales/records', { state: { eventType: notif.type, fallbackDate: date, fallbackEmpId: notif.sender_id } });
+         } else {
+            navigate('/sales/daily', { state: { date } });
+         }
       } else if (notif.type.includes('REVENUE')) {
          navigate('/sales/records', { state: { openRevenueId: notif.reference_id } });
       } else if (notif.type === 'SALES_EXPENSE_PENDING') {
