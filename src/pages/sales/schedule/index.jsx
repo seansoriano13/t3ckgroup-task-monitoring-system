@@ -386,17 +386,24 @@ export default function SalesSchedulePage() {
         )
         .map((a) => {
           const payload = {
-            ...a,
             plan_id: currentPlanId,
             employee_id: user.id,
+            scheduled_date: a.scheduled_date,
+            time_of_day: a.time_of_day,
+            activity_type: a.activity_type,
+            account_name: a.account_name,
+            contact_person: a.contact_person,
+            contact_number: a.contact_number,
+            email_address: a.email_address,
+            address: a.address,
+            remarks_plan: a.remarks_plan,
+            reference_number: a.reference_number === "" ? null : a.reference_number,
+            expense_amount: a.expense_amount === "" ? null : a.expense_amount,
           };
-          delete payload._slot_index;
-          if (!payload.id) {
-            delete payload.id;
-          }
 
-          if (payload.expense_amount === "") payload.expense_amount = null;
-          if (payload.reference_number === "") payload.reference_number = null;
+          if (a.id) {
+            payload.id = a.id;
+          }
 
           return payload;
         });

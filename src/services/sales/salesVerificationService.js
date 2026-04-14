@@ -129,4 +129,49 @@ export const salesVerificationService = {
     if (error) throw error;
     return data || [];
   },
+
+  async getVerifiedActivities(verifiedBy) {
+    const { data, error } = await supabase
+      .from("sales_activities")
+      .select(
+        "*, employees!sales_activities_employee_id_fkey!inner(name, department, sub_department, is_super_admin)",
+      )
+      .eq("head_verified_by", verifiedBy)
+      .not("head_verified_at", "is", null)
+      .neq("is_deleted", true)
+      .order("head_verified_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async unverifyActivity(activityId) {
+    const { data, error } = await supabase
+      .from("sales_activities")
+      .update({
+        head_verified_at: null,
+        head_verified_by: null,
+        head_remarks: null,
+      })
+      .eq("id", activityId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async bulkUnverifyActivities(activityIds) {
+    if (!activityIds || activityIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from("sales_activities")
+      .update({
+        head_verified_at: null,
+        head_verified_by: null,
+        head_remarks: null,
+      })
+      .in("id", activityIds)
+      .select();
+    if (error) throw error;
+    return data || [];
+  },
 };
