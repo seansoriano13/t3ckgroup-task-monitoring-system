@@ -117,7 +117,6 @@ export const salesExecutionService = {
     const payload = {};
     if (isApproved) {
       payload.is_deleted = true;
-      payload.deleted_at = new Date().toISOString();
       payload.delete_reason = null;
       payload.delete_requested_by = null;
     } else {
