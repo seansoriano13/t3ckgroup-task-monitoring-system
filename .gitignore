@@ -25,11 +25,7 @@ dist-ssr
 *.sln
 *.sw?
 *.sql
-
-notes.txt
-
-t3ckgroup.sql
-notes.txt
+*.txt
 
 # TestSprite
 .testsprite/

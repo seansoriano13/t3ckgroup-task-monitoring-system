@@ -6,7 +6,7 @@
 } */
 
 @theme {
-  --cursor-default: url(/cursor.png), auto;
+  /* --cursor-default: url(/cursor.png), auto; */
   /* --cursor-pointer: url(/cursor-pointer.png), pointer; */
 
   /* Aliases for quick access */
