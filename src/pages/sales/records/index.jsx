@@ -300,19 +300,20 @@ export default function SalesRecordsPage() {
           return a.scheduled_date.startsWith(selectedDateFilter);
         }
         if (timeframe === "WEEKLY") {
-          const selectedD = new Date(selectedDateFilter);
+          const [y, m, d] = selectedDateFilter.split("-").map(Number);
+          const selectedD = new Date(y, m - 1, d);
           const day = selectedD.getDay();
           const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
           const startOfWeek = new Date(selectedD);
           startOfWeek.setDate(diff);
-          startOfWeek.setHours(0, 0, 0, 0);
 
           const endOfWeek = new Date(startOfWeek);
           endOfWeek.setDate(startOfWeek.getDate() + 6);
-          endOfWeek.setHours(23, 59, 59, 999);
 
-          const actDate = new Date(a.scheduled_date);
-          return actDate >= startOfWeek && actDate <= endOfWeek;
+          const startStr = `${startOfWeek.getFullYear()}-${String(startOfWeek.getMonth() + 1).padStart(2, "0")}-${String(startOfWeek.getDate()).padStart(2, "0")}`;
+          const endStr = `${endOfWeek.getFullYear()}-${String(endOfWeek.getMonth() + 1).padStart(2, "0")}-${String(endOfWeek.getDate()).padStart(2, "0")}`;
+
+          return a.scheduled_date >= startStr && a.scheduled_date <= endStr;
         }
         return true;
       });
@@ -376,38 +377,30 @@ export default function SalesRecordsPage() {
 
     // C. Date Filter (Sync with Board)
     if (selectedDateFilter) {
-      const startOfDay = new Date(selectedDateFilter);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(selectedDateFilter);
-      endOfDay.setHours(23, 59, 59, 999);
-
       filtered = filtered.filter((a) => {
-        const logDate = new Date(a.date);
+        if (!a.date) return false;
+
         if (timeframe === "DAILY") {
-          return (
-            logDate.getFullYear() === startOfDay.getFullYear() &&
-            logDate.getMonth() === startOfDay.getMonth() &&
-            logDate.getDate() === startOfDay.getDate()
-          );
+          return a.date === selectedDateFilter;
         } else if (timeframe === "MONTHLY") {
-          return (
-            logDate.getFullYear() === startOfDay.getFullYear() &&
-            logDate.getMonth() === startOfDay.getMonth()
-          );
+          return a.date.startsWith(selectedDateFilter);
         } else if (timeframe === "YEARLY") {
-          return logDate.getFullYear() === startOfDay.getFullYear();
+          return a.date.startsWith(selectedDateFilter);
         } else if (timeframe === "WEEKLY") {
-          const day = startOfDay.getDay();
-          const startOfWeek = new Date(startOfDay);
-          startOfWeek.setDate(
-            startOfWeek.getDate() - day + (day === 0 ? -6 : 1),
-          );
-          startOfWeek.setHours(0, 0, 0, 0);
+          const [y, m, d] = selectedDateFilter.split("-").map(Number);
+          const selectedD = new Date(y, m - 1, d);
+          const day = selectedD.getDay();
+          const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
+          const startOfWeek = new Date(selectedD);
+          startOfWeek.setDate(diff);
+
           const endOfWeek = new Date(startOfWeek);
           endOfWeek.setDate(startOfWeek.getDate() + 6);
-          endOfWeek.setHours(23, 59, 59, 999);
 
-          return logDate >= startOfWeek && logDate <= endOfWeek;
+          const startStr = `${startOfWeek.getFullYear()}-${String(startOfWeek.getMonth() + 1).padStart(2, "0")}-${String(startOfWeek.getDate()).padStart(2, "0")}`;
+          const endStr = `${endOfWeek.getFullYear()}-${String(endOfWeek.getMonth() + 1).padStart(2, "0")}-${String(endOfWeek.getDate()).padStart(2, "0")}`;
+
+          return a.date >= startStr && a.date <= endStr;
         }
         return true;
       });
@@ -663,7 +656,7 @@ export default function SalesRecordsPage() {
                                 <span className="text-[10px] bg-gray-4 px-2 py-0.5 rounded uppercase tracking-widest text-gray-11 font-black">
                                   {act.time_of_day}
                                 </span>
-                                {act.sales_weekly_plans?.status === "DRAFT" && (!isDone || showApprovedStatus) && (
+                                {act.sales_weekly_plans?.status === "DRAFT" && !act.is_unplanned && (!isDone || showApprovedStatus) && (
                                   <span
                                     className="text-[10px] bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
                                     title="Draft Plan"
@@ -671,7 +664,7 @@ export default function SalesRecordsPage() {
                                     DRAFT
                                   </span>
                                 )}
-                                {act.sales_weekly_plans?.status === "SUBMITTED" && (!isDone || showApprovedStatus) && (
+                                {act.sales_weekly_plans?.status === "SUBMITTED" && !act.is_unplanned && (!isDone || showApprovedStatus) && (
                                   <span
                                     className="text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
                                     title="Submitted Plan"
@@ -679,7 +672,7 @@ export default function SalesRecordsPage() {
                                     SUBMITTED
                                   </span>
                                 )}
-                                {act.sales_weekly_plans?.status === "APPROVED" && (!isDone || showApprovedStatus) && (
+                                {act.sales_weekly_plans?.status === "APPROVED" && !act.is_unplanned && (!isDone || showApprovedStatus) && (
                                   <span
                                     className="text-[10px] bg-green-500/10 text-green-600 border border-green-500/30 px-2 py-0.5 rounded uppercase tracking-widest font-black"
                                     title="Approved Plan"
@@ -687,7 +680,7 @@ export default function SalesRecordsPage() {
                                     APPROVED
                                   </span>
                                 )}
-                                {!act.sales_weekly_plans?.status && (!isDone || showApprovedStatus) && (
+                                {(act.is_unplanned || !act.sales_weekly_plans?.status) && (
                                   <span
                                     className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded uppercase tracking-widest font-black"
                                     title="Unplanned Injection"
@@ -719,7 +712,7 @@ export default function SalesRecordsPage() {
                               <span className="text-xs font-semibold text-gray-11">
                                 {act.activity_type}
                               </span>
-                              {act.is_unplanned && (
+                              {(act.is_unplanned || !act.sales_weekly_plans?.status) && (
                                 <span className="block mt-1 text-[10px] text-blue-500 bg-blue-500/10 w-max px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
                                   Unplanned
                                 </span>
@@ -1045,7 +1038,7 @@ export default function SalesRecordsPage() {
                                 {log.employees?.name || "Unknown"}
                               </p>
                               <p className="text-[10px] font-bold text-gray-9 uppercase">
-                                {log.creator_sub_dept}
+                                {log.employees?.sub_department || log.employees?.department || "No Dept"}
                               </p>
                             </td>
                             <td className="p-4 font-bold text-sm text-gray-12">
@@ -1405,22 +1398,22 @@ function BoardActivityCard({ act, onClick, appSettings }) {
           <span className="text-[9px] uppercase font-bold text-gray-10 truncate max-w-[80px]">
             {act.activity_type}
           </span>
-          {act.sales_weekly_plans?.status === "DRAFT" && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
+          {act.sales_weekly_plans?.status === "DRAFT" && !act.is_unplanned && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
             <span className="shrink-0 text-[8px] bg-yellow-500/10 text-yellow-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               DRAFT
             </span>
           )}
-          {act.sales_weekly_plans?.status === "SUBMITTED" && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
+          {act.sales_weekly_plans?.status === "SUBMITTED" && !act.is_unplanned && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               SUBMITTED
             </span>
           )}
-          {act.sales_weekly_plans?.status === "APPROVED" && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
+          {act.sales_weekly_plans?.status === "APPROVED" && !act.is_unplanned && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
             <span className="shrink-0 text-[8px] bg-green-500/10 text-green-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               APPROVED
             </span>
           )}
-          {!act.sales_weekly_plans?.status && (!isDone || (act.expense_amount > 0 && !appSettings?.sales_self_approve_expenses)) && (
+          {(act.is_unplanned || !act.sales_weekly_plans?.status) && (
             <span className="shrink-0 text-[8px] bg-blue-500/10 text-blue-600 px-1 py-0.5 rounded uppercase tracking-widest font-black">
               UNPLANNED
             </span>

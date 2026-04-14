@@ -68,7 +68,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
         {/* Header */}
         <div className="p-6 border-b border-gray-4 bg-gray-1 flex justify-between items-start">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-black text-gray-12">
                 Sales Activity Details
               </h2>
@@ -83,6 +83,11 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                     ? "DONE"
                     : activity.status}
               </span>
+              {(activity.is_unplanned || !activity.sales_weekly_plans?.status) && (
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-blue-500/10 text-blue-500 border border-blue-500/30">
+                  UNPLANNED
+                </span>
+              )}
               {/* Sales Outcome Badge */}
               {localOutcome === "COMPLETED" && (
                 <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-green-500/10 text-green-500 border border-green-500/30">

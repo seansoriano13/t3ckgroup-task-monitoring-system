@@ -469,6 +469,7 @@ export const salesService = {
               type: "SALES_DAY_CONQUERED",
               title: "Day Conquered!",
               message: `${activity.employees?.name} just conquered their entire daily pipeline!`,
+              reference_id: activity.scheduled_date,
             });
           }
         });
@@ -785,7 +786,7 @@ export const salesService = {
     const { data, error } = await supabase
       .from("sales_revenue_logs")
       .select(
-        "*, employees!sales_revenue_logs_employee_id_fkey(name, department, is_super_admin), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)",
+        "*, employees!sales_revenue_logs_employee_id_fkey(name, department, sub_department, is_super_admin), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)",
       )
       .neq("is_deleted", true) // exclude soft-deleted rows
       .order("date", { ascending: false });

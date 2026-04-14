@@ -171,7 +171,7 @@ export default function SalesFilters({
           >
             <option value="ALL">All Record Types</option>
             <option value="SALES_ORDER">Sales Orders</option>
-            <option value="QUOTATION">Quotations</option>
+            <option value="SALES_QUOTATION">Quotations</option>
           </select>
         )}
 

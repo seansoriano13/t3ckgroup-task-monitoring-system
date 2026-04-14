@@ -113,7 +113,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
          // Go to records and open that activity
          navigate('/sales/records', { state: { openActivityId: notif.reference_id } });
       } else if (notif.type === 'SALES_DAY_CONQUERED') {
-         const date = notif.created_at ? notif.created_at.split('T')[0] : null;
+         const date = notif.reference_id || (notif.created_at ? notif.created_at.split('T')[0] : null);
          navigate('/sales/daily', { state: { date } });
       } else if (notif.type.includes('REVENUE')) {
          navigate('/sales/records', { state: { openRevenueId: notif.reference_id } });
