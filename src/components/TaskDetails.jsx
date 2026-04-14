@@ -139,6 +139,11 @@ export default function TaskDetails({
 
   if (!task) return null;
 
+  const isDelayed =
+    task?.status === TASK_STATUS.AWAITING_APPROVAL &&
+    task?.createdAt &&
+    (new Date() - new Date(task.createdAt)) / (1000 * 60 * 60) >= 48;
+
   // Permissions & Handlers
   const isOwner = user?.id === task.loggedById;
   // Employees can only edit their own tasks when INCOMPLETE or Head-rejected (NOT APPROVED + grade=0).
@@ -582,6 +587,19 @@ export default function TaskDetails({
                 editedBy: user.id,
               });
             },
+
+            onSelfVerify: () =>
+              executeUpdate({
+                id: task.id,
+                status: TASK_STATUS.COMPLETE,
+                endAt: new Date().toISOString(),
+                grade: 3, // Auto-grade 3 for self-verification
+                remarks: "Self-Verified (System Bypass)",
+                evaluatedBy: user.id, // Flagged for audit: log_by === evaluated_by
+                editedBy: user.id,
+                hrVerified: false,
+                hrRemarks: "",
+              }),
           }}
           permissions={{ canEdit, canEvaluate, isHr, isManagement, isOwner }}
           state={{
@@ -600,6 +618,10 @@ export default function TaskDetails({
               appSettings?.universal_task_submission === true,
             hasAttachments:
               formData.attachments && formData.attachments.length > 0,
+            isDelayed,
+            enableSelfVerification:
+              appSettings?.enable_self_verification === true,
+            enableVisualShaming: appSettings?.enable_visual_shaming === true,
           }}
         />
       </div>

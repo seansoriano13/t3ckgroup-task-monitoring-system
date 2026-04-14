@@ -643,4 +643,36 @@ export const taskService = {
     if (error) throw error;
     return true;
   },
+
+  // 6. BULK APPROVE (Super Admin fallback)
+  async bulkApproveTasks(taskIds, adminId) {
+    if (!taskIds || taskIds.length === 0) return;
+
+    const { data: admin } = await supabase
+      .from("employees")
+      .select("is_super_admin, is_head")
+      .eq("id", adminId)
+      .single();
+
+    if (!admin?.is_super_admin && !admin?.is_head) {
+      throw new Error("Unauthorized: Only Admins/Heads can bulk approve tasks.");
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        status: TASK_STATUS.COMPLETE,
+        grade: 3, // Default neutral grade
+        remarks: "Bulk approved via system bypass",
+        evaluated_by: adminId,
+        evaluated_at: new Date().toISOString(),
+        edited_by: adminId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", taskIds)
+      .select();
+
+    if (error) throw error;
+    return data;
+  },
 };

@@ -39,11 +39,18 @@ export default function ManagerEvaluation({
         </div>
 
         {isFinalized && task.evaluatedByName && (
-          <div className="col-span-2 text-[11px] text-gray-8 flex items-center gap-1">
-            Evaluated by:{" "}
-            <span className="font-bold text-gray-11">
-              {task.evaluatedByName}
-            </span>
+          <div className="col-span-2 text-[11px] text-gray-8 flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              Evaluated by:{" "}
+              <span className="font-bold text-gray-11">
+                {task.evaluatedByName}
+              </span>
+            </div>
+            {task.evaluatedBy === task.loggedById && (
+              <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-purple-500 text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
+                Self-Verified
+              </span>
+            )}
           </div>
         )}
       </div>

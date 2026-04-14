@@ -64,7 +64,9 @@ export default function DashboardStats({ selectedMonth }) {
       (t) => t.status === TASK_STATUS.INCOMPLETE && !t.endAt,
     ).length;
     const myPendingApproval = myTasks.filter(
-      (t) => t.status === TASK_STATUS.INCOMPLETE && !!t.endAt,
+      (t) =>
+        (t.status === TASK_STATUS.INCOMPLETE && !!t.endAt) ||
+        t.status === TASK_STATUS.AWAITING_APPROVAL,
     ).length;
     const myPendingHr = myTasks.filter(
       (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
@@ -87,7 +89,9 @@ export default function DashboardStats({ selectedMonth }) {
 
     if (isHr) {
       hrPendingApprovals = thisMonthTasks.filter(
-        (t) => t.status === TASK_STATUS.INCOMPLETE,
+        (t) =>
+          t.status === TASK_STATUS.INCOMPLETE ||
+          t.status === TASK_STATUS.AWAITING_APPROVAL,
       ).length;
       hrPendingVerification = thisMonthTasks.filter(
         (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
@@ -114,7 +118,9 @@ export default function DashboardStats({ selectedMonth }) {
       });
 
       teamPendingApprovals = teamTasks.filter(
-        (t) => t.status === TASK_STATUS.INCOMPLETE,
+        (t) =>
+          t.status === TASK_STATUS.INCOMPLETE ||
+          t.status === TASK_STATUS.AWAITING_APPROVAL,
       ).length;
       teamCompleted = teamTasks.filter((t) => t.status === TASK_STATUS.COMPLETE).length;
       teamRejected = teamTasks.filter(

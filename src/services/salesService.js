@@ -729,6 +729,9 @@ export const salesService = {
         sales_self_approve_expenses: false,
         universal_task_submission: false,
         marketing_approval_by_ops_manager: false,
+        enable_self_verification: false,
+        enable_bulk_approval: false,
+        enable_visual_shaming: false,
       }
     );
   },

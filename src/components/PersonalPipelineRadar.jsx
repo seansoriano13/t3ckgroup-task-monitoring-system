@@ -25,6 +25,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
     let total = 0;
     let draft = 0;
     let rejected = 0;
+    let pendingHead = 0;
     let pendingHr = 0;
     let verified = 0;
     let totalGrade = 0;
@@ -42,6 +43,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
 
       total++;
       if (task.status === TASK_STATUS.INCOMPLETE) draft++;
+      if (task.status === TASK_STATUS.AWAITING_APPROVAL) pendingHead++;
       if (task.status === TASK_STATUS.NOT_APPROVED) rejected++;
       if (task.status === TASK_STATUS.COMPLETE && !task.hrVerified) pendingHr++;
       if (task.hrVerified) verified++;
@@ -56,10 +58,11 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
       total,
       draft,
       rejected,
+      pendingHead,
       pendingHr,
       verified,
       avgGrade: gradedCount > 0 ? (totalGrade / gradedCount).toFixed(1) : "N/A",
-      completionRate: Math.round(((pendingHr + verified) / total) * 100) || 0,
+      completionRate: Math.round(((pendingHead + pendingHr + verified) / total) * 100) || 0,
     };
   }, [rawTasks, selectedMonth]);
 
@@ -138,6 +141,15 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
                 {stats.rejected}
               </div>
             )}
+            {stats.pendingHead > 0 && (
+              <div 
+                style={{ width: `${(stats.pendingHead / stats.total) * 100}%` }}
+                className="bg-indigo-500 border-r border-gray-2 flex items-center justify-center text-[10px] font-bold text-white shadow-inner"
+                title="Awaiting Head Approval"
+              >
+                {stats.pendingHead}
+              </div>
+            )}
             {stats.pendingHr > 0 && (
               <div 
                 style={{ width: `${(stats.pendingHr / stats.total) * 100}%` }}
@@ -163,6 +175,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            <LegendItem icon={<Clock size={12}/>} label="Incomplete" value={stats.draft} color="bg-gray-6/50" />
            <LegendItem icon={<Activity size={12}/>} label="Rejected" value={stats.rejected} color="bg-red-500" />
+           <LegendItem icon={<Clock size={12}/>} label="Awaiting Head" value={stats.pendingHead} color="bg-indigo-500" />
            <LegendItem icon={<Clock size={12}/>} label="Wait Review" value={stats.pendingHr} color="bg-amber-500" />
            <LegendItem icon={<CheckCircle2 size={12}/>} label="Verified" value={stats.verified} color="bg-green-500" />
         </div>

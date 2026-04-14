@@ -348,6 +348,27 @@ export default function ApprovalsPage() {
     },
   });
 
+  const handleBulkApprove = async () => {
+    const ids = filteredTasks.map((t) => t.id);
+    if (!ids.length) return;
+
+    if (
+      !window.confirm(
+        `Bulk approve ${ids.length} currently filtered tasks? This will assign a neutral grade (3) and move them to completion.`,
+      )
+    )
+      return;
+
+    try {
+      await taskService.bulkApproveTasks(ids, user.id);
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success(`Success! ${ids.length} tasks cleared.`);
+    } catch (err) {
+      toast.error(err.message || "Bulk approval failed.");
+    }
+  };
+
   if (isLoading)
     return (
       <div className="py-20 text-center text-gray-9 font-bold">
@@ -370,11 +391,23 @@ export default function ApprovalsPage() {
                 : "Review and grade pending tasks from your team."}
             </p>
           </div>
-          <div className="bg-primary/10 border border-primary/20 px-4 py-2 rounded-lg flex items-center gap-2">
-            <Clock size={16} className="text-primary" />
-            <span className="text-primary font-bold">
-              {pendingTasks.length} Pending
-            </span>
+          <div className="flex items-center gap-3">
+            {isSuperAdmin &&
+              appSettings?.enable_bulk_approval &&
+              filteredTasks.length > 0 && (
+                <button
+                  onClick={handleBulkApprove}
+                  className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-2"
+                >
+                  <CheckCircle2 size={16} /> Bulk Approve All
+                </button>
+              )}
+            <div className="bg-primary/10 border border-primary/20 px-4 py-2 rounded-lg flex items-center gap-2">
+              <Clock size={16} className="text-primary" />
+              <span className="text-primary font-bold">
+                {pendingTasks.length} Pending
+              </span>
+            </div>
           </div>
         </div>
 
@@ -435,6 +468,7 @@ export default function ApprovalsPage() {
                   })
                 }
                 isSubmitting={editTaskMutation.isPending}
+                appSettings={appSettings}
               />
             ))}
           </div>
@@ -487,6 +521,7 @@ function ApprovalRow({
   currentUserId,
   defaultExpanded,
   onViewDetails,
+  appSettings,
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(null);
@@ -498,6 +533,12 @@ function ApprovalRow({
       queueMicrotask(() => setExpanded(true));
     }
   }, [defaultExpanded]);
+
+  const isDelayed = useMemo(() => {
+    if (!task?.createdAt) return false;
+    const hrs = (new Date() - new Date(task.createdAt)) / (1000 * 60 * 60);
+    return hrs >= 48;
+  }, [task.createdAt]);
 
   // --- HEAD HANDLERS ---
   const handleHeadApprove = () => {
@@ -589,6 +630,12 @@ function ApprovalRow({
           <span className="text-[10px] md:text-xs font-bold text-gray-9">
             {formatDate(task.createdAt)}
           </span>
+
+          {appSettings?.enable_visual_shaming && isDelayed && (
+            <span className="px-2 py-1 rounded bg-orange-900/20 text-orange-500 text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
+              Delayed
+            </span>
+          )}
 
           {task.priority === "HIGH" && (
             <>

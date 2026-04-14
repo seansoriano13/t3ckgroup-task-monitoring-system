@@ -22,6 +22,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
     onDelete,
     onUndoVerify,
     onSubmitApproval,
+    onSelfVerify,
   } = actions;
   const { canEdit, canEvaluate, isHr, isManagement, isOwner } = permissions;
   const { isEditing, isSubmitting, task, formIsValid } = state;
@@ -111,8 +112,25 @@ const TaskFooter = ({ actions, permissions, state }) => {
             {(state.isMarketing || state.universalTaskSubmission) &&
               isOwner &&
               task.status === TASK_STATUS.AWAITING_APPROVAL && (
-                <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-3">
-                  <Clock size={16} /> Waiting for Review
+                <div className="flex items-center gap-3">
+                  {state.isDelayed && state.enableSelfVerification && (
+                    <button
+                      onClick={onSelfVerify}
+                      className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-2"
+                      title="Bypass unresponsive head approval"
+                    >
+                      <ShieldCheck size={14} /> Self-Verify
+                    </button>
+                  )}
+
+                  <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-1">
+                    <Clock size={16} /> 
+                    {state.isDelayed && state.enableVisualShaming ? (
+                      <span className="text-red-500 animate-pulse">DELAYED (Pending Review)</span>
+                    ) : (
+                      "Waiting for Review"
+                    )}
+                  </div>
                 </div>
               )}
 
