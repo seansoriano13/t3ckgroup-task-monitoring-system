@@ -390,9 +390,8 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
                 />
               </div>
 
-              {/* --- PAYMENT VOUCHER (ADMIN - ADMIN ONLY) --- */}
-              {selectedEmployeeInfo.department?.toUpperCase() === "ADMIN" &&
-               selectedEmployeeInfo.sub_department?.toUpperCase() === "ADMIN" && (
+              {/* --- PAYMENT VOUCHER (ADMIN DEPT WIDE) --- */}
+              {selectedEmployeeInfo.department?.toUpperCase() === "ADMIN" && (
                 <div className="flex flex-col gap-1.5">
                   <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
                     <Receipt size={12} /> Payment Voucher

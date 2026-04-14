@@ -220,14 +220,15 @@ export default function ApprovalsPage() {
   const filteredTasks = useMemo(() => {
     let result = [...pendingTasks];
 
-    // Search: name, category, description
+    // Search: name, category, description, payment voucher
     const q = searchQuery.trim().toLowerCase();
     if (q) {
       result = result.filter(
         (t) =>
           (t.loggedByName || "").toLowerCase().includes(q) ||
           (t.categoryId || "").toLowerCase().includes(q) ||
-          (t.taskDescription || "").toLowerCase().includes(q),
+          (t.taskDescription || "").toLowerCase().includes(q) ||
+          (t.paymentVoucher || "").toLowerCase().includes(q),
       );
     }
 

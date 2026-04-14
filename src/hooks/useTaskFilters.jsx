@@ -41,7 +41,8 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
         desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        empName.toLowerCase().includes(searchTerm.toLowerCase());
+        empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (task.paymentVoucher || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       // Status Filter Logic
       let matchesStatus = true;

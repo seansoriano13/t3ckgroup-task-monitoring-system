@@ -349,8 +349,7 @@ export default function TaskDetails({
 
             {/* --- PAYMENT VOUCHER --- */}
             {((isEditing &&
-              taskDept?.toUpperCase() === "ADMIN" &&
-              taskSubDept?.toUpperCase() === "ADMIN") ||
+              taskDept?.toUpperCase() === "ADMIN") ||
               formData.paymentVoucher) && (
               <div className="flex flex-col gap-1.5 pt-2">
                 <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
