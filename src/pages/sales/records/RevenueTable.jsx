@@ -5,6 +5,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Pagination from "./Pagination";
+import { REVENUE_STATUS, SALES_PLAN_STATUS } from "../../../constants/status";
 
 /**
  * Full Revenue tab: record-type sub-filter tabs + table + pagination.
@@ -224,8 +225,9 @@ function RevenueStatusBadge({ log, isVerificationEnforced }) {
   }
 
   if (
-    log.status?.toUpperCase().includes("COMPLETED") ||
-    log.status?.toUpperCase().includes("SUBMITTED")
+    log.status === REVENUE_STATUS.COMPLETED ||
+    log.status === REVENUE_STATUS.APPROVED ||
+    log.status === SALES_PLAN_STATUS.SUBMITTED
   ) {
     return (
       <span

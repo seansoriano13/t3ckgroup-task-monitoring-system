@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
+import { REVENUE_STATUS } from "../../../constants/status"; // #11 Constant import
 
 import { DailyCoverageTabs } from "./components/DailyCoverageTabs";
 import { DailyTaskMatrix } from "./components/DailyTaskMatrix";
@@ -213,7 +214,7 @@ export default function DailyExecutionPage() {
       employee_id: user.id,
       plan_id: planWrapper?.id || null,
       scheduled_date: selectedDate,
-      status: needsApproval ? "PENDING" : "APPROVED",
+      status: needsApproval ? REVENUE_STATUS.PENDING : REVENUE_STATUS.APPROVED, // #11
       is_unplanned: true,
       completed_at: needsApproval ? null : new Date().toISOString(),
     });

@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react";
 import { ScheduleHeader } from "./components/ScheduleHeader";
 import { ScheduleTabs } from "./components/ScheduleTabs";
 import { ScheduleDayView } from "./components/ScheduleDayView";
-import { getNextMonday, getStartOfWeek, formatDateToYMD } from "./utils";
+import { getNextMonday, formatDateToYMD } from "./utils";
 
 export default function SalesSchedulePage() {
   const { user } = useAuth();

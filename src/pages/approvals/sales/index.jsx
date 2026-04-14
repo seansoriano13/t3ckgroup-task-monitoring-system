@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../../context/AuthContext";
@@ -110,7 +110,7 @@ export default function SalesHeadApprovalsPage() {
     }
 
     // Helper to check if employee has completed the activity
-    const isActDone = (s) => s === "DONE" || s === "APPROVED" || s === "PENDING" || s === "PENDING_APPROVAL";
+    const isActDone = (s) => s === "APPROVED" || s === "PENDING";
 
     // Search filter
     const q = searchQuery.trim().toLowerCase();
@@ -160,7 +160,7 @@ export default function SalesHeadApprovalsPage() {
         if (timeframe === "MONTHLY") return a.scheduled_date.startsWith(selectedDateFilter);
         if (timeframe === "YEARLY") return a.scheduled_date.startsWith(selectedDateFilter);
         if (timeframe === "WEEKLY") {
-          const selectedD = new Date(selectedDateFilter);
+          const selectedD = new Date(selectedDateFilter + "T00:00:00");
           const day = selectedD.getDay();
           const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
           const startOfWeek = new Date(selectedD);
@@ -171,7 +171,7 @@ export default function SalesHeadApprovalsPage() {
           endOfWeek.setDate(startOfWeek.getDate() + 6);
           endOfWeek.setHours(23, 59, 59, 999);
 
-          const actDate = new Date(a.scheduled_date);
+          const actDate = new Date(a.scheduled_date + "T00:00:00");
           return actDate >= startOfWeek && actDate <= endOfWeek;
         }
         return true;

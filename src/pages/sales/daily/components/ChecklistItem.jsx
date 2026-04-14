@@ -19,8 +19,7 @@ export function ChecklistItem({
   highlightId,
 }) {
   const isDone = data.status === "DONE" || data.status === "APPROVED";
-  const isPendingApproval =
-    data.status === "PENDING_APPROVAL" || data.status === "PENDING";
+  const isPendingApproval = data.status === "PENDING";
   const isHighlighted = data.id === highlightId;
   const isLost = data.sales_outcome === "LOST";
   const isWon = data.sales_outcome === "COMPLETED";

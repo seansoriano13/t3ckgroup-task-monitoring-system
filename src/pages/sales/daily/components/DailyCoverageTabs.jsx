@@ -21,8 +21,7 @@ export function DailyCoverageTabs({
             (a) =>
               a.status === "DONE" ||
               a.status === "APPROVED" ||
-              a.status === "PENDING" ||
-              a.status === "PENDING_APPROVAL",
+              a.status === "PENDING",
           );
 
         return (

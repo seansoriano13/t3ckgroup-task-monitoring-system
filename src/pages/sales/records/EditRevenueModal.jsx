@@ -32,7 +32,7 @@ export default function EditRevenueModal({
     account: log?.account || "",
     product_item_sold: log?.product_item_sold || "",
     revenue_amount: log?.revenue_amount || "",
-    status: log?.status || "COMPLETED SALES",
+    status: log?.status || REVENUE_STATUS.COMPLETED, // #2 removed legacy string
     remarks: log?.remarks || "",
     date: log?.date || "",
     so_number: log?.so_number || "",

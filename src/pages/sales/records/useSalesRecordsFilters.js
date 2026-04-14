@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
+import { REVENUE_STATUS } from "../../../constants/status";
 import toast from "react-hot-toast";
 
 /**
@@ -210,7 +211,7 @@ export function useSalesRecordsFilters(user) {
   }, [rawRevenue, canViewAllSales, user?.id]);
 
   // ── Helper: date-range filter (shared between activities & revenue) ───
-  const matchesDateFilter = (dateValue) => {
+  const matchesDateFilter = useCallback((dateValue) => {
     if (!selectedDateFilter || !dateValue) return !selectedDateFilter;
     if (timeframe === "DAILY") return dateValue === selectedDateFilter;
     if (timeframe === "MONTHLY" || timeframe === "YEARLY")
@@ -230,7 +231,7 @@ export function useSalesRecordsFilters(user) {
       return dateValue >= fmt(startOfWeek) && dateValue <= fmt(endOfWeek);
     }
     return true;
-  };
+  }, [selectedDateFilter, timeframe]);
 
   // ── Filtered activities ───────────────────────────────────────────────
   const filteredActivities = useMemo(() => {
@@ -296,8 +297,8 @@ export function useSalesRecordsFilters(user) {
     filterType,
     searchTerm,
     selectedDateFilter,
-    timeframe,
     sortBy,
+    matchesDateFilter,
   ]);
 
   // ── Filtered revenue ──────────────────────────────────────────────────
@@ -312,18 +313,19 @@ export function useSalesRecordsFilters(user) {
           (filterRecordType === "SALES_ORDER" && !a.record_type),
       );
     if (filterStatus !== "ALL") {
-      if (filterStatus === "APPROVED" || filterStatus === "DONE")
+      if (filterStatus === "APPROVED") {
         filtered = filtered.filter(
           (a) =>
-            (a.status === "COMPLETED SALES" || a.status === "APPROVED") &&
-            (!isVerificationEnforced || a.is_verified !== false),
+            (a.status === REVENUE_STATUS.COMPLETED || a.status === REVENUE_STATUS.APPROVED) &&
+            a.is_verified,
         );
-      if (filterStatus === "INCOMPLETE")
+      } else if (filterStatus === "INCOMPLETE") {
         filtered = filtered.filter(
           (a) => a.status === "LOST" || a.status === "REJECTED",
         );
-      if (filterStatus === "UNVERIFIED")
+      } else if (filterStatus === "UNVERIFIED") {
         filtered = filtered.filter((a) => a.is_verified === false);
+      }
     }
     if (selectedDateFilter) {
       filtered = filtered.filter((a) => matchesDateFilter(a.date));
@@ -358,10 +360,9 @@ export function useSalesRecordsFilters(user) {
     filterStatus,
     searchTerm,
     selectedDateFilter,
-    timeframe,
     filterRecordType,
-    isVerificationEnforced,
     sortBy,
+    matchesDateFilter,
   ]);
 
   // ── Board data (grouped activities) ───────────────────────────────────

@@ -75,10 +75,8 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
               <span
                 className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${activity.status === "DONE" || activity.status === "APPROVED" ? "bg-green-500/10 text-green-500" : activity.status === "PENDING" ? "bg-amber-500/10 text-amber-500" : "bg-gray-4 text-gray-11"}`}
               >
-                {activity.status === "APPROVED" &&
-                activity.expense_amount > 0 &&
-                !appSettings?.sales_self_approve_expenses
-                  ? "APPROVED"
+                {(activity.status === "PENDING" && !appSettings?.sales_self_approve_expenses)
+                  ? "PENDING"
                   : activity.status === "APPROVED"
                     ? "DONE"
                     : activity.status}
@@ -281,9 +279,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
             activity.reference_number &&
             (() => {
               const isActivityCompleted =
-                activity.status === "DONE" ||
                 activity.status === "APPROVED" ||
-                activity.status === "PENDING_APPROVAL" ||
                 activity.status === "PENDING";
               return (
                 <div

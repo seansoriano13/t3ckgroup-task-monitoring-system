@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 import { Clock } from "lucide-react";
 import { AlertCircle, Users } from "lucide-react";
+import { REVENUE_STATUS } from "../../../constants/status";
 
 /**
  * Board / Kanban view for Activities — groups by employee then by date.
@@ -129,10 +130,10 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
   const [expanded, setExpanded] = useState(false);
   const total = dateBlock.all.length;
   const done = dateBlock.all.filter(
-    (a) => a.status === "DONE" || a.status === "APPROVED",
+    (a) => a.status === REVENUE_STATUS.APPROVED,
   ).length;
   const pending = dateBlock.all.filter(
-    (a) => a.status === "PENDING_APPROVAL" || a.status === "PENDING",
+    (a) => a.status === REVENUE_STATUS.PENDING,
   ).length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
@@ -249,7 +250,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
  * Individual activity card used on the board
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 export function BoardActivityCard({ act, onClick, appSettings }) {
-  const isDone = act.status === "DONE" || act.status === "APPROVED";
+  const isDone = act.status === REVENUE_STATUS.APPROVED;
   const isLost = act.sales_outcome === "LOST";
   const isWon = act.sales_outcome === "COMPLETED";
   return (
