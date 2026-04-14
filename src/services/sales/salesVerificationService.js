@@ -7,17 +7,18 @@ export const salesVerificationService = {
     const { data, error } = await supabase
       .from("sales_activities")
       .select(
-        "*, employees!sales_activities_employee_id_fkey!inner(name, department, sub_department, is_super_admin)",
+        "*, sales_weekly_plans(status), employees!sales_activities_employee_id_fkey(name, department, sub_department)",
       )
       .is("head_verified_at", null)
       .neq("is_deleted", true)
+      .in("status", [REVENUE_STATUS.COMPLETED, REVENUE_STATUS.APPROVED, REVENUE_STATUS.PENDING])
       .order("scheduled_date", { ascending: false });
 
     if (error) throw error;
     return data;
   },
 
-  async verifyActivity(activityId, headRemarks, verifiedBy) {
+  async verifyActivity(activityId, headRemarks, verifiedBy, userObj) {
     const { data, error } = await supabase
       .from("sales_activities")
       .update({
@@ -29,6 +30,16 @@ export const salesVerificationService = {
       .select()
       .single();
     if (error) throw error;
+
+    notificationService.createNotification({
+      recipient_id: data.employee_id,
+      sender_id: userObj.id,
+      type: "EXPENSE_APPROVED",
+      title: "Expense Verified",
+      message: `Your expense of ₱${data.expense_amount} for ${data.account_name} was verified by your manager.`,
+      reference_id: String(activityId),
+    }).catch(console.error);
+
     return data;
   },
 
@@ -47,7 +58,7 @@ export const salesVerificationService = {
     return data;
   },
 
-  async approveExpenseActivity(activityId, isApproved) {
+  async approveExpenseActivity(activityId, isApproved, senderId) {
     const targetStatus = isApproved
       ? REVENUE_STATUS.APPROVED
       : REVENUE_STATUS.REJECTED;
@@ -69,13 +80,14 @@ export const salesVerificationService = {
     // Notify employee of result
     notificationService.createNotification({
       recipient_id: activity.employee_id,
+      sender_id: senderId,
       type: "SALES_EXPENSE_PROCESSED",
       title: isApproved ? "Fund Request Approved" : "Fund Request Denied",
       message: isApproved
         ? `Your planned activity expense for ${activity.account_name || "an account"} was successfully approved.`
         : `Your expense for ${activity.account_name || "an account"} was rejected.`,
       reference_id: activity.id,
-    });
+    }).catch(console.error);
 
     return activity;
   },
@@ -99,14 +111,16 @@ export const salesVerificationService = {
       if (!byEmployee[a.employee_id]) byEmployee[a.employee_id] = [];
       byEmployee[a.employee_id].push(a.account_name || "an activity");
     });
-    Object.entries(byEmployee).forEach(([empId, names]) => {
-      notificationService.createNotification({
-        recipient_id: empId,
-        type: "SALES_EXPENSE_PROCESSED",
-        title: "Fund Request Approved",
-        message: `${names.length} expense${names.length > 1 ? "s" : ""} approved: ${names.slice(0, 3).join(", ")}${names.length > 3 ? "…" : ""}`,
-      });
-    });
+    await Promise.allSettled(
+      Object.entries(byEmployee).map(([empId, names]) =>
+        notificationService.createNotification({
+          recipient_id: empId,
+          type: "SALES_EXPENSE_PROCESSED",
+          title: "Fund Request Approved",
+          message: `${names.length} expense${names.length > 1 ? "s" : ""} approved: ${names.slice(0, 3).join(", ")}${names.length > 3 ? "…" : ""}`,
+        })
+      )
+    );
 
     return data;
   },

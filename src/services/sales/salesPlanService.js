@@ -66,7 +66,7 @@ export const salesPlanService = {
     return data;
   },
 
-  async requestPlanAmendment(planId, reason) {
+  async requestPlanAmendment(planId, reason, userObj) {
     // Take a snapshot of the current activities
     const { data: activities } = await supabase
       .from("sales_activities")
@@ -88,6 +88,17 @@ export const salesPlanService = {
       .select()
       .single();
     if (error) throw error;
+
+    // #5 — notify admins about who requested the amendment (was silently dropped before)
+    if (userObj?.id) {
+      notificationService.broadcastToRole(["HR", "SUPER_ADMIN"], {
+        sender_id: userObj.id,
+        type: "PLAN_AMENDMENT_REQUESTED",
+        title: "Plan Amendment Requested",
+        message: `${userObj.name || "A Sales Rep"} has requested to amend their approved weekly plan. Reason: ${reason}`,
+        reference_id: String(planId),
+      }).catch(console.error);
+    }
 
     return data;
   },
@@ -132,15 +143,22 @@ export const salesPlanService = {
       // Revert to snapshot
       await supabase.from("sales_activities").delete().eq("plan_id", planId);
 
-      if (
-        currentPlan.amendment_snapshot &&
-        currentPlan.amendment_snapshot.length > 0
-      ) {
-        // Strip out ID and other internal fields from snapshot if needed,
-        // but insert usually handles it if IDs are valid UUIDs and not conflicting.
-        await supabase
+      // Re-insert snapshot activities
+      // #7 - strip out ID and other internal fields from snapshot to prevent IDENTITY conflict
+      if (currentPlan.amendment_snapshot?.length > 0) {
+        const cleanSnapshot = currentPlan.amendment_snapshot.map(act => {
+          const { id: _id, created_at: _created_at, ...cleanAct } = act;
+          return cleanAct;
+        });
+
+        const { error: insertError } = await supabase
           .from("sales_activities")
-          .insert(currentPlan.amendment_snapshot);
+          .insert(cleanSnapshot);
+
+        if (insertError) {
+          console.error("Failed to restore snapshot:", insertError);
+          throw insertError;
+        }
       }
 
       const { data, error } = await supabase

@@ -30,7 +30,7 @@ export const salesExecutionService = {
             sender_id: firstUnplanned?.employee_id,
             type: "UNPLANNED_ACTIVITY",
             title: "Unplanned Action Logged",
-            message: `${inserted[0].employees?.name || "A Sales Rep"} dynamically injected ${unplannedCount} unplanned activit${unplannedCount > 1 ? "ies" : "y"} into their tracker.`,
+            message: `${firstUnplanned.employees?.name || "A Sales Rep"} dynamically injected ${unplannedCount} unplanned activit${unplannedCount > 1 ? "ies" : "y"} into their tracker.`,
             reference_id: firstUnplanned?.id,
           });
         } catch (e) {
@@ -107,7 +107,7 @@ export const salesExecutionService = {
         title: "Full Day Deletion Request",
         message: `${activities[0].employees?.name || "A Sales Rep"} requested to delete ALL activities on ${dateStr}. Reason: ${reason}`,
         reference_id: dateStr,
-      });
+      }).catch(console.error);
     }
 
     return activities;
@@ -143,7 +143,7 @@ export const salesExecutionService = {
         ? `Your request to wipe activities for ${dateStr} was approved.`
         : `Your request to wipe activities for ${dateStr} was denied.`,
       reference_id: dateStr,
-    });
+    }).catch(console.error);
 
     return data;
   },
@@ -205,7 +205,7 @@ export const salesExecutionService = {
         title: "Expense Approval Needed",
         message: `${activity.employees?.name} mapped an activity with a requested expense of ₱${Number(activity.expense_amount).toLocaleString()}.`,
         reference_id: activity.id,
-      });
+      }).catch(console.error);
     }
 
     // Calculate if Day/Week is conquered (Fire & forget)
@@ -217,7 +217,12 @@ export const salesExecutionService = {
         .eq("scheduled_date", activity.scheduled_date)
         .neq("id", activityId)
         .neq("status", REVENUE_STATUS.APPROVED)
-        .then(({ data: pendingDay }) => {
+        .neq("is_deleted", true) // #4 — exclude soft-deleted activities from conquered check
+        .then(({ data: pendingDay, error }) => {
+          if (error) {
+            console.error("Day conquered check failed:", error);
+            return;
+          }
           if (pendingDay && pendingDay.length === 0) {
             notificationService.broadcastToRole(["HR", "SUPER_ADMIN"], {
               sender_id: activity.employee_id,
@@ -225,9 +230,10 @@ export const salesExecutionService = {
               title: "Day Conquered!",
               message: `${activity.employees?.name} just conquered their entire daily pipeline!`,
               reference_id: activity.scheduled_date,
-            });
+            }).catch(console.error);
           }
-        });
+        })
+        .catch(console.error);
     }
 
     return activity;

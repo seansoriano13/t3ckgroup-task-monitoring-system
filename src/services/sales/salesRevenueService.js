@@ -29,7 +29,8 @@ export const salesRevenueService = {
       .eq("employee_id", employeeId)
       .eq("record_type", "SALES_ORDER")
       .gte("date", startDate)
-      .lt("date", endDate);
+      .lt("date", endDate)
+      .neq("is_deleted", true); // #1 — exclude soft-deleted rows (was missing, inflated metrics)
 
     if (error) throw error;
     return data;
@@ -69,6 +70,7 @@ export const salesRevenueService = {
     if (payload.is_verified === true && oldLog && !oldLog.is_verified) {
       notificationService.createNotification({
         recipient_id: data.employee_id,
+        sender_id: payload.last_edited_by || null, // #9 — attribution: who verified
         type: "REVENUE_LOCKED",
         title: "Revenue Audit Passed",
         message: `Your revenue log for ${data.account || "an account"} was globally verified.`,
@@ -163,7 +165,7 @@ export const salesRevenueService = {
       .select("*, employees!sales_revenue_logs_employee_id_fkey(name)")
       .eq("record_type", "SALES_ORDER")
       .gte("date", startDate)
-      .lte("date", endDate)
+      .lt("date", endDate) // #14 — fixed lte→lt for consistent exclusive end-date (matches getRevenueLogsByMonth)
       .neq("is_deleted", true) // exclude soft-deleted rows
       .order("date", { ascending: false });
     if (error) throw error;

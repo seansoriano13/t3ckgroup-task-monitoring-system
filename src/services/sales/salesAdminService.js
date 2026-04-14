@@ -125,7 +125,9 @@ export const salesAdminService = {
         r.status === REVENUE_STATUS.APPROVED
       ) {
         agg[r.employee_id].revenueWon += Number(r.revenue_amount);
-      } else {
+      } else if (r.status === REVENUE_STATUS.LOST) {
+        // #3 — only explicitly LOST records count as lost revenue.
+        // Previously the else branch incorrectly included PENDING/REJECTED/edit-request statuses.
         agg[r.employee_id].revenueLost += Number(r.revenue_amount);
       }
     });
