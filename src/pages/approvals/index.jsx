@@ -215,7 +215,7 @@ export default function ApprovalsPage() {
       else if (statusFilter === TASK_STATUS.COMPLETE) result = result.filter(t => t.status === TASK_STATUS.COMPLETE);
       else if (statusFilter === "COMPLETE_UNVERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && !t.hrVerified);
       else if (statusFilter === "COMPLETE_VERIFIED") result = result.filter(t => t.status === TASK_STATUS.COMPLETE && t.hrVerified);
-      else if (statusFilter === "AWAITING_APPROVAL") result = result.filter(t => t.status === TASK_STATUS.AWAITING_APPROVAL);
+      else if (statusFilter === TASK_STATUS.AWAITING_APPROVAL) result = result.filter(t => t.status === TASK_STATUS.AWAITING_APPROVAL);
       else if (statusFilter === "NOT APPROVED") result = result.filter(t => t.status === TASK_STATUS.NOT_APPROVED);
     }
 

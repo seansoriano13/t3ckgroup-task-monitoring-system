@@ -46,15 +46,17 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       // Status Filter Logic
       let matchesStatus = true;
       if (statusFilter !== "ALL") {
-        if (statusFilter === "INCOMPLETE") {
+        if (statusFilter === TASK_STATUS.INCOMPLETE) {
           matchesStatus = task.status === TASK_STATUS.INCOMPLETE;
+        } else if (statusFilter === TASK_STATUS.COMPLETE) {
+          matchesStatus = task.status === TASK_STATUS.COMPLETE;
         } else if (statusFilter === "COMPLETE_UNVERIFIED") {
           matchesStatus = task.status === TASK_STATUS.COMPLETE && !task.hrVerified;
         } else if (statusFilter === "COMPLETE_VERIFIED") {
           matchesStatus = task.status === TASK_STATUS.COMPLETE && task.hrVerified;
-        } else if (statusFilter === "AWAITING_APPROVAL") {
+        } else if (statusFilter === TASK_STATUS.AWAITING_APPROVAL) {
           matchesStatus = task.status === TASK_STATUS.AWAITING_APPROVAL;
-        } else if (statusFilter === "NOT APPROVED") {
+        } else if (statusFilter === TASK_STATUS.NOT_APPROVED) {
           matchesStatus = task.status === TASK_STATUS.NOT_APPROVED;
         }
       }

@@ -90,9 +90,9 @@ export default function TaskFilters({
                 >
                   <option value="ALL">Status</option>
                   <option value={TASK_STATUS.COMPLETE}>Complete</option>
-                  <option value="AWAITING_APPROVAL">Awaiting Approval</option>
-                  <option value="INCOMPLETE">Incomplete</option>
-                  <option value="NOT APPROVED">Not Approved</option>
+                  <option value={TASK_STATUS.AWAITING_APPROVAL}>Awaiting Approval</option>
+                  <option value={TASK_STATUS.INCOMPLETE}>Incomplete</option>
+                  <option value={TASK_STATUS.NOT_APPROVED}>Not Approved</option>
                 </select>
               </div>
             )}

@@ -325,9 +325,13 @@ export default function TasksPage() {
               return t.status === TASK_STATUS.COMPLETE && !t.hrVerified;
             if (statusKey === "COMPLETE_VERIFIED")
               return t.status === TASK_STATUS.COMPLETE && t.hrVerified;
-            if (statusKey === "AWAITING_APPROVAL") {
+            if (statusKey === "AWAITING_APPROVAL")
               return t.status === TASK_STATUS.AWAITING_APPROVAL;
-            }
+            if (statusKey === "INCOMPLETE")
+              return t.status === TASK_STATUS.INCOMPLETE;
+            if (statusKey === "NOT APPROVED")
+              return t.status === TASK_STATUS.NOT_APPROVED;
+            
             return t.status === statusKey;
           });
           if (allGroupTasks.length === 0) return null;
