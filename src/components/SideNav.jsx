@@ -71,6 +71,7 @@ export default function SideNav({ onOpenAddTask }) {
       navLinks.push({ label: "Tasks", link: "/tasks", icon: ListCheck });
     } else {
       navLinks.push(
+        { label: "Tasks", link: "/tasks", icon: ListCheck },
         { label: "Sales Planner", link: "/sales/schedule", icon: CalendarDays },
         { label: "Daily Execution", link: "/sales/daily", icon: CheckSquare },
         { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
