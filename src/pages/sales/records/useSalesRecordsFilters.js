@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { REVENUE_STATUS } from "../../../constants/status";
 import toast from "react-hot-toast";
+import { uxMetricsService } from "../../../services/uxMetricsService";
 
 /**
  * Encapsulates ALL filter/sort/pagination state, data-fetching, deep-linking,
@@ -29,6 +30,7 @@ export function useSalesRecordsFilters(user) {
   const [timeframe, setTimeframe] = useState("MONTHLY");
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
   const [sortBy, setSortBy] = useState("NEWEST");
+  const [activePreset, setActivePreset] = useState("custom");
 
   // ── Selected / editing ────────────────────────────────────────────────
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -62,6 +64,19 @@ export function useSalesRecordsFilters(user) {
 
   const isVerificationEnforced =
     appSettings?.require_revenue_verification === true;
+
+  useEffect(() => {
+    uxMetricsService.trackEvent("salesRecords.filterChanged", {
+      activeTab,
+      timeframe,
+      filterStatus,
+      filterType,
+      filterRecordType,
+      sortBy,
+      activePreset,
+    });
+    uxMetricsService.incrementCounter("salesRecords.filterChangeCount");
+  }, [activeTab, timeframe, filterStatus, filterType, filterRecordType, sortBy, activePreset]);
 
   // ── Mutations ─────────────────────────────────────────────────────────
   const updateRevMutation = useMutation({
@@ -276,6 +291,9 @@ export function useSalesRecordsFilters(user) {
     if (selectedDateFilter) {
       filtered = filtered.filter((a) => matchesDateFilter(a.scheduled_date));
     }
+    if (activePreset === "unplannedThisWeek") {
+      filtered = filtered.filter((a) => a.is_unplanned === true);
+    }
     if (sortBy === "NEWEST") {
       filtered.sort(
         (a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date),
@@ -297,6 +315,7 @@ export function useSalesRecordsFilters(user) {
     filterType,
     searchTerm,
     selectedDateFilter,
+    activePreset,
     sortBy,
     matchesDateFilter,
   ]);
@@ -413,6 +432,139 @@ export function useSalesRecordsFilters(user) {
       .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
   }, [filteredActivities, activeTab, viewMode, timeframe]);
 
+  const recordsSummary = useMemo(() => {
+    const source = activeTab === "ACTIVITIES" ? filteredActivities : filteredRevenue;
+    if (activeTab === "ACTIVITIES") {
+      const completed = filteredActivities.filter(
+        (a) => a.status === "APPROVED" || a.status === "DONE",
+      ).length;
+      const unplanned = filteredActivities.filter((a) => a.is_unplanned).length;
+      const pendingExpense = filteredActivities.filter(
+        (a) => Number(a.expense_amount) > 0 && a.status === "PENDING",
+      ).length;
+      return {
+        total: source.length,
+        completedPct: source.length ? Math.round((completed / source.length) * 100) : 0,
+        unplannedPct: source.length ? Math.round((unplanned / source.length) * 100) : 0,
+        pendingExpense,
+      };
+    }
+
+    const approved = filteredRevenue.filter(
+      (r) => r.status === REVENUE_STATUS.APPROVED || r.status === REVENUE_STATUS.COMPLETED,
+    ).length;
+    const unverified = filteredRevenue.filter((r) => r.is_verified === false).length;
+    return {
+      total: source.length,
+      completedPct: source.length ? Math.round((approved / source.length) * 100) : 0,
+      unplannedPct: 0,
+      pendingExpense: unverified,
+    };
+  }, [activeTab, filteredActivities, filteredRevenue]);
+
+  const planVariance = useMemo(() => {
+    const planned = filteredActivities.filter((a) => !a.is_unplanned).length;
+    const completed = filteredActivities.filter(
+      (a) => a.status === "APPROVED" || a.status === "DONE",
+    ).length;
+    const delta = completed - planned;
+    return {
+      planned,
+      completed,
+      delta,
+      direction: delta > 0 ? "over" : delta < 0 ? "under" : "balanced",
+    };
+  }, [filteredActivities]);
+
+  const employeeInsights = useMemo(() => {
+    if (!canViewAllSales) return [];
+    const byEmp = new Map();
+    allowedActivities.forEach((act) => {
+      const key = act.employee_id || "unknown";
+      if (!byEmp.has(key)) {
+        byEmp.set(key, {
+          employeeId: key,
+          employeeName: act.employees?.name || "Unknown",
+          planned: 0,
+          completed: 0,
+          unplanned: 0,
+        });
+      }
+      const row = byEmp.get(key);
+      if (!act.is_unplanned) row.planned += 1;
+      if (act.is_unplanned) row.unplanned += 1;
+      if (act.status === "APPROVED" || act.status === "DONE") row.completed += 1;
+    });
+
+    return Array.from(byEmp.values())
+      .map((row) => {
+        const completionRate = row.planned > 0 ? Math.round((row.completed / row.planned) * 100) : 0;
+        const unplannedRate = row.planned + row.unplanned > 0
+          ? Math.round((row.unplanned / (row.planned + row.unplanned)) * 100)
+          : 0;
+        const consistencyScore = Math.max(
+          0,
+          Math.min(100, Math.round(completionRate * 0.7 + (100 - unplannedRate) * 0.3)),
+        );
+        const riskScore = 100 - consistencyScore;
+        return { ...row, completionRate, unplannedRate, consistencyScore, riskScore };
+      })
+      .sort((a, b) => b.riskScore - a.riskScore);
+  }, [allowedActivities, canViewAllSales]);
+
+  const presetOptions = useMemo(
+    () => [
+      { id: "custom", label: "Custom View" },
+      { id: "myPendingToday", label: "My Pending Today" },
+      { id: "unplannedThisWeek", label: "Unplanned This Week" },
+      { id: "missingOutcomes", label: "Missing Outcomes" },
+    ],
+    [],
+  );
+
+  const applyPreset = useCallback(
+    (presetId) => {
+      setActivePreset(presetId);
+      if (presetId === "custom") return;
+
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+      const todayYmd = `${y}-${m}-${d}`;
+
+      if (presetId === "myPendingToday") {
+        setActiveTab("ACTIVITIES");
+        setViewMode("TABLE");
+        setFilterEmp(user?.id || "ALL");
+        setFilterStatus("PENDING");
+        setFilterType("ALL");
+        setTimeframe("DAILY");
+        setSelectedDateFilter(todayYmd);
+      }
+
+      if (presetId === "unplannedThisWeek") {
+        setActiveTab("ACTIVITIES");
+        setViewMode("BOARD");
+        setFilterEmp("ALL");
+        setFilterStatus("ALL");
+        setFilterType("ALL");
+        setTimeframe("WEEKLY");
+        setSelectedDateFilter(todayYmd);
+        setSearchTerm("");
+      }
+
+      if (presetId === "missingOutcomes") {
+        setActiveTab("ACTIVITIES");
+        setViewMode("TABLE");
+        setFilterStatus("INCOMPLETE");
+        setTimeframe("MONTHLY");
+        setSelectedDateFilter(`${y}-${m}`);
+      }
+    },
+    [user?.id],
+  );
+
   // ── Pagination-resetting wrapper ──────────────────────────────────────
   const wrapFilter = (setter) => (val) => {
     setter(val);
@@ -445,6 +597,9 @@ export function useSalesRecordsFilters(user) {
     setSelectedDateFilter: wrapFilter(setSelectedDateFilter),
     sortBy,
     setSortBy: wrapFilter(setSortBy),
+    activePreset,
+    presetOptions,
+    applyPreset,
     // selection
     selectedActivity,
     setSelectedActivity,
@@ -465,6 +620,9 @@ export function useSalesRecordsFilters(user) {
     filteredActivities,
     filteredRevenue,
     boardData,
+    recordsSummary,
+    planVariance,
+    employeeInsights,
     // mutations
     updateRevMutation,
     deleteRevenueMutation,

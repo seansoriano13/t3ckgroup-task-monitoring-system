@@ -250,6 +250,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
  * Individual activity card used on the board
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 export function BoardActivityCard({ act, onClick, appSettings }) {
+  const [showMeta, setShowMeta] = useState(false);
   const isDone = act.status === REVENUE_STATUS.APPROVED;
   const isLost = act.sales_outcome === "LOST";
   const isWon = act.sales_outcome === "COMPLETED";
@@ -289,22 +290,36 @@ export function BoardActivityCard({ act, onClick, appSettings }) {
       </div>
       {/* Metadata badges */}
       {(act.reference_number || act.expense_amount || act.sales_outcome) && (
-        <div className="flex flex-wrap gap-1 mt-1.5">
-          {act.reference_number && (
-            <span className="text-[8px] font-black text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 truncate max-w-[80px]">
-              {act.reference_number}
-            </span>
-          )}
-          {act.expense_amount && (
-            <span className="text-[8px] font-black text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
-              ₱{Number(act.expense_amount).toLocaleString()}
-            </span>
-          )}
-          {isWon && (
-            <span className="text-[8px] font-black text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">WON</span>
-          )}
-          {isLost && (
-            <span className="text-[8px] font-black text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20">LOST</span>
+        <div className="mt-1.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMeta((prev) => !prev);
+            }}
+            className="text-[9px] font-bold uppercase tracking-widest text-gray-8 hover:text-gray-11"
+          >
+            {showMeta ? "Hide details" : "Show details"}
+          </button>
+          {showMeta && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {act.reference_number && (
+                <span className="text-[8px] font-black text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 truncate max-w-[80px]">
+                  {act.reference_number}
+                </span>
+              )}
+              {act.expense_amount && (
+                <span className="text-[8px] font-black text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                  ₱{Number(act.expense_amount).toLocaleString()}
+                </span>
+              )}
+              {isWon && (
+                <span className="text-[8px] font-black text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">WON</span>
+              )}
+              {isLost && (
+                <span className="text-[8px] font-black text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded-full border border-red-500/20">LOST</span>
+              )}
+            </div>
           )}
         </div>
       )}

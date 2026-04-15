@@ -215,10 +215,25 @@ export default function SalesHeadApprovalsPage() {
       dates.sort((a, b) => new Date(b.date) - new Date(a.date));
       result.push({ employeeName: empName, dates });
     }
-    // Sort employees alphabetical
-    result.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+    // Sort employees by risk first on pending tab, otherwise alphabetical.
+    if (activeTab === "PENDING") {
+      const getRiskScore = (group) => {
+        const allActs = group.dates.flatMap((d) => d.activities);
+        const pendingCount = allActs.filter(
+          (a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL",
+        ).length;
+        const rejectedCount = allActs.filter((a) => a.status === "REJECTED").length;
+        const unplannedCount = allActs.filter((a) => a.is_unplanned).length;
+        const total = allActs.length || 1;
+        const consistencyPenalty = Math.round((unplannedCount / total) * 100);
+        return pendingCount * 3 + rejectedCount * 4 + consistencyPenalty;
+      };
+      result.sort((a, b) => getRiskScore(b) - getRiskScore(a));
+    } else {
+      result.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+    }
     return result;
-  }, [processedActivities]);
+  }, [processedActivities, activeTab]);
 
   // ── Mutations ──
   const invalidateAll = () => {

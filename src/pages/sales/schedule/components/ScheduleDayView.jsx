@@ -6,11 +6,14 @@ export function ScheduleDayView({
   weekDates,
   slotCounts,
   categories,
+  compactMode,
+  scheduleTemplates,
   isLocked,
   getSlotData,
   updateSlotData,
   handleDeleteSlot,
-  handleUsePrevious,
+  handleUseSmartSuggestion,
+  handleApplyTemplate,
   handleAddSlot,
   handleActionSelect,
 }) {
@@ -71,18 +74,6 @@ export function ScheduleDayView({
               "AM",
               slotIdx,
             );
-            const prevData =
-              slotIdx > 0
-                ? getSlotData(currentDateObj.dateStr, "AM", slotIdx - 1)
-                : null;
-            const prevIsFilled =
-              prevData &&
-              (prevData.activity_type !== "None" || !!prevData.account_name);
-            const isCurrentEmpty =
-              (!currentData.activity_type ||
-                currentData.activity_type === "None") &&
-              (!currentData.account_name ||
-                currentData.account_name.trim() === "");
 
             return (
               <ScheduleActivityRow
@@ -100,12 +91,19 @@ export function ScheduleDayView({
                 onDelete={() =>
                   handleDeleteSlot(currentDateObj.dateStr, "AM", slotIdx)
                 }
-                onUsePrevious={() =>
-                  handleUsePrevious(currentDateObj.dateStr, "AM", slotIdx)
+                onUseSmartSuggestion={() =>
+                  handleUseSmartSuggestion(currentDateObj.dateStr, "AM", slotIdx)
                 }
-                showUsePrevious={
-                  slotIdx > 0 && prevIsFilled && isCurrentEmpty
+                onApplyTemplate={(templateId) =>
+                  handleApplyTemplate(
+                    currentDateObj.dateStr,
+                    "AM",
+                    slotIdx,
+                    templateId,
+                  )
                 }
+                compactMode={compactMode}
+                scheduleTemplates={scheduleTemplates}
                 canDelete={slotIdx >= 5}
                 disabled={isLocked}
                 slotNum={slotIdx + 1}
@@ -139,18 +137,6 @@ export function ScheduleDayView({
               "PM",
               slotIdx,
             );
-            const prevData =
-              slotIdx > 0
-                ? getSlotData(currentDateObj.dateStr, "PM", slotIdx - 1)
-                : null;
-            const prevIsFilled =
-              prevData &&
-              (prevData.activity_type !== "None" || !!prevData.account_name);
-            const isCurrentEmpty =
-              (!currentData.activity_type ||
-                currentData.activity_type === "None") &&
-              (!currentData.account_name ||
-                currentData.account_name.trim() === "");
 
             return (
               <ScheduleActivityRow
@@ -168,12 +154,19 @@ export function ScheduleDayView({
                 onDelete={() =>
                   handleDeleteSlot(currentDateObj.dateStr, "PM", slotIdx)
                 }
-                onUsePrevious={() =>
-                  handleUsePrevious(currentDateObj.dateStr, "PM", slotIdx)
+                onUseSmartSuggestion={() =>
+                  handleUseSmartSuggestion(currentDateObj.dateStr, "PM", slotIdx)
                 }
-                showUsePrevious={
-                  slotIdx > 0 && prevIsFilled && isCurrentEmpty
+                onApplyTemplate={(templateId) =>
+                  handleApplyTemplate(
+                    currentDateObj.dateStr,
+                    "PM",
+                    slotIdx,
+                    templateId,
+                  )
                 }
+                compactMode={compactMode}
+                scheduleTemplates={scheduleTemplates}
                 canDelete={slotIdx >= 5}
                 disabled={isLocked}
                 slotNum={slotIdx + 1}

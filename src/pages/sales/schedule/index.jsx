@@ -6,6 +6,7 @@ import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { useNavigate, useLocation } from "react-router";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import { uxMetricsService } from "../../../services/uxMetricsService";
 
 import { ScheduleHeader } from "./components/ScheduleHeader";
 import { ScheduleTabs } from "./components/ScheduleTabs";
@@ -23,6 +24,8 @@ export default function SalesSchedulePage() {
   );
   const [includeSaturday, setIncludeSaturday] = useState(false);
   const [includeSunday, setIncludeSunday] = useState(false);
+  const [compactMode, setCompactMode] = useState(true);
+  const [planningStartedAt, setPlanningStartedAt] = useState(() => Date.now());
 
   const { data: planWrapper, isLoading } = useQuery({
     queryKey: ["weeklyPlan", user?.id, weekStartDate],
@@ -205,6 +208,100 @@ export default function SalesSchedulePage() {
     });
   };
 
+  const scheduleTemplates = [
+    {
+      id: "followup",
+      label: "Follow-up Call",
+      payload: {
+        activity_type: "SALES CALL",
+        remarks_plan: "Follow up on prior proposal and next-step commitment.",
+      },
+    },
+    {
+      id: "newLead",
+      label: "New Lead Intro",
+      payload: {
+        activity_type: "SALES CALL",
+        remarks_plan: "Initial discovery call and qualification.",
+      },
+    },
+    {
+      id: "inhouse",
+      label: "In-House Visit",
+      payload: {
+        activity_type: "IN-HOUSE",
+        remarks_plan: "In-person consultation and product walkthrough.",
+      },
+    },
+  ];
+
+  const handleApplyTemplate = (dateStr, timeOfDay, slotIndex, templateId) => {
+    const template = scheduleTemplates.find((t) => t.id === templateId);
+    if (!template) return;
+    Object.entries(template.payload).forEach(([field, value]) => {
+      updateSlotData(dateStr, timeOfDay, slotIndex, field, value);
+    });
+  };
+
+  const handleUseSmartSuggestion = (dateStr, timeOfDay, currentSlotIndex) => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const currentDate = new Date(year, month - 1, day);
+    const prevDay = new Date(currentDate);
+    prevDay.setDate(currentDate.getDate() - 1);
+    const prevWeek = new Date(currentDate);
+    prevWeek.setDate(currentDate.getDate() - 7);
+
+    const toYmd = (dt) =>
+      `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+
+    const candidates = [
+      { date: toYmd(prevDay), slot: currentSlotIndex },
+      { date: toYmd(prevWeek), slot: currentSlotIndex },
+      { date: dateStr, slot: currentSlotIndex - 1 },
+    ];
+
+    const source = candidates
+      .map((c) =>
+        activitiesData.find(
+          (a) =>
+            a.scheduled_date === c.date &&
+            a.time_of_day === timeOfDay &&
+            a._slot_index === c.slot &&
+            (a.activity_type !== "None" ||
+              (a.account_name && a.account_name.trim() !== "")),
+        ),
+      )
+      .find(Boolean);
+
+    if (!source) {
+      toast.error("No smart suggestion found from previous entries.");
+      return;
+    }
+
+    const payload = {
+      ...source,
+      _slot_index: currentSlotIndex,
+      id: undefined,
+      plan_id: undefined,
+      employee_id: undefined,
+      scheduled_date: dateStr,
+      time_of_day: timeOfDay,
+    };
+
+    setActivitiesData((prev) => {
+      const copy = [...prev];
+      const existingIdx = copy.findIndex(
+        (a) =>
+          a.scheduled_date === dateStr &&
+          a.time_of_day === timeOfDay &&
+          a._slot_index === currentSlotIndex,
+      );
+      if (existingIdx >= 0) copy[existingIdx] = payload;
+      else copy.push(payload);
+      return copy;
+    });
+  };
+
   const handleDeleteSlot = (dateStr, timeOfDay, slotIndex) => {
     setActivitiesData((prev) => {
       let copy = [...prev];
@@ -335,6 +432,7 @@ export default function SalesSchedulePage() {
         });
 
         if (invalid) {
+          uxMetricsService.incrementCounter("salesPlanning.submitValidationErrors");
           toast.error(
             "You must plan at least 5 AM tasks and 5 PM tasks for ALL scheduled days before submitting.",
           );
@@ -422,6 +520,9 @@ export default function SalesSchedulePage() {
       return currentPlanId;
     },
     onSuccess: () => {
+      uxMetricsService.trackEvent("salesPlanning.draftSaved", {
+        weekStartDate,
+      });
       queryClient.invalidateQueries({
         queryKey: ["weeklyPlan", user.id, weekStartDate],
       });
@@ -436,6 +537,15 @@ export default function SalesSchedulePage() {
       await salesService.submitPlan(planId, user);
     },
     onSuccess: () => {
+      const elapsedMs = Math.max(0, Date.now() - planningStartedAt);
+      uxMetricsService.trackEvent("salesPlanning.submitted", {
+        weekStartDate,
+        elapsedMs,
+      });
+      uxMetricsService.setGauge(
+        "salesPlanning.lastCompletionMinutes",
+        Math.round(elapsedMs / 60000),
+      );
       queryClient.invalidateQueries({
         queryKey: ["weeklyPlan", user.id, weekStartDate],
       });
@@ -490,16 +600,6 @@ export default function SalesSchedulePage() {
     onError: (err) => toast.error(err.message),
   });
 
-  if (isLoading) {
-    return (
-      <ProtectedRoute excludeSuperAdmin={true}>
-        <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-gray-8" size={32} />
-        </div>
-      </ProtectedRoute>
-    );
-  }
-
   const currentDateObj =
     weekDates[activeTab] || weekDates[weekDates.length - 1];
 
@@ -520,11 +620,62 @@ export default function SalesSchedulePage() {
     return counts && counts.AM >= 5 && counts.PM >= 5;
   });
 
+  const dayProgress = weekDates.map((d) => {
+    const counts = mapDateToBlockCounts[d.dateStr] || { AM: 0, PM: 0 };
+    return {
+      ...d,
+      amCount: counts.AM,
+      pmCount: counts.PM,
+      isReady: counts.AM >= 5 && counts.PM >= 5,
+    };
+  });
+
+  const weekSummary = dayProgress.reduce(
+    (acc, day) => {
+      if (day.isReady) acc.daysReady += 1;
+      if (day.amCount < 5) acc.missingAM += 5 - day.amCount;
+      if (day.pmCount < 5) acc.missingPM += 5 - day.pmCount;
+      return acc;
+    },
+    { daysReady: 0, missingAM: 0, missingPM: 0 },
+  );
+
+  const unplannedCount = activitiesData.filter(
+    (a) => a.activity_type !== "None" && !a.account_name?.trim(),
+  ).length;
+  const plannedCount = activitiesData.filter(
+    (a) => a.activity_type !== "None" || a.account_name?.trim(),
+  ).length;
+  const unplannedRatio = plannedCount > 0 ? Math.round((unplannedCount / plannedCount) * 100) : 0;
+
+  useEffect(() => {
+    uxMetricsService.setGauge("salesPlanning.unplannedRatio", unplannedRatio);
+  }, [unplannedRatio]);
+
+  useEffect(() => {
+    setPlanningStartedAt(Date.now());
+  }, [weekStartDate]);
+
+  if (isLoading) {
+    return (
+      <ProtectedRoute excludeSuperAdmin={true}>
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-gray-8" size={32} />
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute excludeSuperAdmin={true}>
       <div className="max-w-[1600px] mx-auto space-y-6 pb-10 px-2 sm:px-4">
         
         <ScheduleHeader
+          compactMode={compactMode}
+          setCompactMode={setCompactMode}
+          weekSummary={weekSummary}
+          dayProgress={dayProgress}
+          unplannedRatio={unplannedRatio}
           isLocked={isLocked}
           plan={plan}
           includeSaturday={includeSaturday}
@@ -548,6 +699,7 @@ export default function SalesSchedulePage() {
 
         <ScheduleTabs
           weekDates={weekDates}
+          dayProgress={dayProgress}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           activitiesData={activitiesData}
@@ -559,11 +711,14 @@ export default function SalesSchedulePage() {
           weekDates={weekDates}
           slotCounts={slotCounts}
           categories={categories}
+          compactMode={compactMode}
+          scheduleTemplates={scheduleTemplates}
           isLocked={isLocked}
           getSlotData={getSlotData}
           updateSlotData={updateSlotData}
           handleDeleteSlot={handleDeleteSlot}
-          handleUsePrevious={handleUsePrevious}
+          handleUseSmartSuggestion={handleUseSmartSuggestion}
+          handleApplyTemplate={handleApplyTemplate}
           handleAddSlot={handleAddSlot}
           handleActionSelect={handleActionSelect}
         />

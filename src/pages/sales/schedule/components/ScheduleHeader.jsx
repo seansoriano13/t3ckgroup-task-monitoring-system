@@ -21,6 +21,11 @@ export function ScheduleHeader({
   amendmentReason,
   setAmendmentReason,
   requestAmendmentMutation,
+  compactMode,
+  setCompactMode,
+  weekSummary,
+  dayProgress,
+  unplannedRatio,
 }) {
   return (
     <>
@@ -34,6 +39,15 @@ export function ScheduleHeader({
           </p>
         </div>
         <div className="flex gap-4 items-center flex-wrap">
+          {!isLocked && (
+            <button
+              type="button"
+              onClick={() => setCompactMode((prev) => !prev)}
+              className="text-xs font-bold px-3 py-2 rounded-lg border border-gray-4 bg-gray-2 hover:bg-gray-3 transition-colors"
+            >
+              {compactMode ? "Compact Mode: ON" : "Compact Mode: OFF"}
+            </button>
+          )}
           {!isLocked && (
             <div className="flex gap-2">
               <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-gray-10 hover:text-gray-12 bg-gray-2 px-3 py-2 rounded-lg border border-gray-4 whitespace-nowrap">
@@ -98,6 +112,24 @@ export function ScheduleHeader({
             </span>
           </div>
         </div>
+      </div>
+
+      <div className="bg-gray-2 border border-gray-4 rounded-xl p-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-black text-gray-10 uppercase tracking-widest mr-1">
+          Week Readiness
+        </span>
+        <span className="text-[11px] font-bold px-2 py-1 rounded bg-green-500/10 text-green-700 border border-green-500/20">
+          Days Ready: {weekSummary.daysReady}/{dayProgress.length}
+        </span>
+        <span className="text-[11px] font-bold px-2 py-1 rounded bg-amber-500/10 text-amber-700 border border-amber-500/20">
+          Missing AM: {weekSummary.missingAM}
+        </span>
+        <span className="text-[11px] font-bold px-2 py-1 rounded bg-amber-500/10 text-amber-700 border border-amber-500/20">
+          Missing PM: {weekSummary.missingPM}
+        </span>
+        <span className="text-[11px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-700 border border-blue-500/20">
+          Unplanned Ratio: {unplannedRatio}%
+        </span>
       </div>
 
       {!isLocked && (

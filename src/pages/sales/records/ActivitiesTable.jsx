@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   CheckCircle2,
   Circle,
@@ -19,6 +20,8 @@ export default function ActivitiesTable({
   onActivityClick,
   appSettings,
 }) {
+  const [expandedMetaRow, setExpandedMetaRow] = useState(null);
+
   return (
     <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
@@ -101,27 +104,39 @@ export default function ActivitiesTable({
 
                       {/* Ref / Expense / Outcome */}
                       <td className="p-4">
-                        <div className="flex flex-col gap-1">
-                          {act.reference_number && (
-                            <span className="text-[10px] font-black text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
-                              {act.reference_number}
-                            </span>
-                          )}
-                          {act.expense_amount && (
-                            <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full w-max">
-                              ₱ {Number(act.expense_amount).toLocaleString()}
-                            </span>
-                          )}
-                          {act.sales_outcome === "COMPLETED" && (
-                            <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">WON</span>
-                          )}
-                          {act.sales_outcome === "LOST" && (
-                            <span className="text-[10px] font-black text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full w-max">LOST</span>
-                          )}
-                          {!act.reference_number && !act.expense_amount && !act.sales_outcome && (
-                            <span className="text-gray-7 italic text-[10px]">—</span>
-                          )}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedMetaRow((prev) => (prev === act.id ? null : act.id));
+                          }}
+                          className="text-[10px] font-bold uppercase tracking-widest text-gray-8 hover:text-gray-11"
+                        >
+                          {expandedMetaRow === act.id ? "Hide" : "Show"}
+                        </button>
+                        {expandedMetaRow === act.id && (
+                          <div className="flex flex-col gap-1 mt-1.5">
+                            {act.reference_number && (
+                              <span className="text-[10px] font-black text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
+                                {act.reference_number}
+                              </span>
+                            )}
+                            {act.expense_amount && (
+                              <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full w-max">
+                                ₱ {Number(act.expense_amount).toLocaleString()}
+                              </span>
+                            )}
+                            {act.sales_outcome === "COMPLETED" && (
+                              <span className="text-[10px] font-black text-green-600 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full w-max">WON</span>
+                            )}
+                            {act.sales_outcome === "LOST" && (
+                              <span className="text-[10px] font-black text-red-600 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full w-max">LOST</span>
+                            )}
+                            {!act.reference_number && !act.expense_amount && !act.sales_outcome && (
+                              <span className="text-gray-7 italic text-[10px]">—</span>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       {/* Status icon */}

@@ -1,5 +1,6 @@
 export function ScheduleTabs({
   weekDates,
+  dayProgress,
   activeTab,
   setActiveTab,
   activitiesData,
@@ -14,6 +15,7 @@ export function ScheduleTabs({
             (a.activity_type !== "None" ||
               (a.account_name && a.account_name.trim() !== "")),
         );
+        const dayStats = dayProgress?.find((p) => p.dateStr === d.dateStr);
         return (
           <button
             key={d.dateStr}
@@ -29,6 +31,11 @@ export function ScheduleTabs({
             <span className="text-xs font-normal text-gray-8 block">
               {d.dateStr}
             </span>
+            {dayStats && (
+              <span className="text-[10px] font-bold text-gray-8 block">
+                AM {dayStats.amCount}/5 | PM {dayStats.pmCount}/5
+              </span>
+            )}
           </button>
         );
       })}
