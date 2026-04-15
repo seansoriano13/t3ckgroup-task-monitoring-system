@@ -50,7 +50,9 @@ function ActivityEntry({ entry, currentUserId }) {
           <p className="text-[11px] text-gray-8 leading-relaxed">
             {entry.content}
           </p>
-          <p className="text-[9px] text-gray-7 mt-0.5">{formatTime(entry.createdAt)}</p>
+          <p className="text-[9px] text-gray-7 mt-0.5">
+            {formatTime(entry.createdAt)}
+          </p>
         </div>
       </div>
     );
@@ -78,11 +80,7 @@ function ActivityEntry({ entry, currentUserId }) {
                   : "bg-green-500/20 text-green-400"
               }`}
             >
-              {isRejection ? (
-                <AlertTriangle size={12} />
-              ) : (
-                <Star size={12} />
-              )}
+              {isRejection ? <AlertTriangle size={12} /> : <Star size={12} />}
             </div>
             <span className="text-xs font-bold text-gray-11">
               {entry.authorName || "Head"}
@@ -163,9 +161,7 @@ function ActivityEntry({ entry, currentUserId }) {
 
   // --- COMMENT (Human message) ---
   return (
-    <div
-      className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}
-    >
+    <div className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
       {/* Avatar */}
       <div
         className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
@@ -186,11 +182,7 @@ function ActivityEntry({ entry, currentUserId }) {
       </div>
 
       {/* Bubble */}
-      <div
-        className={`max-w-[75%] ${
-          isMe ? "items-end" : "items-start"
-        }`}
-      >
+      <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
         <div className="flex items-center gap-2 mb-0.5">
           {!isMe && (
             <span className="text-xs font-bold text-gray-10">
@@ -198,9 +190,7 @@ function ActivityEntry({ entry, currentUserId }) {
             </span>
           )}
           {isMe && (
-            <span className="text-xs font-bold text-gray-8 ml-auto">
-              You
-            </span>
+            <span className="text-xs font-bold text-gray-8 ml-auto">You</span>
           )}
         </div>
         <div
@@ -251,9 +241,7 @@ function LegacyEntries({ remarks, hrRemarks, evaluatedByName, grade }) {
         <div className="py-2 px-3 rounded-lg bg-blue-500/5 border border-blue-500/15">
           <div className="flex items-center gap-2 mb-1">
             <ShieldCheck size={10} className="text-blue-400" />
-            <span className="text-[10px] font-bold text-gray-9">
-              HR Notes
-            </span>
+            <span className="text-[10px] font-bold text-gray-9">HR Notes</span>
           </div>
           <p className="text-xs text-gray-11 leading-relaxed">{hrRemarks}</p>
         </div>
@@ -273,6 +261,7 @@ export default function TaskActivityTimeline({
   evaluatedByName,
   grade,
   disabled = false,
+  inputType = "textarea",
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -339,8 +328,7 @@ export default function TaskActivityTimeline({
 
   // Check if legacy entries should be shown (only if no activity entries exist yet)
   const hasActivityEntries = activity.length > 0;
-  const showLegacy =
-    !hasActivityEntries && (legacyRemarks || legacyHrRemarks);
+  const showLegacy = !hasActivityEntries && (legacyRemarks || legacyHrRemarks);
 
   return (
     <div className="flex flex-col border border-gray-4 rounded-xl overflow-hidden bg-gray-1">
@@ -380,10 +368,7 @@ export default function TaskActivityTimeline({
 
             {activity.length === 0 && !showLegacy && (
               <div className="text-center py-6">
-                <MessageCircle
-                  size={24}
-                  className="mx-auto text-gray-6 mb-2"
-                />
+                <MessageCircle size={24} className="mx-auto text-gray-6 mb-2" />
                 <p className="text-[11px] text-gray-7 font-bold">
                   No activity yet
                 </p>
@@ -408,21 +393,32 @@ export default function TaskActivityTimeline({
       {!disabled && (
         <div className="px-3 py-2.5 border-t border-gray-4 bg-gray-2">
           <div className="flex items-center gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
-              disabled={postCommentMutation.isPending}
-              className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-4 py-2.5 text-base text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
-            />
+            {inputType === "textarea" ? (
+              <textarea
+                ref={inputRef}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type a message... (Shift+Enter for new line)"
+                disabled={postCommentMutation.isPending}
+                className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-4 py-2.5 text-base text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50 min-h-[44px] max-h-[120px] resize-y custom-scrollbar"
+                rows={2}
+              />
+            ) : (
+              <input
+                ref={inputRef}
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type a message..."
+                disabled={postCommentMutation.isPending}
+                className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-4 py-2.5 text-base text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
+              />
+            )}
             <button
               onClick={handleSend}
-              disabled={
-                !message.trim() || postCommentMutation.isPending
-              }
+              disabled={!message.trim() || postCommentMutation.isPending}
               className="w-11 h-11 rounded-lg bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
             >
               <Send size={18} />
