@@ -331,28 +331,15 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     });
 
   // --- HEADS DROPDOWN LOGIC ---
-  // For regular employees: show heads matching the selected employee's dept OR super admins
+  // For regular employees: show ALL heads + super admins (loosened selection)
   // For HR/SA: show all heads
   // For Heads: hidden (auto-set to themselves)
   const filteredHeads = (() => {
     if (isHead && !isHr && !isSuperAdmin) return []; // Hidden for heads
     if (isSuperAdmin || isHr) return availableHeads; // All heads for HR/SA
 
-    // Employee view: filter heads by their dept/subdept
-    const empSubDept = selectedEmployeeInfo.sub_department;
-    const empDept = selectedEmployeeInfo.department;
-
-    return availableHeads.filter((h) => {
-      // ALWAYS include super admins or those in ALL/SUPER ADMIN departments
-      if (h.is_super_admin) return true;
-      if (h.department?.trim().toUpperCase() === "SUPER ADMIN") return true;
-      if (h.sub_department?.trim().toUpperCase() === "ALL") return true;
-
-      if (empSubDept && h.sub_department) {
-        return h.sub_department.trim().toLowerCase() === empSubDept?.trim().toLowerCase();
-      }
-      return h.department?.trim().toLowerCase() === empDept?.trim().toLowerCase();
-    });
+    // Employee view: allow selecting any head/super-admin.
+    return availableHeads;
   })();
 
   const showHeadDropdown = !isHead || isHr || isSuperAdmin;
