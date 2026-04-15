@@ -39,8 +39,11 @@ export default function Dashboard() {
           <div className="bg-gray-1 border border-gray-4 p-6 sm:p-10 rounded-4xl shadow-xl relative overflow-hidden">
             <div className="mb-8 border-b border-gray-4 pb-4 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-black text-gray-12 uppercase tracking-widest flex items-center gap-3">
+                <h2 className="text-2xl font-black text-gray-12 flex items-center uppercase">
                   Daily Task Accomplishment Report
+                  {globalRange?.label && (
+                    <span className="text-purple-500 ml-2">— {globalRange.label}</span>
+                  )}
                 </h2>
                 <p className="text-gray-9 mt-1 font-medium">
                   All task executions, approvals, and HR verifications.

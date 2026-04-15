@@ -37,3 +37,28 @@ export const formatTaskPreview = (description) => {
 
   return description;
 };
+
+export const extractOthersDetailsFromRemarks = (remarks) => {
+  if (!remarks || typeof remarks !== "string") return null;
+  const trimmed = remarks.trim();
+
+  const globalOthersMatch = trimmed.match(/^\[OTHERS\]\s*(.+)$/i);
+  if (globalOthersMatch?.[1]) return globalOthersMatch[1].trim();
+
+  const committeeOthersMatch = trimmed.match(
+    /^\[COMMITTEE\s*-\s*OTHERS\]\s*(.+)$/i,
+  );
+  if (committeeOthersMatch?.[1]) return committeeOthersMatch[1].trim();
+
+  return null;
+};
+
+export const isCategoryMetadataRemarks = (remarks) => {
+  if (!remarks || typeof remarks !== "string") return false;
+  const trimmed = remarks.trim();
+  return (
+    /^\[OTHERS\]\s+.+$/i.test(trimmed) ||
+    /^\[COMMITTEE\s*-\s*OTHERS\]\s+.+$/i.test(trimmed) ||
+    /^\[COMMITTEE\s*-\s*[A-Z\s]+\]$/i.test(trimmed)
+  );
+};

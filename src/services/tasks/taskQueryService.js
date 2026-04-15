@@ -1,6 +1,27 @@
 import { supabase } from "../../lib/supabase";
 import { TASK_STATUS } from "../../constants/status";
 
+const extractSubmittedByName = (activityLogs = [], fallbackName = null) => {
+  if (!Array.isArray(activityLogs) || activityLogs.length === 0) return fallbackName;
+
+  const createdLog = activityLogs.find((log) => {
+    if (!log) return false;
+    const event = log?.metadata?.event;
+    const content = log?.content || "";
+    return event === "TASK_CREATED" || content.startsWith("Task submitted by ");
+  });
+
+  if (!createdLog) return fallbackName;
+
+  if (createdLog?.metadata?.submittedByName) {
+    return createdLog.metadata.submittedByName;
+  }
+
+  const content = createdLog?.content || "";
+  const match = content.match(/^Task submitted by (.+?)\.$/);
+  return match?.[1] || fallbackName;
+};
+
 export const taskQueryService = {
   // 1. HR/HEAD VIEW: Get everything
   async getAllTasks() {
@@ -13,6 +34,7 @@ export const taskQueryService = {
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
         reportedToHead:employees!tasks_reported_to_fkey(name),
+        activityLogs:task_activity!task_activity_task_id_fkey(content, metadata, created_at),
         categories(description)
       `,
       )
@@ -30,6 +52,7 @@ export const taskQueryService = {
       loggedById: task.logged_by,
       loggedByName: task.creator?.name,
       loggedByEmail: task.creator?.email,
+      submittedByName: extractSubmittedByName(task.activityLogs, task.creator?.name),
       creator: task.creator,
       editedById: task.edited_by,
       editedByName: task.editor?.name,
@@ -86,6 +109,7 @@ export const taskQueryService = {
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
         reportedToHead:employees!tasks_reported_to_fkey(name),
+        activityLogs:task_activity!task_activity_task_id_fkey(content, metadata, created_at),
         categories(description)
       `,
       )
@@ -103,6 +127,7 @@ export const taskQueryService = {
       categoryDesc: task.categories?.description,
       loggedById: task.logged_by,
       loggedByName: task.creator?.name,
+      submittedByName: extractSubmittedByName(task.activityLogs, task.creator?.name),
       creator: task.creator,
       editedById: task.edited_by,
       editedByName: task.editor?.name,
@@ -138,6 +163,7 @@ export const taskQueryService = {
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
         reportedToHead:employees!tasks_reported_to_fkey(name),
+        activityLogs:task_activity!task_activity_task_id_fkey(content, metadata, created_at),
         categories(description)
       `,
       )
@@ -155,6 +181,7 @@ export const taskQueryService = {
       loggedById: data.logged_by,
       loggedByName: data.creator?.name,
       loggedByEmail: data.creator?.email,
+      submittedByName: extractSubmittedByName(data.activityLogs, data.creator?.name),
       creator: data.creator,
       editedById: data.edited_by,
       editedByName: data.editor?.name,

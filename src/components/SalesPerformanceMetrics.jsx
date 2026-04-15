@@ -19,7 +19,7 @@ import {
   Users,
 } from "lucide-react";
 
-export default function SalesPerformanceMetrics({ selectedMonth }) {
+export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }) {
   const { user } = useAuth();
   const isAdminView =
     user?.isSuperAdmin ||
@@ -55,6 +55,8 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
 
     return { monthFilter: filter, monthLabel: label };
   }, [selectedMonth]);
+
+  const displayLabel = selectedLabel || monthLabel;
 
   // Compute previous month key for MoM comparison
   const prevMonthFilter = useMemo(() => {
@@ -265,13 +267,15 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
 
         <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-black text-gray-12 uppercase tracking-tight">
-              Performance Metrics{" "}
-              <span className="text-purple-500">— {monthLabel}</span>
+            <h2 className="text-2xl font-black text-gray-12 flex items-center uppercase">
+              Performance Metrics
+              {displayLabel && (
+                <span className="text-purple-500 ml-2">— {displayLabel}</span>
+              )}
             </h2>
             <p className="text-sm text-gray-9 font-medium mt-1">
               Execution rate identifies planned tasks due in{" "}
-              <span className="text-gray-12 font-bold">{monthLabel}</span> vs
+              <span className="text-gray-12 font-bold">{displayLabel}</span> vs
               actual completions.
             </p>
           </div>

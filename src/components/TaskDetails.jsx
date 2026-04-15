@@ -7,6 +7,7 @@ import StandardDetailsSection from "./StandardDetailsSection";
 import GradeSelector from "./GradeSelector";
 import TaskActivityTimeline from "./TaskActivityTimeline";
 import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
+import { isCategoryMetadataRemarks } from "../utils/taskFormatters";
 import { PencilLine, FolderKanban, Receipt } from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
 import { TASK_STATUS } from "../constants/status.js";
@@ -209,6 +210,9 @@ export default function TaskDetails({
   const isComplete = task.status === TASK_STATUS.COMPLETE;
   const isNotApproved = task.status === TASK_STATUS.NOT_APPROVED;
   const isFinalized = isComplete || isNotApproved;
+  const timelineLegacyRemarks = isCategoryMetadataRemarks(task?.remarks)
+    ? ""
+    : task?.remarks;
 
   const handleToggleEdit = () => {
     setIsEditing(true);
@@ -549,7 +553,7 @@ export default function TaskDetails({
             <div className="pt-2 border-t border-gray-4 mt-2">
               <TaskActivityTimeline
                 taskId={task.id}
-                legacyRemarks={task.remarks}
+                legacyRemarks={timelineLegacyRemarks}
                 legacyHrRemarks={task.hrRemarks}
                 evaluatedByName={task.evaluatedByName}
                 grade={task.grade}

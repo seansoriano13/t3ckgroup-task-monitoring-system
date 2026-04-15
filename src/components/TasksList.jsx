@@ -311,9 +311,27 @@ export default function TasksList({ selectedRange }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-12 font-medium truncate">
-                          <span className="font-bold">{task.loggedByName}</span>{" "}
-                          logged a task in{" "}
-                          <span className="font-bold">{task.categoryId}</span>
+                          {task.submittedByName &&
+                          task.submittedByName !== task.loggedByName ? (
+                            <>
+                              <span className="font-bold">
+                                {task.submittedByName}
+                              </span>{" "}
+                              logged a task for{" "}
+                              <span className="font-bold">
+                                {task.loggedByName}
+                              </span>{" "}
+                              in <span className="font-bold">{task.categoryId}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-bold">
+                                {task.loggedByName}
+                              </span>{" "}
+                              logged a task in{" "}
+                              <span className="font-bold">{task.categoryId}</span>
+                            </>
+                          )}
                         </p>
                         <p className="text-xs text-gray-9 truncate mt-0.5">
                           {formatTaskPreview(task.taskDescription)}

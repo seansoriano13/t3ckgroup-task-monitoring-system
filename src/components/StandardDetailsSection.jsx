@@ -1,5 +1,6 @@
 import { AlertCircle } from "lucide-react";
 import { formatDate } from "../utils/formatDate";
+import { extractOthersDetailsFromRemarks } from "../utils/taskFormatters";
 import { FieldBox } from "./FieldBox";
 import StatusBadge from "./StatusBadge";
 import { CheckCircle2, Clock } from "lucide-react";
@@ -14,6 +15,11 @@ const StandardDetailsSection = ({
   task,
 }) => {
   const { filteredCategories } = topologyData;
+  const othersDetails = extractOthersDetailsFromRemarks(task?.remarks);
+  const categoryDescription =
+    filteredCategories?.find((c) => c.category_id === task.categoryId)
+      ?.description || "Unknown Category";
+  const categoryLabel = othersDetails || categoryDescription;
 
   
 
@@ -57,10 +63,7 @@ const StandardDetailsSection = ({
               <span className="text-xs font-bold text-gray-11 bg-gray-3 px-2 py-1.5 rounded-lg border border-gray-4 leading-relaxed inline-block">
                 {task.categoryId}
                 <span className="font-medium text-gray-10 ml-1">
-                  {/* 🔥 THE BULLETPROOF LOOKUP */}-{" "}
-                  {filteredCategories?.find(
-                    (c) => c.category_id === task.categoryId,
-                  )?.description || "Unknown Category"}
+                  - {categoryLabel}
                 </span>
               </span>
             </div>

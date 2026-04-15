@@ -54,7 +54,11 @@ export const taskMutationService = {
     taskActivityService.addSystemEvent(
       taskId,
       `Task submitted by ${payload.submittedByName || "an employee"}.`,
-      { event: "TASK_CREATED" },
+      {
+        event: "TASK_CREATED",
+        submittedById: payload.submittedById || payload.loggedById || null,
+        submittedByName: payload.submittedByName || null,
+      },
     );
 
     if (payload.reportedTo) {
