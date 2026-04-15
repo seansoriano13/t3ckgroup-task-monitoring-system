@@ -105,15 +105,29 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
 
           // Pre-select logic for regular employees
           if (!isHead && !isHr && !isSuperAdmin) {
-            const matchingHeads = headsData.filter((h) => {
-              if (userSubDept && h.sub_department) {
+            // First, try to find a direct head
+            const directHeads = headsData.filter((h) => {
+              if (userSubDept && h.sub_department && h.sub_department.toUpperCase() !== "ALL") {
                 return h.sub_department.trim().toLowerCase() === userSubDept.trim().toLowerCase();
               }
-              return h.department?.trim().toLowerCase() === user.department?.trim().toLowerCase();
+              if (h.department?.toUpperCase() !== "SUPER ADMIN" && user.department) {
+                return h.department?.trim().toLowerCase() === user.department?.trim().toLowerCase();
+              }
+              return false;
             });
 
-            if (matchingHeads.length > 0) {
-              setSelectedHead(matchingHeads[0].id);
+            if (directHeads.length > 0) {
+              setSelectedHead(directHeads[0].id);
+            } else {
+              // If no direct head, fallback to a super admin / "ALL" admin
+              const adminHeads = headsData.filter(h => 
+                h.is_super_admin || 
+                h.sub_department?.trim().toUpperCase() === "ALL" || 
+                h.department?.trim().toUpperCase() === "SUPER ADMIN"
+              );
+              if (adminHeads.length > 0) {
+                setSelectedHead(adminHeads[0].id);
+              }
             }
           }
           // For Heads assigning tasks — auto-assign to themselves
@@ -158,17 +172,31 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     const empSubDept = selectedEmployee.sub_department;
     const empDept = selectedEmployee.department;
 
-    const matchingHeads = availableHeads.filter((h) => {
-      if (empSubDept && h.sub_department) {
+    // First try direct heads
+    const directHeads = availableHeads.filter((h) => {
+      if (empSubDept && h.sub_department && h.sub_department.toUpperCase() !== "ALL") {
         return h.sub_department.trim().toLowerCase() === empSubDept.trim().toLowerCase();
       }
-      return h.department?.trim().toLowerCase() === empDept?.trim().toLowerCase();
+      if (h.department?.toUpperCase() !== "SUPER ADMIN" && empDept) {
+        return h.department?.trim().toLowerCase() === empDept?.trim().toLowerCase();
+      }
+      return false;
     });
 
-    if (matchingHeads.length > 0) {
-      setSelectedHead(matchingHeads[0].id);
+    if (directHeads.length > 0) {
+      setSelectedHead(directHeads[0].id);
     } else {
-      setSelectedHead("");
+      // Fallback to super admins
+      const adminHeads = availableHeads.filter(h => 
+        h.is_super_admin || 
+        h.sub_department?.trim().toUpperCase() === "ALL" || 
+        h.department?.trim().toUpperCase() === "SUPER ADMIN"
+      );
+      if (adminHeads.length > 0) {
+        setSelectedHead(adminHeads[0].id);
+      } else {
+        setSelectedHead("");
+      }
     }
   }, [formData.loggedById, availableHeads, employees, isHead, isHr, isSuperAdmin]);
 
@@ -303,7 +331,7 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     });
 
   // --- HEADS DROPDOWN LOGIC ---
-  // For regular employees: show heads matching the selected employee's dept
+  // For regular employees: show heads matching the selected employee's dept OR super admins
   // For HR/SA: show all heads
   // For Heads: hidden (auto-set to themselves)
   const filteredHeads = (() => {
@@ -315,6 +343,11 @@ export default function AddTaskModal({ isOpen, onClose, onSubmit }) {
     const empDept = selectedEmployeeInfo.department;
 
     return availableHeads.filter((h) => {
+      // ALWAYS include super admins or those in ALL/SUPER ADMIN departments
+      if (h.is_super_admin) return true;
+      if (h.department?.trim().toUpperCase() === "SUPER ADMIN") return true;
+      if (h.sub_department?.trim().toUpperCase() === "ALL") return true;
+
       if (empSubDept && h.sub_department) {
         return h.sub_department.trim().toLowerCase() === empSubDept?.trim().toLowerCase();
       }
