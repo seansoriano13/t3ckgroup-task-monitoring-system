@@ -153,7 +153,7 @@ function ActivityEntry({ entry, currentUserId }) {
           </span>
         </div>
         {entry.content && entry.content !== "Verified" && (
-          <p className="text-sm text-gray-11 leading-relaxed pl-8">
+          <p className="text-base text-gray-11 leading-relaxed pl-8">
             {entry.content}
           </p>
         )}
@@ -168,7 +168,7 @@ function ActivityEntry({ entry, currentUserId }) {
     >
       {/* Avatar */}
       <div
-        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black uppercase border ${
+        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
           entry.authorIsHead || entry.authorIsSuperAdmin
             ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
             : entry.authorIsHr
@@ -193,18 +193,18 @@ function ActivityEntry({ entry, currentUserId }) {
       >
         <div className="flex items-center gap-2 mb-0.5">
           {!isMe && (
-            <span className="text-[10px] font-bold text-gray-10">
+            <span className="text-xs font-bold text-gray-10">
               {entry.authorName}
             </span>
           )}
           {isMe && (
-            <span className="text-[10px] font-bold text-gray-8 ml-auto">
+            <span className="text-xs font-bold text-gray-8 ml-auto">
               You
             </span>
           )}
         </div>
         <div
-          className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
+          className={`px-4 py-3 rounded-2xl text-base leading-relaxed ${
             isMe
               ? "bg-primary/15 text-gray-12 rounded-tr-md border border-primary/20"
               : "bg-gray-3 text-gray-12 rounded-tl-md border border-gray-4"
@@ -213,7 +213,7 @@ function ActivityEntry({ entry, currentUserId }) {
           {entry.content}
         </div>
         <p
-          className={`text-[9px] text-gray-7 mt-1 ${
+          className={`text-[11px] text-gray-7 mt-1.5 ${
             isMe ? "text-right" : "text-left"
           } px-1`}
         >
@@ -345,13 +345,13 @@ export default function TaskActivityTimeline({
   return (
     <div className="flex flex-col border border-gray-4 rounded-xl overflow-hidden bg-gray-1">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-4 bg-gray-2">
-        <MessageCircle size={14} className="text-gray-9" />
-        <span className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-4 bg-gray-2">
+        <MessageCircle size={18} className="text-gray-9" />
+        <span className="text-xs font-bold text-gray-9 uppercase tracking-wider">
           Task Activity
         </span>
         {activity.length > 0 && (
-          <span className="text-[9px] font-bold text-gray-7 bg-gray-3 px-1.5 py-0.5 rounded-full border border-gray-4 ml-auto">
+          <span className="text-[10px] font-bold text-gray-7 bg-gray-3 px-1.5 py-0.5 rounded-full border border-gray-4 ml-auto">
             {activity.length}
           </span>
         )}
@@ -360,8 +360,8 @@ export default function TaskActivityTimeline({
       {/* Activity Feed */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto custom-scrollbar px-4 py-3 space-y-3"
-        style={{ maxHeight: "320px", minHeight: "120px" }}
+        className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-4"
+        style={{ maxHeight: "500px", minHeight: "150px" }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -416,16 +416,16 @@ export default function TaskActivityTimeline({
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
               disabled={postCommentMutation.isPending}
-              className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
+              className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-4 py-2.5 text-base text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
             />
             <button
               onClick={handleSend}
               disabled={
                 !message.trim() || postCommentMutation.isPending
               }
-              className="w-9 h-9 rounded-lg bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+              className="w-11 h-11 rounded-lg bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
             >
-              <Send size={14} />
+              <Send size={18} />
             </button>
           </div>
         </div>
