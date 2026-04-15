@@ -67,7 +67,6 @@ export default function SideNav({ onOpenAddTask }) {
         link: "/approvals/sales",
         icon: ShieldCheck,
       },
-      { label: "Master Log", link: "/hr-master-log", icon: Database },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
@@ -121,7 +120,6 @@ export default function SideNav({ onOpenAddTask }) {
 
     if (user?.isHr) {
       navLinks.push(
-        { label: "Master Log", link: "/hr-master-log", icon: Database },
         {
           label: "Employee Mgmt",
           link: "/hr/employee-management",

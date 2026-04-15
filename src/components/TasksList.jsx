@@ -281,7 +281,7 @@ export default function TasksList({ selectedRange }) {
               </p>
             </div>
             <Link
-              to={isHr ? "/hr-master-log" : "/tasks"}
+              to="/tasks"
               className="flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white px-4 py-2 rounded-lg transition-colors"
             >
               View Full Directory <ArrowUpRight size={16} />
