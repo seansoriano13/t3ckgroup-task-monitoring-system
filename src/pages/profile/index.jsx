@@ -19,6 +19,15 @@ import { employeeService } from "../../services/employeeService";
 import { aiService } from "../../services/aiService";
 import { TASK_STATUS, REVENUE_STATUS, SALES_PLAN_STATUS } from "../../constants/status";
 
+const UNSPLASH_BANNER_POOL = [
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=1600&q=80",
+];
+
 export default function ProfilePage() {
   const { user, updateUserPreferences } = useAuth();
   const avatarInputRef = useRef(null);
@@ -537,9 +546,11 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setBannerUrlInput(
-                        `https://source.unsplash.com/1600x900/?nature,workspace&sig=${Date.now()}`,
-                      );
+                      const randomBanner =
+                        UNSPLASH_BANNER_POOL[
+                          Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
+                        ];
+                      setBannerUrlInput(randomBanner);
                       setBannerFile(null);
                       setRemoveBanner(false);
                     }}
