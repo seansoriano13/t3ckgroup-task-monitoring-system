@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { salesService } from "../services/salesService";
@@ -9,11 +10,15 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  Maximize2,
+  Clock,
 } from "lucide-react";
+import SalesTaskDetailsModal from "./SalesTaskDetailsModal";
 
 export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [viewActivity, setViewActivity] = useState(null);
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["dayDeletionRequests", user?.department],
@@ -122,6 +127,47 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                 <p className="text-sm text-gray-12 font-medium leading-relaxed italic">
                   "{req.reason || "No reason provided"}"
                 </p>
+
+                <div className="mt-4 space-y-2 border-t border-red-500/10 pt-3">
+                  <p className="text-[10px] font-black text-gray-9 uppercase tracking-widest">
+                    Activities Included
+                  </p>
+                  {req.activities.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="bg-white border border-gray-4 rounded-lg p-2.5 flex items-start justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <p
+                          className="text-xs font-bold text-gray-12 truncate"
+                          title={activity.account_name || "No Account Specify"}
+                        >
+                          {activity.account_name || "No Account Specify"}
+                        </p>
+                        <p className="text-[10px] text-gray-9 mt-0.5 flex items-center gap-1.5 uppercase tracking-wide">
+                          <Clock size={10} />
+                          {activity.time_of_day || "No time"}
+                          <span className="text-gray-6">•</span>
+                          {activity.activity_type || "No type"}
+                        </p>
+                        <p
+                          className="text-[11px] text-gray-11 mt-1 line-clamp-2"
+                          title={activity.details_daily || "-"}
+                        >
+                          {activity.details_daily || "-"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-gray-8 hover:text-primary transition-colors p-1 rounded-md hover:bg-gray-2 shrink-0"
+                        onClick={() => setViewActivity(activity)}
+                        title="Open Full Details"
+                      >
+                        <Maximize2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="flex items-center gap-3 shrink-0 self-end lg:self-center">
@@ -162,6 +208,12 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
           </div>
         );
       })}
+
+      <SalesTaskDetailsModal
+        isOpen={!!viewActivity}
+        onClose={() => setViewActivity(null)}
+        activity={viewActivity}
+      />
     </div>
   );
 }

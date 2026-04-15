@@ -8,12 +8,17 @@ import {
   Bot,
   Loader2,
   Plus,
-  RefreshCw,
   Trash2,
   Edit3,
   Github,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import ReactMarkdown from "react-markdown";
+
+const MAX_CONTENT_LENGTH = 2000;
+const HISTORY_PAGE_SIZE_OPTIONS = [10, 20, 30];
 
 export default function SystemUpdateManager() {
   const { user } = useAuth();
@@ -24,11 +29,29 @@ export default function SystemUpdateManager() {
   const [type, setType] = useState("feature");
   const [editingId, setEditingId] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPageSize, setHistoryPageSize] = useState(10);
+  const [historyFilter, setHistoryFilter] = useState("all");
 
-  const { data: updates = [], isLoading } = useQuery({
-    queryKey: ["allSystemUpdates"],
-    queryFn: () => systemUpdateService.getAllUpdates(),
+  const { data: pagedUpdates, isLoading } = useQuery({
+    queryKey: [
+      "allSystemUpdates",
+      {
+        page: historyPage,
+        pageSize: historyPageSize,
+        filter: historyFilter,
+      },
+    ],
+    queryFn: () =>
+      systemUpdateService.getUpdatesPage({
+        page: historyPage,
+        pageSize: historyPageSize,
+        filter: historyFilter,
+      }),
   });
+  const updates = pagedUpdates?.items || [];
+  const totalPages = pagedUpdates?.totalPages || 1;
+  const totalCount = pagedUpdates?.totalCount || 0;
 
   const generateAIContent = async () => {
     setIsGenerating(true);
@@ -54,8 +77,8 @@ export default function SystemUpdateManager() {
   const createMutation = useMutation({
     mutationFn: (data) => systemUpdateService.createUpdate(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["allSystemUpdates"]);
-      queryClient.invalidateQueries(["activeSystemUpdates"]);
+      queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
+      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
       setContent("");
       toast.success("Update broadcasted successfully!");
     },
@@ -65,8 +88,8 @@ export default function SystemUpdateManager() {
   const editMutation = useMutation({
     mutationFn: ({ id, data }) => systemUpdateService.editUpdate(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["allSystemUpdates"]);
-      queryClient.invalidateQueries(["activeSystemUpdates"]);
+      queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
+      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
       setContent("");
       setEditingId(null);
       toast.success("Update edited successfully!");
@@ -78,30 +101,48 @@ export default function SystemUpdateManager() {
     mutationFn: ({ id, isActive }) =>
       systemUpdateService.toggleUpdateStatus(id, isActive),
     onSuccess: () => {
-      queryClient.invalidateQueries(["allSystemUpdates"]);
-      queryClient.invalidateQueries(["activeSystemUpdates"]);
+      queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
+      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => systemUpdateService.deleteUpdate(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(["allSystemUpdates"]);
-      queryClient.invalidateQueries(["activeSystemUpdates"]);
+      queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
+      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
     },
   });
 
   const handlePost = () => {
-    if (!content.trim()) return;
+    const trimmedContent = content.trim();
+    if (!trimmedContent) {
+      toast.error("Update content cannot be empty.");
+      return;
+    }
+    if (trimmedContent.length > MAX_CONTENT_LENGTH) {
+      toast.error(`Keep update content within ${MAX_CONTENT_LENGTH} characters.`);
+      return;
+    }
+
     if (editingId) {
-      editMutation.mutate({ id: editingId, data: { content, type } });
+      editMutation.mutate({ id: editingId, data: { content: trimmedContent, type } });
     } else {
       createMutation.mutate({
-        content,
+        content: trimmedContent,
         type,
         user_id: user.id,
       });
     }
+  };
+
+  const isExpired = (update) =>
+    Boolean(update.expires_at) && new Date(update.expires_at) <= new Date();
+
+  const getStatusLabel = (update) => {
+    if (!update.is_active) return "Inactive";
+    if (isExpired(update)) return "Expired";
+    return "Active";
   };
 
   return (
@@ -161,7 +202,11 @@ export default function SystemUpdateManager() {
               placeholder="What changed? Use AI or type manually..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              maxLength={MAX_CONTENT_LENGTH + 200}
             />
+            <p className="text-xs text-gray-9 mt-2">
+              {content.trim().length}/{MAX_CONTENT_LENGTH} characters
+            </p>
 
             <div className="flex items-center justify-between mt-3">
               <select
@@ -210,9 +255,47 @@ export default function SystemUpdateManager() {
 
           {/* History List */}
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-gray-11 uppercase tracking-widest pl-1">
-              History
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-gray-11 uppercase tracking-widest pl-1">
+                History
+              </h3>
+              <div className="flex items-center gap-2">
+                {["all", "active", "expired"].map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => {
+                      setHistoryFilter(filter);
+                      setHistoryPage(1);
+                    }}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors ${
+                      historyFilter === filter
+                        ? "bg-purple-600 text-white border-purple-600"
+                        : "bg-gray-2 text-gray-10 border-gray-4 hover:bg-gray-3"
+                    }`}
+                  >
+                    {filter === "all"
+                      ? "All"
+                      : filter === "active"
+                        ? "Active"
+                        : "Expired/Inactive"}
+                  </button>
+                ))}
+                <select
+                  value={historyPageSize}
+                  onChange={(e) => {
+                    setHistoryPageSize(Number(e.target.value));
+                    setHistoryPage(1);
+                  }}
+                  className="bg-gray-1 border border-gray-4 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-purple-500"
+                >
+                  {HISTORY_PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}/page
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             {isLoading ? (
               <div className="flex justify-center p-4">
                 <Loader2 className="animate-spin text-gray-8" />
@@ -244,10 +327,15 @@ export default function SystemUpdateManager() {
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
-                      <p className="text-xs font-bold text-gray-10 uppercase">
-                        {update.type} •{" "}
-                        {new Date(update.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-gray-10 uppercase">
+                          {update.type} •{" "}
+                          {new Date(update.created_at).toLocaleDateString()}
+                        </p>
+                        <span className="text-[10px] font-semibold uppercase rounded-full px-2 py-0.5 bg-gray-3 text-gray-10 border border-gray-4">
+                          {getStatusLabel(update)}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => {
@@ -274,13 +362,58 @@ export default function SystemUpdateManager() {
                         </button>
                       </div>
                     </div>
-                    <p className="text-sm mt-1 whitespace-pre-wrap">
-                      {update.content}
-                    </p>
+                    {update.expires_at && (
+                      <p className="text-xs text-gray-9 mt-1">
+                        Expires: {new Date(update.expires_at).toLocaleString()}
+                      </p>
+                    )}
+                    <div className="text-sm mt-2 max-h-28 overflow-hidden relative">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ ...props }) => (
+                            <p className="mb-1 last:mb-0 opacity-90" {...props} />
+                          ),
+                          ul: ({ ...props }) => (
+                            <ul className="list-disc pl-5 mb-1 opacity-90" {...props} />
+                          ),
+                          li: ({ ...props }) => <li className="mb-0.5" {...props} />,
+                          strong: ({ ...props }) => (
+                            <strong className="font-bold opacity-100" {...props} />
+                          ),
+                        }}
+                      >
+                        {update.content}
+                      </ReactMarkdown>
+                      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-1 to-transparent" />
+                    </div>
                   </div>
                 </div>
               ))
             )}
+            <div className="flex items-center justify-between gap-2 pt-2">
+              <p className="text-xs text-gray-9 pl-1">
+                {totalCount} total update{totalCount === 1 ? "" : "s"} • Page{" "}
+                {historyPage} of {totalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setHistoryPage((prev) => Math.max(1, prev - 1))}
+                  disabled={historyPage <= 1 || isLoading}
+                  className="px-2.5 py-1.5 rounded-lg border border-gray-4 text-xs font-bold text-gray-11 hover:bg-gray-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                  <ChevronLeft size={14} /> Prev
+                </button>
+                <button
+                  onClick={() =>
+                    setHistoryPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={historyPage >= totalPages || isLoading}
+                  className="px-2.5 py-1.5 rounded-lg border border-gray-4 text-xs font-bold text-gray-11 hover:bg-gray-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                  Next <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

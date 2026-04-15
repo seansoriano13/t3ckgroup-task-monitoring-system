@@ -13,16 +13,15 @@ import ReactMarkdown from "react-markdown";
 export default function SystemUpdateBanner() {
   const [isMinimized, setIsMinimized] = useState(false);
 
-  const { data: updates = [], isLoading } = useQuery({
-    queryKey: ["activeSystemUpdates"],
-    queryFn: () => systemUpdateService.getActiveUpdates(),
+  const { data: latestUpdate = null, isLoading } = useQuery({
+    queryKey: ["latestActiveSystemUpdate"],
+    queryFn: () => systemUpdateService.getLatestActiveUpdate(),
   });
 
   useEffect(() => {
-    if (updates.length > 0) {
-      const topUpdate = updates[0];
+    if (latestUpdate) {
       const savedState = localStorage.getItem(
-        `banner_collapsed_${topUpdate.id}`,
+        `banner_collapsed_${latestUpdate.id}`,
       );
       if (savedState === "true") {
         setIsMinimized(true);
@@ -30,13 +29,9 @@ export default function SystemUpdateBanner() {
         setIsMinimized(false);
       }
     }
-  }, [updates]);
+  }, [latestUpdate]);
 
-  if (isLoading || updates.length === 0) return null;
-
-  // We'll show the most recent active update prominently, or cycle through them.
-  // For simplicity, let's just display the absolute newest one.
-  const latestUpdate = updates[0];
+  if (isLoading || !latestUpdate) return null;
 
   const handleToggle = () => {
     const newVal = !isMinimized;
