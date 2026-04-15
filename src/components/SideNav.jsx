@@ -1,8 +1,10 @@
-import { Plus, Bell } from "lucide-react";
+import { Plus, Bell, MessageCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { notificationService } from "../services/notificationService";
+import { activeChatService } from "../services/tasks/activeChatService";
 import NotificationDrawer from "./NotificationDrawer";
+import ActiveChatsDrawer from "./ActiveChatsDrawer";
 import PrimaryButton from "./PrimaryButton";
 import { Notebook } from "lucide-react";
 import { LayoutList } from "lucide-react";
@@ -37,6 +39,15 @@ export default function SideNav({ onOpenAddTask }) {
     enabled: !!user?.id,
   });
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  // 🔥 Active Chats State
+  const [isChatsOpen, setIsChatsOpen] = useState(false);
+  const { data: activeChats = [] } = useQuery({
+    queryKey: ["activeChats", user?.id],
+    queryFn: () => activeChatService.getActiveChats(user?.id),
+    enabled: !!user?.id,
+  });
+  const unreadChatsCount = activeChats.filter((c) => c.is_unread).length;
 
   const isSales =
     user?.department?.toLowerCase().includes("sales") ||
@@ -173,6 +184,24 @@ export default function SideNav({ onOpenAddTask }) {
           )}
         </button>
 
+        {/* Universal Active Chats Trigger */}
+        <button
+          onClick={() => {
+            setIsChatsOpen(true);
+            setIsExpanded(false);
+          }}
+          className="relative text-gray-10 hover:text-blue-500 transition-colors p-2 rounded-xl hover:bg-blue-500/10 flex items-center justify-center group"
+          title="Active Chats"
+        >
+          <MessageCircle
+            size={24}
+            className="group-hover:scale-110 transition-transform"
+          />
+          {unreadChatsCount > 0 && (
+            <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-blue-500 border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+          )}
+        </button>
+
         {user?.isSuperAdmin ? (
           <div className="flex flex-col gap-2 w-full mt-2">
             <PrimaryButton
@@ -304,6 +333,12 @@ export default function SideNav({ onOpenAddTask }) {
       <NotificationDrawer
         isOpen={isNotifOpen}
         onClose={() => setIsNotifOpen(false)}
+      />
+
+      {/* Global Active Chats Drawer */}
+      <ActiveChatsDrawer
+        isOpen={isChatsOpen}
+        onClose={() => setIsChatsOpen(false)}
       />
     </div>
   );

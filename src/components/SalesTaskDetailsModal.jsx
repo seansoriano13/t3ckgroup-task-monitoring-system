@@ -15,6 +15,7 @@ import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import SalesActivityTimeline from "./SalesActivityTimeline";
+import { activeChatService } from "../services/tasks/activeChatService";
 
 export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSettings }) {
   const { user } = useAuth();
@@ -31,6 +32,13 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
       });
     }
   }, [activity?.id, activity?.sales_outcome]);
+
+  // Mark as read when open
+  useEffect(() => {
+    if (isOpen && activity?.id && user?.id) {
+       activeChatService.markAsRead(user.id, 'SALES', activity.id);
+    }
+  }, [isOpen, activity?.id, user?.id]);
 
   const outcomeMutation = useMutation({
     mutationFn: ({ id, outcome }) =>

@@ -17,6 +17,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.js";
 import { toast } from "react-hot-toast";
 
+import { activeChatService } from "../services/tasks/activeChatService";
+
 export default function TaskDetails({
   isOpen,
   onClose,
@@ -64,6 +66,10 @@ export default function TaskDetails({
   // Pre-hydrate the form data immediately when the modal opens
   useEffect(() => {
     if (isOpen && task) {
+      if (user?.id) {
+         activeChatService.markAsRead(user.id, "TASK", task.id);
+      }
+
       const taskDept =
         task.creator?.department ||
         task.employees?.department ||
