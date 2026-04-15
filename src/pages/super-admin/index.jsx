@@ -8,6 +8,8 @@ import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.js
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
+import SystemUpdateBanner from "../../components/SystemUpdateBanner.jsx";
+import SystemUpdateManager from "../../components/SystemUpdateManager.jsx";
 
 const EMPTY_ARRAY = [];
 
@@ -106,6 +108,7 @@ export default function SuperAdminDashboard() {
         </div>
       ) : (
         <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
+        <SystemUpdateBanner />
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
           <div>
             <h1 className="text-3xl font-black text-gray-12 flex items-center gap-2">
@@ -154,9 +157,9 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
+        <SystemUpdateManager />
+
         <ExpenseApprovalQueue isSuperAdmin={true} />
-
-
         <div className="bg-gray-1 border border-gray-4 p-4 sm:p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
             <div>

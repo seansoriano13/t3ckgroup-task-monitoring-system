@@ -10,6 +10,7 @@ import { Calendar } from "lucide-react";
 import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
 import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
 import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
+import SystemUpdateBanner from "../components/SystemUpdateBanner.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -28,6 +29,8 @@ export default function Dashboard() {
     return (
       <ProtectedRoute>
         <div className="space-y-12 pb-10 max-w-350 mx-auto px-2 xl:px-0">
+          {(user?.is_super_admin || user?.isSuperAdmin) && <SystemUpdateBanner />}
+
           {/* PIPELINE SECTION */}
           <div className="bg-gray-1 border border-gray-4 p-6 sm:p-10 rounded-4xl shadow-xl relative overflow-hidden">
             <div className="mb-8 border-b border-gray-4 pb-4 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
