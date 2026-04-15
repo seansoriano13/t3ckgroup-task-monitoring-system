@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { systemUpdateService } from "../services/systemUpdateService";
 import {
@@ -18,11 +18,31 @@ export default function SystemUpdateBanner() {
     queryFn: () => systemUpdateService.getActiveUpdates(),
   });
 
+  useEffect(() => {
+    if (updates.length > 0) {
+      const topUpdate = updates[0];
+      const savedState = localStorage.getItem(
+        `banner_collapsed_${topUpdate.id}`,
+      );
+      if (savedState === "true") {
+        setIsMinimized(true);
+      } else {
+        setIsMinimized(false);
+      }
+    }
+  }, [updates]);
+
   if (isLoading || updates.length === 0) return null;
 
   // We'll show the most recent active update prominently, or cycle through them.
   // For simplicity, let's just display the absolute newest one.
   const latestUpdate = updates[0];
+
+  const handleToggle = () => {
+    const newVal = !isMinimized;
+    setIsMinimized(newVal);
+    localStorage.setItem(`banner_collapsed_${latestUpdate.id}`, String(newVal));
+  };
 
   const getIcon = (type) => {
     switch (type) {
@@ -60,7 +80,7 @@ export default function SystemUpdateBanner() {
       <div className="flex-1 min-w-0">
         <div
           className="flex items-center justify-between mb-2 cursor-pointer select-none group"
-          onClick={() => setIsMinimized(!isMinimized)}
+          onClick={handleToggle}
         >
           <div className="flex items-center gap-2">
             <h3 className="font-bold text-sm uppercase tracking-wider">
@@ -70,7 +90,7 @@ export default function SystemUpdateBanner() {
                   ? "System Fixes"
                   : "Announcement"}
             </h3>
-            <span className="text-xs font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200/50 shadow-sm text-gray-500">
+            <span className="text-xs font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200/50 shadow-sm text-gray-500 mr-2">
               {new Date(latestUpdate.created_at).toLocaleDateString()}
             </span>
           </div>

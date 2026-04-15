@@ -33,7 +33,7 @@ export default function Dashboard() {
     return (
       <ProtectedRoute>
         <div className="space-y-12 pb-10 max-w-350 mx-auto px-2 xl:px-0">
-          {(user?.is_super_admin || user?.isSuperAdmin) && <SystemUpdateBanner />}
+          <SystemUpdateBanner />
 
           {/* PIPELINE SECTION */}
           <div className="bg-gray-1 border border-gray-4 p-6 sm:p-10 rounded-4xl shadow-xl relative overflow-hidden">
@@ -76,6 +76,9 @@ export default function Dashboard() {
     return (
       <ProtectedRoute>
         <div className="pb-10">
+          <div className="max-w-350 mx-auto px-2 xl:px-0 pt-6">
+            <SystemUpdateBanner />
+          </div>
           <SalesDashboard globalRange={globalRange} />
         </div>
         <FloatingMonthPicker
@@ -89,6 +92,9 @@ export default function Dashboard() {
   return (
     <ProtectedRoute>
       <div>
+        <div className="max-w-350 mx-auto mb-6">
+          <SystemUpdateBanner />
+        </div>
         <div className="grid gap-8">
           <DashboardHeader />
 
