@@ -1,6 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import { notificationService } from "../notificationService";
 import { REVENUE_STATUS } from "../../constants/status";
+import { salesActivityLogService } from "./salesActivityLogService";
 
 export const salesVerificationService = {
   async getHeadPendingActivities() {
@@ -40,6 +41,9 @@ export const salesVerificationService = {
       reference_id: String(activityId),
     }).catch(console.error);
 
+    // LOG TO TIMELINE
+    salesActivityLogService.addApprovalEntry(activityId, verifiedBy, headRemarks || "Verified activity.", { event: "VERIFIED" }).catch(console.error);
+
     return data;
   },
 
@@ -55,6 +59,14 @@ export const salesVerificationService = {
       .in("id", activityIds)
       .select();
     if (error) throw error;
+
+    // LOG TO TIMELINE
+    Promise.allSettled(
+      activityIds.map((id) =>
+        salesActivityLogService.addApprovalEntry(id, verifiedBy, headRemarks || "Verified via Bulk Action.", { event: "VERIFIED" })
+      )
+    ).catch(console.error);
+
     return data;
   },
 
@@ -171,6 +183,10 @@ export const salesVerificationService = {
       .select()
       .single();
     if (error) throw error;
+
+    // LOG UNVERIFY (UNDO) TO TIMELINE
+    salesActivityLogService.addSystemEvent(activityId, "Manager unverified this activity (Undo Verification).", { event: "UNVERIFIED" }).catch(console.error);
+
     return data;
   },
 
@@ -186,6 +202,14 @@ export const salesVerificationService = {
       .in("id", activityIds)
       .select();
     if (error) throw error;
+
+    // LOG UNVERIFY TO TIMELINE
+    Promise.allSettled(
+      activityIds.map((id) =>
+        salesActivityLogService.addSystemEvent(id, "Manager unverified this activity via Bulk Action.", { event: "UNVERIFIED" })
+      )
+    ).catch(console.error);
+
     return data || [];
   },
 };

@@ -14,6 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
+import SalesActivityTimeline from "./SalesActivityTimeline";
 
 export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSettings }) {
   const { user } = useAuth();
@@ -339,6 +340,14 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                 </div>
               );
             })()}
+
+          {/* === TIMELINE SECTION === */}
+          <SalesActivityTimeline
+            salesActivityId={activity.id}
+            legacyHeadRemarks={activity.head_remarks}
+            headVerifiedByName={activity.head_verified_by_name} // Warning: we might not have the name easily depending on the query, but we can try 
+            disabled={!activity.id}
+          />
         </div>
       </div>
     </>
