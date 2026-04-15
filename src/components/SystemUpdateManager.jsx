@@ -12,9 +12,9 @@ export default function SystemUpdateManager() {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Form State
   const [content, setContent] = useState('');
   const [type, setType] = useState('feature');
+  const [editingId, setEditingId] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { data: updates = [], isLoading } = useQuery({
@@ -54,6 +54,18 @@ export default function SystemUpdateManager() {
     onError: (err) => toast.error(err.message)
   });
 
+  const editMutation = useMutation({
+    mutationFn: ({ id, data }) => systemUpdateService.editUpdate(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['allSystemUpdates']);
+      queryClient.invalidateQueries(['activeSystemUpdates']);
+      setContent('');
+      setEditingId(null);
+      toast.success('Update edited successfully!');
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
   const toggleMutation = useMutation({
     mutationFn: ({ id, isActive }) => systemUpdateService.toggleUpdateStatus(id, isActive),
     onSuccess: () => {
@@ -72,11 +84,15 @@ export default function SystemUpdateManager() {
 
   const handlePost = () => {
     if (!content.trim()) return;
-    createMutation.mutate({
-      content,
-      type,
-      user_id: user.id
-    });
+    if (editingId) {
+      editMutation.mutate({ id: editingId, data: { content, type } });
+    } else {
+      createMutation.mutate({
+        content,
+        type,
+        user_id: user.id
+      });
+    }
   };
 
   return (
@@ -133,14 +149,27 @@ export default function SystemUpdateManager() {
                 <option value="announcement">📣 Announcement</option>
               </select>
 
-              <button
-                onClick={handlePost}
-                disabled={!content.trim() || createMutation.isPending}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md disabled:bg-gray-4 disabled:text-gray-8 transition-colors flex items-center gap-2"
-              >
-                {createMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                Post Banner
-              </button>
+              <div className="flex items-center gap-3">
+                {editingId && (
+                  <button
+                    onClick={() => {
+                      setEditingId(null);
+                      setContent('');
+                    }}
+                    className="text-sm font-medium text-gray-9 hover:text-gray-12 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  onClick={handlePost}
+                  disabled={!content.trim() || createMutation.isPending || editMutation.isPending}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md disabled:bg-gray-4 disabled:text-gray-8 transition-colors flex items-center gap-2"
+                >
+                  {(createMutation.isPending || editMutation.isPending) ? <Loader2 size={16} className="animate-spin" /> : editingId ? <Edit3 size={16} /> : <Plus size={16} />}
+                  {editingId ? 'Save Edit' : 'Post Banner'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -165,16 +194,31 @@ export default function SystemUpdateManager() {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <p className="text-xs font-bold text-gray-10 uppercase">{update.type} • {new Date(update.created_at).toLocaleDateString()}</p>
-                      <button 
-                        onClick={() => {
-                          if(confirm('Delete this update record?')) {
-                            deleteMutation.mutate(update.id);
-                          }
-                        }}
-                        className="text-gray-8 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => {
+                            setContent(update.content);
+                            setType(update.type);
+                            setEditingId(update.id);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="text-gray-8 hover:text-blue-500 transition-colors"
+                          title="Edit Update"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if(confirm('Delete this update record?')) {
+                              deleteMutation.mutate(update.id);
+                            }
+                          }}
+                          className="text-gray-8 hover:text-red-500 transition-colors"
+                          title="Delete Update"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-sm mt-1 whitespace-pre-wrap">{update.content}</p>
                   </div>

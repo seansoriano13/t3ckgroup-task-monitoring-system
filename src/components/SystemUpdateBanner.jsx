@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { systemUpdateService } from '../services/systemUpdateService';
-import { Megaphone, Rocket, Wrench } from 'lucide-react';
+import { Megaphone, Rocket, Wrench, ChevronUp, ChevronDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 export default function SystemUpdateBanner() {
+  const [isMinimized, setIsMinimized] = useState(false);
+  
   const { data: updates = [], isLoading } = useQuery({
     queryKey: ['activeSystemUpdates'],
     queryFn: () => systemUpdateService.getActiveUpdates(),
@@ -35,20 +37,29 @@ export default function SystemUpdateBanner() {
   };
 
   return (
-    <div className={`mb-6 p-4 rounded-xl border flex items-start gap-4 ${getStyles(latestUpdate.type)} animate-in fade-in slide-in-from-top-4 duration-500`}>
+    <div className={`mb-6 p-4 rounded-xl border flex items-start gap-4 transition-all duration-300 ${getStyles(latestUpdate.type)} animate-in fade-in slide-in-from-top-4`}>
       <div className="p-2 bg-white rounded-full shrink-0 shadow-sm border border-gray-100">
         {getIcon(latestUpdate.type)}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-2">
-          <h3 className="font-bold text-sm uppercase tracking-wider">
-            {latestUpdate.type === 'feature' ? 'New Features' : latestUpdate.type === 'fix' ? 'System Fixes' : 'Announcement'}
-          </h3>
-          <span className="text-xs font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200/50 shadow-sm text-gray-500">
-            {new Date(latestUpdate.created_at).toLocaleDateString()}
-          </span>
+        <div 
+          className="flex items-center justify-between mb-2 cursor-pointer select-none group"
+          onClick={() => setIsMinimized(!isMinimized)}
+        >
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-sm uppercase tracking-wider">
+              {latestUpdate.type === 'feature' ? 'New Features' : latestUpdate.type === 'fix' ? 'System Fixes' : 'Announcement'}
+            </h3>
+            <span className="text-xs font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200/50 shadow-sm text-gray-500">
+              {new Date(latestUpdate.created_at).toLocaleDateString()}
+            </span>
+          </div>
+          <button className="text-gray-400 group-hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-white/50">
+            {isMinimized ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+          </button>
         </div>
-        <div className="text-sm">
+        
+        <div className={`text-sm overflow-hidden transition-all duration-300 ease-in-out ${isMinimized ? 'max-h-0 opacity-0' : 'max-h-[500px] opacity-100'}`}>
           <ReactMarkdown
             components={{
               p: ({node, ...props}) => <p className="mb-2 last:mb-0 opacity-90" {...props} />,

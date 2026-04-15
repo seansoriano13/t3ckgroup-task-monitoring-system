@@ -80,6 +80,29 @@ export const systemUpdateService = {
   },
 
   /**
+   * Edit an existing update
+   * @param {string} updateId
+   * @param {Object} updateData - { content, type }
+   */
+  async editUpdate(updateId, updateData) {
+    const { data, error } = await supabase
+      .from("system_updates")
+      .update({
+        content: updateData.content,
+        type: updateData.type
+      })
+      .eq("id", updateId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error editing system update:", error);
+      throw error;
+    }
+    return data;
+  },
+
+  /**
    * Delete an update
    * @param {string} updateId
    */
