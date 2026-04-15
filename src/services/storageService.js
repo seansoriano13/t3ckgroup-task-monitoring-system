@@ -71,5 +71,55 @@ export const storageService = {
 
     if (error) throw error;
     return true;
-  }
+  },
+
+  /**
+   * Upload a profile image (avatar/banner) for an employee.
+   * Path: profile-media/{userId}/{kind}_{timestamp}.{ext}
+   */
+  async uploadProfileImage(userId, kind, file) {
+    if (!userId || !kind || !file) throw new Error("Missing required upload fields.");
+    if (!["avatar", "banner"].includes(kind)) throw new Error("Invalid upload kind.");
+
+    const options = {
+      maxSizeMB: kind === "banner" ? 1.5 : 1,
+      maxWidthOrHeight: kind === "banner" ? 2200 : 1024,
+      useWebWorker: true,
+    };
+
+    let fileToUpload = file;
+    try {
+      if (file.type?.startsWith("image/")) {
+        fileToUpload = await imageCompression(file, options);
+      }
+    } catch (error) {
+      console.warn("Compression failed, uploading original.", error);
+    }
+
+    const timestamp = Date.now();
+    const extension = file.name.split(".").pop() || "png";
+    const filePath = `profile-media/${userId}/${kind}_${timestamp}.${extension}`;
+
+    const { data, error } = await supabase.storage
+      .from("task-attachments")
+      .upload(filePath, fileToUpload, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+    if (error) throw error;
+    return data.path;
+  },
+
+  /**
+   * Get a signed URL for a single storage path.
+   */
+  async getSignedUrl(path, expiresIn = 3600) {
+    if (!path) return null;
+    const { data, error } = await supabase.storage
+      .from("task-attachments")
+      .createSignedUrl(path, expiresIn);
+    if (error) throw error;
+    return data?.signedUrl || null;
+  },
 };

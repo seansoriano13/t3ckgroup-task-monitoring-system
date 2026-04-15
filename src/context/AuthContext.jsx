@@ -1,10 +1,12 @@
 import { useEffect, useRef, createContext, useState, useContext } from "react";
 import { employeeService } from "../services/employeeService.js";
+import { storageService } from "../services/storageService.js";
 import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
 const PROFILE_CACHE_KEY = "t3ck_user_profile";
+const HTTP_URL_RE = /^https?:\/\//i;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -12,6 +14,17 @@ export const AuthProvider = ({ children }) => {
   const [initFinished, setInitFinished] = useState(false); // New flag to prevent infinite loops
   const userEmailRef = useRef(null);
   const settledRef = useRef(false); // ensures setIsAuthLoading(false) only fires once
+
+  const resolveProfileMediaUrl = async (path) => {
+    if (!path) return null;
+    if (HTTP_URL_RE.test(path)) return path;
+    try {
+      return await storageService.getSignedUrl(path);
+    } catch (error) {
+      console.warn("Failed to resolve profile media URL:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     userEmailRef.current = user?.email;
@@ -30,9 +43,15 @@ export const AuthProvider = ({ children }) => {
         const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
         if (employee) {
           const metadata = sessionUser.user_metadata || null;
+          const [pictureFromStorage, bannerFromStorage] = await Promise.all([
+            resolveProfileMediaUrl(employee.avatarPath),
+            resolveProfileMediaUrl(employee.dashboardBannerPath),
+          ]);
+
           const mergedUser = {
             ...employee,
-            picture: metadata?.avatar_url || metadata?.picture || "",
+            picture: pictureFromStorage || metadata?.avatar_url || metadata?.picture || "",
+            dashboardBannerUrl: bannerFromStorage || null,
           };
           setUser(mergedUser);
           localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(mergedUser));
@@ -128,9 +147,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUserPreferences = (nextValues) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+      const merged = { ...prevUser, ...nextValues };
+      localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthLoading, handleLogin, logout }}
+      value={{ user, isAuthLoading, handleLogin, logout, updateUserPreferences }}
     >
       {children}
     </AuthContext.Provider>

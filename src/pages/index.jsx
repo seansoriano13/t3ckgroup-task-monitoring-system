@@ -10,6 +10,7 @@ import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
 import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
 import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
 import SystemUpdateBanner from "../components/SystemUpdateBanner.jsx";
+import PersonalizedHeroBanner from "../components/PersonalizedHeroBanner.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export default function Dashboard() {
       <ProtectedRoute>
         <div className="space-y-12 pb-10 max-w-350 mx-auto px-2 xl:px-0">
           <SystemUpdateBanner />
+          <PersonalizedHeroBanner />
 
           {/* PIPELINE SECTION */}
           <div className="bg-gray-1 border border-gray-4 p-6 sm:p-10 rounded-4xl shadow-xl relative overflow-hidden">
@@ -81,6 +83,9 @@ export default function Dashboard() {
         <div className="pb-10">
           <div className="max-w-350 mx-auto px-2 xl:px-0 pt-6">
             <SystemUpdateBanner />
+            <div className="mt-6">
+              <PersonalizedHeroBanner />
+            </div>
           </div>
           <SalesDashboard globalRange={globalRange} />
         </div>

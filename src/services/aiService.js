@@ -1,5 +1,35 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const FALLBACK_QUOTES = [
+  "Start strong today and finish with purpose.",
+  "Small steps daily build remarkable future success.",
+  "Your consistency today creates tomorrow's breakthroughs now.",
+  "Discipline today unlocks freedom in your future.",
+  "Progress beats perfection when effort stays consistent.",
+  "Show up focused and results will follow.",
+  "Your best work starts with one action.",
+  "Own this moment and elevate your craft.",
+  "Energy grows when purpose leads your actions.",
+  "Stay curious, stay kind, keep moving forward.",
+  "Today you build the momentum you need.",
+  "Focused minds turn ordinary tasks into wins.",
+  "Your habits quietly shape extraordinary long-term outcomes.",
+  "Courage begins when comfort stops leading choices.",
+  "Great teams rise by lifting each other.",
+];
+
+function toSevenWordQuote(rawText) {
+  const cleaned = (rawText || "")
+    .replace(/[“”"]/g, "")
+    .replace(/[^\w\s'.-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = cleaned.split(" ").filter(Boolean).slice(0, 7);
+  if (words.length < 7) return null;
+  return words.join(" ").slice(0, 72);
+}
+
 export const aiService = {
   /**
    * Summarize git commits into a user-friendly system update message.
@@ -47,5 +77,18 @@ ${commitText}
       console.error("AI Summarization failed:", error);
       throw error;
     }
+  },
+
+  async getRandomMotivationalQuote(name = "team") {
+    const fallbackQuote = FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
+    // Intentionally disabled AI requests for quote generation.
+    // This returns a random hardcoded quote to preserve API quota.
+    const personalized = fallbackQuote.replace(/\bteam\b/i, name || "team");
+    return toSevenWordQuote(personalized) || fallbackQuote;
+  },
+
+  // Backward-compatible alias for existing callers.
+  async generateMotivationalQuote(name = "team") {
+    return this.getRandomMotivationalQuote(name);
   },
 };

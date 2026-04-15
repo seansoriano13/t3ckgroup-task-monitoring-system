@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from "react";
-import { Search, Bell, AlertCircle, ArrowRight } from "lucide-react";
+import { Search, AlertCircle, ArrowRight } from "lucide-react";
 import { INPUT_STYLE } from "../pages/login";
 import { useAuth } from "../context/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { Link } from "react-router";
 import { supabase } from "../lib/supabase.js";
 import { ThemeToggle } from "./ThemeToggle";
 import { TASK_STATUS } from "../constants/status";
+import PersonalizedHeroBanner from "./PersonalizedHeroBanner";
 
 function DashboardHeader() {
   const { user } = useAuth();
@@ -130,30 +131,8 @@ function DashboardHeader() {
         </div>
       )}
 
-      {/* 3. HERO BANNER: Responsive Font & Layout */}
-      <div className="relative z-0 bg-black rounded-2xl overflow-hidden shadow-lg min-h-[140px] md:min-h-[180px] flex items-center">
-        <img
-          className="opacity-60 absolute inset-0 w-full h-full object-cover"
-          src="/leaf-background.jpg"
-          alt=""
-        />
-        <div className="relative z-10 p-6 md:p-10 text-white flex flex-col md:flex-row md:justify-between md:items-center w-full gap-4">
-          <div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
-              Hi {user?.name?.split(" ")[0] || "Team"},
-            </h1>
-            <p className="text-gray-6 mt-1 font-medium text-base md:text-xl">
-              Good to see you back!
-            </p>
-          </div>
-          <div className="hidden sm:block border-t border-white/10 md:border-none pt-4 md:pt-0">
-            <p className="italic text-xs md:text-sm text-left md:text-right text-gray-6 font-medium leading-relaxed">
-              Begin each day with a <br className="hidden md:block" /> Grateful
-              Heart.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* 3. HERO BANNER: Personalized */}
+      <PersonalizedHeroBanner />
     </div>
   );
 }

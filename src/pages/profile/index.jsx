@@ -5,14 +5,80 @@ import {
   Hash,
   ShieldCheck,
   Loader2,
+  UploadCloud,
+  Sparkles,
+  Save,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { storageService } from "../../services/storageService";
+import { employeeService } from "../../services/employeeService";
+import { aiService } from "../../services/aiService";
 import { TASK_STATUS, REVENUE_STATUS, SALES_PLAN_STATUS } from "../../constants/status";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUserPreferences } = useAuth();
+  const avatarInputRef = useRef(null);
+  const bannerInputRef = useRef(null);
+  const [customQuote, setCustomQuote] = useState(user?.dashboardQuote || "");
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerUrlInput, setBannerUrlInput] = useState("");
+  const [removeAvatar, setRemoveAvatar] = useState(false);
+  const [removeBanner, setRemoveBanner] = useState(false);
+  const [removeQuote, setRemoveQuote] = useState(false);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState("");
+
+  const isHttpUrl = (value) => /^https?:\/\//i.test(value || "");
+
+  useEffect(() => {
+    setCustomQuote(user?.dashboardQuote || "");
+  }, [user?.dashboardQuote]);
+
+  useEffect(() => {
+    setBannerUrlInput(isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "");
+  }, [user?.dashboardBannerPath]);
+
+  useEffect(() => {
+    if (avatarFile) {
+      const objectUrl = URL.createObjectURL(avatarFile);
+      setAvatarPreviewUrl(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+
+    if (removeAvatar) {
+      setAvatarPreviewUrl("/default-avatar.png");
+      return undefined;
+    }
+
+    setAvatarPreviewUrl(user?.picture || "/default-avatar.png");
+    return undefined;
+  }, [avatarFile, removeAvatar, user?.picture]);
+
+  useEffect(() => {
+    if (bannerFile) {
+      const objectUrl = URL.createObjectURL(bannerFile);
+      setBannerPreviewUrl(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+
+    if (removeBanner) {
+      setBannerPreviewUrl("/leaf-background.jpg");
+      return undefined;
+    }
+
+    if ((bannerUrlInput || "").trim()) {
+      setBannerPreviewUrl(bannerUrlInput.trim());
+      return undefined;
+    }
+
+    setBannerPreviewUrl(user?.dashboardBannerUrl || "/leaf-background.jpg");
+    return undefined;
+  }, [bannerFile, removeBanner, bannerUrlInput, user?.dashboardBannerUrl]);
 
   const { data: stats, isLoading: isStatsLoading } = useQuery({
     queryKey: ["profileStats", user?.id],
@@ -137,6 +203,89 @@ export default function ProfilePage() {
     enabled: !!user?.id,
   });
 
+  const generateQuoteMutation = useMutation({
+    mutationFn: async () => {
+      return aiService.getRandomMotivationalQuote(user?.name?.split(" ")?.[0] || "Team");
+    },
+    onSuccess: (quote) => {
+      setCustomQuote(quote);
+      setRemoveQuote(false);
+      toast.success("Picked a random motivational quote.");
+    },
+    onError: () => {
+      toast.error("Could not generate quote right now.");
+    },
+  });
+
+  const savePreferencesMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("Missing user session.");
+
+      let avatarPath = removeAvatar ? null : user?.avatarPath || null;
+      let dashboardBannerPath = removeBanner ? null : user?.dashboardBannerPath || null;
+
+      if (avatarFile) {
+        avatarPath = await storageService.uploadProfileImage(user.id, "avatar", avatarFile);
+      }
+      if (bannerFile) {
+        dashboardBannerPath = await storageService.uploadProfileImage(user.id, "banner", bannerFile);
+      } else if ((bannerUrlInput || "").trim()) {
+        dashboardBannerPath = bannerUrlInput.trim();
+      }
+
+      const dashboardQuote = removeQuote ? "" : customQuote.trim().slice(0, 72);
+
+      const updated = await employeeService.updateSelfPreferences(user.id, {
+        avatarPath,
+        dashboardBannerPath,
+        dashboardQuote: dashboardQuote || null,
+      });
+
+      const [picture, dashboardBannerUrl] = await Promise.all([
+        updated.avatar_path
+          ? (isHttpUrl(updated.avatar_path)
+            ? updated.avatar_path
+            : storageService.getSignedUrl(updated.avatar_path))
+          : null,
+        updated.dashboard_banner_path
+          ? (isHttpUrl(updated.dashboard_banner_path)
+            ? updated.dashboard_banner_path
+            : storageService.getSignedUrl(updated.dashboard_banner_path))
+          : null,
+      ]);
+
+      return {
+        avatarPath: updated.avatar_path || null,
+        dashboardBannerPath: updated.dashboard_banner_path || null,
+        dashboardQuote: updated.dashboard_quote || "",
+        picture: picture || user?.picture || "",
+        dashboardBannerUrl: dashboardBannerUrl || null,
+      };
+    },
+    onSuccess: (nextUserValues) => {
+      updateUserPreferences(nextUserValues);
+      setAvatarFile(null);
+      setBannerFile(null);
+      setRemoveAvatar(false);
+      setRemoveBanner(false);
+      setRemoveQuote(false);
+      setBannerUrlInput(
+        isHttpUrl(nextUserValues.dashboardBannerPath) ? nextUserValues.dashboardBannerPath : "",
+      );
+      toast.success("Dashboard preferences saved.");
+    },
+    onError: (error) => {
+      toast.error(error?.message || "Failed to save preferences.");
+    },
+  });
+
+  const isSaving = savePreferencesMutation.isPending;
+  const quoteLength = customQuote.trim().length;
+  const hasBannerUrl = (bannerUrlInput || "").trim().length > 0;
+  const isUsingDefaultBanner = removeBanner || (!bannerFile && !hasBannerUrl && !user?.dashboardBannerPath);
+  const isUsingDefaultAvatar = removeAvatar || (!avatarFile && !user?.avatarPath);
+  const isUsingDefaultQuote = removeQuote || quoteLength === 0;
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
       {/* HEADER */}
@@ -184,6 +333,8 @@ export default function ProfilePage() {
               </p>
             </div>
           </div>
+
+        
         </div>
 
         {/* RIGHT COLUMN: Details & Stats */}
@@ -279,6 +430,192 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        <div className="lg:col-span-3 bg-gray-2 border border-gray-4 rounded-2xl p-4 md:p-5 shadow-lg space-y-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-gray-12">Dashboard personalization</h3>
+                <p className="text-xs text-gray-9 mt-1">
+                  Banner, quote, and avatar apply across all dashboard views.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-gray-4 bg-gray-1 p-3 space-y-3">
+              <p className="text-xs font-semibold text-gray-9">Live preview</p>
+              <div className="relative rounded-lg overflow-hidden h-24">
+                <img
+                  src={bannerPreviewUrl || "/leaf-background.jpg"}
+                  alt="Banner preview"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/35" />
+                <div className="absolute left-3 right-3 bottom-2 flex items-center justify-between gap-2">
+                  <p className="text-[11px] text-white/90 font-semibold">Dashboard banner preview</p>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-white/90 border border-white/20">
+                    {isUsingDefaultBanner ? "Default" : "Custom"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <img
+                  src={avatarPreviewUrl || "/default-avatar.png"}
+                  alt="Avatar preview"
+                  className="w-10 h-10 rounded-full object-cover border border-gray-4"
+                />
+                <span className="text-xs text-gray-9">
+                  Profile photo preview ({isUsingDefaultAvatar ? "Default" : "Custom"})
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2 rounded-xl border border-gray-4 p-3">
+                <p className="text-xs font-semibold text-gray-9">Profile photo</p>
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
+                >
+                  <UploadCloud size={16} /> {avatarFile ? avatarFile.name : "Upload avatar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAvatarFile(null);
+                    setRemoveAvatar(true);
+                  }}
+                  disabled={isUsingDefaultAvatar}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
+                >
+                  Reset to default
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    setAvatarFile(e.target.files?.[0] || null);
+                    setRemoveAvatar(false);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2 rounded-xl border border-gray-4 p-3">
+                <p className="text-xs font-semibold text-gray-9">Dashboard banner</p>
+                <button
+                  type="button"
+                  onClick={() => bannerInputRef.current?.click()}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
+                >
+                  <UploadCloud size={16} /> {bannerFile ? bannerFile.name : "Upload banner"}
+                </button>
+                <input
+                  ref={bannerInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    setBannerFile(e.target.files?.[0] || null);
+                    setBannerUrlInput("");
+                    setRemoveBanner(false);
+                  }}
+                />
+                <input
+                  type="url"
+                  value={bannerUrlInput}
+                  onChange={(e) => {
+                    setBannerUrlInput(e.target.value);
+                    setBannerFile(null);
+                    setRemoveBanner(false);
+                  }}
+                  className="w-full rounded-lg border border-gray-4 bg-gray-1 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/60"
+                  placeholder="Paste Unsplash image URL"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBannerUrlInput(
+                        `https://source.unsplash.com/1600x900/?nature,workspace&sig=${Date.now()}`,
+                      );
+                      setBannerFile(null);
+                      setRemoveBanner(false);
+                    }}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
+                  >
+                    Random Unsplash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBannerFile(null);
+                      setBannerUrlInput("");
+                      setRemoveBanner(true);
+                    }}
+                    disabled={isUsingDefaultBanner}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
+                  >
+                    Reset banner
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-gray-4 p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-9">Motivational Quote</p>
+                <span className="text-[11px] text-gray-8">{quoteLength}/72</span>
+              </div>
+              <textarea
+                value={customQuote}
+                maxLength={72}
+                onChange={(e) => {
+                  setCustomQuote(e.target.value);
+                  setRemoveQuote(false);
+                }}
+                className="w-full min-h-[70px] rounded-lg border border-gray-4 bg-gray-1 p-2 text-sm outline-none focus:ring-2 focus:ring-primary/60"
+                placeholder="Write your 7-word motivational quote (all users)..."
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => generateQuoteMutation.mutate()}
+                  disabled={generateQuoteMutation.isPending}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/90 hover:bg-primary text-white text-sm font-semibold transition disabled:opacity-70"
+                >
+                  {generateQuoteMutation.isPending ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={16} />
+                  )}
+                  Random 7-word quote
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomQuote("");
+                    setRemoveQuote(true);
+                  }}
+                  disabled={isUsingDefaultQuote}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
+                >
+                  Reset quote
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => savePreferencesMutation.mutate()}
+              disabled={isSaving}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gray-12 text-gray-1 text-sm font-bold hover:opacity-90 transition disabled:opacity-70"
+            >
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              Save dashboard settings
+            </button>
+          </div>
       </div>
     </div>
   );

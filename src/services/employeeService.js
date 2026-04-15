@@ -21,6 +21,9 @@ export const employeeService = {
       isHead: data.is_head,
       isHr: data.is_hr,
       isSuperAdmin: data.is_super_admin,
+      avatarPath: data.avatar_path || null,
+      dashboardBannerPath: data.dashboard_banner_path || null,
+      dashboardQuote: data.dashboard_quote || null,
     };
   },
 
@@ -41,6 +44,9 @@ export const employeeService = {
       isHead: employee.is_head,
       isHr: employee.is_hr,
       isSuperAdmin: employee.is_super_admin,
+      avatarPath: employee.avatar_path || null,
+      dashboardBannerPath: employee.dashboard_banner_path || null,
+      dashboardQuote: employee.dashboard_quote || null,
     }));
   },
 
@@ -171,5 +177,45 @@ export const employeeService = {
       .eq("id", id);
     if (error) throw error;
     return true;
+  },
+
+  async updateSelfPreferences(id, preferences) {
+    const payload = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (Object.prototype.hasOwnProperty.call(preferences, "avatarPath")) {
+      payload.avatar_path = preferences.avatarPath || null;
+    }
+    if (Object.prototype.hasOwnProperty.call(preferences, "dashboardBannerPath")) {
+      payload.dashboard_banner_path = preferences.dashboardBannerPath || null;
+    }
+    if (Object.prototype.hasOwnProperty.call(preferences, "dashboardQuote")) {
+      payload.dashboard_quote = preferences.dashboardQuote || null;
+    }
+
+    const { data, error } = await supabase
+      .from("employees")
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .maybeSingle();
+
+    if (error) throw error;
+    if (data) return data;
+
+    // Some policies can block returning rows after update; provide a stable shape.
+    return {
+      id,
+      avatar_path: Object.prototype.hasOwnProperty.call(payload, "avatar_path")
+        ? payload.avatar_path
+        : null,
+      dashboard_banner_path: Object.prototype.hasOwnProperty.call(payload, "dashboard_banner_path")
+        ? payload.dashboard_banner_path
+        : null,
+      dashboard_quote: Object.prototype.hasOwnProperty.call(payload, "dashboard_quote")
+        ? payload.dashboard_quote
+        : null,
+    };
   },
 };
