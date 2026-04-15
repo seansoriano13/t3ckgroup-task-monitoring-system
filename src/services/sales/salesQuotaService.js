@@ -12,6 +12,17 @@ export const salesQuotaService = {
     return data;
   },
 
+  async getQuotasByMonths(monthYearDates) {
+    if (!monthYearDates || monthYearDates.length === 0) return [];
+    const { data, error } = await supabase
+      .from("sales_quotas")
+      .select(`*, employees(name, department, email)`)
+      .in("month_year", monthYearDates);
+
+    if (error) throw error;
+    return data;
+  },
+
   async upsertQuota(employeeId, amountTarget, monthYearDate) {
     const { data, error } = await supabase
       .from("sales_quotas")

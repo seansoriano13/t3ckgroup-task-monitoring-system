@@ -4,7 +4,6 @@ import { salesService } from "../../services/salesService";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
 import { Loader2, CheckCheck, PhilippinePeso, ChevronLeft, ChevronRight } from "lucide-react";
-import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
@@ -18,8 +17,15 @@ export default function SuperAdminDashboard() {
 
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
+  const initialEndDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()}`;
 
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
+  const [selectedRange, setSelectedRange] = useState({
+    mode: "MONTHLY",
+    label: new Date().toLocaleString("default", { month: "long", year: "numeric", timeZone: "UTC" }),
+    startDate: currentMonthYear,
+    endDate: initialEndDate,
+    monthKeys: [currentMonthYear]
+  });
 
   // Draft quotas: map of employeeId -> value string (tracks unsaved edits)
   const [draftQuotas, setDraftQuotas] = useState({});
@@ -31,17 +37,21 @@ export default function SuperAdminDashboard() {
     queryFn: () => salesService.getSalesEmployees(),
   });
 
-  // 2. Fetch Quotas for the Selected Month
+  // 2. Fetch Quotas for the Selected Range
   const { data: quotas = EMPTY_ARRAY, isLoading: loadingQuotas } = useQuery({
-    queryKey: ["quotas", selectedMonth],
-    queryFn: () => salesService.getQuotasByMonth(selectedMonth),
+    queryKey: ["quotas", selectedRange],
+    queryFn: () => {
+      const keys = selectedRange?.monthKeys?.length > 0 ? selectedRange.monthKeys : [selectedRange.startDate];
+      return salesService.getQuotasByMonths ? salesService.getQuotasByMonths(keys) : salesService.getQuotasByMonth(selectedRange.startDate);
+    },
   });
 
 
-  // Derive server quota map
+  // Derive server quota map (summing all months if yearly/quarterly)
   const quotaMap = useMemo(() => {
     return quotas.reduce((acc, q) => {
-      acc[q.employee_id] = q.amount_target;
+      if (!acc[q.employee_id]) acc[q.employee_id] = 0;
+      acc[q.employee_id] += (parseFloat(q.amount_target) || 0);
       return acc;
     }, {});
   }, [quotas]);
@@ -51,7 +61,6 @@ export default function SuperAdminDashboard() {
     if (salesEmployees.length === 0) return;
     const freshDraft = {};
     salesEmployees
-      .filter((e) => !e.is_super_admin)
       .forEach((emp) => {
         freshDraft[emp.id] = String(quotaMap[emp.id] ?? 0);
       });
@@ -61,7 +70,6 @@ export default function SuperAdminDashboard() {
   // Check if any draft differs from server value
   const hasPendingChanges = useMemo(() => {
     return salesEmployees
-      .filter((e) => !e.is_super_admin)
       .some((emp) => {
         const draft = parseFloat(draftQuotas[emp.id]) || 0;
         const server = quotaMap[emp.id] ?? 0;
@@ -71,7 +79,6 @@ export default function SuperAdminDashboard() {
 
   const handleSaveAll = async () => {
     const changed = salesEmployees
-      .filter((e) => !e.is_super_admin)
       .map((emp) => ({
         employeeId: emp.id,
         amount: parseFloat(draftQuotas[emp.id]) || 0,
@@ -85,12 +92,20 @@ export default function SuperAdminDashboard() {
 
     setIsSavingAll(true);
     try {
-      await Promise.all(
-        changed.map(({ employeeId, amount }) =>
-          salesService.upsertQuota(employeeId, amount, selectedMonth)
-        )
-      );
-      queryClient.invalidateQueries({ queryKey: ["quotas", selectedMonth] });
+      const keys = selectedRange.monthKeys?.length > 0 ? selectedRange.monthKeys : [selectedRange.startDate];
+      const numMonths = keys.length;
+      
+      const promises = [];
+      changed.forEach(({ employeeId, amount }) => {
+        const perMonth = amount / numMonths;
+        keys.forEach(monthKey => {
+           // Round to 2 decimals to avoid floating point issues
+           promises.push(salesService.upsertQuota(employeeId, Math.round(perMonth * 100) / 100, monthKey));
+        });
+      });
+
+      await Promise.all(promises);
+      queryClient.invalidateQueries({ queryKey: ["quotas", selectedRange] });
       toast.success(`${changed.length} quota${changed.length > 1 ? "s" : ""} saved!`);
     } catch (err) {
       toast.error(err.message);
@@ -120,40 +135,11 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
 
-          {/* Inline month navigator — arrows for quick prev/next, FAB for full picker */}
-          <div className="flex items-center gap-1 bg-gray-2 border border-gray-4 rounded-lg shadow-inner">
-            <button
-              onClick={() => {
-                const parts = selectedMonth.split('-');
-                let y = parseInt(parts[0], 10);
-                let m = parseInt(parts[1], 10);
-                m -= 1;
-                if (m < 1) { m = 12; y -= 1; }
-                setSelectedMonth(`${y}-${String(m).padStart(2, '0')}-01`);
-              }}
-              className="p-2 hover:bg-gray-3 rounded-l-lg text-gray-9 hover:text-gray-12 transition-colors"
-              title="Previous month"
-            >
-              <ChevronLeft size={15} />
-            </button>
-            <span className="px-2 text-xs font-bold text-gray-11 uppercase tracking-wider select-none min-w-[110px] text-center">
-              {new Date(selectedMonth).toLocaleString("default", { month: "long", year: "numeric", timeZone: "UTC" })}
+          {/* Inline range label — quick overview, FAB for full picker */}
+          <div className="flex items-center gap-1 bg-gray-2 border border-gray-4 rounded-lg shadow-inner py-1.5 px-4 h-fit">
+            <span className="text-xs font-bold text-gray-11 uppercase tracking-wider select-none text-center min-w-[110px]">
+              {selectedRange?.label || "Loading Range"}
             </span>
-            <button
-              onClick={() => {
-                const parts = selectedMonth.split('-');
-                let y = parseInt(parts[0], 10);
-                let m = parseInt(parts[1], 10);
-                m += 1;
-                if (m > 12) { m = 1; y += 1; }
-                setSelectedMonth(`${y}-${String(m).padStart(2, '0')}-01`);
-              }}
-              disabled={selectedMonth >= currentMonthYear}
-              className={`p-2 rounded-r-lg transition-colors ${selectedMonth >= currentMonthYear ? "text-gray-4 cursor-not-allowed" : "hover:bg-gray-3 text-gray-9 hover:text-gray-12"}`}
-              title="Next month"
-            >
-              <ChevronRight size={15} />
-            </button>
           </div>
         </div>
 
@@ -184,7 +170,7 @@ export default function SuperAdminDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {salesEmployees.filter((emp) => !emp.is_super_admin).map((emp) => (
+            {salesEmployees.map((emp) => (
               <QuotaCard
                 key={emp.id}
                 employee={emp}
@@ -196,23 +182,22 @@ export default function SuperAdminDashboard() {
               />
             ))}
           </div>
-          {salesEmployees.filter((emp) => !emp.is_super_admin).length === 0 && (
+          {salesEmployees.length === 0 && (
             <p className="text-gray-9 italic">
               No employees found matching 'Sales' department criteria.
             </p>
           )}
         </div>
 
-        <SalesPerformanceMetrics selectedMonth={selectedMonth} />
         <div className="pt-6">
-          <EmployeePipelineMatrix selectedMonth={selectedMonth} />
+          <EmployeePipelineMatrix selectedRange={selectedRange} />
         </div>
       </div>
       )}
 
       <FloatingMonthPicker
-        selectedMonth={selectedMonth}
-        onChange={setSelectedMonth}
+        selectedRange={selectedRange}
+        onChange={setSelectedRange}
       />
     </ProtectedRoute>
   );

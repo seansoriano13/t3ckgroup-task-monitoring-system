@@ -39,7 +39,7 @@ function InsightBar({ label, count, total, color }) {
   );
 }
 
-export default function TasksList({ selectedMonth }) {
+export default function TasksList({ selectedRange }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -92,18 +92,14 @@ export default function TasksList({ selectedMonth }) {
   }, [rawTasks, selectedTask]);
 
   const { myTasks, teamTasks } = useMemo(() => {
-    const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
-    const currentMonth = selDate.getMonth();
-    const currentYear = selDate.getFullYear();
+    const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
+    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T23:59:59.999`) : new Date();
 
-    // 🔥 NEW: Instantly scrub all deleted tasks and filter by THIS MONTH
+    // 🔥 NEW: Instantly scrub all deleted tasks and filter by range boundaries
     const activeTasks = rawTasks.filter((t) => {
       if (t.status === TASK_STATUS.DELETED) return false;
       const taskDate = new Date(t.createdAt);
-      return (
-        taskDate.getMonth() === currentMonth &&
-        taskDate.getFullYear() === currentYear
-      );
+      return taskDate >= rangeStart && taskDate <= rangeEnd;
     });
 
     // SECTION A: My Private Queue (using activeTasks)
@@ -147,7 +143,7 @@ export default function TasksList({ selectedMonth }) {
       myTasks: my,
       teamTasks: team,
     };
-  }, [rawTasks, user?.id, isHr, isHead, userSubDept, userDept, selectedMonth]);
+  }, [rawTasks, user?.id, isHr, isHead, userSubDept, userDept, selectedRange]);
 
   const editTaskMutation = useMutation({
     mutationFn: (updatedData) =>

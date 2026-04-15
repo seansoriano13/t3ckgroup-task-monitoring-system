@@ -1,77 +1,42 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
 import { REVENUE_STATUS } from "../constants/status";
-import { formatDateToYMD } from "../utils/dateUtils";
-import {
-  Download,
-  LayoutDashboard,
-  PieChart,
-} from "lucide-react";
+import { Download } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 import { SummaryMetrics } from "./sales-dashboard/SummaryMetrics";
 import { EmployeeRankingsTable } from "./sales-dashboard/EmployeeRankingsTable";
 import { RevenueLogsTable } from "./sales-dashboard/RevenueLogsTable";
-import { AnalyticsView } from "./sales-dashboard/AnalyticsView";
+import SalesPerformanceMetrics from "./SalesPerformanceMetrics";
+import {
+  RepRevenueChart,
+  ProductBreakdownChart,
+  WinRateGauge,
+} from "./sales-dashboard/SalesCharts";
 
-function formatDate(date) {
-  return formatDateToYMD(date);
-}
-
-export default function SalesDashboard({ selectedMonth: propMonth }) {
+export default function SalesDashboard({ globalRange }) {
   const { user } = useAuth();
+  const isAdmin =
+    user?.isSuperAdmin ||
+    user?.is_super_admin ||
+    user?.isHr ||
+    user?.is_hr ||
+    user?.isHead ||
+    user?.is_head;
 
-  // === TAB STATE ===
-  const [activeTab, setActiveTab] = useState("OVERVIEW"); // OVERVIEW | ANALYTICS
-
-  // === OVERVIEW STATE ===
-  const currentDate = new Date();
-  const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
-  // eslint-disable-next-line no-unused-vars
-  const [internalMonth, setInternalMonth] = useState(currentMonthYear);
-
-  const rawMonth = propMonth || internalMonth;
-  const selectedMonth =
-    rawMonth?.length > 7 ? rawMonth.slice(0, 7) : rawMonth || currentMonthYear;
-
-  // === ANALYTICS STATE ===
-  const [startDate, setStartDate] = useState(
-    formatDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
-    ),
-  );
-  const [endDate, setEndDate] = useState(formatDate(currentDate));
-  const [activePreset, setActivePreset] = useState("THIS_MONTH");
-
-  const handleAnalyticPreset = (preset) => {
-    setActivePreset(preset);
-    const today = new Date();
-    if (preset === "TODAY") {
-      setStartDate(formatDate(today));
-      setEndDate(formatDate(today));
-    } else if (preset === "THIS_WEEK") {
-      const start = new Date(today);
-      const day = start.getDay();
-      const diff = start.getDate() - day + (day === 0 ? -6 : 1);
-      start.setDate(diff);
-      setStartDate(formatDate(start));
-      setEndDate(formatDate(today));
-    } else if (preset === "THIS_MONTH") {
-      const start = new Date(today.getFullYear(), today.getMonth(), 1);
-      setStartDate(formatDate(start));
-      setEndDate(formatDate(today));
-    } else if (preset === "THIS_YEAR") {
-      const start = new Date(today.getFullYear(), 0, 1);
-      setStartDate(formatDate(start));
-      setEndDate(formatDate(today));
-    }
-  };
-
-  // === FETCH OVERVIEW QUERIES ===
+  // === DATA QUERIES ===
+  const startDate = globalRange?.startDate;
+  const endDate = globalRange?.endDate;
+  const rangeLabel = globalRange?.label || "";
+  const rangeMode = globalRange?.mode || "MONTHLY";
+  const monthKeys = globalRange?.monthKeys || [];
+  const isMonthly = rangeMode === "MONTHLY";
   const { data: leaderboard = [], isLoading: isLdrLoading } = useQuery({
-    queryKey: ["salesLeaderboard", selectedMonth],
-    queryFn: () => salesService.getLeaderboardData(selectedMonth),
+    queryKey: ["salesLeaderboard", startDate, endDate, monthKeys],
+    queryFn: () =>
+      salesService.getLeaderboardData(startDate, endDate, monthKeys),
+    enabled: !!startDate && !!endDate,
     refetchInterval: 15000,
   });
 
@@ -82,96 +47,86 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
   const isVerificationEnforced =
     appSettings?.require_revenue_verification === true;
 
-  const { data: overviewLogs = [] } =
-    useQuery({
-      queryKey: ["salesRevenueLogs", selectedMonth],
-      queryFn: () => salesService.getRevenueLogsByMonth(selectedMonth),
-      refetchInterval: 15000,
-    });
-
-  // === FETCH ANALYTICS QUERIES ===
-  const { data: analyticsLogs = [] } = useQuery({
-    queryKey: ["salesAnalytics", startDate, endDate],
-    queryFn: () => salesService.getRevenueAnalysis(startDate, endDate),
-    enabled: activeTab === "ANALYTICS" && !!startDate && !!endDate,
+  // Revenue logs for the audit table (only in monthly mode)
+  const { data: overviewLogs = [] } = useQuery({
+    queryKey: ["salesRevenueLogs", startDate, endDate],
+    queryFn: () => salesService.getRevenueLogsByMonth(startDate?.slice(0, 7)),
+    enabled: isMonthly && isVerificationEnforced && !!startDate,
     refetchInterval: 15000,
   });
 
-  // Calculate Overview Aggregates
+  // Raw revenue for product analysis
+  const { data: revenueLogs = [] } = useQuery({
+    queryKey: ["salesRevenueAnalysis", startDate, endDate],
+    queryFn: () => salesService.getRevenueAnalysis(startDate, endDate),
+    enabled: !!startDate && !!endDate,
+    refetchInterval: 15000,
+  });
+
+  // // Activities for SWOT & execution metrics (admin only)
+  // const { data: activities = [] } = useQuery({
+  //   queryKey: ["salesActivitiesRange", startDate, endDate],
+  //   queryFn: () => salesService.getSalesActivitiesByRange(startDate, endDate),
+  //   enabled: isAdmin && !!startDate && !!endDate,
+  //   refetchInterval: 30000,
+  // });
+
+  // === COMPUTED AGGREGATES ===
   const totalWon = leaderboard.reduce((acc, l) => acc + l.revenueWon, 0);
   const totalLost = leaderboard.reduce((acc, l) => acc + l.revenueLost, 0);
   const totalQuota = leaderboard.reduce((acc, l) => acc + Number(l.quota), 0);
   const companyPct =
     totalQuota > 0 ? Math.round((totalWon / totalQuota) * 100) : 0;
 
-  // Calculate Analytics Aggregates
-  const anAggs = useMemo(() => {
-    let won = 0;
-    let lost = 0;
-    const byEmp = {};
+  // Team win rate
+  const totalDealsWon = leaderboard.reduce((s, e) => s + e.dealsWon, 0);
+  const totalDealsLost = leaderboard.reduce((s, e) => s + e.dealsLost, 0);
+  const teamWinRate =
+    totalDealsWon + totalDealsLost > 0
+      ? Math.round((totalDealsWon / (totalDealsWon + totalDealsLost)) * 100)
+      : null;
+
+  // Product breakdown
+  const productData = useMemo(() => {
     const byProd = {};
-
-    analyticsLogs.forEach((log) => {
+    revenueLogs.forEach((log) => {
       const val = Number(log.revenue_amount) || 0;
-      const isWon = log.status === REVENUE_STATUS.COMPLETED || log.status === REVENUE_STATUS.APPROVED;
-
-      if (isWon) won += val;
-      else lost += val;
-
-      // Employee logic
-      const empName = log.employees?.name || "Unknown Rep";
-      if (!byEmp[empName]) byEmp[empName] = { won: 0, lost: 0 };
-      if (isWon) byEmp[empName].won += val;
-      else byEmp[empName].lost += val;
-
-      // Product logic
       const prod = log.product_item_sold || "Unknown Product";
-      if (!byProd[prod]) byProd[prod] = { won: 0, lost: 0, count: 0 };
-      byProd[prod].count += 1;
+      const isWon =
+        log.status === REVENUE_STATUS.COMPLETED ||
+        log.status === REVENUE_STATUS.APPROVED;
+      if (!byProd[prod])
+        byProd[prod] = { name: prod, won: 0, lost: 0, count: 0 };
+      byProd[prod].count++;
       if (isWon) byProd[prod].won += val;
       else byProd[prod].lost += val;
     });
+    return Object.values(byProd).sort((a, b) => b.won - a.won);
+  }, [revenueLogs]);
 
-    const empArr = Object.entries(byEmp)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.won - a.won);
-    const prodArr = Object.entries(byProd)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.won - a.won);
-
-    return { won, lost, empArr, prodArr };
-  }, [analyticsLogs]);
-
-  const printMonthlyReport = () => {
-    window.print();
-  };
+  const printReport = () => window.print();
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-10 px-2 sm:px-0">
-      {/* HEADER & TABS */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4 print:hidden">
-        <div>
-          <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3 uppercase">
-            Monthly Accomplishment Report
-          </h1>
-          <p className="text-gray-9 mt-1 font-medium text-sm">
-            Monitor real-time pipeline, quotas, and granular date-ranged
-            analytics.
-          </p>
-        </div>
-
-        <div className="flex bg-gray-2 border border-gray-4 rounded-xl p-1 shadow-inner w-max">
+      {/* HEADER */}
+      <div className="flex flex-col gap-4 border-b border-gray-4 pb-4 print:hidden">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-gray-12 flex items-center uppercase">
+              Sales Accomplishment Report
+              {rangeLabel && (
+                <span className="text-purple-500 ml-2">— {rangeLabel}</span>
+              )}
+            </h1>
+            <p className="text-gray-9 mt-1 font-medium text-sm">
+              Revenue performance, quota tracking, and strategic analytics.
+            </p>
+          </div>
           <button
-            onClick={() => setActiveTab("OVERVIEW")}
-            className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeTab === "OVERVIEW" ? "bg-primary text-white shadow" : "text-gray-9 hover:text-gray-12"}`}
+            onClick={printReport}
+            className="bg-red-9 hover:bg-red-10 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-sm shrink-0 print:hidden"
           >
-            <LayoutDashboard size={16} /> Monthly Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("ANALYTICS")}
-            className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeTab === "ANALYTICS" ? "bg-red-9 text-white shadow" : "text-gray-9 hover:text-gray-12"}`}
-          >
-            <PieChart size={16} /> Analytics
+            <Download size={16} /> Export PDF
           </button>
         </div>
       </div>
@@ -179,56 +134,51 @@ export default function SalesDashboard({ selectedMonth: propMonth }) {
       {/* PRINT HEADER */}
       <div className="hidden print:block mb-8 border-b-2 border-gray-12 pb-4">
         <h1 className="text-2xl font-black">
-          Sales Department Report (
-          {activeTab === "OVERVIEW"
-            ? selectedMonth
-            : `${startDate} to ${endDate}`}
-          )
+          Sales Department Report ({rangeLabel})
         </h1>
       </div>
 
-      {activeTab === "OVERVIEW" && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex justify-end mb-6 print:hidden">
-            <button
-              onClick={printMonthlyReport}
-              className="bg-red-9 hover:bg-red-10 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-blue-500/20"
-            >
-              <Download size={16} /> Export PDF
-            </button>
+      {/* KPI SUMMARY */}
+      <SummaryMetrics
+        totalWon={totalWon}
+        totalLost={totalLost}
+        companyPct={companyPct}
+        winRate={teamWinRate}
+        showQuota={true}
+      />
+
+      {/* EMPLOYEE RANKINGS TABLE */}
+      <EmployeeRankingsTable
+        leaderboard={leaderboard}
+        label={rangeLabel}
+        isLoading={isLdrLoading}
+        currentUser={user}
+        showQuota={true}
+      />
+
+      {/* CHARTS — visible to admins */}
+      {isAdmin && leaderboard.length > 0 && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <RepRevenueChart leaderboard={leaderboard} />
+            <WinRateGauge leaderboard={leaderboard} />
           </div>
 
-          <SummaryMetrics
-            totalWon={totalWon}
-            totalLost={totalLost}
-            companyPct={companyPct}
-          />
-
-          <EmployeeRankingsTable
-            leaderboard={leaderboard}
-            selectedMonth={selectedMonth}
-            isLoading={isLdrLoading}
-            currentUser={user}
-          />
-
-          {isVerificationEnforced && (
-            <RevenueLogsTable logs={overviewLogs} />
+          {productData.length > 0 && (
+            <ProductBreakdownChart productData={productData} />
           )}
         </div>
       )}
 
-      {activeTab === "ANALYTICS" && (
-        <AnalyticsView
-          startDate={startDate}
-          setStartDate={setStartDate}
-          endDate={endDate}
-          setEndDate={setEndDate}
-          activePreset={activePreset}
-          handleAnalyticPreset={handleAnalyticPreset}
-          printMonthlyReport={printMonthlyReport}
-          anAggs={anAggs}
-        />
+      {/* REVENUE AUDIT LOG — conditional, monthly only */}
+      {isMonthly && isVerificationEnforced && (
+        <RevenueLogsTable logs={overviewLogs} />
       )}
+
+      {/* DETAILED PERFORMANCE METRICS (Execution rates, pipelines, financial ROI) */}
+      <div className="mt-8 border-t border-gray-4 pt-8">
+        <SalesPerformanceMetrics selectedMonth={startDate} />
+      </div>
     </div>
   );
 }

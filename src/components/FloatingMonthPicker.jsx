@@ -1,66 +1,113 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import {
   Calendar,
   ChevronLeft,
   ChevronRight,
   RotateCcw,
   TrendingUp,
+  LayoutGrid,
 } from "lucide-react";
+import {
+  getMonthBoundaries,
+  getQuarterBoundaries,
+  getYearBoundaries,
+  getQuarterFromMonth,
+  getMonthKeysInRange,
+} from "../utils/dateUtils";
+
+const MODES = ["MONTHLY", "QUARTERLY", "YEARLY", "CUSTOM"];
+const MODE_LABELS = {
+  MONTHLY: "Monthly",
+  QUARTERLY: "Quarterly",
+  YEARLY: "Yearly",
+  CUSTOM: "Custom",
+};
 
 /**
- * FloatingMonthPicker
- *
- * Rendered via a React Portal directly into document.body so it is
- * never trapped inside a parent stacking context. Modals at z-[9999]
- * will always render above this FAB (z-40).
+ * GlobalRangePicker (formerly FloatingMonthPicker)
+ * Now supports Monthly, Quarterly, Yearly, and Custom ranges.
+ * Used globally to sync all dashboard modules.
  */
-
-export default function FloatingMonthPicker({ selectedMonth, onChange }) {
+export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
+  const now = new Date();
 
-  const parsedDate =
-    selectedMonth && !isNaN(new Date(selectedMonth).getTime())
-      ? new Date(selectedMonth)
-      : new Date();
-  const year = parsedDate.getFullYear();
-  const month = parsedDate.getMonth();
+  // Internal state for selection (mirrors TimeRangeSelector logic)
+  const [mode, setMode] = useState(selectedRange?.mode || "MONTHLY");
+  const [month, setMonth] = useState(
+    selectedRange?.mode === "MONTHLY"
+      ? selectedRange.startDate.slice(0, 7)
+      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+  );
+  const [quarter, setQuarter] = useState(
+    selectedRange?.mode === "QUARTERLY"
+      ? getQuarterFromMonth(selectedRange.startDate)
+      : getQuarterFromMonth(month)
+  );
+  const [year, setYear] = useState(
+    selectedRange?.startDate
+      ? new Date(selectedRange.startDate).getFullYear()
+      : now.getFullYear()
+  );
+  const [customStart, setCustomStart] = useState(
+    selectedRange?.mode === "CUSTOM"
+      ? selectedRange.startDate
+      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`
+  );
+  const [customEnd, setCustomEnd] = useState(
+    selectedRange?.mode === "CUSTOM"
+      ? selectedRange.endDate
+      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+          now.getDate()
+        ).padStart(2, "0")}`
+  );
 
-  const fmt = (d) =>
-    d.toLocaleString("default", { month: "short", year: "numeric" });
+  // Compute boundaries based on internal state
+  const rangeData = useMemo(() => {
+    let startDate, endDate, label;
 
-  const isCurrentMonth = (() => {
-    const now = new Date();
-    return year === now.getFullYear() && month === now.getMonth();
-  })();
+    if (mode === "MONTHLY") {
+      const b = getMonthBoundaries(month);
+      startDate = b.startDate;
+      endDate = b.endDate;
+      label = new Date(month + "-01").toLocaleString("default", {
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      });
+    } else if (mode === "QUARTERLY") {
+      const b = getQuarterBoundaries(year, quarter);
+      startDate = b.startDate;
+      endDate = b.endDate;
+      label = `Q${quarter} ${year}`;
+    } else if (mode === "YEARLY") {
+      const b = getYearBoundaries(year);
+      startDate = b.startDate;
+      endDate = b.endDate;
+      label = String(year);
+    } else {
+      startDate = customStart;
+      endDate = customEnd;
+      label = `Custom Range`; // Simplified for the FAB label
+    }
 
-  const emitMonth = (y, m) => {
-    const mm = String(m + 1).padStart(2, "0");
-    onChange(`${y}-${mm}-01`);
-  };
+    const monthKeys = getMonthKeysInRange(startDate, endDate);
+    return { startDate, endDate, label, mode, monthKeys };
+  }, [mode, month, quarter, year, customStart, customEnd]);
 
-  const goPrev = () => {
-    const d = new Date(year, month - 1, 1);
-    emitMonth(d.getFullYear(), d.getMonth());
-  };
-  const goNext = () => {
-    const d = new Date(year, month + 1, 1);
-    emitMonth(d.getFullYear(), d.getMonth());
-  };
-  const goToday = () => {
-    const now = new Date();
-    emitMonth(now.getFullYear(), now.getMonth());
-  };
-
-  const PRESETS = [
-    { label: "Q1", months: [0, 1, 2] },
-    { label: "Q2", months: [3, 4, 5] },
-    { label: "Q3", months: [6, 7, 8] },
-    { label: "Q4", months: [9, 10, 11] },
-  ];
+  // Sync back to parent
+  useEffect(() => {
+    // Only emit if it's different to prevent loops
+    if (
+      rangeData.startDate !== selectedRange?.startDate ||
+      rangeData.endDate !== selectedRange?.endDate ||
+      rangeData.mode !== selectedRange?.mode
+    ) {
+      onChange?.(rangeData);
+    }
+  }, [rangeData, onChange, selectedRange]);
 
   // Close on outside click
   useEffect(() => {
@@ -74,132 +121,204 @@ export default function FloatingMonthPicker({ selectedMonth, onChange }) {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const fab = (
+  const navPrev = () => {
+    if (mode === "MONTHLY") {
+      const [y, m] = month.split("-").map(Number);
+      const prev =
+        m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+      setMonth(prev);
+    } else if (mode === "QUARTERLY") {
+      if (quarter === 1) {
+        setQuarter(4);
+        setYear(year - 1);
+      } else setQuarter(quarter - 1);
+    } else if (mode === "YEARLY") {
+      setYear(year - 1);
+    }
+  };
+
+  const navNext = () => {
+    if (mode === "MONTHLY") {
+      const [y, m] = month.split("-").map(Number);
+      const next =
+        m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+      setMonth(next);
+    } else if (mode === "QUARTERLY") {
+      if (quarter === 4) {
+        setQuarter(1);
+        setYear(year + 1);
+      } else setQuarter(quarter + 1);
+    } else if (mode === "YEARLY") {
+      setYear(year + 1);
+    }
+  };
+
+  const goToday = () => {
+    setMode("MONTHLY");
+    setMonth(
+      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+    );
+  };
+
+  const content = (
     <div
       ref={panelRef}
       className="fixed bottom-6 right-6 flex flex-col items-end gap-3"
-      style={{ zIndex: 30 }}
+      style={{ zIndex: 100 }}
     >
       {/* EXPANDED PANEL */}
       {open && (
-        <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-2xl p-4 w-72 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-2xl p-4 w-80 flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-b border-gray-4 pb-3">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-9 flex items-center gap-1.5">
-              <TrendingUp size={12} className="text-primary" />
-              Target Month
+              <LayoutGrid size={12} className="text-primary" />
+              Time Range Analysis
             </p>
-            {!isCurrentMonth && (
+            <button
+              onClick={goToday}
+              className="flex items-center gap-1 text-[10px] font-bold text-primary hover:text-primary/80 transition-colors"
+            >
+              <RotateCcw size={11} />
+              Reset to Now
+            </button>
+          </div>
+
+          {/* Mode Switcher */}
+          <div className="grid grid-cols-4 gap-1 p-1 bg-gray-2 border border-gray-4 rounded-xl shadow-inner">
+            {MODES.map((m) => (
               <button
-                onClick={goToday}
-                className="flex items-center gap-1 text-[10px] font-bold text-primary hover:text-primary/80 transition-colors"
+                key={m}
+                onClick={() => setMode(m)}
+                className={`py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                  mode === m
+                    ? "bg-primary text-white shadow-md scale-[1.02]"
+                    : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+                }`}
               >
-                <RotateCcw size={11} />
-                This Month
+                {MODE_LABELS[m]}
               </button>
-            )}
+            ))}
           </div>
 
-          {/* Month Nav */}
-          <div className="flex items-center justify-between bg-gray-2 border border-gray-4 rounded-xl px-2 py-1.5 gap-2">
-            <button
-              onClick={goPrev}
-              className="p-1.5 rounded-lg hover:bg-gray-3 text-gray-9 hover:text-gray-12 transition-colors"
-            >
-              <ChevronLeft size={16} />
-            </button>
+          {/* Navigation Controls */}
+          {mode !== "CUSTOM" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-gray-2 border border-gray-4 rounded-xl p-1.5 gap-2">
+                <button
+                  onClick={navPrev}
+                  className="p-2 rounded-lg hover:bg-gray-3 text-gray-9 hover:text-gray-12 transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
 
-            <DatePicker
-              selected={parsedDate}
-              onChange={(date) => {
-                if (date) emitMonth(date.getFullYear(), date.getMonth());
-              }}
-              showMonthYearPicker
-              dateFormat="MMMM yyyy"
-              className="bg-transparent text-gray-12 font-black text-sm outline-none cursor-pointer text-center w-36"
-            />
+                <div className="flex-1 text-center">
+                  <span className="text-sm font-black text-gray-12 uppercase tracking-wide">
+                    {rangeData.label}
+                  </span>
+                </div>
 
-            <button
-              onClick={goNext}
-              className="p-1.5 rounded-lg hover:bg-gray-3 text-gray-9 hover:text-gray-12 transition-colors"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
+                <button
+                  onClick={navNext}
+                  className="p-2 rounded-lg hover:bg-gray-3 text-gray-9 hover:text-gray-12 transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
 
-          {/* Quarter Quick-Jump */}
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-gray-8 mb-2">
-              Quarter Jump ({year})
-            </p>
-            <div className="grid grid-cols-4 gap-1.5">
-              {PRESETS.map((q) => {
-                const isActive = q.months.includes(month);
-                return (
-                  <button
-                    key={q.label}
-                    onClick={() => emitMonth(year, q.months[0])}
-                    className={`py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
-                      isActive
-                        ? "bg-primary text-white shadow shadow-primary/30"
-                        : "bg-gray-2 border border-gray-4 text-gray-9 hover:border-primary/50 hover:text-gray-12"
-                    }`}
-                  >
-                    {q.label}
-                  </button>
-                );
-              })}
+              {/* Monthly Grid Quick-Jump (Only in Monthly Mode) */}
+              {mode === "MONTHLY" && (
+                <div className="grid grid-cols-4 gap-1">
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const isSelected = i + 1 === Number(month.split("-")[1]);
+                    const isNow =
+                      i === now.getMonth() &&
+                      Number(month.split("-")[0]) === now.getFullYear();
+                    const mLabel = new Date(2000, i, 1).toLocaleString(
+                      "default",
+                      { month: "short" }
+                    );
+                    return (
+                      <button
+                        key={i}
+                        onClick={() =>
+                          setMonth(
+                            `${month.split("-")[0]}-${String(i + 1).padStart(
+                              2,
+                              "0"
+                            )}`
+                          )
+                        }
+                        className={`py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                          isSelected
+                            ? "bg-primary text-white shadow-sm"
+                            : "bg-gray-2 border border-gray-4 text-gray-9 hover:border-primary/50"
+                        }`}
+                      >
+                        {mLabel}
+                        {isNow && !isSelected && (
+                          <span className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-green-500" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Quarter Grid Quick-Jump (Only in Quarterly Mode) */}
+              {mode === "QUARTERLY" && (
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => setQuarter(q)}
+                      className={`py-2 rounded-lg text-[11px] font-black transition-all ${
+                        quarter === q
+                          ? "bg-primary text-white shadow-sm"
+                          : "bg-gray-2 border border-gray-4 text-gray-9"
+                      }`}
+                    >
+                      Q{q}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* Month Grid */}
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-gray-8 mb-2">
-              Month Grid
-            </p>
-            <div className="grid grid-cols-4 gap-1">
-              {Array.from({ length: 12 }, (_, i) => {
-                const d = new Date(year, i, 1);
-                const label = d.toLocaleString("default", { month: "short" });
-                const isSelected = i === month;
-                const isNow =
-                  i === new Date().getMonth() &&
-                  year === new Date().getFullYear();
-                return (
-                  <button
-                    key={i}
-                    onClick={() => emitMonth(year, i)}
-                    className={`py-1 rounded-lg text-[11px] font-bold transition-all relative ${
-                      isSelected
-                        ? "bg-primary text-white shadow shadow-primary/25"
-                        : "bg-gray-2 border border-gray-4 text-gray-10 hover:border-primary/50 hover:text-gray-12"
-                    }`}
-                  >
-                    {label}
-                    {isNow && !isSelected && (
-                      <span className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-green-500" />
-                    )}
-                  </button>
-                );
-              })}
+          {/* Custom Date Pickers */}
+          {mode === "CUSTOM" && (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-gray-9 uppercase tracking-widest ml-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="w-full bg-gray-2 border border-gray-4 rounded-xl px-3 py-2 text-xs text-gray-12 font-bold outline-none focus:border-primary h-10"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-gray-9 uppercase tracking-widest ml-1">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="w-full bg-gray-2 border border-gray-4 rounded-xl px-3 py-2 text-xs text-gray-12 font-bold outline-none focus:border-primary h-10"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Year stepper */}
-          <div className="flex items-center justify-between border-t border-gray-4 pt-3">
-            <button
-              onClick={() => emitMonth(year - 1, month)}
-              className="p-1.5 rounded-lg hover:bg-gray-3 text-gray-9 transition-colors"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <span className="text-sm font-black text-gray-12">{year}</span>
-            <button
-              onClick={() => emitMonth(year + 1, month)}
-              className="p-1.5 rounded-lg hover:bg-gray-3 text-gray-9 transition-colors"
-            >
-              <ChevronRight size={14} />
-            </button>
+          {/* Footer stats or info could go here */}
+          <div className="border-t border-gray-4 pt-3 text-center">
+            <p className="text-[9px] font-medium text-gray-8 italic">
+              Syncing analytics across {mode.toLowerCase()} boundaries...
+            </p>
           </div>
         </div>
       )}
@@ -207,24 +326,24 @@ export default function FloatingMonthPicker({ selectedMonth, onChange }) {
       {/* FAB TRIGGER BUTTON */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl font-black text-sm shadow-xl transition-all duration-200 border ${
+        className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl font-black text-sm shadow-xl transition-all duration-300 border ${
           open
-            ? "bg-primary text-white border-primary shadow-primary/30"
+            ? "bg-primary text-white border-primary shadow-primary/30 rotate-0"
             : "bg-gray-1 text-gray-12 border-gray-4 hover:border-primary hover:shadow-primary/10"
         }`}
       >
-        <Calendar size={16} className={open ? "text-white" : "text-primary"} />
-        <span className="uppercase tracking-wider text-xs">
-          {fmt(parsedDate)}
-        </span>
-        {!isCurrentMonth && (
-          <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-black uppercase tracking-wide">
-            Past
+        <Calendar size={18} className={open ? "text-white" : "text-primary"} />
+        <div className="flex flex-col items-start leading-tight">
+          <span className="uppercase tracking-widest text-[9px] opacity-70">
+            {mode === "MONTHLY" ? "Month" : mode === "QUARTERLY" ? "Quarter" : "Range"}
           </span>
-        )}
+          <span className="text-xs uppercase tracking-wider">
+            {rangeData.label}
+          </span>
+        </div>
       </button>
     </div>
   );
 
-  return createPortal(fab, document.body);
+  return createPortal(content, document.body);
 }

@@ -1,32 +1,72 @@
-import { Trophy, AlertCircle, TrendingUp } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Trophy, AlertCircle, TrendingUp, Filter } from "lucide-react";
 
 export function EmployeeRankingsTable({
   leaderboard,
-  selectedMonth,
+  label,
   isLoading,
   currentUser,
+  showQuota,
 }) {
+  const [subDeptFilter, setSubDeptFilter] = useState("ALL");
+
+  // Collect unique sub-departments for filter chips
+  const subDepts = useMemo(() => {
+    const set = new Set();
+    leaderboard.forEach((e) => {
+      if (e.sub_department) set.add(e.sub_department);
+    });
+    return ["ALL", ...Array.from(set).sort()];
+  }, [leaderboard]);
+
+  const filtered = useMemo(() => {
+    if (subDeptFilter === "ALL") return leaderboard;
+    return leaderboard.filter((e) => e.sub_department === subDeptFilter);
+  }, [leaderboard, subDeptFilter]);
+
   if (leaderboard.length === 0 && !isLoading) {
     return (
-      <div className="p-10 text-center text-gray-9 flex flex-col items-center bg-gray-1 border border-gray-4 rounded-2xl mt-8">
+      <div className="p-10 text-center text-gray-9 flex flex-col items-center bg-gray-1 border border-gray-4 rounded-2xl mt-6">
         <AlertCircle size={32} className="mb-2 opacity-50" />
         <p className="font-medium">
-          No sales quotas have been distributed for this month yet.
+          No sales data available for this period.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden mt-8">
-      <div className="bg-gray-2 border-b border-gray-4 p-4 flex justify-between items-center">
-        <h2 className="font-black text-gray-12 text-sm uppercase tracking-wider">
-          Employee Performance [{selectedMonth}]
-        </h2>
-        {isLoading && (
-          <span className="text-[10px] uppercase font-bold text-primary flex items-center gap-1 animate-pulse">
-            <TrendingUp size={12} /> Syncing...
-          </span>
+    <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden mt-6">
+      <div className="bg-gray-2 border-b border-gray-4 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex items-center gap-2">
+          <h2 className="font-black text-gray-12 text-sm uppercase tracking-wider">
+            Employee Performance [{label}]
+          </h2>
+          {isLoading && (
+            <span className="text-[10px] uppercase font-bold text-primary flex items-center gap-1 animate-pulse">
+              <TrendingUp size={12} /> Syncing...
+            </span>
+          )}
+        </div>
+
+        {/* Sub-department filter chips */}
+        {subDepts.length > 2 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Filter size={12} className="text-gray-8" />
+            {subDepts.map((sd) => (
+              <button
+                key={sd}
+                onClick={() => setSubDeptFilter(sd)}
+                className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                  subDeptFilter === sd
+                    ? "bg-primary text-white shadow-sm"
+                    : "bg-gray-3 text-gray-9 hover:text-gray-12 hover:bg-gray-4"
+                }`}
+              >
+                {sd === "ALL" ? "All Teams" : sd}
+              </button>
+            ))}
+          </div>
         )}
       </div>
       <div className="overflow-x-auto">
@@ -35,54 +75,69 @@ export function EmployeeRankingsTable({
             <tr className="bg-gray-2 text-xs font-bold text-gray-9 uppercase tracking-widest border-b border-gray-4">
               <th className="p-4 w-12 text-center">Rank</th>
               <th className="p-4">Employee</th>
-              <th className="p-4 text-right">Quota Target</th>
+              {showQuota && (
+                <th className="p-4 text-right">Quota Target</th>
+              )}
               <th className="p-4 text-right">Completed Sales</th>
               <th className="p-4 text-right">Lost Sales</th>
-              <th className="p-4 text-center">Percentage</th>
+              <th className="p-4 text-center">Win Rate</th>
+              <th className="p-4 text-center">
+                {showQuota ? "Quota %" : "Deals"}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-4">
-            {leaderboard.map((emp, idx) => {
-              const pct =
-                emp.quota > 0
-                  ? Math.round((emp.revenueWon / emp.quota) * 100)
-                  : 0;
-              const isTop = idx === 0 && pct > 0;
+            {filtered.map((emp, idx) => {
+              const pct = emp.quotaPct || 0;
+              const isTop = idx === 0 && (emp.revenueWon > 0 || pct > 0);
               const isSelf = currentUser?.id === emp.employee_id;
               const canSeeNumbers =
                 currentUser?.isSuperAdmin ||
                 currentUser?.is_super_admin ||
                 isSelf;
+              const totalDeals = emp.dealsWon + emp.dealsLost;
 
               return (
                 <tr
-                  key={emp.name}
-                  className={`hover:bg-gray-3 transition-colors ${isTop ? "bg-yellow-500/5" : ""}`}
+                  key={emp.employee_id}
+                  className={`hover:bg-gray-3 transition-colors ${
+                    isTop ? "bg-yellow-500/5" : ""
+                  }`}
                 >
                   <td className="p-4 text-center font-black">
                     {isTop ? (
-                      <Trophy size={18} className="mx-auto drop-shadow" />
+                      <Trophy
+                        size={18}
+                        className="mx-auto drop-shadow text-yellow-500"
+                      />
                     ) : (
                       <span className="text-gray-9">#{idx + 1}</span>
                     )}
                   </td>
                   <td className="p-4 font-bold text-gray-12 text-sm">
-                    {emp.name}{" "}
+                    <span>{emp.name}</span>
                     {isSelf && (
                       <span className="ml-2 text-[10px] bg-gray-12 text-gray-1 px-2 py-0.5 rounded-full uppercase tracking-widest">
                         You
                       </span>
                     )}
-                  </td>
-                  <td className="p-4 text-right font-mono text-gray-11 text-sm">
-                    {canSeeNumbers ? (
-                      `₱${Number(emp.quota).toLocaleString()}`
-                    ) : (
-                      <span className="text-gray-8 italic font-sans">
-                        {pct}% Quota
+                    {emp.sub_department && (
+                      <span className="ml-2 text-[10px] font-bold text-gray-7 uppercase tracking-wider">
+                        {emp.sub_department}
                       </span>
                     )}
                   </td>
+                  {showQuota && (
+                    <td className="p-4 text-right font-mono text-gray-11 text-sm">
+                      {canSeeNumbers ? (
+                        `₱${Number(emp.quota).toLocaleString()}`
+                      ) : (
+                        <span className="text-gray-8 italic font-sans">
+                          {pct}% Quota
+                        </span>
+                      )}
+                    </td>
+                  )}
                   <td className="p-4 text-right font-mono text-green-400 font-black text-sm">
                     {canSeeNumbers ? (
                       `₱${emp.revenueWon.toLocaleString()}`
@@ -96,21 +151,56 @@ export function EmployeeRankingsTable({
                     {canSeeNumbers ? (
                       `₱${emp.revenueLost.toLocaleString()}`
                     ) : (
-                      <span className="text-gray-6 italic font-sans">N/A</span>
+                      <span className="text-gray-6 italic font-sans">
+                        N/A
+                      </span>
                     )}
                   </td>
                   <td className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-2 w-max mx-auto">
-                      <div className="w-24 h-2 bg-gray-4 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
-                        <div
-                          className={`h-full ${pct >= 100 ? "transition-all duration-1000 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : pct >= 50 ? "transition-all duration-1000 bg-yellow-500" : "transition-all duration-1000 bg-red-500"}`}
-                          style={{ width: `${Math.min(pct, 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs font-bold text-gray-12 w-8">
-                        {pct}%
+                    {emp.winRate !== null ? (
+                      <span
+                        className={`text-xs font-black px-2.5 py-1 rounded-lg ${
+                          emp.winRate >= 70
+                            ? "bg-green-500/10 text-green-500"
+                            : emp.winRate >= 40
+                              ? "bg-amber-500/10 text-amber-500"
+                              : "bg-red-500/10 text-red-500"
+                        }`}
+                      >
+                        {emp.winRate}%
                       </span>
-                    </div>
+                    ) : (
+                      <span className="text-[10px] text-gray-7 italic">
+                        {totalDeals === 0 ? "No deals" : "—"}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4 text-center">
+                    {showQuota ? (
+                      <div className="flex items-center justify-center gap-2 w-max mx-auto">
+                        <div className="w-20 h-2 bg-gray-4 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
+                          <div
+                            className={`h-full ${
+                              pct >= 100
+                                ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                                : pct >= 50
+                                  ? "bg-yellow-500"
+                                  : "bg-red-500"
+                            } transition-all duration-1000`}
+                            style={{
+                              width: `${Math.min(pct, 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs font-bold text-gray-12 w-8">
+                          {pct}%
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs font-bold text-gray-11">
+                        {totalDeals} deals
+                      </span>
+                    )}
                   </td>
                 </tr>
               );

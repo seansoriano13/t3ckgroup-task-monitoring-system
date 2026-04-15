@@ -12,7 +12,11 @@ export const salesVerificationService = {
       )
       .is("head_verified_at", null)
       .neq("is_deleted", true)
-      .in("status", [REVENUE_STATUS.COMPLETED, REVENUE_STATUS.APPROVED, REVENUE_STATUS.PENDING])
+      .in("status", [
+        REVENUE_STATUS.COMPLETED,
+        REVENUE_STATUS.APPROVED,
+        REVENUE_STATUS.PENDING,
+      ])
       .order("scheduled_date", { ascending: false });
 
     if (error) throw error;
@@ -32,22 +36,31 @@ export const salesVerificationService = {
       .single();
     if (error) throw error;
 
-    notificationService.createNotification({
-      recipient_id: data.employee_id,
-      sender_id: userObj?.id || verifiedBy,
-      type: "EXPENSE_APPROVED",
-      title: "Expense Verified",
-      message: `Your expense of ₱${data.expense_amount} for ${data.account_name} was verified by your manager.`,
-      reference_id: String(activityId),
-    }).catch(console.error);
+    notificationService
+      .createNotification({
+        recipient_id: data.employee_id,
+        sender_id: userObj?.id || verifiedBy,
+        type: "EXPENSE_APPROVED",
+        title: "Expense Verified",
+        message: `Your expense of ₱${data.expense_amount} for ${data.account_name} was verified by your manager.`,
+        reference_id: String(activityId),
+      })
+      .catch(console.error);
 
     // LOG TO TIMELINE
-    salesActivityLogService.addApprovalEntry(activityId, verifiedBy, headRemarks || "Verified activity.", { event: "VERIFIED" }).catch(console.error);
+    salesActivityLogService
+      .addApprovalEntry(
+        activityId,
+        verifiedBy,
+        headRemarks || "Verified activity.",
+        { event: "VERIFIED" },
+      )
+      .catch(console.error);
 
     return data;
   },
 
-  async bulkVerifyActivities(activityIds, headRemarks, verifiedBy, userObj) {
+  async bulkVerifyActivities(activityIds, headRemarks, verifiedBy) {
     if (!activityIds || activityIds.length === 0) return [];
     const { data, error } = await supabase
       .from("sales_activities")
@@ -63,8 +76,13 @@ export const salesVerificationService = {
     // LOG TO TIMELINE
     Promise.allSettled(
       activityIds.map((id) =>
-        salesActivityLogService.addApprovalEntry(id, verifiedBy, headRemarks || "Verified via Bulk Action.", { event: "VERIFIED" })
-      )
+        salesActivityLogService.addApprovalEntry(
+          id,
+          verifiedBy,
+          headRemarks || "Verified via Bulk Action.",
+          { event: "VERIFIED" },
+        ),
+      ),
     ).catch(console.error);
 
     return data;
@@ -90,16 +108,18 @@ export const salesVerificationService = {
     if (error) throw error;
 
     // Notify employee of result
-    notificationService.createNotification({
-      recipient_id: activity.employee_id,
-      sender_id: senderId,
-      type: "SALES_EXPENSE_PROCESSED",
-      title: isApproved ? "Fund Request Approved" : "Fund Request Denied",
-      message: isApproved
-        ? `Your planned activity expense for ${activity.account_name || "an account"} was successfully approved.`
-        : `Your expense for ${activity.account_name || "an account"} was rejected.`,
-      reference_id: activity.id,
-    }).catch(console.error);
+    notificationService
+      .createNotification({
+        recipient_id: activity.employee_id,
+        sender_id: senderId,
+        type: "SALES_EXPENSE_PROCESSED",
+        title: isApproved ? "Fund Request Approved" : "Fund Request Denied",
+        message: isApproved
+          ? `Your planned activity expense for ${activity.account_name || "an account"} was successfully approved.`
+          : `Your expense for ${activity.account_name || "an account"} was rejected.`,
+        reference_id: activity.id,
+      })
+      .catch(console.error);
 
     return activity;
   },
@@ -130,8 +150,8 @@ export const salesVerificationService = {
           type: "SALES_EXPENSE_PROCESSED",
           title: "Fund Request Approved",
           message: `${names.length} expense${names.length > 1 ? "s" : ""} approved: ${names.slice(0, 3).join(", ")}${names.length > 3 ? "…" : ""}`,
-        })
-      )
+        }),
+      ),
     );
 
     return data;
@@ -185,7 +205,13 @@ export const salesVerificationService = {
     if (error) throw error;
 
     // LOG UNVERIFY (UNDO) TO TIMELINE
-    salesActivityLogService.addSystemEvent(activityId, "Manager unverified this activity (Undo Verification).", { event: "UNVERIFIED" }).catch(console.error);
+    salesActivityLogService
+      .addSystemEvent(
+        activityId,
+        "Manager unverified this activity (Undo Verification).",
+        { event: "UNVERIFIED" },
+      )
+      .catch(console.error);
 
     return data;
   },
@@ -206,8 +232,12 @@ export const salesVerificationService = {
     // LOG UNVERIFY TO TIMELINE
     Promise.allSettled(
       activityIds.map((id) =>
-        salesActivityLogService.addSystemEvent(id, "Manager unverified this activity via Bulk Action.", { event: "UNVERIFIED" })
-      )
+        salesActivityLogService.addSystemEvent(
+          id,
+          "Manager unverified this activity via Bulk Action.",
+          { event: "UNVERIFIED" },
+        ),
+      ),
     ).catch(console.error);
 
     return data || [];

@@ -87,18 +87,6 @@ export default function SalesPerformanceMetrics({ selectedMonth }) {
       if (monthFilter && !act.scheduled_date.startsWith(monthFilter)) return;
 
       const empId = act.employee_id;
-      const roleStr = (act.employees?.role || "").toLowerCase();
-      const deptStr = (act.employees?.department || "").toLowerCase();
-
-      // Filter out admins from performance results
-      if (
-        act.employees?.is_super_admin ||
-        roleStr.includes("admin") ||
-        deptStr.includes("super admin")
-      ) {
-        return;
-      }
-
       if (!stats[empId]) {
         stats[empId] = {
           empId,

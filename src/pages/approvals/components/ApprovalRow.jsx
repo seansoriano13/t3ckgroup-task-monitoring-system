@@ -119,7 +119,7 @@ export function ApprovalRow({
           </span>
 
           {appSettings?.enable_visual_shaming && isDelayed && (
-            <span className="px-2 py-1 rounded bg-orange-900/20 text-orange-500 text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
+            <span className="px-2 py-1 rounded bg-orange-400/20 text-orange-500 text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
               Delayed
             </span>
           )}

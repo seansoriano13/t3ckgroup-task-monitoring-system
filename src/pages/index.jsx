@@ -5,7 +5,6 @@ import TasksList from "../components/TasksList.jsx";
 import SalesDashboard from "../components/SalesDashboard.jsx";
 import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
-import SalesPerformanceMetrics from "../components/SalesPerformanceMetrics.jsx";
 import { Calendar } from "lucide-react";
 import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
 import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
@@ -19,10 +18,15 @@ export default function Dashboard() {
     user?.department?.toLowerCase().includes("sales") ||
     user?.subDepartment?.toLowerCase().includes("sales");
 
-  // --- MONTH SELECTION (Formatted for consistency with other dashboards) ---
+  // --- GLOBAL RANGE SELECTION ---
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthYear);
+  const [globalRange, setGlobalRange] = useState({
+    mode: "MONTHLY",
+    startDate: currentMonthYear,
+    endDate: currentMonthYear, // Fallback, will be instantly overwritten by the TimeRangeSelector
+    label: currentDate.toLocaleString("default", { month: "short", year: "numeric" })
+  });
 
   // Omni Dashboard exclusively for HR and Super Admins
   if (user?.is_hr || user?.isHr || user?.isSuperAdmin) {
@@ -45,24 +49,23 @@ export default function Dashboard() {
             </div>
 
             <div className="grid gap-8 relative">
-              <DashboardStats selectedMonth={selectedMonth} />
-              <EmployeePipelineMatrix selectedMonth={selectedMonth} />
-              <TasksList selectedMonth={selectedMonth} />
+              <DashboardStats selectedRange={globalRange} />
+              <EmployeePipelineMatrix selectedRange={globalRange} />
+              <TasksList selectedRange={globalRange} />
             </div>
           </div>
 
           {/* SALES SECTION */}
           <div className="bg-gray-1 border border-gray-4 p-2 sm:p-10 pb-0 rounded-4xl shadow-xl relative overflow-hidden mt-12">
             <div className="relative w-full overflow-hidden">
-              <SalesDashboard selectedMonth={selectedMonth} />
-              <SalesPerformanceMetrics selectedMonth={selectedMonth} />
+              <SalesDashboard globalRange={globalRange} />
             </div>
           </div>
         </div>
 
         <FloatingMonthPicker
-          selectedMonth={selectedMonth}
-          onChange={setSelectedMonth}
+          selectedRange={globalRange}
+          onChange={setGlobalRange}
         />
       </ProtectedRoute>
     );
@@ -73,17 +76,12 @@ export default function Dashboard() {
     return (
       <ProtectedRoute>
         <div className="pb-10">
-          <SalesDashboard selectedMonth={selectedMonth} />
-          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 -mt-4">
-            <SalesPerformanceMetrics selectedMonth={selectedMonth} />
-          </div>
+          <SalesDashboard globalRange={globalRange} />
         </div>
-
-         <FloatingMonthPicker
-          selectedMonth={selectedMonth}
-          onChange={setSelectedMonth}
+        <FloatingMonthPicker
+          selectedRange={globalRange}
+          onChange={setGlobalRange}
         />
-
       </ProtectedRoute>
     );
   }
@@ -95,7 +93,7 @@ export default function Dashboard() {
           <DashboardHeader />
 
           {/* HEAD VIEW MONTH PICKER */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-4 pb-4 px-2">
+          <div className="flex items-center justify-between gap-4 border-b border-gray-4 pb-4 px-2">
             <div>
               <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">
                 Dashboard
@@ -107,29 +105,31 @@ export default function Dashboard() {
               </h2>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-9 shadow-sm w-max">
-              <Calendar size={12} />
-              <span className="uppercase tracking-wider">
-                {new Date(selectedMonth).toLocaleString("default", {
-                  month: "short",
-                  year: "numeric",
-                })}
-              </span>
+            <div className="flex flex-col items-end">
+              <div className="flex items-center gap-1.5 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-9 shadow-sm w-max">
+                <Calendar size={12} />
+                <span className="uppercase tracking-wider">
+                  {globalRange.label}
+                </span>
+              </div>
+              <p className="text-[9px] uppercase tracking-widest text-primary font-black mt-1">
+                {globalRange.mode}
+              </p>
             </div>
           </div>
 
-          <DashboardStats selectedMonth={selectedMonth} />
+          <DashboardStats selectedRange={globalRange} />
           {!(user?.is_head || user?.isHead) && (
-            <PersonalPipelineRadar selectedMonth={selectedMonth} />
+             <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
           )}
           {(user?.is_head || user?.isHead) && (
-            <EmployeePipelineMatrix selectedMonth={selectedMonth} />
+            <EmployeePipelineMatrix selectedRange={globalRange} />
           )}
-          <TasksList selectedMonth={selectedMonth} />
+          <TasksList selectedRange={globalRange} />
         </div>
         <FloatingMonthPicker
-          selectedMonth={selectedMonth}
-          onChange={setSelectedMonth}
+          selectedRange={globalRange}
+          onChange={setGlobalRange}
         />
       </div>
     </ProtectedRoute>

@@ -13,7 +13,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status.js";
 
-export default function DashboardStats({ selectedMonth }) {
+export default function DashboardStats({ selectedRange }) {
   const { user } = useAuth();
 
   const isHr = user?.is_hr || user?.isHr;
@@ -33,11 +33,10 @@ export default function DashboardStats({ selectedMonth }) {
   });
 
   const stats = useMemo(() => {
-    const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
-    const currentMonth = selDate.getMonth();
-    const currentYear = selDate.getFullYear();
+    // 1. Filter tasks for ONLY this date range, EXCLUDING Super Admin
+    const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
+    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T23:59:59.999`) : new Date();
 
-    // 1. Filter tasks for ONLY this month, EXCLUDING Super Admin
     const thisMonthTasks = rawTasks.filter((t) => {
       const taskDate = new Date(t.createdAt);
 
@@ -52,10 +51,7 @@ export default function DashboardStats({ selectedMonth }) {
         return false;
       }
 
-      return (
-        taskDate.getMonth() === currentMonth &&
-        taskDate.getFullYear() === currentYear
-      );
+      return taskDate >= rangeStart && taskDate <= rangeEnd;
     });
 
     // 2. Calculate Personal Stats
@@ -145,7 +141,7 @@ export default function DashboardStats({ selectedMonth }) {
       hrRejected,
       hrAllTasks,
     };
-  }, [rawTasks, user?.id, isHead, isHr, userSubDept, userDept, selectedMonth]);
+  }, [rawTasks, user?.id, isHead, isHr, userSubDept, userDept, selectedRange]);
 
   if (isLoading) {
     return (

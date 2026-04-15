@@ -32,3 +32,67 @@ export function getMonthBoundaries(monthYearStr) {
 export function formatDateToYMD(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
+
+/**
+ * Returns boundaries for a calendar quarter.
+ * @param {number} year - e.g. 2026
+ * @param {number} quarter - 1-4
+ * @returns {{ startDate: string, endDate: string }}
+ */
+export function getQuarterBoundaries(year, quarter) {
+  const startMonth = (quarter - 1) * 3 + 1;
+  const startDate = `${year}-${String(startMonth).padStart(2, "0")}-01`;
+  const endMonthDate = new Date(year, startMonth + 2, 1); // first day of month AFTER quarter
+  const endNextDate = new Date(endMonthDate.getFullYear(), endMonthDate.getMonth() + 1, 1);
+  const endDate = `${endNextDate.getFullYear()}-${String(endNextDate.getMonth() + 1).padStart(2, "0")}-01`;
+  return { startDate, endDate };
+}
+
+/**
+ * Returns boundaries for an entire year.
+ * @param {number} year
+ * @returns {{ startDate: string, endDate: string }}
+ */
+export function getYearBoundaries(year) {
+  return { startDate: `${year}-01-01`, endDate: `${year + 1}-01-01` };
+}
+
+/**
+ * Returns an array of "YYYY-MM-01" keys for all months within a date range.
+ * Used for summing monthly quotas across quarters/years.
+ * @param {string} startDate - "YYYY-MM-DD"
+ * @param {string} endDate   - "YYYY-MM-DD" (exclusive)
+ * @returns {string[]}
+ */
+export function getMonthKeysInRange(startDate, endDate) {
+  const keys = [];
+  const [sy, sm] = startDate.split("-").map(Number);
+  const endD = new Date(endDate);
+  let cursor = new Date(sy, sm - 1, 1);
+  while (cursor < endD) {
+    keys.push(
+      `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-01`
+    );
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return keys;
+}
+
+/**
+ * Returns human-readable label for a quarter.
+ * @param {number} quarter - 1-4
+ * @param {number} year
+ * @returns {string}
+ */
+export function getQuarterLabel(quarter, year) {
+  return `Q${quarter} ${year}`;
+}
+
+/**
+ * Derives quarter number (1-4) from a month string "YYYY-MM".
+ */
+export function getQuarterFromMonth(monthStr) {
+  const month = parseInt(monthStr.split("-")[1], 10);
+  return Math.ceil(month / 3);
+}
+

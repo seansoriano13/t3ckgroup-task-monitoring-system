@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status";
 
-export default function EmployeePipelineMatrix({ selectedMonth }) {
+export default function EmployeePipelineMatrix({ selectedRange }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isHr = user?.is_hr === true || user?.isHr === true;
@@ -25,9 +25,8 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
   const employeeStats = useMemo(() => {
     if (!rawTasks.length) return [];
 
-    const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
-    const currentMonth = selDate.getMonth();
-    const currentYear = selDate.getFullYear();
+    const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
+    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T23:59:59.999`) : new Date();
 
     const empMap = {};
 
@@ -35,10 +34,7 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
       if (!task.loggedById || task.status === TASK_STATUS.DELETED) return;
 
       const taskDate = new Date(task.createdAt);
-      if (
-        taskDate.getMonth() !== currentMonth ||
-        taskDate.getFullYear() !== currentYear
-      ) {
+      if (taskDate < rangeStart || taskDate > rangeEnd) {
         return;
       }
 
@@ -106,7 +102,7 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
     isHead,
     userDepartment,
     user?.isSuperAdmin,
-    selectedMonth,
+    selectedRange,
   ]);
 
   const filteredStats = useMemo(() => {
@@ -130,15 +126,9 @@ export default function EmployeePipelineMatrix({ selectedMonth }) {
           </h2>
           <p className="text-sm text-gray-9 mt-0.5 font-medium">
             {isHr
-              ? "Organization-wide metrics for "
-              : "Performance metrics for "}
-            {selectedMonth
-              ? new Date(selectedMonth).toLocaleDateString(undefined, {
-                  month: "long",
-                  year: "numeric",
-                })
-              : "this month"}
-            .
+              ? "Organization-wide metrics for: "
+              : "Performance metrics for: "}
+            <span className="font-bold text-gray-11">{selectedRange?.label || "This Range"}</span>
           </p>
         </div>
         
