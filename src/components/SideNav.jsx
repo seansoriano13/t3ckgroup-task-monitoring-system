@@ -247,20 +247,27 @@ export default function SideNav({ onOpenAddTask }) {
             )}
           </div>
         ) : (
-          <div className="w-full mt-2">
+          <div className="w-full mt-2 flex flex-col gap-2">
             <PrimaryButton
               onClick={() => {
-                setIsExpanded(false); // Close sidebar when opening modal
-                if (isSales) {
-                  navigate("/sales/schedule");
-                } else {
-                  onOpenAddTask();
-                }
+                setIsExpanded(false);
+                onOpenAddTask();
               }}
               className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
               label={<Plus size={20} />}
-              title={isSales ? "Sales Planner" : "Add Task"}
+              title="Add Task"
             />
+            {isSales && (
+              <PrimaryButton
+                onClick={() => {
+                  setIsExpanded(false);
+                  navigate("/sales/schedule");
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-900/30 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
+                label={<CalendarDays size={20} />}
+                title="Sales Planner"
+              />
+            )}
           </div>
         )}
       </aside>
