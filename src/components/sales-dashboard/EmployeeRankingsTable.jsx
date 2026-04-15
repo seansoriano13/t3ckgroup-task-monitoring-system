@@ -21,7 +21,7 @@ export function EmployeeRankingsTable({
     <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden mt-8">
       <div className="bg-gray-2 border-b border-gray-4 p-4 flex justify-between items-center">
         <h2 className="font-black text-gray-12 text-sm uppercase tracking-wider">
-          Employee Rankings [{selectedMonth}]
+          Employee Performance [{selectedMonth}]
         </h2>
         {isLoading && (
           <span className="text-[10px] uppercase font-bold text-primary flex items-center gap-1 animate-pulse">
@@ -50,7 +50,9 @@ export function EmployeeRankingsTable({
               const isTop = idx === 0 && pct > 0;
               const isSelf = currentUser?.id === emp.employee_id;
               const canSeeNumbers =
-                currentUser?.isSuperAdmin || currentUser?.is_super_admin || isSelf;
+                currentUser?.isSuperAdmin ||
+                currentUser?.is_super_admin ||
+                isSelf;
 
               return (
                 <tr

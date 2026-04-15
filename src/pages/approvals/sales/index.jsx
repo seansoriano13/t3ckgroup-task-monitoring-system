@@ -228,7 +228,7 @@ export default function SalesHeadApprovalsPage() {
 
   const verifyMutation = useMutation({
     mutationFn: ({ activityId, remarks }) =>
-      salesService.verifyActivity(activityId, remarks, user?.id),
+      salesService.verifyActivity(activityId, remarks, user?.id, user),
     onSuccess: () => {
       invalidateAll();
       toast.success("Activity verified successfully!");
@@ -238,7 +238,7 @@ export default function SalesHeadApprovalsPage() {
 
   const bulkVerifyMutation = useMutation({
     mutationFn: ({ activityIds, remarks }) =>
-      salesService.bulkVerifyActivities(activityIds, remarks, user?.id),
+      salesService.bulkVerifyActivities(activityIds, remarks, user?.id, user),
     onSuccess: (_, variables) => {
       invalidateAll();
       const count = variables.activityIds.length;

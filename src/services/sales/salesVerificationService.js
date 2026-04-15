@@ -33,7 +33,7 @@ export const salesVerificationService = {
 
     notificationService.createNotification({
       recipient_id: data.employee_id,
-      sender_id: userObj.id,
+      sender_id: userObj?.id || verifiedBy,
       type: "EXPENSE_APPROVED",
       title: "Expense Verified",
       message: `Your expense of ₱${data.expense_amount} for ${data.account_name} was verified by your manager.`,
@@ -43,7 +43,7 @@ export const salesVerificationService = {
     return data;
   },
 
-  async bulkVerifyActivities(activityIds, headRemarks, verifiedBy) {
+  async bulkVerifyActivities(activityIds, headRemarks, verifiedBy, userObj) {
     if (!activityIds || activityIds.length === 0) return [];
     const { data, error } = await supabase
       .from("sales_activities")
