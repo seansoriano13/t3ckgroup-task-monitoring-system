@@ -41,6 +41,7 @@ export function ApprovalRow({
       remarks: remarks,
       endAt: new Date().toISOString(),
       evaluatedBy: currentUserId,
+      editedBy: currentUserId,
       hrVerified: false,
       hrRemarks: "",
     });
@@ -53,6 +54,7 @@ export function ApprovalRow({
       grade: 0,
       remarks: remarks,
       evaluatedBy: currentUserId,
+      editedBy: currentUserId,
       hrVerified: false,
       hrRemarks: "",
     });
@@ -65,6 +67,7 @@ export function ApprovalRow({
       hrVerified: true,
       hrVerifiedAt: new Date().toISOString(),
       hrRemarks: hrRemarks,
+      editedBy: currentUserId,
     });
   };
 
@@ -75,6 +78,7 @@ export function ApprovalRow({
       hrVerified: false,
       hrVerifiedAt: null,
       hrRemarks: hrRemarks,
+      editedBy: currentUserId,
     });
   };
 
@@ -114,9 +118,19 @@ export function ApprovalRow({
         </div>
 
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
-          <span className="text-[10px] md:text-xs font-bold text-gray-9">
-            {formatDate(task.createdAt)}
-          </span>
+          <div className="flex flex-col items-end leading-tight">
+            <span className="text-[10px] md:text-xs font-bold text-gray-9">
+              {formatDate(task.createdAt)}
+            </span>
+            {task.editedAt && (
+              <span
+                className="text-[9px] md:text-[10px] text-gray-8 font-bold uppercase tracking-widest"
+                title={`Last modified ${formatDate(task.editedAt)}${task.editedByName ? ` by ${task.editedByName}` : ""}`}
+              >
+                Mod: {formatDate(task.editedAt)}
+              </span>
+            )}
+          </div>
 
           {appSettings?.enable_visual_shaming && isDelayed && (
             <span className="px-2 py-1 rounded bg-orange-400/20 text-orange-500 text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">

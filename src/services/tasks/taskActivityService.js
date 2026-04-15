@@ -37,6 +37,103 @@ export const taskActivityService = {
   },
 
   /**
+   * Super Admin: global recent activity feed across all tasks
+   */
+  async getRecentTaskActivity({
+    limit = 50,
+    offset = 0,
+    type = "ALL",
+    authorId = "ALL",
+    employeeId = "ALL",
+    taskStatus = "ALL",
+    dateFrom = null,
+    dateTo = null,
+    search = "",
+  } = {}) {
+    const safeLimit = Math.max(1, Math.min(200, Number(limit) || 50));
+    const safeOffset = Math.max(0, Number(offset) || 0);
+
+    let query = supabase
+      .from("task_activity")
+      .select(
+        `
+        *,
+        task:tasks!task_activity_task_id_fkey(
+          id,
+          task_description,
+          status,
+          logged_by,
+          created_at,
+          creator:employees!tasks_logged_by_fk(name, department, sub_department)
+        ),
+        author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)
+      `,
+      )
+      .order("created_at", { ascending: false });
+
+    if (type && type !== "ALL") query = query.eq("type", type);
+    if (authorId && authorId !== "ALL") {
+      if (authorId === "SYSTEM") query = query.is("author_id", null);
+      else query = query.eq("author_id", authorId);
+    }
+    if (employeeId && employeeId !== "ALL") query = query.eq("task.logged_by", employeeId);
+    if (taskStatus && taskStatus !== "ALL") query = query.eq("task.status", taskStatus);
+
+    if (dateFrom) query = query.gte("created_at", dateFrom);
+    if (dateTo) query = query.lte("created_at", dateTo);
+
+    const trimmed = (search || "").trim();
+    if (trimmed) {
+      const esc = trimmed.replace(/%/g, "\\%").replace(/_/g, "\\_");
+      const like = `%${esc}%`;
+
+      // We cannot OR directly against embedded `task.*` fields in PostgREST.
+      // Instead: find matching task IDs, then OR `content` with `task_id in (...)`.
+      const { data: tasksMatch, error: taskSearchErr } = await supabase
+        .from("tasks")
+        .select("id")
+        .ilike("task_description", like)
+        .limit(500);
+      if (taskSearchErr) throw taskSearchErr;
+
+      const ids = (tasksMatch || []).map((t) => t.id).filter(Boolean);
+      if (ids.length > 0) {
+        // PostgREST expects: task_id.in.(uuid1,uuid2,...)
+        const inList = ids.join(",");
+        query = query.or(`content.ilike.${like},task_id.in.(${inList})`);
+      } else {
+        query = query.ilike("content", like);
+      }
+    }
+
+    query = query.range(safeOffset, safeOffset + safeLimit - 1);
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return (data || []).map((entry) => ({
+      id: entry.id,
+      taskId: entry.task_id,
+      taskDescription: entry.task?.task_description || null,
+      taskStatus: entry.task?.status || null,
+      taskLoggedBy: entry.task?.logged_by || null,
+      taskCreatorName: entry.task?.creator?.name || null,
+      taskCreatorDept: entry.task?.creator?.department || null,
+      taskCreatorSubDept: entry.task?.creator?.sub_department || null,
+      type: entry.type,
+      content: entry.content,
+      metadata: entry.metadata,
+      createdAt: entry.created_at,
+      authorId: entry.author_id,
+      authorName: entry.author?.name || null,
+      authorIsHead: entry.author?.is_head || false,
+      authorIsHr: entry.author?.is_hr || false,
+      authorIsSuperAdmin: entry.author?.is_super_admin || false,
+    }));
+  },
+
+  /**
    * Add a human comment to the task timeline
    */
   async addComment(taskId, authorId, content) {

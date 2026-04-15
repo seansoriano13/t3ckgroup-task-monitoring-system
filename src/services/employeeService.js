@@ -67,6 +67,8 @@ export const employeeService = {
           description: categoryData.description,
           department: categoryData.department,
           sub_department: categoryData.subDepartment,
+          updated_at: new Date().toISOString(),
+          updated_by: categoryData?.updatedBy || null,
         },
       ])
       .select()
@@ -76,13 +78,15 @@ export const employeeService = {
     return data;
   },
 
-  async updateCategory(id, categoryData) {
+  async updateCategory(id, categoryData, actorId = null) {
     const { data, error } = await supabase
       .from("categories")
       .update({
         description: categoryData.description,
         department: categoryData.department,
         sub_department: categoryData.subDepartment,
+        updated_at: new Date().toISOString(),
+        updated_by: actorId || categoryData?.updatedBy || null,
       })
       .eq("id", id)
       .select()
@@ -122,6 +126,8 @@ export const employeeService = {
           is_head: employeeData.isHead,
           is_hr: employeeData.isHr,
           is_super_admin: employeeData.isSuperAdmin,
+          updated_at: new Date().toISOString(),
+          updated_by: employeeData?.updatedBy || null,
         },
       ])
       .select()
@@ -131,7 +137,7 @@ export const employeeService = {
     return data;
   },
 
-  async updateEmployee(id, employeeData) {
+  async updateEmployee(id, employeeData, actorId = null) {
     const { data, error } = await supabase
       .from("employees")
       .update({
@@ -143,6 +149,8 @@ export const employeeService = {
         is_head: employeeData.isHead,
         is_hr: employeeData.isHr,
         is_super_admin: employeeData.isSuperAdmin,
+        updated_at: new Date().toISOString(),
+        updated_by: actorId || employeeData?.updatedBy || null,
       })
       .eq("id", id)
       .select()
@@ -152,10 +160,14 @@ export const employeeService = {
     return data;
   },
 
-  async deleteEmployee(id) {
+  async deleteEmployee(id, actorId = null) {
     const { error } = await supabase
       .from("employees")
-      .update({ is_deleted: true })
+      .update({
+        is_deleted: true,
+        updated_at: new Date().toISOString(),
+        updated_by: actorId,
+      })
       .eq("id", id);
     if (error) throw error;
     return true;

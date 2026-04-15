@@ -22,6 +22,7 @@ import { DollarSign } from "lucide-react";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Eye } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
 export default function SideNav({ onOpenAddTask }) {
   const { user } = useAuth();
@@ -70,6 +71,7 @@ export default function SideNav({ onOpenAddTask }) {
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
+      { label: "Activity Log", link: "/super-admin/activity-log", icon: ClipboardList },
       { label: "Profile", link: "/profile", icon: UserRound },
       { label: "Settings", link: "/settings", icon: Bolt },
     ];

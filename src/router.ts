@@ -33,6 +33,7 @@ export type Path =
   | `/sales/schedule/components/ScheduleTabs`
   | `/settings`
   | `/super-admin`
+  | `/super-admin/activity-log`
   | `/tasks`
 
 export type Params = {

@@ -3,9 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Plus, Edit, Trash2, Loader2, XSquare, ChevronDown } from "lucide-react";
 import { employeeService } from "../services/employeeService";
+import { useAuth } from "../context/AuthContext";
 
 export default function HRCategoriesConfig() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -90,8 +92,9 @@ export default function HRCategoriesConfig() {
 
   const upsertMutation = useMutation({
     mutationFn: async ({ mode, id, data }) => {
-      if (mode === "edit") return employeeService.updateCategory(id, data);
-      return employeeService.createCategory(data);
+      const actorId = user?.id || null;
+      if (mode === "edit") return employeeService.updateCategory(id, data, actorId);
+      return employeeService.createCategory({ ...data, updatedBy: actorId });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["allCategories"] });

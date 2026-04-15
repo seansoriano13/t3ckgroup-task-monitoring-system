@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { employeeService } from "../../../services/employeeService";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
+import { useAuth } from "../../../context/AuthContext";
 import {
   Search,
   UserPlus,
@@ -15,6 +16,7 @@ import {
 
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -33,7 +35,7 @@ export default function EmployeeManagement() {
   }, [employees, searchTerm]);
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => employeeService.deleteEmployee(id),
+    mutationFn: (id) => employeeService.deleteEmployee(id, user?.id || null),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allEmployees"] });
       toast.success("Employee deleted successfully");
@@ -212,6 +214,7 @@ const SALES_SUB_DEPTS = ["GOV", "NGO", "SALES"];
 
 function EmployeeFormModal({ employee, onClose }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const isEditing = !!employee;
 
   const [formData, setFormData] = useState(() => {
@@ -290,8 +293,8 @@ function EmployeeFormModal({ employee, onClose }) {
   const mutation = useMutation({
     mutationFn: (data) =>
       isEditing
-        ? employeeService.updateEmployee(employee.id, data)
-        : employeeService.createEmployee(data),
+        ? employeeService.updateEmployee(employee.id, data, user?.id || null)
+        : employeeService.createEmployee({ ...data, updatedBy: user?.id || null }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allEmployees"] });
       toast.success(isEditing ? "Employee updated!" : "Employee added!");
