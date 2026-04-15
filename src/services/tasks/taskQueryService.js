@@ -24,22 +24,48 @@ const extractSubmittedByName = (activityLogs = [], fallbackName = null) => {
 
 export const taskQueryService = {
   // 1. HR/HEAD VIEW: Get everything
-  async getAllTasks() {
-    const { data, error } = await supabase
+  async getAllTasks({ from = null, to = null } = {}) {
+    let query = supabase
       .from("tasks")
       .select(
         `
-        *, 
+        id,
+        created_at,
+        task_description,
+        project_title,
+        category_id,
+        logged_by,
+        edited_by,
+        edited_at,
+        evaluated_by,
+        evaluated_at,
+        reported_to,
+        start_at,
+        end_at,
+        status,
+        priority,
+        remarks,
+        grade,
+        hr_verified,
+        hr_remarks,
+        hr_verified_at,
+        payment_voucher,
+        attachment_urls,
         creator:employees!tasks_logged_by_fk(name, department, sub_department, email, is_super_admin),
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
         reportedToHead:employees!tasks_reported_to_fkey(name),
-        activityLogs:task_activity!task_activity_task_id_fkey(content, metadata, created_at),
         categories(description)
       `,
       )
       .neq("status", TASK_STATUS.DELETED)
       .order("created_at", { ascending: false });
+
+    if (Number.isInteger(from) && Number.isInteger(to) && from >= 0 && to >= from) {
+      query = query.range(from, to);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -52,7 +78,7 @@ export const taskQueryService = {
       loggedById: task.logged_by,
       loggedByName: task.creator?.name,
       loggedByEmail: task.creator?.email,
-      submittedByName: extractSubmittedByName(task.activityLogs, task.creator?.name),
+      submittedByName: task.creator?.name,
       creator: task.creator,
       editedById: task.edited_by,
       editedByName: task.editor?.name,
@@ -78,8 +104,8 @@ export const taskQueryService = {
   },
 
   // 2. EMPLOYEE VIEW: Get only tasks logged by the current user
-  async getMyTasks(userId) {
-    const { data, error } = await supabase
+  async getMyTasks(userId, { from = null, to = null } = {}) {
+    let query = supabase
       .from("tasks")
       .select(
         `
@@ -109,13 +135,18 @@ export const taskQueryService = {
         editor:employees!tasks_edited_by_fk(name),
         evaluator:employees!tasks_evaluated_by_fkey(name),
         reportedToHead:employees!tasks_reported_to_fkey(name),
-        activityLogs:task_activity!task_activity_task_id_fkey(content, metadata, created_at),
         categories(description)
       `,
       )
       .eq("logged_by", userId)
       .neq("status", TASK_STATUS.DELETED)
       .order("created_at", { ascending: false });
+
+    if (Number.isInteger(from) && Number.isInteger(to) && from >= 0 && to >= from) {
+      query = query.range(from, to);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -127,7 +158,7 @@ export const taskQueryService = {
       categoryDesc: task.categories?.description,
       loggedById: task.logged_by,
       loggedByName: task.creator?.name,
-      submittedByName: extractSubmittedByName(task.activityLogs, task.creator?.name),
+      submittedByName: task.creator?.name,
       creator: task.creator,
       editedById: task.edited_by,
       editedByName: task.editor?.name,
