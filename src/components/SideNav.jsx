@@ -85,18 +85,22 @@ export default function SideNav({ onOpenAddTask }) {
       if (isMasterHead) {
         // Master heads see both task approvals and sales verification
         navLinks.push(
-          { label: "For Approval", link: "/approvals", icon: ShieldCheck },
-          { label: "Sales Verification", link: "/approvals/sales", icon: ShieldCheck },
+          { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
+          {
+            label: "Sales Approval",
+            link: "/approvals/sales",
+            icon: ShieldCheck,
+          },
         );
       } else if (isSales) {
         navLinks.push({
-          label: "Sales Verification",
+          label: "Sales Approval",
           link: "/approvals/sales",
           icon: ShieldCheck,
         });
       } else {
         navLinks.push({
-          label: "For Approval",
+          label: "Task Approval",
           link: "/approvals",
           icon: ShieldCheck,
         });
@@ -208,7 +212,7 @@ export default function SideNav({ onOpenAddTask }) {
                 }}
                 className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
                 label={<Eye size={20} />}
-                title="For Approval"
+                title="Task Approval"
               />
             )}
           </div>
