@@ -152,7 +152,7 @@ export default function SideNav({ onOpenAddTask }) {
       onMouseLeave={() => setIsExpanded(false)}
     >
       {/* Pane 1: The Icon Strip (Always visible) */}
-      <aside className="relative z-50 text-gray-12 bg-gray-3 flex flex-col items-center w-14 md:w-[72px] px-2 md:px-4 py-8 gap-6 border-r border-gray-4">
+      <aside className="relative z-50 text-gray-12 bg-gray-3 flex flex-col items-center w-14 md:w-[72px] px-2 md:px-4 py-8 gap-6 border-r border-gray-4 overflow-y-auto scrollbar-hide">
         <button
           onClick={toggleSidebar}
           className="md:hidden p-2 text-gray-10 hover:text-gray-12 hover:bg-gray-4 rounded-xl transition-colors"
@@ -288,7 +288,7 @@ export default function SideNav({ onOpenAddTask }) {
   `}
       >
         {/* We fix the inner width so the text doesn't wrap weirdly during the animation */}
-        <nav className="w-64 px-6 py-8 flex flex-col gap-8 h-full">
+        <nav className="w-64 px-6 py-8 flex flex-col gap-8 h-full min-h-0">
           {/* Header with Close Action */}
           <div className="flex justify-between items-start">
             <div className="overflow-hidden">
@@ -310,7 +310,7 @@ export default function SideNav({ onOpenAddTask }) {
           </div>
 
           {/* The Mapped Navigation Links */}
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
             {navLinks.map((navLink) => {
               const Icon = navLink.icon;
               return (
