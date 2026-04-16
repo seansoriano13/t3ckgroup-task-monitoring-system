@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ChevronDown, ChevronUp, Maximize2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { formatDate } from "../../../utils/formatDate.js";
 import { formatTaskPreview } from "../../../utils/taskFormatters";
 import ImageAttachment from "../../../components/ImageAttachment.jsx";
@@ -15,11 +16,14 @@ export function ApprovalRow({
   defaultExpanded,
   onViewDetails,
   appSettings,
+  isSelected,
+  onToggleSelection,
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(null);
   const [remarks, setRemarks] = useState("");
   const [hrRemarks, setHrRemarks] = useState("");
+  const rowRef = useRef(null);
 
   useEffect(() => {
     if (defaultExpanded) {
@@ -27,64 +31,141 @@ export function ApprovalRow({
     }
   }, [defaultExpanded]);
 
+  useEffect(() => {
+    if (expanded && rowRef.current) {
+      // Small timeout ensures the container is fully rendered before focusing
+      setTimeout(() => rowRef.current.focus({ preventScroll: true }), 50);
+    }
+  }, [expanded]);
+
+  const handleKeyDown = (e) => {
+    if (!expanded || isSubmitting) return;
+
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      return;
+    }
+
+    if (!isHr) {
+      const keyMap = { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+      if (keyMap[e.key]) {
+        e.preventDefault();
+        const num = keyMap[e.key];
+        setGrade(num);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (grade !== null) {
+          handleHeadApprove();
+        } else {
+          toast.error("Select a grade (1-5) before pressing Enter to approve");
+        }
+      } else if (e.key.toLowerCase() === "x") {
+        e.preventDefault();
+        if (!remarks) {
+          toast.error("Evaluation remarks required to reject task");
+          return;
+        }
+        handleHeadReject();
+      }
+    } else {
+      if (e.key.toLowerCase() === "v" || e.key === "Enter") {
+        e.preventDefault();
+        handleHrVerify();
+      } else if (e.key.toLowerCase() === "x") {
+        e.preventDefault();
+        if (!hrRemarks) {
+          toast.error("HR verification notes required to reject task");
+          return;
+        }
+        handleHrReject();
+      }
+    }
+  };
+
   const isDelayed = useMemo(() => {
     if (!task?.createdAt) return false;
     const hrs = (new Date() - new Date(task.createdAt)) / (1000 * 60 * 60);
     return hrs >= 48;
   }, [task.createdAt]);
 
-  const handleHeadApprove = () => {
-    onProcess({
-      id: task.id,
-      status: TASK_STATUS.COMPLETE,
-      grade: grade,
-      remarks: remarks,
-      endAt: new Date().toISOString(),
-      evaluatedBy: currentUserId,
-      editedBy: currentUserId,
-      hrVerified: false,
-      hrRemarks: "",
-    });
+  const handleHeadApprove = async () => {
+    const toastId = toast.loading("Approving task...");
+    try {
+      await onProcess({
+        id: task.id,
+        status: TASK_STATUS.COMPLETE,
+        grade: grade,
+        remarks: remarks,
+        endAt: new Date().toISOString(),
+        evaluatedBy: currentUserId,
+        editedBy: currentUserId,
+        hrVerified: false,
+        hrRemarks: "",
+      });
+      toast.success("Task approved!", { id: toastId });
+    } catch {
+      toast.error("Failed to approve task", { id: toastId });
+    }
   };
 
-  const handleHeadReject = () => {
-    onProcess({
-      id: task.id,
-      status: "NOT APPROVED",
-      grade: 0,
-      remarks: remarks,
-      evaluatedBy: currentUserId,
-      editedBy: currentUserId,
-      hrVerified: false,
-      hrRemarks: "",
-    });
+  const handleHeadReject = async () => {
+    const toastId = toast.loading("Rejecting task...");
+    try {
+      await onProcess({
+        id: task.id,
+        status: "NOT APPROVED",
+        grade: 0,
+        remarks: remarks,
+        evaluatedBy: currentUserId,
+        editedBy: currentUserId,
+        hrVerified: false,
+        hrRemarks: "",
+      });
+      toast.success("Task rejected!", { id: toastId });
+    } catch {
+      toast.error("Failed to reject task", { id: toastId });
+    }
   };
 
-  const handleHrVerify = () => {
-    onProcess({
-      id: task.id,
-      status: TASK_STATUS.COMPLETE,
-      hrVerified: true,
-      hrVerifiedAt: new Date().toISOString(),
-      hrRemarks: hrRemarks,
-      editedBy: currentUserId,
-    });
+  const handleHrVerify = async () => {
+    const toastId = toast.loading("Verifying task...");
+    try {
+      await onProcess({
+        id: task.id,
+        status: TASK_STATUS.COMPLETE,
+        hrVerified: true,
+        hrVerifiedAt: new Date().toISOString(),
+        hrRemarks: hrRemarks,
+        editedBy: currentUserId,
+      });
+      toast.success("Task verified!", { id: toastId });
+    } catch {
+      toast.error("Failed to verify task", { id: toastId });
+    }
   };
 
-  const handleHrReject = () => {
-    onProcess({
-      id: task.id,
-      status: "NOT APPROVED",
-      hrVerified: false,
-      hrVerifiedAt: null,
-      hrRemarks: hrRemarks,
-      editedBy: currentUserId,
-    });
+  const handleHrReject = async () => {
+    const toastId = toast.loading("Rejecting task...");
+    try {
+      await onProcess({
+        id: task.id,
+        status: "NOT APPROVED",
+        hrVerified: false,
+        hrVerifiedAt: null,
+        hrRemarks: hrRemarks,
+        editedBy: currentUserId,
+      });
+      toast.success("Task rejected!", { id: toastId });
+    } catch {
+      toast.error("Failed to reject task", { id: toastId });
+    }
   };
 
   return (
     <div
-      className={`bg-gray-1 border transition-all rounded-xl shadow-sm ${
+      ref={rowRef}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className={`bg-gray-1 outline-none border transition-all rounded-xl shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${
         expanded
           ? "border-gray-6 shadow-lg"
           : "border-gray-4 hover:border-gray-6"
@@ -96,6 +177,17 @@ export function ApprovalRow({
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+          {appSettings?.enable_bulk_approval && isDelayed && onToggleSelection && (
+            <div className="shrink-0 flex items-center pr-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={!!isSelected}
+                onChange={() => onToggleSelection(task.id)}
+                className="w-5 h-5 rounded-md border-gray-4 text-purple-600 focus:ring-purple-500 accent-purple-600 hover:ring-2 hover:ring-purple-500/50 transition-all cursor-pointer shadow-sm"
+                title="Select for bulk approval"
+              />
+            </div>
+          )}
           <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-3 flex items-center justify-center font-bold text-gray-12 shrink-0 border border-gray-4 text-xs md:text-base">
             {task.loggedByName
               ? task.loggedByName.charAt(0).toUpperCase()
@@ -344,6 +436,25 @@ export function ApprovalRow({
                 </>
               )}
             </div>
+          </div>
+
+          {/* KEYBOARD SHORTCUTS HINT */}
+          <div className="mt-6 pt-3 border-t border-gray-4/50 flex justify-center opacity-70">
+            <p className="text-[10px] text-gray-8 font-bold tracking-widest uppercase flex items-center gap-2">
+              Shortcuts:
+              {!isHr ? (
+                <>
+                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">1-5</span> Select Grade
+                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">Enter</span> Approve
+                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                </>
+              ) : (
+                <>
+                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">V / Enter</span> Verify
+                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                </>
+              )}
+            </p>
           </div>
         </div>
       )}

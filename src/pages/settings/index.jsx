@@ -362,7 +362,7 @@ export default function SettingsPage() {
                     Enable Manager Bulk Approval
                   </p>
                   <p className="text-sm text-gray-9 max-w-sm">
-                    Allow Super Admins to bulk-approve all pending tasks to clear bottlenecks.
+                    Allow Super Admins to bulk-approve delayed pending tasks to clear bottlenecks.
                   </p>
                 </div>
               </div>

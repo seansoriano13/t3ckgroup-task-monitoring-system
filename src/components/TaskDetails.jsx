@@ -46,6 +46,7 @@ export default function TaskDetails({
   // Timeline message ref — used by the approval flow to grab the message
   // from the timeline input box when the head clicks Approve/Reject
   const timelineMessageRef = useRef("");
+  const modalRef = useRef(null);
 
   const [formData, setFormData] = useState({
     department: "",
@@ -144,6 +145,9 @@ export default function TaskDetails({
         setIsEditing(false);
         setIsSubmitting(false);
       }, 300);
+    } else {
+      // Focus modal for keyboard shortcuts
+      setTimeout(() => modalRef.current?.focus({ preventScroll: true }), 100);
     }
   }, [isOpen]);
 
@@ -240,11 +244,18 @@ export default function TaskDetails({
 
   const executeUpdate = async (payload, silent = false) => {
     if (!silent) setIsSubmitting(true);
+    const toastId = !silent ? toast.loading("Processing...") : undefined;
     try {
       await onUpdateTask(payload);
-      if (!silent) onClose();
+      if (!silent) {
+        toast.success("Task updated!", { id: toastId });
+        onClose();
+      }
     } catch {
-      if (!silent) setIsSubmitting(false);
+      if (!silent) {
+        toast.error("Failed to process task", { id: toastId });
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -253,6 +264,95 @@ export default function TaskDetails({
     const { department, subDepartment, status, grade, ...dbPayload } = formData;
 
     executeUpdate({ id: task.id, ...dbPayload, editedBy: user.id });
+  };
+
+  const handleApprove = () => {
+    if (approvalGrade === null) {
+      toast.error("Select a grade (1-5) before pressing Enter to approve");
+      return;
+    }
+    if (hasUncheckedItems) {
+      toast.error("Checklist items must be complete before approval");
+      return;
+    }
+    executeUpdate({
+      id: task.id,
+      status: TASK_STATUS.COMPLETE,
+      endAt: new Date().toISOString(),
+      grade: approvalGrade,
+      remarks: "",
+      activityMessage: timelineMessageRef.current || "",
+      evaluatedBy: user.id,
+      editedBy: user.id,
+      hrVerified: false,
+      hrRemarks: "",
+    });
+  };
+
+  const handleReject = () => {
+    if (!timelineMessageRef.current) {
+      toast.error("Remarks required to reject task in timeline");
+      return;
+    }
+    executeUpdate({
+      id: task.id,
+      status: TASK_STATUS.NOT_APPROVED,
+      endAt: new Date().toISOString(),
+      grade: 0,
+      remarks: "",
+      activityMessage: timelineMessageRef.current || "",
+      evaluatedBy: user.id,
+      editedBy: user.id,
+      hrVerified: false,
+      hrRemarks: "",
+    });
+  };
+
+  const handleVerify = () => {
+    if (task.status !== TASK_STATUS.COMPLETE) {
+      toast.error("Security policy limits verification exclusively to fully COMPLETE entries.");
+      return;
+    }
+    executeUpdate({
+      id: task.id,
+      status: TASK_STATUS.COMPLETE,
+      hrVerified: true,
+      hrVerifiedAt: new Date().toISOString(),
+      editedBy: user.id,
+      activityMessage: timelineMessageRef.current || "",
+    });
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen || isSubmitting || isEditing) return;
+
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+        if (e.key !== "Enter") return;
+    }
+    
+    if (isFinalized || !canEvaluate) return;
+
+    if (!isHr) {
+      const keyMap = { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+      if (keyMap[e.key] && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        setApprovalGrade(keyMap[e.key]);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        handleApprove();
+      } else if (e.key.toLowerCase() === "x" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        handleReject();
+      }
+    } else {
+      if ((e.key.toLowerCase() === "v" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") || e.key === "Enter") {
+        e.preventDefault();
+        handleVerify();
+      } else if (e.key.toLowerCase() === "x" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        handleReject();
+      }
+    }
   };
 
   const handleDelete = async () => {
@@ -303,7 +403,10 @@ export default function TaskDetails({
       />
 
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-gray-2 border-l border-gray-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        ref={modalRef}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-gray-2 border-l border-gray-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <TaskHeader
           isEditing={isEditing}
@@ -570,6 +673,27 @@ export default function TaskDetails({
                 <p>{formatDate(task.editedAt)}</p>
               </div>
             )}
+            
+            {/* KEYBOARD SHORTCUTS HINT */}
+            {!isFinalized && !isEditing && canEvaluate && (
+              <div className="pt-2 flex justify-center opacity-70 mb-4 pb-4">
+                <p className="text-[10px] text-gray-8 font-bold tracking-widest uppercase flex items-center gap-2">
+                  Shortcuts:
+                  {!isHr ? (
+                    <>
+                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">1-5</span> Select Grade
+                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">Enter</span> Approve
+                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                    </>
+                  ) : (
+                    <>
+                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">V / Enter</span> Verify
+                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -581,19 +705,7 @@ export default function TaskDetails({
             onToggleEdit: handleToggleEdit,
             onDelete: handleDelete,
 
-            onHeadReject: () =>
-              executeUpdate({
-                id: task.id,
-                status: TASK_STATUS.NOT_APPROVED,
-                endAt: new Date().toISOString(),
-                grade: 0,
-                remarks: "",
-                activityMessage: timelineMessageRef.current || "",
-                evaluatedBy: user.id,
-                editedBy: user.id,
-                hrVerified: false,
-                hrRemarks: "",
-              }),
+            onHeadReject: handleReject,
 
             onSubmitApproval: () => {
               const payload = {
@@ -607,19 +719,7 @@ export default function TaskDetails({
               return executeUpdate(payload);
             },
 
-            onMarkComplete: () =>
-              executeUpdate({
-                id: task.id,
-                status: TASK_STATUS.COMPLETE,
-                endAt: new Date().toISOString(),
-                grade: approvalGrade,
-                remarks: "",
-                activityMessage: timelineMessageRef.current || "",
-                evaluatedBy: user.id,
-                editedBy: user.id,
-                hrVerified: false,
-                hrRemarks: "",
-              }),
+            onMarkComplete: handleApprove,
 
             onUndoVerify: () =>
               executeUpdate({
@@ -630,23 +730,7 @@ export default function TaskDetails({
                 editedBy: user.id,
               }),
 
-            onHrVerify: () => {
-              if (task.status !== TASK_STATUS.COMPLETE) {
-                toast.error(
-                  "Security policy limits verification exclusively to fully COMPLETE entries.",
-                  { icon: "🔒" },
-                );
-                return;
-              }
-              executeUpdate({
-                id: task.id,
-                status: TASK_STATUS.COMPLETE,
-                hrVerified: true,
-                hrVerifiedAt: new Date().toISOString(),
-                editedBy: user.id,
-                activityMessage: timelineMessageRef.current || "",
-              });
-            },
+            onHrVerify: handleVerify,
 
             onSelfVerify: () =>
               executeUpdate({

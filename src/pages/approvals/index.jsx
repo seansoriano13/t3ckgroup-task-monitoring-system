@@ -65,6 +65,8 @@ export default function ApprovalsPage() {
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
   const [employeeFilter, setEmployeeFilter] = useState("ALL");
 
+  const [selectedTaskIds, setSelectedTaskIds] = useState([]);
+
   const [allEmployees, setAllEmployees] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
 
@@ -343,22 +345,43 @@ export default function ApprovalsPage() {
     },
   });
 
+  const delayedTasks = useMemo(() => {
+    return filteredTasks.filter((t) => {
+      if (!t.createdAt) return false;
+      const hrs = (new Date() - new Date(t.createdAt)) / (1000 * 60 * 60);
+      return hrs >= 48;
+    });
+  }, [filteredTasks]);
+
+  const handleSelectAllDelayed = () => {
+    const ids = delayedTasks.map(t => t.id);
+    setSelectedTaskIds(ids);
+  };
+
+  const handleDeselectAll = () => setSelectedTaskIds([]);
+
+  const toggleTaskSelection = (taskId) => {
+    setSelectedTaskIds(prev =>
+      prev.includes(taskId) ? prev.filter(id => id !== taskId) : [...prev, taskId]
+    );
+  };
+
   const handleBulkApprove = async () => {
-    const ids = filteredTasks.map((t) => t.id);
-    if (!ids.length) return;
+    if (!selectedTaskIds.length) return;
 
     if (
       !window.confirm(
-        `Bulk approve ${ids.length} currently filtered tasks? This will assign a neutral grade (3) and move them to completion.`,
+        `Bulk approve ${selectedTaskIds.length} selected tasks? This will assign a neutral grade (3) and move them to completion.`,
       )
     )
       return;
 
     try {
-      await taskService.bulkApproveTasks(ids, user.id);
+      await taskService.bulkApproveTasks(selectedTaskIds, user.id);
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success(`Success! ${ids.length} tasks cleared.`);
+      setSelectedTaskIds([]);
+      toast.success(`Success! ${selectedTaskIds.length} tasks cleared.`);
     } catch (err) {
       toast.error(err.message || "Bulk approval failed.");
     }
@@ -378,8 +401,11 @@ export default function ApprovalsPage() {
           isHr={isHr}
           isSuperAdmin={isSuperAdmin}
           appSettings={appSettings}
-          filteredTasksCount={filteredTasks.length}
           pendingTasksCount={pendingTasks.length}
+          delayedTasksCount={delayedTasks.length}
+          selectedCount={selectedTaskIds.length}
+          onSelectAllDelayed={handleSelectAllDelayed}
+          onDeselectAll={handleDeselectAll}
           handleBulkApprove={handleBulkApprove}
         />
 
@@ -425,7 +451,7 @@ export default function ApprovalsPage() {
               <ApprovalRow
                 key={task.id}
                 task={task}
-                isHr={isHr}
+                isHr={task.status === TASK_STATUS.COMPLETE}
                 currentUserId={user?.id}
                 defaultExpanded={task.id === autoOpenId}
                 onViewDetails={setViewTask}
@@ -435,8 +461,9 @@ export default function ApprovalsPage() {
                     editedBy: user.id,
                   })
                 }
-                isSubmitting={editTaskMutation.isPending}
                 appSettings={appSettings}
+                isSelected={selectedTaskIds.includes(task.id)}
+                onToggleSelection={isSuperAdmin && appSettings?.enable_bulk_approval ? toggleTaskSelection : undefined}
               />
             ))}
           </div>

@@ -1,11 +1,14 @@
-import { CheckCircle2, Clock } from "lucide-react";
+import { CheckCircle2, Clock, CheckSquare, XSquare } from "lucide-react";
 
 export function ApprovalHeader({
   isHr,
   isSuperAdmin,
   appSettings,
-  filteredTasksCount,
   pendingTasksCount,
+  delayedTasksCount,
+  selectedCount,
+  onSelectAllDelayed,
+  onDeselectAll,
   handleBulkApprove,
 }) {
   return (
@@ -21,16 +24,33 @@ export function ApprovalHeader({
         </p>
       </div>
       <div className="flex items-center gap-3">
-        {isSuperAdmin &&
-          appSettings?.enable_bulk_approval &&
-          filteredTasksCount > 0 && (
-            <button
-              onClick={handleBulkApprove}
-              className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-2"
-            >
-              <CheckCircle2 size={16} /> Bulk Approve All
-            </button>
-          )}
+        {isSuperAdmin && appSettings?.enable_bulk_approval && (
+          <>
+            {selectedCount > 0 ? (
+              <>
+                <button
+                  onClick={onDeselectAll}
+                  className="bg-gray-3 hover:bg-gray-4 text-gray-11 text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-sm flex items-center gap-2"
+                >
+                  <XSquare size={16} /> Deselect All
+                </button>
+                <button
+                  onClick={handleBulkApprove}
+                  className="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-2"
+                >
+                  <CheckCircle2 size={16} /> Approve {selectedCount} Selected
+                </button>
+              </>
+            ) : delayedTasksCount > 0 ? (
+              <button
+                onClick={onSelectAllDelayed}
+                className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-2"
+              >
+                <CheckSquare size={16} /> Select All Delayed
+              </button>
+            ) : null}
+          </>
+        )}
         <div className="bg-primary/10 border border-primary/20 px-4 py-2 rounded-lg flex items-center gap-2">
           <Clock size={16} className="text-primary" />
           <span className="text-primary font-bold">
