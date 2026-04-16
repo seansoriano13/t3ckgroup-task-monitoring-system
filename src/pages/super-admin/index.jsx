@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { Loader2, CheckCheck, PhilippinePeso, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, CheckCheck, PhilippinePeso, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { storageService } from "../../services/storageService";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
@@ -30,6 +31,9 @@ export default function SuperAdminDashboard() {
   // Draft quotas: map of employeeId -> value string (tracks unsaved edits)
   const [draftQuotas, setDraftQuotas] = useState({});
   const [isSavingAll, setIsSavingAll] = useState(false);
+  const [resolvedAvatars, setResolvedAvatars] = useState({});
+
+  const HTTP_URL_RE = /^https?:\/\//i;
 
   // 1. Fetch Sales Employees
   const { data: salesEmployees = EMPTY_ARRAY, isLoading: loadingEmps } = useQuery({
@@ -66,6 +70,44 @@ export default function SuperAdminDashboard() {
       });
     setDraftQuotas(freshDraft);
   }, [quotaMap, salesEmployees]);
+
+  // Batch resolve avatars
+  useEffect(() => {
+    if (salesEmployees.length === 0) return;
+
+    const resolveAvatars = async () => {
+      const supabasePaths = [];
+      const newResolved = { ...resolvedAvatars };
+
+      salesEmployees.forEach((emp) => {
+        if (emp.avatarPath) {
+          if (HTTP_URL_RE.test(emp.avatarPath)) {
+            newResolved[emp.id] = emp.avatarPath;
+          } else {
+            supabasePaths.push(emp.avatarPath);
+          }
+        }
+      });
+
+      if (supabasePaths.length > 0) {
+        try {
+          const signedResults = await storageService.getSignedUrls(supabasePaths);
+          signedResults.forEach((res) => {
+            const emp = salesEmployees.find((e) => e.avatarPath === res.path);
+            if (emp) {
+              newResolved[emp.id] = res.signedUrl;
+            }
+          });
+        } catch (error) {
+          console.error("Failed to batch resolve avatars:", error);
+        }
+      }
+
+      setResolvedAvatars(newResolved);
+    };
+
+    resolveAvatars();
+  }, [salesEmployees]);
 
   // Check if any draft differs from server value
   const hasPendingChanges = useMemo(() => {
@@ -176,6 +218,7 @@ export default function SuperAdminDashboard() {
                 employee={emp}
                 value={draftQuotas[emp.id] ?? "0"}
                 serverValue={quotaMap[emp.id] ?? 0}
+                avatarUrl={resolvedAvatars[emp.id]}
                 onChange={(val) =>
                   setDraftQuotas((prev) => ({ ...prev, [emp.id]: val }))
                 }
@@ -203,7 +246,7 @@ export default function SuperAdminDashboard() {
   );
 }
 
-function QuotaCard({ employee, value, serverValue, onChange }) {
+function QuotaCard({ employee, value, serverValue, avatarUrl, onChange }) {
   const isDirty = (parseFloat(value) || 0) !== serverValue;
   const inputRef = useRef(null);
 
@@ -245,11 +288,21 @@ function QuotaCard({ employee, value, serverValue, onChange }) {
         isDirty ? "border-purple-500/50 shadow-sm shadow-purple-500/10" : "border-gray-4"
       }`}
     >
-      <div>
-        <p className="font-bold text-gray-12 text-lg truncate">{employee.name}</p>
-        <p className="text-xs text-gray-9 font-bold uppercase tracking-wide mb-4 truncate">
-          {employee.role || employee.sub_department || "Sales Rep"}
-        </p>
+      <div className="flex items-start gap-4 mb-4">
+        <img
+          src={avatarUrl || "/default-avatar.png"}
+          alt={employee.name}
+          className="w-12 h-12 rounded-xl border border-gray-4 object-cover shadow-sm bg-gray-3 shrink-0"
+          onError={(e) => {
+            e.target.src = "/default-avatar.png";
+          }}
+        />
+        <div className="min-w-0">
+          <p className="font-bold text-gray-12 text-lg truncate">{employee.name}</p>
+          <p className="text-[10px] text-gray-9 font-black uppercase tracking-widest truncate">
+            {employee.role || employee.sub_department || "Sales Rep"}
+          </p>
+        </div>
       </div>
 
       <div className="relative">
