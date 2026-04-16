@@ -11,6 +11,7 @@ export type Path =
   | `/approvals/sales`
   | `/hr-master-log`
   | `/hr/employee-management`
+  | `/log-task`
   | `/login`
   | `/profile`
   | `/sales/daily`

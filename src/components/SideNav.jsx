@@ -1,38 +1,41 @@
-import { Plus, Bell, MessageCircle } from "lucide-react";
+import {
+  Plus,
+  Bell,
+  MessageCircle,
+  LayoutList,
+  UserRound,
+  ListCheck,
+  Bolt,
+  ShieldCheck,
+  Users,
+  Crown,
+  CalendarDays,
+  CheckSquare,
+  DollarSign,
+  X,
+  ClipboardList,
+  ChevronDown,
+  PanelLeft,
+  PanelRight,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { notificationService } from "../services/notificationService";
 import { activeChatService } from "../services/tasks/activeChatService";
 import NotificationDrawer from "./NotificationDrawer";
 import ActiveChatsDrawer from "./ActiveChatsDrawer";
-import PrimaryButton from "./PrimaryButton";
-import { Notebook } from "lucide-react";
-import { LayoutList } from "lucide-react";
-import { UserRound } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router";
-import { ListCheck } from "lucide-react";
-import { Bolt } from "lucide-react";
-import { ShieldCheck } from "lucide-react";
-import { Database } from "lucide-react";
-import { Users } from "lucide-react";
-import { Crown } from "lucide-react";
-import { CalendarDays } from "lucide-react";
-import { CheckSquare } from "lucide-react";
-import { DollarSign } from "lucide-react";
+import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
-import { X } from "lucide-react";
-import { Eye } from "lucide-react";
-import { ClipboardList } from "lucide-react";
+import Select, { components } from "react-select";
 
 export default function SideNav({ onOpenAddTask }) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // 🔥 The Hover State
-  const [isExpanded, setIsExpanded] = useState(false);
-  const toggleSidebar = () => setIsExpanded((prev) => !prev);
+  // Mobile Toggle State
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // 🔥 Notification State
+  // Notification State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications", user?.id],
@@ -41,7 +44,7 @@ export default function SideNav({ onOpenAddTask }) {
   });
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // 🔥 Active Chats State
+  // Active Chats State
   const [isChatsOpen, setIsChatsOpen] = useState(false);
   const { data: activeChats = [] } = useQuery({
     queryKey: ["activeChats", user?.id],
@@ -54,29 +57,25 @@ export default function SideNav({ onOpenAddTask }) {
     user?.department?.toLowerCase().includes("sales") ||
     user?.subDepartment?.toLowerCase().includes("sales");
 
-  // 1. Regular Employees Links
+  // Nav mapping logic mapped similarly to original implementation
   let navLinks = [];
 
   if (user?.isSuperAdmin) {
-    // STRICT SUPER ADMIN LAYOUT
     navLinks = [
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
       { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
-      {
-        label: "Sales Approval",
-        link: "/approvals/sales",
-        icon: ShieldCheck,
-      },
+      { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
-      { label: "Activity Log", link: "/super-admin/activity-log", icon: ClipboardList },
-      { label: "Profile", link: "/profile", icon: UserRound },
-      { label: "Settings", link: "/settings", icon: Bolt },
+      {
+        label: "Activity Log",
+        link: "/super-admin/activity-log",
+        icon: ClipboardList,
+      },
     ];
   } else {
-    // STANDARD & SALES LAYOUT
     navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
 
     if (!isSales) {
@@ -93,10 +92,9 @@ export default function SideNav({ onOpenAddTask }) {
 
     if (user?.isHead || user?.is_head) {
       const userSubDept = user?.subDepartment || user?.sub_department;
-      const isMasterHead = !userSubDept; // Department head without subdepartment = oversees everything
+      const isMasterHead = !userSubDept;
 
       if (isMasterHead) {
-        // Master heads see both task approvals and sales verification
         navLinks.push(
           { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
           {
@@ -121,13 +119,11 @@ export default function SideNav({ onOpenAddTask }) {
     }
 
     if (user?.isHr) {
-      navLinks.push(
-        {
-          label: "Employee Mgmt",
-          link: "/hr/employee-management",
-          icon: Users,
-        },
-      );
+      navLinks.push({
+        label: "Employee Mgmt",
+        link: "/hr/employee-management",
+        icon: Users,
+      });
       if (!isSales) {
         navLinks.push({
           label: "Sales Records",
@@ -136,181 +132,243 @@ export default function SideNav({ onOpenAddTask }) {
         });
       }
     }
-
-    // Universal bottom links
-    navLinks.push(
-      { label: "Profile", link: "/profile", icon: UserRound },
-      { label: "Settings", link: "/settings", icon: Bolt },
-    );
   }
 
-  return (
-    // The main wrapper listens for mouse enter and leave
-    <div
-      className="flex h-screen sticky top-0 z-50"
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
-    >
-      {/* Pane 1: The Icon Strip (Always visible) */}
-      <aside className="relative z-50 text-gray-12 bg-gray-3 flex flex-col items-center w-14 md:w-[72px] px-2 md:px-4 py-8 gap-6 border-r border-gray-4 overflow-y-auto scrollbar-hide">
-        <button
-          onClick={toggleSidebar}
-          className="md:hidden p-2 text-gray-10 hover:text-gray-12 hover:bg-gray-4 rounded-xl transition-colors"
-        >
-          {isExpanded ? <X size={24} /> : <LayoutList size={24} />}
-        </button>
-        <img
-          src={user?.picture || "/default-avatar.png"}
-          className="w-10 h-10 rounded-full border border-gray-5 shadow-sm object-cover"
-          alt="Profile"
-          referrerPolicy="no-referrer"
-        />
+  // React Select setup for Profile Dropdown
+  const profileOptions = [
+    { value: "profile", label: "Profile" },
+    { value: "settings", label: "Settings" },
+  ];
 
-        {/* Global Notification Hub Trigger */}
-        <button
-          onClick={() => {
-            setIsNotifOpen(true);
-            setIsExpanded(false);
-          }}
-          className="relative text-gray-10 hover:text-primary transition-colors p-2 rounded-xl hover:bg-red-a3 flex items-center justify-center group"
-          title="Notifications"
-        >
-          <Bell
-            size={24}
-            className="group-hover:scale-110 transition-transform"
-          />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-primary border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
-          )}
-        </button>
-
-        {/* Universal Active Chats Trigger */}
-        <button
-          onClick={() => {
-            setIsChatsOpen(true);
-            setIsExpanded(false);
-          }}
-          className="relative text-gray-10 hover:text-blue-500 transition-colors p-2 rounded-xl hover:bg-blue-500/10 flex items-center justify-center group"
-          title="Active Chats"
-        >
-          <MessageCircle
-            size={24}
-            className="group-hover:scale-110 transition-transform"
-          />
-          {unreadChatsCount > 0 && (
-            <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-blue-500 border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-          )}
-        </button>
-
-        {user?.isSuperAdmin ? (
-          <div className="flex flex-col gap-2 w-full mt-2">
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                onOpenAddTask();
-              }}
-              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Plus size={20} />}
-              title="Add Task"
-            />
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                navigate("/super-admin");
-              }}
-              className="bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Crown size={20} />}
-              title="Set Quotas"
-            />
-          </div>
-        ) : user?.isHr || user?.isHead || user?.is_head || user?.is_hr ? (
-          <div className="flex flex-col gap-2 w-full mt-2">
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                onOpenAddTask();
-              }}
-              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Plus size={20} />}
-              title="Add Task"
-            />
-            {(!isSales || user?.isHr || user?.is_hr) && (
-              <PrimaryButton
-                onClick={() => {
-                  setIsExpanded(false);
-                  navigate("/approvals");
-                }}
-                className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-                label={<Eye size={20} />}
-                title="Task Approval"
-              />
-            )}
-          </div>
-        ) : (
-          <div className="w-full mt-2 flex flex-col gap-2">
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                onOpenAddTask();
-              }}
-              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
-              label={<Plus size={20} />}
-              title="Add Task"
-            />
-            {isSales && (
-              <PrimaryButton
-                onClick={() => {
-                  setIsExpanded(false);
-                  navigate("/sales/schedule");
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-900/30 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
-                label={<CalendarDays size={20} />}
-                title="Sales Planner"
-              />
-            )}
-          </div>
-        )}
-      </aside>
-
-      {/* Pane 2: The Expanded Menu (Hidden by default, slides out over content) */}
-      <div
-        className={`
-    absolute top-0 h-full bg-gray-1 border-r border-gray-4 shadow-2xl transition-all duration-300 ease-in-out overflow-hidden z-40 
-    
-    /* 🔥 THE FIX: Match these to your Aside's width */
-    left-14 md:left-[72px] 
-
-    ${
-      isExpanded
-        ? "w-[calc(100vw-56px)] md:w-64 opacity-100" // 56px is the width of w-14
-        : "w-0 opacity-0 pointer-events-none"
+  const handleProfileSelect = (selected) => {
+    if (selected) {
+      navigate(`/${selected.value}`);
+      setIsMobileOpen(false);
     }
-  `}
-      >
-        {/* We fix the inner width so the text doesn't wrap weirdly during the animation */}
-        <nav className="w-64 px-6 py-8 flex flex-col gap-8 h-full min-h-0">
-          {/* Header with Close Action */}
-          <div className="flex justify-between items-start">
-            <div className="overflow-hidden">
-              <p className="text-lg font-bold text-gray-12 truncate">
-                {user?.name || "Loading..."}
-              </p>
-              <div className="text-gray-9 text-xs font-bold uppercase tracking-wider mt-1">
-                <p className="truncate">{user?.department || "Employee"}</p>
-              </div>
-            </div>
+  };
 
-            {/* Manual Close Button */}
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="text-gray-9 hover:text-red-9 transition-colors p-1 rounded-full hover:bg-gray-3"
-            >
-              <X size={18} />
-            </button>
+  const CustomPlaceholder = (props) => (
+    <components.Placeholder {...props}>
+      <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer hover:opacity-80 transition-opacity">
+        <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center bg-primary text-white font-bold text-[11px] shrink-0 shadow-sm">
+          {user?.department?.charAt(0)?.toUpperCase() || "T3"}
+        </div>
+        <span className="font-semibold text-[14.5px] truncate text-gray-12 uppercase tracking-wide mt-[1px]">
+          {user?.department || "T3CKGROUP"}
+        </span>
+      </div>
+    </components.Placeholder>
+  );
+
+  const CustomDropdownIndicator = (props) => (
+    <components.DropdownIndicator {...props}>
+      <ChevronDown size={14} className="text-gray-10" />
+    </components.DropdownIndicator>
+  );
+
+  const selectStyles = {
+    control: (base) => ({
+      ...base,
+      backgroundColor: "transparent",
+      border: "none",
+      boxShadow: "none",
+      cursor: "pointer",
+      minHeight: "auto",
+      padding: "4px",
+      borderRadius: "6px",
+      "&:hover": {
+        backgroundColor: "var(--color-gray-3, rgba(0,0,0,0.05))",
+      },
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: "0px 8px",
+    }),
+    indicatorSeparator: () => ({ display: "none" }),
+    menu: (base) => ({
+      ...base,
+      backgroundColor: "var(--color-gray-2, #fff)",
+      border: "1px solid var(--color-gray-4, #ddd)",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      borderRadius: "6px",
+      overflow: "hidden",
+      zIndex: 100,
+      marginTop: "4px",
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused
+        ? "var(--color-gray-3, #f1f5f9)"
+        : "transparent",
+      color: "var(--color-gray-11, #000)",
+      cursor: "pointer",
+      padding: "8px 12px",
+      fontSize: "13px",
+      fontWeight: 500,
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      padding: "0px 8px 0px 0px",
+    }),
+  };
+
+  return (
+    <>
+      {/* Mobile Drawer Trigger (PanelRight) */}
+      <div className="md:hidden fixed top-3 left-3 z-40">
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="text-gray-11 hover:text-gray-12 bg-gray-2/80 backdrop-blur-md border border-gray-4 p-1.5 rounded-lg shadow-sm transition-colors"
+        >
+          <PanelRight size={18} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Mobile Backdrop Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Merged Single-Pane Sidebar Container */}
+      <aside
+        className={`
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          fixed md:sticky top-0 left-0 h-screen z-50 flex flex-col 
+          bg-gray-2  text-sm font-sans
+          transition-transform duration-300 ease-in-out
+          w-[240px] shrink-0 overflow-y-auto scrollbar-hide
+        `}
+      >
+        {/* Mobile Close Action (PanelLeft) */}
+        <div className="md:hidden absolute top-4 right-4 z-50">
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="text-gray-10 hover:text-gray-12 p-1 bg-gray-2 rounded-md shadow-sm border border-gray-4"
+          >
+            <PanelLeft size={18} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* 1. Header (React Select Profile Dropdown) */}
+        <div className="px-3 pt-6 pb-2">
+          <Select
+            options={profileOptions}
+            value={null}
+            onChange={handleProfileSelect}
+            components={{
+              Placeholder: CustomPlaceholder,
+              DropdownIndicator: CustomDropdownIndicator,
+            }}
+            styles={selectStyles}
+            isSearchable={false}
+          />
+        </div>
+
+        {/* 2. Top Action (Log Task) */}
+        <div className="px-3 mb-5 mt-1">
+          <button
+            onClick={() => {
+              setIsMobileOpen(false);
+              navigate("/log-task");
+            }}
+            className="flex items-center gap-2.5 px-2.5 py-1.5 text-gray-11 hover:text-gray-12 hover:bg-gray-3 rounded-md font-medium transition-colors text-left w-full group"
+          >
+            <Plus
+              size={15}
+              strokeWidth={2.5}
+              className="text-gray-10 group-hover:text-gray-11"
+            />
+            <span className="text-[13.5px] mt-[1px]">Log Task</span>
+          </button>
+        </div>
+
+        {/* 3. Notification & Chats */}
+        <div className="px-3 flex flex-col gap-0.5 mb-6">
+          <button
+            onClick={() => {
+              setIsNotifOpen(true);
+              setIsMobileOpen(false);
+            }}
+            className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors group ${isNotifOpen ? "bg-gray-4 text-gray-12" : "hover:bg-gray-3 text-gray-11 hover:text-gray-12"}`}
+          >
+            <div className="flex items-center gap-2.5">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-10 group-hover:text-gray-11"
+              >
+                <path d="M4 11V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
+                <path d="M4 11h3a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2h3" />
+                <path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              </svg>
+              <span
+                className={`font-medium text-[13.5px] ${isNotifOpen ? "text-gray-12" : ""}`}
+              >
+                Notification
+              </span>
+            </div>
+            {unreadCount > 0 && (
+              <span className="text-[11px] font-medium text-gray-11 group-hover:text-gray-12 bg-gray-3 group-hover:bg-gray-4 px-1.5 py-0.5 rounded-full">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => {
+              setIsChatsOpen(true);
+              setIsMobileOpen(false);
+            }}
+            className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors group ${isChatsOpen ? "bg-gray-4 text-gray-12" : "bg-gray-3 text-gray-12 shadow-sm border border-gray-4"}`}
+          >
+            <div className="flex items-center gap-2.5">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-11"
+              >
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <path d="M9 12h6" />
+                <path d="M12 9v6" />
+              </svg>
+              <span className="font-medium text-[13.5px]">Chats</span>
+            </div>
+            {unreadChatsCount > 0 && (
+              <span className="text-[11px] font-medium text-gray-12 bg-gray-4 px-1.5 py-0.5 rounded-full">
+                {unreadChatsCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* 4. Combined Workspace Menus */}
+        <div className="px-3 flex-1 flex flex-col text-gray-11 pb-4">
+          <div className="px-2.5 mb-1.5 flex items-center justify-between text-gray-10 group/header cursor-pointer">
+            <span className="text-[12px] font-medium tracking-wide">
+              Workspace
+            </span>
+            <ChevronDown
+              size={14}
+              className="opacity-0 group-hover/header:opacity-100 transition-opacity"
+            />
           </div>
 
-          {/* The Mapped Navigation Links */}
-          <ul className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
+          <nav className="flex flex-col gap-0.5 mb-6">
             {navLinks.map((navLink) => {
               const Icon = navLink.icon;
               return (
@@ -322,35 +380,35 @@ export default function SideNav({ onOpenAddTask }) {
                     navLink.link === "/approvals" ||
                     navLink.link === "/super-admin"
                   }
-                  onClick={() => setIsExpanded(false)} // 👈 Closes sidebar upon navigation!
+                  onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex gap-3 items-center px-3 py-3 rounded-lg font-semibold transition-all ${
+                    `flex gap-2.5 items-center px-2.5 py-1.5 rounded-md font-medium transition-colors ${
                       isActive
-                        ? "text-red-9 bg-red-a3" // Active state styling
-                        : "text-gray-10 hover:text-gray-12 hover:bg-gray-3"
+                        ? "text-gray-12 bg-gray-4"
+                        : "hover:text-gray-12 hover:bg-gray-3 text-gray-11"
                     }`
                   }
                 >
-                  <Icon size={20} />
-                  <p className="whitespace-nowrap">{navLink.label}</p>
+                  <Icon size={15} strokeWidth={2.2} className="text-gray-10" />
+                  <span className="truncate text-[13.5px] mt-[1px]">
+                    {navLink.label}
+                  </span>
                 </NavLink>
               );
             })}
-          </ul>
-        </nav>
-      </div>
+          </nav>
+        </div>
+      </aside>
 
-      {/* Global Notification Drawer */}
+      {/* Drawers */}
       <NotificationDrawer
         isOpen={isNotifOpen}
         onClose={() => setIsNotifOpen(false)}
       />
-
-      {/* Global Active Chats Drawer */}
       <ActiveChatsDrawer
         isOpen={isChatsOpen}
         onClose={() => setIsChatsOpen(false)}
       />
-    </div>
+    </>
   );
 }
