@@ -17,6 +17,7 @@ import {
   ChevronDown,
   PanelLeft,
   PanelRight,
+  SquarePen,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +27,7 @@ import NotificationDrawer from "./NotificationDrawer";
 import ActiveChatsDrawer from "./ActiveChatsDrawer";
 import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
+import { LogTaskModal } from "../pages/log-task/index.jsx";
 import Select, { components } from "react-select";
 
 export default function SideNav({ onOpenAddTask }) {
@@ -34,6 +36,7 @@ export default function SideNav({ onOpenAddTask }) {
 
   // Mobile Toggle State
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isLogTaskOpen, setIsLogTaskOpen] = useState(false);
 
   // Notification State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -177,7 +180,7 @@ export default function SideNav({ onOpenAddTask }) {
       padding: "4px",
       borderRadius: "6px",
       "&:hover": {
-        backgroundColor: "var(--color-gray-3, rgba(0,0,0,0.05))",
+        backgroundColor: "var(--color-red-a1, rgba(255,0,0,0.05))",
       },
     }),
     valueContainer: (base) => ({
@@ -198,7 +201,7 @@ export default function SideNav({ onOpenAddTask }) {
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isFocused
-        ? "var(--color-gray-3, #f1f5f9)"
+        ? "var(--color-red-a1)"
         : "transparent",
       color: "var(--color-gray-11, #000)",
       cursor: "pointer",
@@ -252,49 +255,45 @@ export default function SideNav({ onOpenAddTask }) {
           </button>
         </div>
 
-        {/* 1. Header (React Select Profile Dropdown) */}
-        <div className="px-3 pt-6 pb-2">
-          <Select
-            options={profileOptions}
-            value={null}
-            onChange={handleProfileSelect}
-            components={{
-              Placeholder: CustomPlaceholder,
-              DropdownIndicator: CustomDropdownIndicator,
-            }}
-            styles={selectStyles}
-            isSearchable={false}
-          />
-        </div>
-
-        {/* 2. Top Action (Log Task) */}
-        <div className="px-3 mb-5 mt-1">
+        {/* 1. Header (React Select Profile Dropdown + Log Task Button) */}
+        <div className="px-3 pt-6 pb-2 flex items-center gap-1.5">
+          <div className="flex-1 min-w-0">
+            <Select
+              options={profileOptions}
+              value={null}
+              onChange={handleProfileSelect}
+              components={{
+                Placeholder: CustomPlaceholder,
+                DropdownIndicator: CustomDropdownIndicator,
+              }}
+              styles={selectStyles}
+              isSearchable={false}
+            />
+          </div>
           <button
             onClick={() => {
               setIsMobileOpen(false);
-              navigate("/log-task");
+              setIsLogTaskOpen(true);
             }}
-            className="flex items-center gap-2.5 px-2.5 py-1.5 text-gray-11 hover:text-gray-12 hover:bg-gray-3 rounded-md font-medium transition-colors text-left w-full group"
+            className="shrink-0 p-2 rounded-lg border border-gray-4 bg-gray-1 text-gray-11 hover:text-gray-12 hover:bg-red-a1 hover:border-red-a2 transition-all"
+            title="Log new task"
           >
-            <Plus
-              size={15}
-              strokeWidth={2.5}
-              className="text-gray-10 group-hover:text-gray-11"
-            />
-            <span className="text-[13.5px] mt-[1px]">Log Task</span>
+            <SquarePen size={15} strokeWidth={2.2} />
           </button>
         </div>
 
+
+
         {/* 3. Notification & Chats */}
-        <div className="px-3 flex flex-col gap-0.5 mb-6">
+        <div className="px-3 flex flex-col gap-1 mb-8">
           <button
             onClick={() => {
               setIsNotifOpen(true);
               setIsMobileOpen(false);
             }}
-            className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors group ${isNotifOpen ? "bg-gray-4 text-gray-12" : "hover:bg-gray-3 text-gray-11 hover:text-gray-12"}`}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isNotifOpen ? "bg-red-a2 text-gray-12" : "hover:bg-red-a1 text-gray-11 hover:text-gray-12"}`}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3.5">
               <svg
                 width="15"
                 height="15"
@@ -328,9 +327,9 @@ export default function SideNav({ onOpenAddTask }) {
               setIsChatsOpen(true);
               setIsMobileOpen(false);
             }}
-            className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors group ${isChatsOpen ? "bg-gray-4 text-gray-12" : "bg-gray-3 text-gray-12 shadow-sm border border-gray-4"}`}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isChatsOpen ? "bg-red-a2 text-gray-12" : "hover:bg-red-a1 text-gray-11 hover:text-gray-12"}`}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3.5">
               <svg
                 width="15"
                 height="15"
@@ -358,7 +357,7 @@ export default function SideNav({ onOpenAddTask }) {
 
         {/* 4. Combined Workspace Menus */}
         <div className="px-3 flex-1 flex flex-col text-gray-11 pb-4">
-          <div className="px-2.5 mb-1.5 flex items-center justify-between text-gray-10 group/header cursor-pointer">
+          <div className="px-3 mt-2 mb-3 flex items-center justify-between text-gray-10 group/header cursor-pointer">
             <span className="text-[12px] font-medium tracking-wide">
               Workspace
             </span>
@@ -368,7 +367,7 @@ export default function SideNav({ onOpenAddTask }) {
             />
           </div>
 
-          <nav className="flex flex-col gap-0.5 mb-6">
+          <nav className="flex flex-col gap-1 mb-6">
             {navLinks.map((navLink) => {
               const Icon = navLink.icon;
               return (
@@ -382,10 +381,9 @@ export default function SideNav({ onOpenAddTask }) {
                   }
                   onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex gap-2.5 items-center px-2.5 py-1.5 rounded-md font-medium transition-colors ${
-                      isActive
-                        ? "text-gray-12 bg-gray-4"
-                        : "hover:text-gray-12 hover:bg-gray-3 text-gray-11"
+                    `flex gap-3.5 items-center px-3 py-2.5 rounded-md font-medium transition-colors ${isActive
+                      ? "text-gray-12 bg-red-a2"
+                      : "hover:text-gray-12 hover:bg-red-a1 text-gray-11"
                     }`
                   }
                 >
@@ -408,6 +406,10 @@ export default function SideNav({ onOpenAddTask }) {
       <ActiveChatsDrawer
         isOpen={isChatsOpen}
         onClose={() => setIsChatsOpen(false)}
+      />
+      <LogTaskModal
+        isOpen={isLogTaskOpen}
+        onClose={() => setIsLogTaskOpen(false)}
       />
     </>
   );
