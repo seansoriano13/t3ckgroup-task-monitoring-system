@@ -26,6 +26,11 @@ const PIE_COLORS = [
 ];
 
 const currencyFormatter = (value) => `₱${Number(value).toLocaleString()}`;
+import {
+  USE_LOCAL_DEMO_DATA,
+  MOCK_LEADERBOARD,
+  MOCK_PRODUCT_DATA,
+} from "./salesChartsMockData";
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -45,9 +50,10 @@ const CustomTooltip = ({ active, payload, label }) => {
  * Revenue comparison bar chart — Won vs Lost per employee.
  */
 export function RepRevenueChart({ leaderboard }) {
-  if (!leaderboard?.length) return null;
+  const sourceLeaderboard = USE_LOCAL_DEMO_DATA ? MOCK_LEADERBOARD : leaderboard;
+  if (!sourceLeaderboard?.length) return null;
 
-  const data = leaderboard
+  const data = sourceLeaderboard
     .filter((e) => e.revenueWon > 0 || e.revenueLost > 0)
     .slice(0, 10)
     .map((e) => ({
@@ -96,9 +102,10 @@ export function RepRevenueChart({ leaderboard }) {
  * Product breakdown pie chart + ranked list.
  */
 export function ProductBreakdownChart({ productData }) {
-  if (!productData?.length) return null;
+  const sourceProductData = USE_LOCAL_DEMO_DATA ? MOCK_PRODUCT_DATA : productData;
+  if (!sourceProductData?.length) return null;
 
-  const topProducts = productData.slice(0, 8);
+  const topProducts = sourceProductData.slice(0, 8);
   const pieData = topProducts.map((p) => ({
     name: p.name.length > 20 ? p.name.slice(0, 20) + "…" : p.name,
     fullName: p.name,
@@ -191,8 +198,11 @@ export function ProductBreakdownChart({ productData }) {
  * Win Rate gauge — simple visual showing overall team win rate.
  */
 export function WinRateGauge({ leaderboard }) {
-  const totalWon = leaderboard.reduce((s, e) => s + e.dealsWon, 0);
-  const totalLost = leaderboard.reduce((s, e) => s + e.dealsLost, 0);
+  const sourceLeaderboard = USE_LOCAL_DEMO_DATA ? MOCK_LEADERBOARD : leaderboard;
+  if (!sourceLeaderboard?.length) return null;
+
+  const totalWon = sourceLeaderboard.reduce((s, e) => s + e.dealsWon, 0);
+  const totalLost = sourceLeaderboard.reduce((s, e) => s + e.dealsLost, 0);
   const totalDeals = totalWon + totalLost;
   const winRate =
     totalDeals > 0 ? Math.round((totalWon / totalDeals) * 100) : null;

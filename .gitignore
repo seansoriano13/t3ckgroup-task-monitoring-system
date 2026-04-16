@@ -36,3 +36,4 @@ MEETING.MD
 supabase/.temp
 supabase/.branches
 supabase/.cache
+src/components/sales-dashboard/salesChartsMockData.js
