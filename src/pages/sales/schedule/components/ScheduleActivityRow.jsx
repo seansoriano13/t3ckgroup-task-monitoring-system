@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Trash2, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Trash2, ChevronDown, Wand2, MoreVertical } from "lucide-react";
+import Select from "react-select";
 
 export function ScheduleActivityRow({
   data,
@@ -7,20 +8,165 @@ export function ScheduleActivityRow({
   onDelete,
   onUseSmartSuggestion,
   onApplyTemplate,
+  onClearSlot,
+  onDuplicateSlot,
+  onSaveCustomTemplate,
   canDelete,
   disabled,
   slotNum,
   availableCategories = [],
   compactMode = false,
   scheduleTemplates = [],
+  customTemplates = [],
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+  
   const isFilled = data.activity_type !== "None" || !!data.account_name;
+
+  // react-select styling
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      backgroundColor: "transparent",
+      border: "none",
+      boxShadow: "none",
+      minHeight: "32px",
+      fontSize: "14px",
+      fontWeight: isFilled ? "700" : "400",
+      color: isFilled ? "#111827" : "#9CA3AF",
+      cursor: "pointer",
+      "&:hover": { borderColor: "transparent" },
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: "0",
+    }),
+    input: (base) => ({
+      ...base,
+      color: "inherit",
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "#9CA3AF",
+      fontWeight: "400",
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: "inherit",
+    }),
+    indicatorsContainer: (base) => ({
+      ...base,
+      display: "none", // We'll use our own arrow or none to stay tight
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: "12px",
+      border: "1px solid #E5E7EB",
+      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      marginTop: "4px",
+      overflow: "hidden",
+      zIndex: 50,
+    }),
+    groupHeading: (base) => ({
+      ...base,
+      fontSize: "10px",
+      fontWeight: "800",
+      textTransform: "uppercase",
+      color: "#9CA3AF",
+      backgroundColor: "#F9FAFB",
+      padding: "8px 12px",
+      margin: "0",
+    }),
+    option: (base, state) => ({
+      ...base,
+      fontSize: "13px",
+      fontWeight: "600",
+      padding: "8px 12px",
+      backgroundColor: state.isFocused ? "#F3F4F6" : state.isSelected ? "#F9FAFB" : "white",
+      color: state.isSelected ? "#111827" : "#374151",
+      cursor: "pointer",
+      "&:active": { backgroundColor: "#E5E7EB" },
+    }),
+  };
+
+  const options = useMemo(() => {
+    const opts = [];
+    
+    if (availableCategories.length > 0) {
+      opts.push({
+        label: "Categories",
+        options: availableCategories.map((cat) => ({ value: cat, label: cat })),
+      });
+    }
+    
+    if (scheduleTemplates.length > 0) {
+      opts.push({
+        label: "Standard Templates",
+        options: scheduleTemplates.map((tpl) => ({ 
+          value: `std_tpl:${tpl.id}`, 
+          label: tpl.label 
+        })),
+      });
+    }
+    
+    if (customTemplates.length > 0) {
+      opts.push({
+        label: "My Custom Templates",
+        options: customTemplates.map((tpl, idx) => ({ 
+          value: `cstm_tpl:${idx}`, 
+          label: tpl.template_name 
+        })),
+      });
+    }
+    
+    return opts;
+  }, [availableCategories, scheduleTemplates, customTemplates]);
+
+  const currentOption = useMemo(() => {
+    if (!data.activity_type || data.activity_type === "None") return null;
+    return { value: data.activity_type, label: data.activity_type };
+  }, [data.activity_type]);
+
+  const handleSelectChange = (option) => {
+    if (!option) {
+      onChange("activity_type", "None");
+      return;
+    }
+    const val = option.value;
+    if (val.startsWith("std_tpl:")) {
+      const tplId = val.split(":")[1];
+      onApplyTemplate(tplId);
+    } else if (val.startsWith("cstm_tpl:")) {
+      const idx = val.split(":")[1];
+      const tpl = customTemplates[idx];
+      if (tpl && tpl.template_payload) {
+        Object.entries(tpl.template_payload).forEach(([field, value]) => {
+          if (value !== undefined) {
+             onChange(field, value);
+          }
+        });
+      }
+    } else {
+      onChange("activity_type", val);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div
-      className={`bg-gray-1 border ${isFilled ? "border-gray-6 shadow-md" : "border-gray-4"} rounded-xl overflow-hidden transition-all delay-75`}
+      className={`bg-gray-1 border ${isFilled ? "border-gray-5 shadow-sm" : "border-gray-3"} rounded-xl overflow-visible transition-all delay-75`}
     >
       {/* Accordion Header */}
       <div
@@ -31,21 +177,19 @@ export function ScheduleActivityRow({
           <span className="bg-gray-3 text-gray-10 font-bold w-6 h-6 flex items-center justify-center rounded-full text-xs shrink-0">
             {slotNum}
           </span>
-          <div className="max-w-[150px] w-full shrink-0">
-            <select
-              value={data.activity_type}
-              onChange={(e) => onChange("activity_type", e.target.value)}
-              disabled={disabled}
+          <div className="max-w-[170px] w-full shrink-0">
+            <Select
+              options={options}
+              value={currentOption}
+              onChange={handleSelectChange}
+              isDisabled={disabled}
+              placeholder="Select activity..."
+              styles={selectStyles}
+              onMenuOpen={() => !disabled && setIsExpanded(true)} // Keep open when selecting
+              classNamePrefix="rs"
+              isSearchable={true}
               onClick={(e) => e.stopPropagation()}
-              className="bg-transparent font-bold text-sm text-gray-12 outline-none w-full cursor-pointer disabled:cursor-not-allowed"
-            >
-              <option value="None">No Activity</option>
-              {availableCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           {isFilled && (
             <span className="text-sm text-gray-12 font-medium truncate hidden sm:block flex-1">
@@ -55,27 +199,7 @@ export function ScheduleActivityRow({
             </span>
           )}
         </div>
-        <div className="flex gap-2 items-center">
-          {!disabled && (
-            <select
-              defaultValue=""
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                if (e.target.value) onApplyTemplate(e.target.value);
-                e.target.value = "";
-              }}
-              className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-violet-500/10 text-violet-700 border border-violet-500/20"
-            >
-              <option value="" disabled>
-                Template
-              </option>
-              {scheduleTemplates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.label}
-                </option>
-              ))}
-            </select>
-          )}
+        <div className="flex gap-1.5 items-center">
           {!disabled && (
             <button
               type="button"
@@ -83,29 +207,60 @@ export function ScheduleActivityRow({
                 e.stopPropagation();
                 onUseSmartSuggestion();
               }}
-              className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-violet-700 bg-violet-500/10 hover:bg-violet-500/20 rounded shadow-sm transition-all"
-              title="Use smart suggestion from previous day/week"
+              className="p-1.5 text-gray-7 hover:text-violet-600 hover:bg-violet-100 rounded-lg transition-colors"
+              title="Smart Fill (Use previous entry)"
             >
-              Smart Fill
+              <Wand2 size={16} />
             </button>
           )}
-          {!disabled && canDelete && (
+          <ChevronDown
+            size={18}
+            className={`text-gray-6 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          />
+          <div ref={menuRef} className="relative ml-1">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete();
+                setShowMenu(!showMenu);
               }}
-              className="p-1.5 text-gray-9 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
-              title="Remove Extra Added Slot"
+              className="p-1 text-gray-6 hover:text-gray-10 hover:bg-gray-3 rounded transition-colors"
             >
-              <Trash2 size={16} />
+              <MoreVertical size={18} />
             </button>
-          )}
-          <ChevronDown
-            size={20}
-            className={`text-gray-8 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-          />
+            {showMenu && (
+              <div 
+                className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-3 rounded-xl shadow-lg py-1 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => { setShowMenu(false); onDuplicateSlot(); }}
+                  disabled={disabled}
+                  className="w-full text-left px-3 py-2 text-sm text-gray-10 hover:bg-gray-2 hover:text-gray-12 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Duplicate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowMenu(false); canDelete ? onDelete() : onClearSlot(); }}
+                  disabled={disabled}
+                  className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Clear Row
+                </button>
+                {isFilled && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowMenu(false); onSaveCustomTemplate(); }}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-10 hover:bg-gray-2 hover:text-gray-12 transition-colors"
+                  >
+                    Save as Custom Template
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

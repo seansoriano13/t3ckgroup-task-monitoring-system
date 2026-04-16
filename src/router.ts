@@ -31,6 +31,7 @@ export type Path =
   | `/sales/schedule/components/ScheduleDayView`
   | `/sales/schedule/components/ScheduleHeader`
   | `/sales/schedule/components/ScheduleTabs`
+  | `/sales/schedule/components/TemplateModals`
   | `/settings`
   | `/super-admin`
   | `/super-admin/activity-log`

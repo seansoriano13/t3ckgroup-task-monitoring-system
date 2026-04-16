@@ -6,6 +6,7 @@ import { salesExecutionService } from "./sales/salesExecutionService";
 import { salesVerificationService } from "./sales/salesVerificationService";
 import { salesRevenueService } from "./sales/salesRevenueService";
 import { salesAdminService } from "./sales/salesAdminService";
+import { salesTemplateService } from "./sales/salesTemplateService";
 
 export const salesService = {
   ...salesQuotaService,
@@ -16,4 +17,5 @@ export const salesService = {
   ...salesVerificationService,
   ...salesRevenueService,
   ...salesAdminService,
+  ...salesTemplateService,
 };

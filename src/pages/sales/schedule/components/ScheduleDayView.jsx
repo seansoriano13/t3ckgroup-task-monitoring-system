@@ -8,14 +8,18 @@ export function ScheduleDayView({
   categories,
   compactMode,
   scheduleTemplates,
+  customTemplates,
   isLocked,
   getSlotData,
   updateSlotData,
   handleDeleteSlot,
+  handleClearSlot,
+  handleDuplicateSlot,
   handleUseSmartSuggestion,
   handleApplyTemplate,
   handleAddSlot,
   handleActionSelect,
+  openSaveModal,
 }) {
   return (
     <>
@@ -38,6 +42,8 @@ export function ScheduleDayView({
               <option value="clear_am">Clear AM Block</option>
               <option value="clear_pm">Clear PM Block</option>
               <option value="clear_day">Wipe Entire Day</option>
+              <option disabled>──────────</option>
+              <option value="manage_templates">Manage Templates</option>
               <option disabled>──────────</option>
               {weekDates
                 .filter((d) => d.dateStr !== currentDateObj.dateStr)
@@ -104,22 +110,17 @@ export function ScheduleDayView({
                 }
                 compactMode={compactMode}
                 scheduleTemplates={scheduleTemplates}
+                customTemplates={customTemplates}
                 canDelete={slotIdx >= 5}
                 disabled={isLocked}
                 slotNum={slotIdx + 1}
                 availableCategories={categories}
+                onClearSlot={() => handleClearSlot(currentDateObj.dateStr, "AM", slotIdx)}
+                onDuplicateSlot={() => handleDuplicateSlot(currentDateObj.dateStr, "AM", slotIdx)}
+                onSaveCustomTemplate={() => openSaveModal(currentData)}
               />
             );
           })}
-          {!isLocked &&
-            (slotCounts[`${currentDateObj.dateStr}-AM`] || 5) < 8 && (
-              <button
-                onClick={() => handleAddSlot(currentDateObj.dateStr, "AM")}
-                className="w-full py-3 mt-2 border-2 border-dashed border-gray-4 hover:border-primary hover:text-primary hover:bg-primary/5 text-gray-9 font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
-              >
-                <Plus size={16} /> Add Extra Schedule Item
-              </button>
-            )}
         </div>
 
         {/* PM COLUMN */}
@@ -167,22 +168,17 @@ export function ScheduleDayView({
                 }
                 compactMode={compactMode}
                 scheduleTemplates={scheduleTemplates}
+                customTemplates={customTemplates}
                 canDelete={slotIdx >= 5}
                 disabled={isLocked}
                 slotNum={slotIdx + 1}
                 availableCategories={categories}
+                onClearSlot={() => handleClearSlot(currentDateObj.dateStr, "PM", slotIdx)}
+                onDuplicateSlot={() => handleDuplicateSlot(currentDateObj.dateStr, "PM", slotIdx)}
+                onSaveCustomTemplate={() => openSaveModal(currentData)}
               />
             );
           })}
-          {!isLocked &&
-            (slotCounts[`${currentDateObj.dateStr}-PM`] || 5) < 8 && (
-              <button
-                onClick={() => handleAddSlot(currentDateObj.dateStr, "PM")}
-                className="w-full py-3 mt-2 border-2 border-dashed border-gray-4 hover:border-primary hover:text-primary hover:bg-primary/5 text-gray-9 font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
-              >
-                <Plus size={16} /> Add Extra Schedule Item
-              </button>
-            )}
         </div>
       </div>
     </>

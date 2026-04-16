@@ -11,6 +11,7 @@ import { uxMetricsService } from "../../../services/uxMetricsService";
 import { ScheduleHeader } from "./components/ScheduleHeader";
 import { ScheduleTabs } from "./components/ScheduleTabs";
 import { ScheduleDayView } from "./components/ScheduleDayView";
+import { SaveTemplateModal, ManageTemplatesModal } from "./components/TemplateModals";
 import { getNextMonday, formatDateToYMD } from "./utils";
 
 export default function SalesSchedulePage() {
@@ -32,6 +33,16 @@ export default function SalesSchedulePage() {
     queryFn: () => salesService.getWeeklyPlan(user?.id, weekStartDate),
     enabled: !!user?.id,
   });
+
+  const { data: customTemplates = [], refetch: refetchCustomTemplates } = useQuery({
+    queryKey: ["salesCustomTemplates", user?.id],
+    queryFn: () => salesService.getCustomTemplates(user?.id),
+    enabled: !!user?.id,
+  });
+
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [slotToSave, setSlotToSave] = useState(null);
 
   const location = useLocation();
   useEffect(() => {
@@ -345,6 +356,63 @@ export default function SalesSchedulePage() {
     setSlotCounts((prev) => ({ ...prev, [`${dateStr}-${timeOfDay}`]: 5 }));
   };
 
+  const handleClearSlot = (dateStr, timeOfDay, slotIndex) => {
+    setActivitiesData((prev) => {
+      const copy = [...prev];
+      const idx = copy.findIndex(
+        (a) =>
+          a.scheduled_date === dateStr &&
+          a.time_of_day === timeOfDay &&
+          a._slot_index === slotIndex,
+      );
+      if (idx >= 0) {
+        copy[idx] = getSlotData(dateStr, timeOfDay, slotIndex);
+      }
+      return copy;
+    });
+  };
+
+  const handleDuplicateSlot = (dateStr, timeOfDay, slotIndex) => {
+    const existing = activitiesData.find(
+      (a) =>
+        a.scheduled_date === dateStr &&
+        a.time_of_day === timeOfDay &&
+        a._slot_index === slotIndex
+    );
+    if (!existing) return;
+
+    setSlotCounts((prev) => {
+      const key = `${dateStr}-${timeOfDay}`;
+      const count = prev[key] || 5;
+      if (count >= 8) {
+        toast.error("Maximum 8 activities allowed per block.");
+        return prev;
+      }
+      
+      const newIndex = count;
+      setTimeout(() => {
+        setActivitiesData(curr => {
+          const c = [...curr];
+          const idx = c.findIndex(a => a.scheduled_date === dateStr && a.time_of_day === timeOfDay && a._slot_index === newIndex);
+          const duplicated = { 
+            ...existing, 
+            _slot_index: newIndex, 
+            id: undefined, 
+            plan_id: undefined, 
+            employee_id: undefined 
+          };
+          if (idx >= 0) {
+             c[idx] = duplicated;
+          } else {
+             c.push(duplicated);
+          }
+          return c;
+        });
+      }, 0);
+      return { ...prev, [key]: count + 1 };
+    });
+  };
+
   const handleClearDay = (dateStr) => {
     setActivitiesData((prev) =>
       prev.filter((a) => a.scheduled_date !== dateStr),
@@ -401,7 +469,8 @@ export default function SalesSchedulePage() {
 
   const handleActionSelect = (val, dateStr) => {
     if (!val) return;
-    if (val === "clear_am") handleClearBlock(dateStr, "AM");
+    if (val === "manage_templates") setIsManageModalOpen(true);
+    else if (val === "clear_am") handleClearBlock(dateStr, "AM");
     else if (val === "clear_pm") handleClearBlock(dateStr, "PM");
     else if (val === "clear_day") handleClearDay(dateStr);
     else if (val.startsWith("clone_")) {
@@ -409,6 +478,40 @@ export default function SalesSchedulePage() {
       handleCloneDayToDate(dateStr, targetDate);
     }
   };
+
+  const saveTemplateMutation = useMutation({
+    mutationFn: async (name) => {
+      if (!slotToSave) return;
+      await salesService.saveCustomTemplate(user.id, name, {
+        activity_type: slotToSave.activity_type,
+        account_name: slotToSave.account_name,
+        contact_person: slotToSave.contact_person,
+        contact_number: slotToSave.contact_number,
+        email_address: slotToSave.email_address,
+        address: slotToSave.address,
+        remarks_plan: slotToSave.remarks_plan,
+        reference_number: slotToSave.reference_number,
+        expense_amount: slotToSave.expense_amount,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Custom template saved!");
+      refetchCustomTemplates();
+      setIsSaveModalOpen(false);
+      setSlotToSave(null);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId) => {
+      await salesService.deleteCustomTemplate(templateId);
+    },
+    onSuccess: () => {
+      refetchCustomTemplates();
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const saveMutation = useMutation({
     mutationFn: async (isSubmit = false) => {
@@ -428,7 +531,11 @@ export default function SalesSchedulePage() {
               a.time_of_day === "PM" &&
               (a.activity_type !== "None" || (a.account_name && a.account_name.trim() !== ""))
           ).length;
-          if (amCount < 5 || pmCount < 5) invalid = true;
+
+          // Sunday is optional; Mon-Sat still require 5 AM and 5 PM
+          if (d.label !== "Sunday") {
+            if (amCount < 5 || pmCount < 5) invalid = true;
+          }
         });
 
         if (invalid) {
@@ -616,6 +723,8 @@ export default function SalesSchedulePage() {
   }, {});
 
   const allDaysFilled = weekDates.every((d) => {
+    // Sunday is optional; Mon-Sat still require 5 AM and 5 PM
+    if (d.label === "Sunday") return true;
     const counts = mapDateToBlockCounts[d.dateStr];
     return counts && counts.AM >= 5 && counts.PM >= 5;
   });
@@ -626,15 +735,18 @@ export default function SalesSchedulePage() {
       ...d,
       amCount: counts.AM,
       pmCount: counts.PM,
-      isReady: counts.AM >= 5 && counts.PM >= 5,
+      isReady: d.label === "Sunday" ? true : (counts.AM >= 5 && counts.PM >= 5),
     };
   });
 
   const weekSummary = dayProgress.reduce(
     (acc, day) => {
       if (day.isReady) acc.daysReady += 1;
-      if (day.amCount < 5) acc.missingAM += 5 - day.amCount;
-      if (day.pmCount < 5) acc.missingPM += 5 - day.pmCount;
+      // Sunday is optional, don't count it towards "missing" requirements
+      if (day.label !== "Sunday") {
+        if (day.amCount < 5) acc.missingAM += 5 - day.amCount;
+        if (day.pmCount < 5) acc.missingPM += 5 - day.pmCount;
+      }
       return acc;
     },
     { daysReady: 0, missingAM: 0, missingPM: 0 },
@@ -713,14 +825,36 @@ export default function SalesSchedulePage() {
           categories={categories}
           compactMode={compactMode}
           scheduleTemplates={scheduleTemplates}
+          customTemplates={customTemplates}
           isLocked={isLocked}
           getSlotData={getSlotData}
           updateSlotData={updateSlotData}
           handleDeleteSlot={handleDeleteSlot}
+          handleClearSlot={handleClearSlot}
+          handleDuplicateSlot={handleDuplicateSlot}
           handleUseSmartSuggestion={handleUseSmartSuggestion}
           handleApplyTemplate={handleApplyTemplate}
           handleAddSlot={handleAddSlot}
           handleActionSelect={handleActionSelect}
+          openSaveModal={(slotData) => {
+            setSlotToSave(slotData);
+            setIsSaveModalOpen(true);
+          }}
+        />
+
+        <SaveTemplateModal 
+          isOpen={isSaveModalOpen} 
+          onClose={() => setIsSaveModalOpen(false)}
+          onSave={(name) => saveTemplateMutation.mutate(name)}
+          isSaving={saveTemplateMutation.isPending}
+        />
+
+        <ManageTemplatesModal 
+          isOpen={isManageModalOpen}
+          onClose={() => setIsManageModalOpen(false)}
+          customTemplates={customTemplates}
+          onDelete={(id) => deleteTemplateMutation.mutate(id)}
+          isDeletingId={deleteTemplateMutation.isPending ? deleteTemplateMutation.variables : null}
         />
 
       </div>
