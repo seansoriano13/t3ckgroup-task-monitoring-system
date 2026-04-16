@@ -5,11 +5,7 @@ import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import {
-  Loader2,
-  Calendar as CalendarIcon,
-  AlertCircle,
-} from "lucide-react";
+import { Loader2, Calendar as CalendarIcon, AlertCircle } from "lucide-react";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 import { REVENUE_STATUS } from "../../../constants/status"; // #11 Constant import
 
@@ -49,7 +45,10 @@ export default function DailyExecutionPage() {
     queryFn: () => salesService.getWeeklyPlan(user?.id, weekStartStr),
     enabled: !!user?.id,
   });
-  const weeklyActivities = useMemo(() => planWrapper?.sales_activities || [], [planWrapper]);
+  const weeklyActivities = useMemo(
+    () => planWrapper?.sales_activities || [],
+    [planWrapper],
+  );
   const planStatus = planWrapper?.status || "DRAFT";
   const isGreen = planStatus === "SUBMITTED" || planStatus === "APPROVED";
 
@@ -148,7 +147,8 @@ export default function DailyExecutionPage() {
   );
 
   const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, details }) => salesService.markActivityDone(id, details),
+    mutationFn: ({ id, details, attachments }) =>
+      salesService.markActivityDone(id, details, attachments),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["dailyActivities", user?.id, selectedDate],
@@ -161,10 +161,11 @@ export default function DailyExecutionPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  const handleToggleDone = (id, currentDetails) => {
+  const handleToggleDone = (id, currentDetails, attachments) => {
     toggleStatusMutation.mutate({
       id,
       details: currentDetails || "Completed without remarks",
+      attachments: attachments || [],
     });
   };
 
@@ -353,8 +354,8 @@ export default function DailyExecutionPage() {
           highlightActivityId={highlightActivityId}
           handleAddUnplanned={handleAddUnplanned}
           categories={categories}
+          onView={setViewActivity}
         />
-
       </div>
 
       <SalesTaskDetailsModal

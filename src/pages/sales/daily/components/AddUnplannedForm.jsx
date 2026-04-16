@@ -1,5 +1,7 @@
+import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { storageService } from "../../../../services/storageService";
+import toast from "react-hot-toast";
 import { useState } from "react";
-import { Plus } from "lucide-react";
 
 export function AddUnplannedForm({
   timeOfDay,
@@ -21,6 +23,8 @@ export function AddUnplannedForm({
   });
 
   const [payload, setPayload] = useState(getInitialPayload());
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) {
     return (
@@ -33,8 +37,34 @@ export function AddUnplannedForm({
     );
   }
 
-  const handleSave = () => {
-    const finalPayload = { ...payload, time_of_day: timeOfDay };
+  const handleSave = async () => {
+    if (isUploading) return;
+
+    let attachmentsArray = [];
+    if (selectedImages.length > 0) {
+      if (selectedImages.length > 10) {
+        toast.error("Maximum 10 images allowed.");
+        return;
+      }
+      setIsUploading(true);
+      try {
+        const uploadPromises = Array.from(selectedImages).map((file) =>
+          storageService.uploadToCloudinary(file),
+        );
+        attachmentsArray = await Promise.all(uploadPromises);
+      } catch (err) {
+        toast.error("Failed to upload images: " + err.message);
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
+
+    const finalPayload = {
+      ...payload,
+      time_of_day: timeOfDay,
+      attachments: attachmentsArray,
+    };
 
     // Fix optional numeric fields
     if (finalPayload.expense_amount === "") finalPayload.expense_amount = null;
@@ -44,6 +74,7 @@ export function AddUnplannedForm({
     onSave(finalPayload);
     setIsOpen(false);
     setPayload(getInitialPayload());
+    setSelectedImages([]);
   };
 
   return (
@@ -188,6 +219,40 @@ export function AddUnplannedForm({
             />
           </div>
         </div>
+
+        {/* --- IMAGE ATTACHMENTS --- */}
+        <div className="border-t border-gray-4 pt-3 mt-1">
+          <label className="text-[10px] font-bold text-gray-9 uppercase tracking-widest block mb-1">
+            Proof of Execution
+          </label>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-black uppercase bg-gray-1 hover:bg-white text-gray-9 hover:text-primary px-3 py-2 rounded-lg border border-gray-4 cursor-pointer transition-all flex items-center gap-2">
+              <ImageIcon size={14} />
+              {selectedImages.length > 0
+                ? `${selectedImages.length} Photo(s) Selected`
+                : "Attach Proof (Max 10)"}
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setSelectedImages(Array.from(e.target.files))}
+              />
+            </label>
+            {selectedImages.length > 0 && !isUploading && (
+              <button
+                onClick={() => setSelectedImages([])}
+                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                title="Clear selection"
+              >
+                <X size={16} />
+              </button>
+            )}
+            {isUploading && (
+              <Loader2 size={16} className="animate-spin text-primary" />
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="flex gap-2 pt-3 border-t border-gray-4 mt-4">
@@ -198,11 +263,12 @@ export function AddUnplannedForm({
           Cancel
         </button>
         <button
-          disabled={!payload.account_name}
+          disabled={!payload.account_name || isUploading}
           onClick={handleSave}
-          className="flex-[2] py-2 rounded-lg bg-primary text-white text-xs font-bold shadow-lg shadow-red-a3 disabled:opacity-50 transition-transform active:scale-[0.98]"
+          className="flex-[2] py-2 rounded-lg bg-primary text-white text-xs font-bold shadow-lg shadow-red-a3 disabled:opacity-50 transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
         >
-          Add Item
+          {isUploading && <Loader2 size={14} className="animate-spin" />}
+          {isUploading ? "Uploading..." : "Add Item"}
         </button>
       </div>
     </div>

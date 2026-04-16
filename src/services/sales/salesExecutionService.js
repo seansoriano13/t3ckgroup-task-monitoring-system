@@ -164,7 +164,7 @@ export const salesExecutionService = {
     return data;
   },
 
-  async markActivityDone(activityId, details_daily) {
+  async markActivityDone(activityId, details_daily, attachments) {
     // Fetch activity first to check expense_amount natively before completion
     const { data: actCheck } = await supabase
       .from("sales_activities")
@@ -191,6 +191,7 @@ export const salesExecutionService = {
       .update({
         status: targetStatus,
         details_daily,
+        attachments: attachments || [],
         ...(targetStatus === REVENUE_STATUS.APPROVED && {
           completed_at: new Date().toISOString(),
         }),
@@ -252,6 +253,17 @@ export const salesExecutionService = {
     const { data, error } = await supabase
       .from("sales_activities")
       .update({ sales_outcome: outcome || null })
+      .eq("id", activityId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateActivityAttachments(activityId, attachments) {
+    const { data, error } = await supabase
+      .from("sales_activities")
+      .update({ attachments: attachments || [] })
       .eq("id", activityId)
       .select()
       .single();

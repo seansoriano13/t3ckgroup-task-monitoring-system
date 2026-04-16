@@ -122,4 +122,54 @@ export const storageService = {
     if (error) throw error;
     return data?.signedUrl || null;
   },
+
+  /**
+   * Upload an image directly to Cloudinary using an unsigned preset.
+   */
+  async uploadToCloudinary(file) {
+    if (!file) throw new Error("No file provided.");
+
+    // Compress client side first to save time and bandwidth
+    const options = {
+      maxSizeMB: 1, // 1 MB limit
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+
+    let fileToUpload = file;
+    try {
+      if (file.type?.startsWith("image/")) {
+        fileToUpload = await imageCompression(file, options);
+      }
+    } catch (error) {
+      console.warn("Compression failed, uploading original.", error);
+    }
+
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error("Missing Cloudinary configuration in .env");
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileToUpload);
+    formData.append("upload_preset", uploadPreset);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData?.error?.message || "Cloudinary upload failed");
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  },
 };

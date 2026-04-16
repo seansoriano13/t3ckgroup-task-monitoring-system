@@ -13,6 +13,7 @@ export function DailyTaskMatrix({
   highlightActivityId,
   handleAddUnplanned,
   categories,
+  onView,
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
@@ -38,6 +39,7 @@ export function DailyTaskMatrix({
               disabledUI={isLockedUI}
               isAdminView={isAdminView}
               highlightId={highlightActivityId}
+              onView={onView}
             />
           ))}
           {unplannedAM.map((act) => (
@@ -49,6 +51,7 @@ export function DailyTaskMatrix({
               disabledUI={isLockedUI}
               isAdminView={isAdminView}
               highlightId={highlightActivityId}
+              onView={onView}
             />
           ))}
         </div>
@@ -85,6 +88,7 @@ export function DailyTaskMatrix({
               disabledUI={isLockedUI}
               isAdminView={isAdminView}
               highlightId={highlightActivityId}
+              onView={onView}
             />
           ))}
           {unplannedPM.map((act) => (
@@ -96,6 +100,7 @@ export function DailyTaskMatrix({
               disabledUI={isLockedUI}
               isAdminView={isAdminView}
               highlightId={highlightActivityId}
+              onView={onView}
             />
           ))}
         </div>

@@ -8,7 +8,11 @@ import {
   Loader2,
   Clock,
   ThumbsUp,
+  Image as ImageIcon,
+  X,
+  Maximize2,
 } from "lucide-react";
+import { storageService } from "../../../../services/storageService";
 
 export function ChecklistItem({
   data,
@@ -17,6 +21,7 @@ export function ChecklistItem({
   isAdminView,
   settings,
   highlightId,
+  onView,
 }) {
   const isDone = data.status === "DONE" || data.status === "APPROVED";
   const isPendingApproval = data.status === "PENDING";
@@ -26,6 +31,8 @@ export function ChecklistItem({
   const [details, setDetails] = useState(data.details_daily || "");
   const [isEditing, setIsEditing] = useState(false);
   const [justChecked, setJustChecked] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
   const itemRef = useRef(null);
 
@@ -73,11 +80,30 @@ export function ChecklistItem({
     }
   }
 
-  const handleCheck = () => {
-    if (disabledUI) return;
+  const handleCheck = async () => {
+    if (disabledUI || isUploading) return;
+    
+    let attachmentsArray = [];
+    if (selectedImages && selectedImages.length > 0) {
+      if (selectedImages.length > 10) {
+        toast.error("Max 10 images");
+        return;
+      }
+      setIsUploading(true);
+      try {
+        const uploadPromises = Array.from(selectedImages).map(file => storageService.uploadToCloudinary(file));
+        attachmentsArray = await Promise.all(uploadPromises);
+      } catch (err) {
+        toast.error("Failed to attach image: " + err.message);
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
+
     setJustChecked(true);
     setTimeout(() => setJustChecked(false), 600);
-    onToggle(data.id, details);
+    onToggle(data.id, details, attachmentsArray);
   };
 
   return (
@@ -100,7 +126,9 @@ export function ChecklistItem({
         onClick={handleCheck}
         className="mt-1 shrink-0 transition-transform active:scale-75 disabled:cursor-not-allowed"
       >
-        {isDone ? (
+        {isUploading ? (
+          <Loader2 size={24} className="text-primary animate-spin" />
+        ) : isDone ? (
           <CheckCircle2
             key={justChecked ? "pop" : "idle"}
             size={24}
@@ -122,8 +150,9 @@ export function ChecklistItem({
         )}
       </button>
       <div className="flex-1 min-w-0">
-        <p
-          className={`font-bold text-base truncate transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-gray-8" : "text-gray-12"}`}
+        <div
+          onClick={() => onView(data)}
+          className={`font-bold text-base cursor-pointer hover:text-primary transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-gray-8" : "text-gray-12"}`}
         >
           <span>{data.account_name}</span>
           {data.is_unplanned && (
@@ -141,7 +170,7 @@ export function ChecklistItem({
               PENDING APPROVAL
             </span>
           )}
-        </p>
+        </div>
         {!isDone && (
           <p className="text-xs text-gray-9 mt-0.5 truncate">
             {data.activity_type} - {data.contact_person || "No Contact"}
@@ -219,16 +248,44 @@ export function ChecklistItem({
         )}
 
         {!isDone && isEditing ? (
-          <div className="mt-2 flex gap-2">
-            <input
-              type="text"
-              placeholder="Optional execution remarks..."
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              className="flex-1 bg-white dark:bg-gray-3 border border-gray-4 rounded p-1.5 text-xs text-gray-12 outline-none focus:border-primary"
-              autoFocus
-              onBlur={() => setIsEditing(false)}
-            />
+          <div className="mt-2 flex flex-col gap-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Optional execution remarks..."
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                className="flex-1 bg-white dark:bg-gray-3 border border-gray-4 rounded p-1.5 text-xs text-gray-12 outline-none focus:border-primary"
+                autoFocus
+              />
+              <button 
+                onClick={() => setIsEditing(false)} 
+                className="text-[10px] uppercase font-bold text-gray-8 hover:text-gray-12 bg-gray-2 px-2 py-1 rounded border border-gray-4"
+              >
+                Close
+              </button>
+            </div>
+            {/* Attachment Uploader */}
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-bold text-gray-8 hover:text-gray-12 bg-gray-2 px-2 py-1.5 rounded cursor-pointer border border-gray-4 flex items-center gap-1 transition-colors">
+                <ImageIcon size={12} /> {selectedImages.length > 0 ? `${selectedImages.length} Photo(s)` : 'Attach Photos'}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  multiple
+                  onChange={(e) => setSelectedImages(Array.from(e.target.files))}
+                />
+              </label>
+              {selectedImages.length > 0 && (
+                <button 
+                  onClick={() => setSelectedImages([])}
+                  className="text-red-500 hover:bg-red-500/10 p-1 rounded"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
         ) : !isDone ? (
           <button
@@ -245,6 +302,14 @@ export function ChecklistItem({
           )
         )}
       </div>
+
+      <button
+        onClick={() => onView(data)}
+        className="mt-1 shrink-0 text-gray-6 hover:text-primary transition-colors p-1"
+        title="View Details"
+      >
+        <Maximize2 size={18} />
+      </button>
     </div>
   );
 }

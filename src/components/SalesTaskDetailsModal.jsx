@@ -16,6 +16,7 @@ import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import SalesActivityTimeline from "./SalesActivityTimeline";
 import { activeChatService } from "../services/tasks/activeChatService";
+import CloudinaryImageAttachment from "./CloudinaryImageAttachment";
 
 export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSettings }) {
   const { user } = useAuth();
@@ -222,6 +223,32 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
               <p className="text-sm font-semibold text-gray-12 bg-blue-500/5 p-4 rounded-lg border border-blue-500/20 whitespace-pre-wrap">
                 {activity.details_daily || "Not executed yet."}
               </p>
+            </div>
+            
+            {/* === ATTACHMENTS SECTION === */}
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
+              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                Attachments
+              </label>
+              <CloudinaryImageAttachment
+                activityId={activity.id}
+                attachments={activity.attachments || []}
+                onChange={(newUrls) => {
+                  salesService.updateActivityAttachments(activity.id, newUrls)
+                    .then(() => {
+                      queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
+                      queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
+                      toast.success("Attachments updated!");
+                    })
+                    .catch(e => toast.error("Failed to update attachments: " + e.message));
+                }}
+                readOnly={
+                   isAdminView || 
+                   activity.status === "NOT_APPROVED" || 
+                   activity.status === "APPROVED" ||
+                   (user?.id !== activity.employee_id)
+                }
+              />
             </div>
           </div>
 
