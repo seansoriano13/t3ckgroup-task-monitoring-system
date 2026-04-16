@@ -17,6 +17,7 @@ export function ScheduleDayView({
   handleDuplicateSlot,
   handleUseSmartSuggestion,
   handleApplyTemplate,
+  // eslint-disable-next-line no-unused-vars
   handleAddSlot,
   handleActionSelect,
   openSaveModal,
