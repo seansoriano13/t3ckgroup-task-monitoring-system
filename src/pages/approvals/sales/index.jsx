@@ -574,15 +574,71 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {dateGroup.activities.map((act) =>
+      {(() => {
+        const amActivities = dateGroup.activities.filter((a) => (a.time_of_day || "").toUpperCase() === "AM");
+        const pmActivities = dateGroup.activities.filter((a) => (a.time_of_day || "").toUpperCase() === "PM");
+        const otherActivities = dateGroup.activities.filter((a) => {
+          const t = (a.time_of_day || "").toUpperCase();
+          return t !== "AM" && t !== "PM";
+        });
+
+        const renderCard = (act) =>
           mode === "PENDING" ? (
             <ActivityCard key={act.id} activity={act} verifyMutation={verifyMutation} onViewDetails={onViewDetails} />
           ) : (
             <VerifiedActivityCard key={act.id} activity={act} unverifyMutation={unverifyMutation} onViewDetails={onViewDetails} />
-          )
-        )}
-      </div>
+          );
+
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* AM Column */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                  <Clock size={11} /> AM — {amActivities.length} {amActivities.length === 1 ? "Log" : "Logs"}
+                </span>
+              </div>
+              {amActivities.length > 0 ? (
+                amActivities.map(renderCard)
+              ) : (
+                <div className="text-xs text-gray-8 italic bg-gray-2 border border-dashed border-gray-4 rounded-lg py-4 text-center">
+                  No AM activities
+                </div>
+              )}
+            </div>
+
+            {/* PM Column */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                  <Clock size={11} /> PM — {pmActivities.length} {pmActivities.length === 1 ? "Log" : "Logs"}
+                </span>
+              </div>
+              {pmActivities.length > 0 ? (
+                pmActivities.map(renderCard)
+              ) : (
+                <div className="text-xs text-gray-8 italic bg-gray-2 border border-dashed border-gray-4 rounded-lg py-4 text-center">
+                  No PM activities
+                </div>
+              )}
+            </div>
+
+            {/* Other (if any activities have no AM/PM set) */}
+            {otherActivities.length > 0 && (
+              <div className="lg:col-span-2 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-9 bg-gray-2 border border-gray-4 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                    <Clock size={11} /> Unspecified — {otherActivities.length} {otherActivities.length === 1 ? "Log" : "Logs"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {otherActivities.map(renderCard)}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
