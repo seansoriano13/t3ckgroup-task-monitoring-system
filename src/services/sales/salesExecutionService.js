@@ -30,7 +30,7 @@ export const salesExecutionService = {
             sender_id: firstUnplanned?.employee_id,
             type: "UNPLANNED_ACTIVITY",
             title: "Unplanned Action Logged",
-            message: `${firstUnplanned.employees?.name || "A Sales Rep"} dynamically injected ${unplannedCount} unplanned activit${unplannedCount > 1 ? "ies" : "y"} into their tracker.`,
+            message: `${firstUnplanned.employees?.name || "A Sales Rep"} dynamically added ${unplannedCount} unplanned activit${unplannedCount > 1 ? "ies" : "y"} into their tracker.`,
             reference_id: firstUnplanned?.id,
           });
         } catch (e) {
@@ -101,13 +101,15 @@ export const salesExecutionService = {
     if (updateErr) throw updateErr;
 
     if (activities && activities.length > 0) {
-      notificationService.broadcastToRole(["SUPER_ADMIN", "HEAD"], {
-        sender_id: userId,
-        type: "DAY_DELETE_REQUESTED",
-        title: "Full Day Deletion Request",
-        message: `${activities[0].employees?.name || "A Sales Rep"} requested to delete ALL activities on ${dateStr}. Reason: ${reason}`,
-        reference_id: dateStr,
-      }).catch(console.error);
+      notificationService
+        .broadcastToRole(["SUPER_ADMIN", "HEAD"], {
+          sender_id: userId,
+          type: "DAY_DELETE_REQUESTED",
+          title: "Full Day Deletion Request",
+          message: `${activities[0].employees?.name || "A Sales Rep"} requested to delete ALL activities on ${dateStr}. Reason: ${reason}`,
+          reference_id: dateStr,
+        })
+        .catch(console.error);
     }
 
     return activities;
@@ -134,16 +136,18 @@ export const salesExecutionService = {
 
     if (error) throw error;
 
-    notificationService.createNotification({
-      recipient_id: employeeId,
-      sender_id: adminId,
-      type: "DAY_DELETE_RESULT",
-      title: isApproved ? "Day Deletion Approved" : "Day Deletion Denied",
-      message: isApproved
-        ? `Your request to wipe activities for ${dateStr} was approved.`
-        : `Your request to wipe activities for ${dateStr} was denied.`,
-      reference_id: dateStr,
-    }).catch(console.error);
+    notificationService
+      .createNotification({
+        recipient_id: employeeId,
+        sender_id: adminId,
+        type: "DAY_DELETE_RESULT",
+        title: isApproved ? "Day Deletion Approved" : "Day Deletion Denied",
+        message: isApproved
+          ? `Your request to wipe activities for ${dateStr} was approved.`
+          : `Your request to wipe activities for ${dateStr} was denied.`,
+        reference_id: dateStr,
+      })
+      .catch(console.error);
 
     return data;
   },
@@ -199,13 +203,15 @@ export const salesExecutionService = {
 
     // Blast notification to Super Admin / Head if waiting for money
     if (targetStatus === REVENUE_STATUS.PENDING) {
-      notificationService.broadcastToRole(["SUPER_ADMIN", "HEAD"], {
-        sender_id: activity.employee_id,
-        type: "SALES_EXPENSE_PENDING",
-        title: "Expense Approval Needed",
-        message: `${activity.employees?.name} mapped an activity with a requested expense of ₱${Number(activity.expense_amount).toLocaleString()}.`,
-        reference_id: activity.id,
-      }).catch(console.error);
+      notificationService
+        .broadcastToRole(["SUPER_ADMIN", "HEAD"], {
+          sender_id: activity.employee_id,
+          type: "SALES_EXPENSE_PENDING",
+          title: "Expense Approval Needed",
+          message: `${activity.employees?.name} mapped an activity with a requested expense of ₱${Number(activity.expense_amount).toLocaleString()}.`,
+          reference_id: activity.id,
+        })
+        .catch(console.error);
     }
 
     // Calculate if Day/Week is conquered (Fire & forget)
@@ -224,13 +230,15 @@ export const salesExecutionService = {
             return;
           }
           if (pendingDay && pendingDay.length === 0) {
-            notificationService.broadcastToRole(["HR", "SUPER_ADMIN"], {
-              sender_id: activity.employee_id,
-              type: "SALES_DAY_CONQUERED",
-              title: "Day Conquered!",
-              message: `${activity.employees?.name} just conquered their entire daily pipeline!`,
-              reference_id: activity.scheduled_date,
-            }).catch(console.error);
+            notificationService
+              .broadcastToRole(["HR", "SUPER_ADMIN"], {
+                sender_id: activity.employee_id,
+                type: "SALES_DAY_CONQUERED",
+                title: "Day Conquered!",
+                message: `${activity.employees?.name} just conquered their entire daily pipeline!`,
+                reference_id: activity.scheduled_date,
+              })
+              .catch(console.error);
           }
         })
         .catch(console.error);
