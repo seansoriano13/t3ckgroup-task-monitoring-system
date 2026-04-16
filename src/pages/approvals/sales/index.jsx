@@ -34,8 +34,11 @@ export default function SalesHeadApprovalsPage() {
   const [filterEmp, setFilterEmp] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterType, setFilterType] = useState("ALL");
-  const [timeframe, setTimeframe] = useState("MONTHLY");
-  const [selectedDateFilter, setSelectedDateFilter] = useState("");
+  const [timeframe, setTimeframe] = useState("DAILY");
+  const [selectedDateFilter, setSelectedDateFilter] = useState(() => {
+    const today = new Date();
+    return today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+  });
   const [viewActivity, setViewActivity] = useState(null);
   const [sortBy, setSortBy] = useState("NEWEST");
 
