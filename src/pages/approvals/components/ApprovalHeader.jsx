@@ -15,10 +15,10 @@ export function ApprovalHeader({
     <div className="flex justify-between items-end border-b border-gray-4 pb-4">
       <div>
         <h1 className="text-3xl font-bold text-gray-12">
-          {isHr ? "HR Verification Queue" : "Manager Action Queue"}
+          {isSuperAdmin ? "Task Verification Queue" : isHr ? "HR Verification Queue" : "Manager Task Queue"}
         </h1>
         <p className="text-gray-9 mt-1">
-          {isHr
+          {isSuperAdmin ? "Review and verify all tasks." : isHr
             ? "Audit and verify graded tasks."
             : "Review and grade pending tasks from your team."}
         </p>
@@ -44,16 +44,16 @@ export function ApprovalHeader({
             ) : delayedTasksCount > 0 ? (
               <button
                 onClick={onSelectAllDelayed}
-                className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-2"
+                className="bg-white border border-gray-4 text-gray-12 hover:bg-gray-2 text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center gap-2"
               >
                 <CheckSquare size={16} /> Select All Delayed
               </button>
             ) : null}
           </>
         )}
-        <div className="bg-primary/10 border border-primary/20 px-4 py-2 rounded-lg flex items-center gap-2">
-          <Clock size={16} className="text-primary" />
-          <span className="text-primary font-bold">
+        <div className="bg-white border border-gray-4 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+          <Clock size={16} className="text-gray-10" />
+          <span className="text-gray-12 font-bold text-xs">
             {pendingTasksCount} Pending
           </span>
         </div>

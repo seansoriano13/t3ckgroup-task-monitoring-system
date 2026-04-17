@@ -37,3 +37,6 @@ supabase/.temp
 supabase/.branches
 supabase/.cache
 
+# Cursor
+/.cursor
+

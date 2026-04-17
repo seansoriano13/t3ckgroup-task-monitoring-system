@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 const TaskHeader = ({ isEditing, isHrVerified, onClose }) => (
   <div className="flex justify-between items-center p-6 border-b border-gray-4 bg-gray-1 shrink-0">
     <div className="flex items-center gap-3">
-      <h2 className="text-xl font-bold text-gray-12">
+      <h2 className="text-xl font-black text-gray-12">
         {isEditing ? "Edit Task Details" : "Task Details"}
       </h2>
       {!isEditing && isHrVerified && (

@@ -197,6 +197,8 @@ export default function SideNav({ onOpenAddTask }) {
       overflow: "hidden",
       zIndex: 100,
       marginTop: "4px",
+      animation: "popover-in 0.15s ease-out forwards",
+      transformOrigin: "top",
     }),
     option: (base, state) => ({
       ...base,

@@ -165,11 +165,10 @@ export function ApprovalRow({
       ref={rowRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className={`bg-gray-1 outline-none border transition-all rounded-xl shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${
-        expanded
+      className={`bg-gray-1 outline-none border transition-all rounded-xl shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${expanded
           ? "border-gray-6 shadow-lg"
           : "border-gray-4 hover:border-gray-6"
-      }`}
+        }`}
     >
       {/* COMPACT ROW */}
       <div
@@ -266,7 +265,7 @@ export function ApprovalRow({
                 Task Description
               </label>
               {task.taskDescription &&
-              task.taskDescription.trim().startsWith("[") ? (
+                task.taskDescription.trim().startsWith("[") ? (
                 <div className="mt-1">
                   <ChecklistTaskRenderer
                     description={task.taskDescription}
@@ -290,7 +289,7 @@ export function ApprovalRow({
                     userId={currentUserId}
                     attachments={task.attachments}
                     readOnly={true}
-                    onChange={() => {}}
+                    onChange={() => { }}
                   />
                 </div>
               )}
@@ -318,11 +317,10 @@ export function ApprovalRow({
                         return (
                           <div
                             key={num}
-                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${
-                              isSelected
+                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${isSelected
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
                                 : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
-                            }`}
+                              }`}
                           >
                             {num}
                           </div>
@@ -391,11 +389,10 @@ export function ApprovalRow({
                           <button
                             key={num}
                             onClick={() => setGrade(num)}
-                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
-                              grade === num
+                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${grade === num
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
                                 : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6 hover:bg-gray-3"
-                            }`}
+                              }`}
                           >
                             {num}
                           </button>

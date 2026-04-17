@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Search,
   Filter,
@@ -9,7 +9,25 @@ import {
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Select, { components } from "react-select";
 import { TASK_STATUS } from "../constants/status";
+
+// Custom Control Component to render the icon natively inside React-Select
+const IconControl = ({ children, ...props }) => {
+  const Icon = props.selectProps.icon;
+  const isActive = props.hasValue && props.getValue()[0]?.value !== "ALL" && props.getValue()[0]?.value !== "NEWEST";
+  
+  return (
+    <components.Control {...props}>
+      {Icon && (
+        <span className={`pl-2 pr-1 flex items-center shrink-0 ${isActive ? 'text-gray-12' : 'text-gray-7'}`}>
+          <Icon size={14} />
+        </span>
+      )}
+      {children}
+    </components.Control>
+  );
+};
 
 export default function TaskFilters({
   searchTerm,
@@ -38,15 +56,107 @@ export default function TaskFilters({
   setSortBy,
 }) {
   const [startDate, endDate] = dateRange || [null, null];
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const isAnyFilterActive =
+    statusFilter !== "ALL" ||
+    priorityFilter !== "ALL" ||
+    (deptFilter !== "ALL" && !disableDeptFilter) ||
+    subDeptFilter !== "ALL" ||
+    employeeFilter !== "ALL" ||
+    startDate !== null ||
+    endDate !== null ||
+    searchTerm !== "";
+
+  const handleClearAll = () => {
+    setSearchTerm("");
+    if (setStatusFilter && showStatusFilter) setStatusFilter("ALL");
+    if (setPriorityFilter) setPriorityFilter("ALL");
+    if (setDeptFilter && !disableDeptFilter) setDeptFilter("ALL");
+    if (setSubDeptFilter) setSubDeptFilter("ALL");
+    if (setEmployeeFilter) setEmployeeFilter("ALL");
+    setDateRange([null, null]);
+  };
+
+  // Shared react-select styles based on LogTaskModal
+  const getSelectClassNames = (value, defaultVal = "ALL") => {
+    const isActive = value && value !== defaultVal;
+    return {
+      control: (state) =>
+        `min-h-[40px] md:min-h-[46px] w-full border ${
+          state.isFocused 
+            ? "border-gray-6 ring-1 ring-gray-6 bg-gray-1" 
+            : isActive
+              ? "border-gray-5 bg-gray-2 font-medium"
+              : "border-gray-4 bg-gray-1"
+        } hover:border-gray-5 rounded-lg px-2 shadow-sm transition-all cursor-pointer flex items-center`,
+      menu: () =>
+        `mt-1 bg-gray-1 border border-gray-4 rounded-lg shadow-xl overflow-hidden z-[50] min-w-max popover-enter`,
+      menuList: () => `p-1`,
+      option: (state) =>
+        `px-3 py-2 cursor-pointer transition-colors rounded-md text-[13px] ${
+          state.isFocused 
+            ? "bg-gray-3 text-gray-12" 
+            : state.isSelected 
+              ? "bg-gray-4 text-gray-12 font-bold" 
+              : "text-gray-11 bg-transparent"
+        }`,
+      singleValue: () => `text-gray-12 font-[500] text-[13px]`,
+      placeholder: () => `text-gray-7 text-[13px]`,
+      input: () => `text-gray-12 text-[13px]`,
+      indicatorSeparator: () => `hidden`,
+      dropdownIndicator: () => `text-gray-8 hover:text-gray-10 p-1`,
+      valueContainer: () => `gap-1 px-1`,
+    };
+  };
+
+  // Option Definitions
+  const sortOptions = [
+    { value: "NEWEST", label: "Sort: Newest" },
+    { value: "OLDEST", label: "Sort: Oldest" },
+    { value: "NAME", label: "Sort: By Name" }
+  ];
+
+  const statusOptions = [
+    { value: "ALL", label: "Status: All" },
+    { value: TASK_STATUS.COMPLETE, label: "Complete" },
+    { value: TASK_STATUS.AWAITING_APPROVAL, label: "Awaiting Approval" },
+    { value: TASK_STATUS.INCOMPLETE, label: "Incomplete" },
+    { value: TASK_STATUS.NOT_APPROVED, label: "Not Approved" }
+  ];
+
+  const priorityOptions = [
+    { value: "ALL", label: "Priority: All" },
+    { value: "HIGH", label: "High" },
+    { value: "MEDIUM", label: "Medium" },
+    { value: "LOW", label: "Low" }
+  ];
+
+  const deptOptions = [
+    { value: "ALL", label: "Dept: All" },
+    ...(!uniqueDepts.includes("SALES") ? [{ value: "SALES", label: "Dept: SALES" }] : []),
+    ...uniqueDepts.filter((d) => d !== "ALL").map((d) => ({ value: d, label: `Dept: ${d}` }))
+  ];
+
+  const subDeptOptions = [
+    { value: "ALL", label: "Sub-Dept: All" },
+    ...uniqueSubDepts.filter((s) => s !== "ALL").map((s) => ({ value: s, label: `Sub: ${s}` }))
+  ];
+
+  const employeeOptions = [
+    { value: "ALL", label: "Member: Everyone" },
+    ...uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name }))
+  ];
 
   return (
     <div className="grid gap-3 md:gap-4">
-      {/* Row 1: Search & Base Filters */}
-      <div className="bg-white border border-gray-4 p-3 md:p-4 rounded-xl flex flex-col lg:flex-row gap-3 md:gap-4 relative z-20 shadow-sm">
-        {/* Search - Grows to fill space */}
-        <div className="relative flex-1">
+      {/* Row 1: Search & Permanent Filters */}
+      <div className="bg-white border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
+        
+        {/* Search */}
+        <div className="relative flex-1 w-full">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-7"
             size={18}
           />
           <input
@@ -54,16 +164,17 @@ export default function TaskFilters({
             placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus-within:border-primary transition-colors placeholder:text-gray-7 text-sm md:text-base"
+            className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus-within:border-gray-6 focus-within:ring-1 focus-within:ring-gray-6 transition-all placeholder:text-gray-7 text-[13px] h-[40px] md:h-[46px] shadow-sm hover:border-gray-5"
           />
         </div>
 
-        {/* Date & Selects Group */}
-        <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
-          {/* DATE PICKER */}
-          <div className="relative flex-1 sm:flex-initial">
-            <div className="flex items-center bg-gray-1 border border-gray-4 rounded-lg px-3 py-2.5 h-[46px]">
-              <CalendarIcon size={16} className="text-gray-8 mr-2 shrink-0" />
+        {/* Action Group */}
+        <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto justify-between xl:justify-start hide-scrollbar">
+          <div className="flex gap-2 items-center flex-nowrap">
+            
+            {/* DATE PICKER */}
+            <div className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${startDate || endDate ? "bg-gray-2 text-gray-12 border-gray-5 font-medium" : "bg-gray-1 border-gray-4 hover:border-gray-5 text-gray-12"}`}>
+              <CalendarIcon size={16} className={`${startDate || endDate ? "text-gray-12" : "text-gray-7"} mr-2 shrink-0`} />
               <DatePicker
                 selectsRange={true}
                 startDate={startDate}
@@ -71,132 +182,138 @@ export default function TaskFilters({
                 onChange={(update) => setDateRange(update)}
                 isClearable={true}
                 placeholderText="Date Range"
-                className="bg-transparent outline-none text-gray-12 w-full sm:w-[150px] text-sm cursor-pointer"
+                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${startDate || endDate ? "text-gray-12 placeholder:text-gray-8 font-medium" : "text-gray-12 placeholder:text-gray-7"}`}
               />
             </div>
-          </div>
 
-          <div className="flex gap-2 flex-1 sm:flex-initial flex-wrap">
-            {/* Status Filter */}
-            {showStatusFilter && (
-              <div className="relative flex-1 min-w-[120px]">
-                <Filter
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-                  size={14}
-                />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-4 py-2.5 outline-none text-xs md:text-sm h-[46px] cursor-pointer"
-                >
-                  <option value="ALL">Status</option>
-                  <option value={TASK_STATUS.COMPLETE}>Complete</option>
-                  <option value={TASK_STATUS.AWAITING_APPROVAL}>Awaiting Approval</option>
-                  <option value={TASK_STATUS.INCOMPLETE}>Incomplete</option>
-                  <option value={TASK_STATUS.NOT_APPROVED}>Not Approved</option>
-                </select>
-              </div>
-            )}
-
-            {/* Priority Filter */}
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="flex-1 appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2.5 outline-none text-xs md:text-sm h-[46px] cursor-pointer min-w-[100px]"
-            >
-              <option value="ALL">Priority</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
-            </select>
-
-            {/* Optional Sorting for Approvals Page */}
+            {/* SORTING */}
             {sortBy !== undefined && setSortBy && (
-              <div className="relative flex-1 min-w-[130px]">
-                <SlidersHorizontal
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-                  size={14}
+              <div className="min-w-[150px] shrink-0">
+                <Select
+                  options={sortOptions}
+                  value={sortOptions.find(o => o.value === sortBy) || sortOptions[0]}
+                  onChange={(selected) => setSortBy(selected.value)}
+                  classNames={getSelectClassNames(sortBy, "NEWEST")}
+                  components={{ Control: IconControl }}
+                  icon={SlidersHorizontal}
+                  isSearchable={false}
+                  menuPosition="fixed"
+                  unstyled
                 />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full appearance-none bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-8 pr-4 py-2.5 outline-none text-xs md:text-sm h-[46px] cursor-pointer"
-                >
-                  <option value="OLDEST">Oldest first</option>
-                  <option value="NEWEST">Newest first</option>
-                  <option value="NAME">By name</option>
-                </select>
               </div>
             )}
+
+            {/* ADD FILTER TOGGLE */}
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className={`flex items-center gap-2 px-4 h-[40px] md:h-[46px] rounded-lg border text-[13px] shadow-sm font-semibold transition-colors shrink-0 ${showAdvanced ? "bg-gray-3 border-gray-6 text-gray-12" : "bg-gray-1 border-gray-4 text-gray-11 hover:border-gray-5 hover:bg-gray-2"}`}
+            >
+              <Filter size={16} />
+              Add Filter
+            </button>
           </div>
+
+          {/* CLEAR ALL ESCAPE HATCH */}
+          {isAnyFilterActive && (
+            <button
+              onClick={handleClearAll}
+              className="ml-auto xl:ml-2 text-sm text-gray-500 hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
+            >
+              Clear All
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Row 2: Management Filters */}
-      {isManagement && (!isHr || hrViewMode === "ALL") && (
-        <div className="bg-gray-1 border border-gray-4 p-4 rounded-xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10 shadow-sm">
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
-              <Building2 size={12} /> Dept
-            </label>
-            <select
-              value={deptFilter}
-              onChange={(e) => {
-                setDeptFilter(e.target.value);
-                setSubDeptFilter("ALL");
-              }}
-              disabled={disableDeptFilter !== undefined ? disableDeptFilter : !isHr}
-              className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50 cursor-pointer"
-            >
-              <option value="ALL">All Depts</option>
-              {uniqueDepts
-                .filter((d) => d !== "ALL")
-                .map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-            </select>
+      {/* Row 2: Advanced Filters (Hidden by Default) */}
+      {showAdvanced && (
+        <div className="bg-gray-50 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
+          
+          {/* Status Filter */}
+          {showStatusFilter && (
+             <div className="flex-1 min-w-[170px]">
+               <Select
+                 options={statusOptions}
+                 value={statusOptions.find(o => o.value === statusFilter) || statusOptions[0]}
+                 onChange={(selected) => setStatusFilter(selected.value)}
+                 classNames={getSelectClassNames(statusFilter, "ALL")}
+                 components={{ Control: IconControl }}
+                 icon={Filter}
+                 isSearchable={false}
+                 menuPosition="fixed"
+                 unstyled
+               />
+             </div>
+          )}
+
+          {/* Priority */}
+          <div className="flex-1 min-w-[150px]">
+             <Select
+               options={priorityOptions}
+               value={priorityOptions.find(o => o.value === priorityFilter) || priorityOptions[0]}
+               onChange={(selected) => setPriorityFilter(selected.value)}
+               classNames={getSelectClassNames(priorityFilter, "ALL")}
+               isSearchable={false}
+               menuPosition="fixed"
+               unstyled
+             />
           </div>
 
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest">
-              <Building2 size={12} /> Sub-Dept
-            </label>
-            <select
-              value={subDeptFilter}
-              onChange={(e) => setSubDeptFilter(e.target.value)}
-              disabled={deptFilter === "ALL"}
-              className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50 cursor-pointer"
-            >
-              <option value="ALL">All Sub-Depts</option>
-              {uniqueSubDepts
-                .filter((s) => s !== "ALL")
-                .map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-            </select>
-          </div>
+          {/* Management specific */}
+          {isManagement && (!isHr || hrViewMode === "ALL") && (
+            <>
+              {/* Dept */}
+              <div className="flex-1 min-w-[180px]">
+                <Select
+                  options={deptOptions}
+                  value={deptOptions.find(o => o.value === deptFilter) || deptOptions[0]}
+                  onChange={(selected) => {
+                    setDeptFilter(selected.value);
+                    setSubDeptFilter("ALL");
+                  }}
+                  isDisabled={disableDeptFilter !== undefined ? disableDeptFilter : !isHr}
+                  classNames={getSelectClassNames(deptFilter, "ALL")}
+                  components={{ Control: IconControl }}
+                  icon={Building2}
+                  isSearchable={true}
+                  menuPosition="fixed"
+                  unstyled
+                />
+              </div>
 
-          <div className="space-y-1 sm:col-span-2 md:col-span-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-10">
-              <Users size={12} /> Team Member
-            </label>
-            <select
-              value={employeeFilter}
-              onChange={(e) => setEmployeeFilter(e.target.value)}
-              className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 font-semibold text-sm cursor-pointer"
-            >
-              <option value="ALL">Everyone</option>
-              {uniqueEmployees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Sub-Dept */}
+              <div className="flex-1 min-w-[180px]">
+                <Select
+                  options={subDeptOptions}
+                  value={subDeptOptions.find(o => o.value === subDeptFilter) || subDeptOptions[0]}
+                  onChange={(selected) => setSubDeptFilter(selected.value)}
+                  isDisabled={deptFilter === "ALL"}
+                  classNames={getSelectClassNames(subDeptFilter, "ALL")}
+                  components={{ Control: IconControl }}
+                  icon={Building2}
+                  isSearchable={true}
+                  menuPosition="fixed"
+                  unstyled
+                />
+              </div>
+
+              {/* Employees */}
+              <div className="flex-1 min-w-[180px]">
+                <Select
+                  options={employeeOptions}
+                  value={employeeOptions.find(o => o.value === employeeFilter) || employeeOptions[0]}
+                  onChange={(selected) => setEmployeeFilter(selected.value)}
+                  classNames={getSelectClassNames(employeeFilter, "ALL")}
+                  components={{ Control: IconControl }}
+                  icon={Users}
+                  isSearchable={true}
+                  menuPosition="fixed"
+                  unstyled
+                />
+              </div>
+            </>
+          )}
+
         </div>
       )}
     </div>

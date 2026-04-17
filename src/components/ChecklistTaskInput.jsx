@@ -130,9 +130,8 @@ export default function ChecklistTaskInput({
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e)}
             onDrop={(e) => handleDrop(e, index)}
-            className={`flex items-center gap-2 group transition-all rounded p-1 ${
-              draggedIndex === index ? "opacity-50" : "hover:bg-gray-2"
-            }`}
+            className={`flex items-center gap-2 group transition-all rounded p-1 ${draggedIndex === index ? "opacity-50" : "hover:bg-gray-2"
+              }`}
           >
             <span className="text-gray-6 cursor-grab active:cursor-grabbing opacity-50 group-hover:opacity-100 flex-shrink-0 p-1 hover:bg-gray-4 rounded">
               <GripVertical size={16} />

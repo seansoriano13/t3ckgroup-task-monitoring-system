@@ -407,7 +407,7 @@ export default function TaskDetails({
         ref={modalRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-gray-2 border-l border-gray-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-white border-l border-gray-200 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <TaskHeader
           isEditing={isEditing}
@@ -415,7 +415,7 @@ export default function TaskDetails({
           onClose={onClose}
         />
 
-        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-gray-2">
+        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-white">
           <div className="space-y-4">
             <ManagementSection
               isEditing={isEditing}
@@ -459,7 +459,7 @@ export default function TaskDetails({
                     value={formData.projectTitle}
                     onChange={handleChange}
                     placeholder="e.g. Q2 Brand Awareness Campaign"
-                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
+                    className="min-h-[44px] w-full bg-white border border-[#E5E7EB] text-[#111827] rounded-lg px-4 outline-none transition-colors text-[14px] placeholder:text-gray-400"
                   />
                 ) : (
                   <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold text-violet-400 flex items-center gap-2">
@@ -490,7 +490,7 @@ export default function TaskDetails({
                     value={formData.paymentVoucher || ""}
                     onChange={handleChange}
                     placeholder="e.g. PV-2026-001"
-                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
+                    className="min-h-[44px] w-full bg-white border border-[#E5E7EB] text-[#111827] rounded-lg px-4 outline-none transition-colors text-[14px] placeholder:text-gray-400"
                   />
                 ) : (
                   <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold flex items-center gap-2">
@@ -521,7 +521,7 @@ export default function TaskDetails({
                       type="button"
                       onClick={() => setDescriptionType("checklist")}
                       className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
-                        descriptionType === "checklist" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
+                        descriptionType === "checklist" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
                       }`}
                     >
                       Checklist
@@ -551,7 +551,7 @@ export default function TaskDetails({
                     }
                     onChange={handleChange}
                     required
-                    className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 focus:ring-1 focus:ring-red-9 transition-all h-24 resize-none text-sm shadow-inner"
+                    className="w-full bg-white border border-[#E5E7EB] text-[#111827] rounded-lg p-4 outline-none transition-colors h-24 resize-none text-[14px]"
                   />
                 )
               ) : isChecklistFormat ? (
@@ -654,16 +654,18 @@ export default function TaskDetails({
             )}
 
             {/* --- UNIFIED ACTIVITY TIMELINE --- */}
-            <div className="pt-2 border-t border-gray-4 mt-2">
-              <TaskActivityTimeline
-                taskId={task.id}
-                legacyRemarks={timelineLegacyRemarks}
-                legacyHrRemarks={task.hrRemarks}
-                evaluatedByName={task.evaluatedByName}
-                grade={task.grade}
-                disabled={isEditing || task.status === TASK_STATUS.DELETED}
-              />
-            </div>
+            {!isEditing && (
+              <div className="pt-2 border-t border-gray-200 mt-2">
+                <TaskActivityTimeline
+                  taskId={task.id}
+                  legacyRemarks={timelineLegacyRemarks}
+                  legacyHrRemarks={task.hrRemarks}
+                  evaluatedByName={task.evaluatedByName}
+                  grade={task.grade}
+                  disabled={task.status === TASK_STATUS.DELETED}
+                />
+              </div>
+            )}
 
             {!isEditing && task.editedById && (
               <div className="pt-4 border-t border-gray-4 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-gray-8">

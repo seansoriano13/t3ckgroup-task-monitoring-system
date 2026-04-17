@@ -132,9 +132,9 @@ export default function ImageAttachment({
 
       {/* Gallery */}
       {signedUrls.length > 0 && (
-         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+         <div className="grid grid-cols-3 gap-2">
             {signedUrls.map((item, index) => (
-              <div key={item.path} className="relative group rounded-lg overflow-hidden border border-gray-4 bg-gray-2 aspect-video flex-center">
+              <div key={item.path} className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-video flex items-center justify-center">
                  {isLoadingUrls ? (
                     <Loader2 size={16} className="animate-spin text-gray-8" />
                  ) : (

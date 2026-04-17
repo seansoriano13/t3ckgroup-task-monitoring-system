@@ -6,7 +6,7 @@ import { taskService } from "../../services/taskService.js";
 import { supabase } from "../../lib/supabase.js";
 import { TASK_STATUS } from "../../constants/status.js";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
-import { Search, CheckCircle2 } from "lucide-react";
+import { Search, CheckCircle2 } from "lucide-react"
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import TaskDetails from "../../components/TaskDetails.jsx";

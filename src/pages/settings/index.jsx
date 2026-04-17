@@ -64,14 +64,12 @@ export default function SettingsPage() {
               {/* Actual Toggle Switch */}
               <div
                 onClick={toggleTheme}
-                className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                  theme === "dark" ? "bg-primary" : "bg-gray-4"
-                }`}
+                className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${theme === "dark" ? "bg-primary" : "bg-gray-4"
+                  }`}
               >
                 <div
-                  className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                    theme === "dark" ? "right-1" : "left-1"
-                  }`}
+                  className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${theme === "dark" ? "right-1" : "left-1"
+                    }`}
                 ></div>
               </div>
             </div>
@@ -104,7 +102,7 @@ export default function SettingsPage() {
             <div className="p-5 border-b border-gray-3 bg-gray-1 flex items-center gap-2 relative z-10">
               <Shield size={16} className="text-primary" />
               <h2 className="text-sm font-bold text-gray-12 uppercase tracking-wider">
-                Customization 
+                Customization
               </h2>
             </div>
             <div className="p-5 flex items-center justify-between hover:bg-gray-1/50 transition-colors relative z-10">
@@ -139,18 +137,16 @@ export default function SettingsPage() {
                     !mutation.isPending &&
                     mutation.mutate({ require_revenue_verification: !appSettings?.require_revenue_verification })
                   }
-                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                    appSettings?.require_revenue_verification
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${appSettings?.require_revenue_verification
                       ? "bg-primary"
                       : "bg-gray-4"
-                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                    } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
                 >
                   <div
-                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                      appSettings?.require_revenue_verification
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${appSettings?.require_revenue_verification
                         ? "right-1"
                         : "left-1"
-                    }`}
+                      }`}
                   ></div>
                 </div>
               )}
@@ -186,18 +182,16 @@ export default function SettingsPage() {
                     !mutation.isPending &&
                     mutation.mutate({ sales_self_approve_expenses: !appSettings?.sales_self_approve_expenses })
                   }
-                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                    appSettings?.sales_self_approve_expenses
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${appSettings?.sales_self_approve_expenses
                       ? "bg-primary"
                       : "bg-gray-4"
-                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                    } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
                 >
                   <div
-                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                      appSettings?.sales_self_approve_expenses
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${appSettings?.sales_self_approve_expenses
                         ? "right-1"
                         : "left-1"
-                    }`}
+                      }`}
                   ></div>
                 </div>
               )}
@@ -233,18 +227,16 @@ export default function SettingsPage() {
                     !mutation.isPending &&
                     mutation.mutate({ marketing_approval_by_ops_manager: !appSettings?.marketing_approval_by_ops_manager })
                   }
-                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                    appSettings?.marketing_approval_by_ops_manager
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${appSettings?.marketing_approval_by_ops_manager
                       ? "bg-primary"
                       : "bg-gray-4"
-                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                    } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
                 >
                   <div
-                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                      appSettings?.marketing_approval_by_ops_manager
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${appSettings?.marketing_approval_by_ops_manager
                         ? "right-1"
                         : "left-1"
-                    }`}
+                      }`}
                   ></div>
                 </div>
               )}
@@ -280,18 +272,16 @@ export default function SettingsPage() {
                     !mutation.isPending &&
                     mutation.mutate({ universal_task_submission: !appSettings?.universal_task_submission })
                   }
-                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                    appSettings?.universal_task_submission
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${appSettings?.universal_task_submission
                       ? "bg-primary"
                       : "bg-gray-4"
-                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                    } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
                 >
                   <div
-                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                      appSettings?.universal_task_submission
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${appSettings?.universal_task_submission
                         ? "right-1"
                         : "left-1"
-                    }`}
+                      }`}
                   ></div>
                 </div>
               )}
@@ -327,18 +317,16 @@ export default function SettingsPage() {
                     !mutation.isPending &&
                     mutation.mutate({ enable_self_verification: !appSettings?.enable_self_verification })
                   }
-                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                    appSettings?.enable_self_verification
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${appSettings?.enable_self_verification
                       ? "bg-primary"
                       : "bg-gray-4"
-                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                    } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
                 >
                   <div
-                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                      appSettings?.enable_self_verification
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${appSettings?.enable_self_verification
                         ? "right-1"
                         : "left-1"
-                    }`}
+                      }`}
                   ></div>
                 </div>
               )}
@@ -374,18 +362,16 @@ export default function SettingsPage() {
                     !mutation.isPending &&
                     mutation.mutate({ enable_bulk_approval: !appSettings?.enable_bulk_approval })
                   }
-                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                    appSettings?.enable_bulk_approval
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${appSettings?.enable_bulk_approval
                       ? "bg-primary"
                       : "bg-gray-4"
-                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                    } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
                 >
                   <div
-                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                      appSettings?.enable_bulk_approval
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${appSettings?.enable_bulk_approval
                         ? "right-1"
                         : "left-1"
-                    }`}
+                      }`}
                   ></div>
                 </div>
               )}
@@ -421,18 +407,16 @@ export default function SettingsPage() {
                     !mutation.isPending &&
                     mutation.mutate({ enable_visual_shaming: !appSettings?.enable_visual_shaming })
                   }
-                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${
-                    appSettings?.enable_visual_shaming
+                  className={`w-11 h-6 rounded-full relative cursor-pointer transition-colors ${appSettings?.enable_visual_shaming
                       ? "bg-primary"
                       : "bg-gray-4"
-                  } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
+                    } ${mutation.isPending && "opacity-50 cursor-not-allowed"}`}
                 >
                   <div
-                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${
-                      appSettings?.enable_visual_shaming
+                    className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-all ${appSettings?.enable_visual_shaming
                         ? "right-1"
                         : "left-1"
-                    }`}
+                      }`}
                   ></div>
                 </div>
               )}

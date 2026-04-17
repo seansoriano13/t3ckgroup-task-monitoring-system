@@ -135,7 +135,7 @@ export default function Dashboard() {
 
           <DashboardStats selectedRange={globalRange} />
           {!(user?.is_head || user?.isHead) && (
-             <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
+            <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
           )}
           {(user?.is_head || user?.isHead) && (
             <EmployeePipelineMatrix selectedRange={globalRange} />

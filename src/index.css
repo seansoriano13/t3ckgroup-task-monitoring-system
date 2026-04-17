@@ -364,6 +364,7 @@ label[for] {
 .property-pill {
   @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-4 bg-gray-1 transition-all cursor-pointer select-none;
 }
+
 .property-pill:hover {
   @apply border-gray-5 bg-gray-2;
 }
@@ -407,6 +408,54 @@ label[for] {
 
 .animate-slide-down {
   animation: slide-down-in 0.2s ease-out;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modal-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes content-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-content-in {
+  animation: content-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.15s;
+}
+
+.stagger-3 {
+  animation-delay: 0.2s;
+}
+
+.stagger-4 {
+  animation-delay: 0.25s;
 }
 
 /* --- SCROLLBAR HIDE UTILITY --- */

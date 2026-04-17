@@ -241,7 +241,7 @@ export default function TasksPage() {
           <h1 className="text-2xl md:text-3xl font-black text-gray-12 tracking-tight">
             {isHr
               ? hrViewMode === "ALL"
-                ? "Company Tasks"
+                ? "Tasks"
                 : "My Tasks"
               : isManagement
                 ? "All tasks"
@@ -250,7 +250,7 @@ export default function TasksPage() {
           <p className="text-sm md:text-base text-gray-9 mt-1">
             {isHr
               ? hrViewMode === "ALL"
-                ? "Monitor and filter company-wide task logs."
+                ? "Monitor and filter all task logs."
                 : "Manage and filter your own personal tasks."
               : isManagement
                 ? "Monitor and filter employee task logs."
@@ -262,21 +262,19 @@ export default function TasksPage() {
           <div className="flex bg-gray-2 border border-gray-4 rounded-lg overflow-hidden shrink-0">
             <button
               onClick={() => setHrViewMode("ALL")}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-gray-4 ${
-                hrViewMode === "ALL"
-                  ? "bg-primary text-white shadow-inner"
-                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
-              }`}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-gray-4 ${hrViewMode === "ALL"
+                ? "bg-[#111827] text-white shadow-none"
+                : "bg-transparent text-gray-500 hover:text-gray-900"
+                }`}
             >
               Company
             </button>
             <button
               onClick={() => setHrViewMode("PERSONAL")}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
-                hrViewMode === "PERSONAL"
-                  ? "bg-primary text-white shadow-inner"
-                  : "bg-transparent text-gray-10 hover:bg-gray-3 hover:text-gray-12"
-              }`}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${hrViewMode === "PERSONAL"
+                ? "bg-[#111827] text-white shadow-none"
+                : "bg-transparent text-gray-500 hover:text-gray-900"
+                }`}
             >
               My Tasks
             </button>
@@ -331,7 +329,7 @@ export default function TasksPage() {
               return t.status === TASK_STATUS.INCOMPLETE;
             if (statusKey === "NOT APPROVED")
               return t.status === TASK_STATUS.NOT_APPROVED;
-            
+
             return t.status === statusKey;
           });
           if (allGroupTasks.length === 0) return null;
@@ -350,17 +348,16 @@ export default function TasksPage() {
               {/* Group Header */}
               <div className="flex items-center gap-3 border-b border-gray-4 pb-2 px-1">
                 <div
-                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${
-                    statusKey === "COMPLETE_VERIFIED"
-                      ? "bg-green-500"
-                      : statusKey === "COMPLETE_UNVERIFIED"
-                        ? "bg-emerald-400"
-                        : statusKey === "AWAITING_APPROVAL"
-                          ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
-                          : statusKey === "NOT APPROVED"
-                            ? "bg-red-500"
-                            : "bg-amber-500"
-                  }`}
+                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${statusKey === "COMPLETE_VERIFIED"
+                    ? "bg-green-500"
+                    : statusKey === "COMPLETE_UNVERIFIED"
+                      ? "bg-emerald-400"
+                      : statusKey === "AWAITING_APPROVAL"
+                        ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                        : statusKey === "NOT APPROVED"
+                          ? "bg-red-500"
+                          : "bg-amber-500"
+                    }`}
                 />
                 <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-[0.2em]">
                   {statusKey === "COMPLETE_VERIFIED"
@@ -412,7 +409,7 @@ export default function TasksPage() {
                     {(() => {
                       let startPage = Math.max(1, currentGroupPage - 2);
                       let endPage = Math.min(totalGroupPages, currentGroupPage + 2);
-                      
+
                       if (currentGroupPage <= 3) {
                         endPage = Math.min(totalGroupPages, 5);
                       } else if (currentGroupPage >= totalGroupPages - 2) {
@@ -424,11 +421,11 @@ export default function TasksPage() {
                         pages.push(1);
                         if (startPage > 2) pages.push("...");
                       }
-                      
+
                       for (let i = startPage; i <= endPage; i++) {
                         pages.push(i);
                       }
-                      
+
                       if (endPage < totalGroupPages) {
                         if (endPage < totalGroupPages - 1) pages.push("...");
                         pages.push(totalGroupPages);
@@ -439,13 +436,12 @@ export default function TasksPage() {
                           key={idx}
                           disabled={p === "..."}
                           onClick={() => p !== "..." && setGroupPage(statusKey, p)}
-                          className={`w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition-all border ${
-                            p === currentGroupPage
-                              ? "bg-primary text-white border-primary"
-                              : p === "..."
+                          className={`w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition-all border ${p === currentGroupPage
+                            ? "bg-[#111827] text-white border-[#111827]"
+                            : p === "..."
                               ? "bg-transparent text-gray-10 border-transparent cursor-default"
                               : "bg-gray-3 text-gray-10 border-gray-4 hover:border-gray-6"
-                          }`}
+                            }`}
                         >
                           {p}
                         </button>

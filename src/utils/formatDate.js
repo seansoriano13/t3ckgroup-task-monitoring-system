@@ -16,3 +16,25 @@ export const toLocalDatetimeString = (isoString) => {
   const pad = (n) => n.toString().padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
+
+export const getCurrentLocalTime = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 16);
+};
+
+export const formatTaskDateTime = (val) => {
+  if (!val) return null;
+  try {
+    const d = new Date(val);
+    return d.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return val;
+  }
+};

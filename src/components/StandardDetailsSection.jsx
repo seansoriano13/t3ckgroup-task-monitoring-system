@@ -21,7 +21,7 @@ const StandardDetailsSection = ({
       ?.description || "Unknown Category";
   const categoryLabel = othersDetails || categoryDescription;
 
-  
+
 
   return (
     <>
@@ -99,9 +99,9 @@ const StandardDetailsSection = ({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <FieldBox label="Status" isEditing={false}>
-            <div className="px-3">
-              <StatusBadge status={task.status} />
-            </div>
+          <div className="px-3">
+            <StatusBadge status={task.status} />
+          </div>
         </FieldBox>
         {/* {!isEditing && (
           <FieldBox label="Created At" isEditing={false}>

@@ -60,8 +60,8 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
     selectedRange?.mode === "CUSTOM"
       ? selectedRange.endDate
       : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
-          now.getDate(),
-        ).padStart(2, "0")}`,
+        now.getDate(),
+      ).padStart(2, "0")}`,
   );
 
   // Compute boundaries based on internal state
@@ -188,11 +188,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
               <button
                 key={m}
                 onClick={() => setMode(m)}
-                className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
-                  mode === m
+                className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${mode === m
                     ? "bg-[#111827] text-white shadow-sm"
                     : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 {MODE_LABELS[m]}
               </button>
@@ -247,11 +246,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                             )}`,
                           )
                         }
-                        className={`py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                          isSelected
+                        className={`py-1.5 rounded-lg text-[10px] font-bold transition-all ${isSelected
                             ? "bg-[#111827] text-white shadow-sm"
                             : "bg-transparent text-[#6B7280] hover:bg-gray-100"
-                        }`}
+                          }`}
                       >
                         {mLabel}
                         {isNow && !isSelected && (
@@ -270,11 +268,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                     <button
                       key={q}
                       onClick={() => setQuarter(q)}
-                      className={`py-2 rounded-lg text-[11px] font-bold transition-all ${
-                        quarter === q
+                      className={`py-2 rounded-lg text-[11px] font-bold transition-all ${quarter === q
                           ? "bg-[#111827] text-white shadow-sm"
                           : "bg-transparent text-[#6B7280] hover:bg-gray-100"
-                      }`}
+                        }`}
                     >
                       Q{q}
                     </button>
@@ -324,11 +321,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
       {/* FAB TRIGGER BUTTON */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-xs shadow-sm transition-all duration-300 border ${
-          open
+        className={`pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-xs shadow-sm transition-all duration-300 border ${open
             ? "bg-[#F9FAFB] text-[#111827] border-[#D1D5DB]"
             : "bg-white text-[#111827] border-[#E5E7EB] hover:border-[#D1D5DB]"
-        }`}
+          }`}
       >
         <Calendar size={16} className="text-[#6B7280]" />
         <div className="flex flex-col items-start leading-tight">

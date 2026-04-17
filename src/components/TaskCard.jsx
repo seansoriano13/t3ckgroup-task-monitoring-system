@@ -1,22 +1,18 @@
 import { useState } from "react";
 import {
-  AlertCircle,
   ChevronDown,
   ChevronUp,
-  ClipboardList,
   FolderKanban,
-  User
+  User,
+  Clock,
+  CheckCircle2
 } from "lucide-react";
 import StatusBadge from "./StatusBadge";
-import { ArrowRight, PencilLine } from "lucide-react";
-import { Clock } from "lucide-react";
-import { CheckCircle2 } from "lucide-react";
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import { useAuth } from "../context/AuthContext";
-import { formatTaskPreview } from "../utils/taskFormatters";
 import { TASK_STATUS } from "../constants/status";
 
-export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
+export default function TaskCard({ task, onView, onSilentUpdate }) {
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -28,19 +24,10 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
   const isHead = user?.is_head === true || user?.isHead === true;
   const isManagement = isHr || isHead;
 
-  // 🔥 Dynamic styling for the Priority badge
-  const priorityStyles = {
-    HIGH: "text-red-11 bg-red-a3 border-red-a5",
-    MEDIUM: "text-amber-700 bg-amber-500/10 border-amber-500/20",
-    LOW: "text-gray-10 bg-gray-3 border-gray-4",
-  };
-
-  const currentPriorityStyle =
-    priorityStyles[task.priority] || priorityStyles.LOW;
-
   let isChecklistFormat = false;
   let totalItems = 0;
   let checkedItems = 0;
+  let parsedDesc = null;
 
   if (task.taskDescription) {
     const trimmed =
@@ -49,32 +36,29 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
         : "";
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
+        parsedDesc = JSON.parse(trimmed);
+        if (Array.isArray(parsedDesc)) {
           isChecklistFormat = true;
-          totalItems = parsed.length;
-          checkedItems = parsed.filter(
+          totalItems = parsedDesc.length;
+          checkedItems = parsedDesc.filter(
             (item) => item && typeof item === "object" && item.checked,
           ).length;
         }
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
-        const parsed = JSON.parse(trimmed);
-        if (parsed && Array.isArray(parsed.items)) {
+        parsedDesc = JSON.parse(trimmed);
+        if (parsedDesc && Array.isArray(parsedDesc.items)) {
           isChecklistFormat = true;
-          totalItems = parsed.items.length;
-          checkedItems = parsed.items.filter(
+          totalItems = parsedDesc.items.length;
+          checkedItems = parsedDesc.items.filter(
             (item) => item && typeof item === "object" && item.checked,
           ).length;
         }
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     } else if (Array.isArray(task.taskDescription)) {
       isChecklistFormat = true;
+      parsedDesc = task.taskDescription;
       totalItems = task.taskDescription.length;
       checkedItems = task.taskDescription.filter(
         (item) => item && typeof item === "object" && item.checked,
@@ -94,93 +78,55 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
     }
   };
 
+  let displayTitle = "";
+  let displaySnippet = "";
+
+  if (!isChecklistFormat) {
+    const text = task.taskDescription || "";
+    const parts = text.split('\n');
+    displayTitle = parts[0];
+    displaySnippet = parts.slice(1).join('\n').trim();
+  } else {
+    displayTitle = parsedDesc?.title || "Checklist Task";
+    displaySnippet = isExpanded ? "" : `${checkedItems} / ${totalItems} completed`;
+  }
+
   return (
-    <div className="bg-gray-2 shadow-lg p-5 rounded-xl gap-4 border border-gray-4 hover:border-gray-6 transition-all duration-300 group flex flex-col h-full">
-      {/* Top Row: Category, Priority & Status */}
-      <div className="flex justify-between items-start gap-2">
-        <div className="flex flex-wrap gap-2 items-center">
-          {/* Employee Name (Visible to Management) */}
-          {isManagement && task.loggedByName && (
-            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border text-blue-500 bg-blue-500/10 border-blue-500/20 max-w-[140px] truncate" title={task.loggedByName}>
-              <User size={10} className="shrink-0" />
-              <span className="truncate">{task.loggedByName}</span>
-            </span>
-          )}
-
-          {/* Category Badge */}
-          <span className="text-xs font-bold text-gray-11 bg-gray-3 px-2 py-1 rounded border border-gray-4">
-            {task.categoryId}
-          </span>
-
-          {/* Project Title Badge */}
-          {task.projectTitle && (
-            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border text-violet-400 bg-violet-500/10 border-violet-500/20 max-w-[180px] truncate">
-              <FolderKanban size={10} className="shrink-0" />
-              <span className="truncate">{task.projectTitle}</span>
-            </span>
-          )}
-
-          {/* Priority Badge */}
-          <span
-            className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${currentPriorityStyle}`}
-          >
-            {task.priority === "HIGH" && <AlertCircle size={12} />}
-            {task.priority}
-          </span>
-
-          {/* Reported To Badge (Management only) */}
-          {isManagement && task.reportedToName && (
-            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border text-amber-500 bg-amber-500/10 border-amber-500/20 max-w-[140px] truncate" title={`Reported to ${task.reportedToName}`}>
-              <ClipboardList size={10} className="shrink-0" />
-              <span className="truncate">{task.reportedToName}</span>
-            </span>
-          )}
-
-          {/* 🔥 HR VERIFICATION BADGE (Only shows when Manager has approved it) */}
-          {task.status === TASK_STATUS.COMPLETE && (
-            <span
-              className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${
-                task.hrVerified
-                  ? "text-green-600 bg-green-500/10 border-green-500/20"
-                  : "text-amber-600 bg-amber-500/10 border-amber-500/20"
-              }`}
-            >
-              {task.hrVerified ? (
-                <CheckCircle2 size={12} />
-              ) : (
-                <Clock size={12} />
-              )}
-            </span>
-          )}
-
-          {/* Checklist Progress Badge */}
-          {isChecklistFormat && totalItems > 0 && (
-            <span
-              className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-            >
-              {checkedItems}/{totalItems} Done
-            </span>
-          )}
+    <div 
+      onClick={onView}
+      className="bg-white p-5 rounded-xl border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 group flex flex-col h-full cursor-pointer relative"
+    >
+      {/* Row 1: The Eyebrow (Context) */}
+      <div className="flex justify-between items-start gap-3 mb-3">
+        <div 
+          className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold truncate mr-2"
+          title={task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"}
+        >
+          {task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"}
         </div>
-
-        {/* Status Badge */}
-        <StatusBadge status={task.status} />
+        <div className="shrink-0">
+          <StatusBadge status={task.status} />
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 space-y-3">
-        {(!isChecklistFormat || !isExpanded) && (
-          <p className="font-semibold text-gray-12 line-clamp-3 leading-relaxed mt-4">
-            {formatTaskPreview(task.taskDescription)}
+      {/* Row 2: The Core (Action) */}
+      <div className="flex-1">
+        <h3 className="text-base text-[#111827] font-semibold leading-snug line-clamp-2">
+          {displayTitle}
+        </h3>
+        
+        {displaySnippet && !isExpanded && (
+          <p className="text-[13px] text-gray-500 mt-1 line-clamp-2">
+            {displaySnippet}
           </p>
         )}
 
+        {/* Expanded Checklist */}
         {isChecklistFormat && isExpanded && (
-          <div className="mt-4 pt-4 border-t border-gray-3">
+          <div 
+            className="mt-4 pt-4 border-t border-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
             <ChecklistTaskRenderer
               description={task.taskDescription}
               isOwner={isOwner}
@@ -191,46 +137,62 @@ export default function TaskCard({ task, onView, onEdit, onSilentUpdate }) {
         )}
       </div>
 
-      {/* Bottom Row: Actions */}
-      <div className="flex justify-between items-center pt-3 border-t border-gray-3 mt-auto">
-        <div className="flex gap-3 items-center flex-1">
-          {onEdit && task.status !== TASK_STATUS.COMPLETE && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation(); // Prevents triggering other click events
-                onEdit();
-              }}
-              className="text-gray-9 hover:text-gray-12 transition-colors flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
-            >
-              <PencilLine size={14} />
-              Edit
-            </button>
-          )}
+      {/* Row 3: The Footer (Metadata) */}
+      <div className="mt-5 pt-4 flex items-center gap-2 overflow-hidden text-xs text-gray-500 w-full border-t border-gray-100">
+        
+        {isManagement && task.loggedByName && (
+          <div className="flex items-center gap-1.5 shrink-0" title={task.loggedByName}>
+            <User size={12} className="text-gray-400" />
+            <span className="truncate max-w-[80px] font-medium text-gray-700">{task.loggedByName}</span>
+          </div>
+        )}
 
-          {isChecklistFormat && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }}
-              className="text-gray-9 hover:text-gray-12 transition-colors flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
-            >
-              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {isExpanded ? "Collapse" : "Expand"}
-            </button>
-          )}
-        </div>
+        {isManagement && task.loggedByName && task.projectTitle && (
+          <span className="shrink-0 text-gray-300">•</span>
+        )}
 
-        <button
-          onClick={onView}
-          className="flex text-primary font-bold items-center gap-2 text-sm group-hover:text-primary-hover transition-colors"
-        >
-          View Task
-          <ArrowRight
-            size={16}
-            className="transform group-hover:translate-x-1 transition-transform"
-          />
-        </button>
+        {task.projectTitle && (
+          <div className="flex items-center gap-1.5 overflow-hidden shrink min-w-0" title={task.projectTitle}>
+            <FolderKanban size={12} className="text-gray-400 shrink-0" />
+            <span className="truncate font-medium text-gray-700">{task.projectTitle}</span>
+          </div>
+        )}
+
+        {(isManagement && task.loggedByName || task.projectTitle) && task.priority && (
+          <span className="shrink-0 text-gray-300">•</span>
+        )}
+
+        {task.priority && (
+          <div className="flex items-center gap-1 shrink-0 font-medium text-gray-700">
+            {task.priority === "HIGH" && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>}
+            {task.priority === "MEDIUM" && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>}
+            {task.priority === "LOW" && <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>}
+            <span className="capitalize">{task.priority.toLowerCase()}</span>
+          </div>
+        )}
+
+        {task.status === TASK_STATUS.COMPLETE && (
+          <>
+            <span className="shrink-0 text-gray-300">•</span>
+            <div className="flex items-center gap-1 shrink-0" title={task.hrVerified ? "Verified by HR" : "Pending HR Verification"}>
+              {task.hrVerified ? <CheckCircle2 size={12} className="text-green-500" /> : <Clock size={12} className="text-amber-500" />}
+            </div>
+          </>
+        )}
+        
+        {/* Expand/Collapse Checklist */}
+        {isChecklistFormat && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+            className="ml-auto text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shrink-0"
+          >
+            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {isExpanded ? "Collapse" : "Expand"}
+          </button>
+        )}
       </div>
     </div>
   );
