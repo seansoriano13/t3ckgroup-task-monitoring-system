@@ -5,7 +5,7 @@ import TasksList from "../components/TasksList.jsx";
 import SalesDashboard from "../components/SalesDashboard.jsx";
 import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
-import { Calendar } from "lucide-react";
+import { Calendar, TrendingUp } from "lucide-react";
 import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
 import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
 import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
