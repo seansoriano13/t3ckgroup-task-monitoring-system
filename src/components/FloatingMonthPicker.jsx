@@ -39,29 +39,29 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const [month, setMonth] = useState(
     selectedRange?.mode === "MONTHLY"
       ? selectedRange.startDate.slice(0, 7)
-      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
   );
   const [quarter, setQuarter] = useState(
     selectedRange?.mode === "QUARTERLY"
       ? getQuarterFromMonth(selectedRange.startDate)
-      : getQuarterFromMonth(month)
+      : getQuarterFromMonth(month),
   );
   const [year, setYear] = useState(
     selectedRange?.startDate
       ? new Date(selectedRange.startDate).getFullYear()
-      : now.getFullYear()
+      : now.getFullYear(),
   );
   const [customStart, setCustomStart] = useState(
     selectedRange?.mode === "CUSTOM"
       ? selectedRange.startDate
-      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`
+      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`,
   );
   const [customEnd, setCustomEnd] = useState(
     selectedRange?.mode === "CUSTOM"
       ? selectedRange.endDate
       : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
-          now.getDate()
-        ).padStart(2, "0")}`
+          now.getDate(),
+        ).padStart(2, "0")}`,
   );
 
   // Compute boundaries based on internal state
@@ -156,28 +156,26 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const goToday = () => {
     setMode("MONTHLY");
     setMonth(
-      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
     );
   };
-
   const content = (
     <div
       ref={panelRef}
-      className="fixed bottom-6 right-6 flex flex-col items-end gap-3"
-      style={{ zIndex: 100 }}
+      className={`fixed bottom-6 right-6 flex flex-col items-end gap-3 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}
     >
       {/* EXPANDED PANEL */}
       {open && (
-        <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-2xl p-4 w-80 flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="pointer-events-auto mb-3 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-80 flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-4 pb-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-9 flex items-center gap-1.5">
-              <LayoutGrid size={12} className="text-primary" />
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+            <p className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
+              <LayoutGrid size={12} className="text-[#6B7280]" />
               Time Range Analysis
             </p>
             <button
               onClick={goToday}
-              className="flex items-center gap-1 text-[10px] font-bold text-primary hover:text-primary/80 transition-colors"
+              className="flex items-center gap-1 text-[10px] font-bold text-[#6B7280] hover:text-[#111827] transition-colors"
             >
               <RotateCcw size={11} />
               Reset to Now
@@ -185,15 +183,15 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
           </div>
 
           {/* Mode Switcher */}
-          <div className="grid grid-cols-4 gap-1 p-1 bg-gray-2 border border-gray-4 rounded-xl shadow-inner">
+          <div className="grid grid-cols-4 gap-1">
             {MODES.map((m) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
-                className={`py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
                   mode === m
-                    ? "bg-primary text-white shadow-md scale-[1.02]"
-                    : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+                    ? "bg-[#111827] text-white shadow-sm"
+                    : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"
                 }`}
               >
                 {MODE_LABELS[m]}
@@ -236,7 +234,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                       Number(month.split("-")[0]) === now.getFullYear();
                     const mLabel = new Date(2000, i, 1).toLocaleString(
                       "default",
-                      { month: "short" }
+                      { month: "short" },
                     );
                     return (
                       <button
@@ -245,14 +243,14 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                           setMonth(
                             `${month.split("-")[0]}-${String(i + 1).padStart(
                               2,
-                              "0"
-                            )}`
+                              "0",
+                            )}`,
                           )
                         }
                         className={`py-1.5 rounded-lg text-[10px] font-bold transition-all ${
                           isSelected
-                            ? "bg-primary text-white shadow-sm"
-                            : "bg-gray-2 border border-gray-4 text-gray-9 hover:border-primary/50"
+                            ? "bg-[#111827] text-white shadow-sm"
+                            : "bg-transparent text-[#6B7280] hover:bg-gray-100"
                         }`}
                       >
                         {mLabel}
@@ -272,10 +270,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                     <button
                       key={q}
                       onClick={() => setQuarter(q)}
-                      className={`py-2 rounded-lg text-[11px] font-black transition-all ${
+                      className={`py-2 rounded-lg text-[11px] font-bold transition-all ${
                         quarter === q
-                          ? "bg-primary text-white shadow-sm"
-                          : "bg-gray-2 border border-gray-4 text-gray-9"
+                          ? "bg-[#111827] text-white shadow-sm"
+                          : "bg-transparent text-[#6B7280] hover:bg-gray-100"
                       }`}
                     >
                       Q{q}
@@ -297,26 +295,26 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                   type="date"
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
-                  className="w-full bg-gray-2 border border-gray-4 rounded-xl px-3 py-2 text-xs text-gray-12 font-bold outline-none focus:border-primary h-10"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-[#111827] font-semibold outline-none focus:border-[#111827] h-10"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[9px] font-black text-gray-9 uppercase tracking-widest ml-1">
+                <label className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest ml-1">
                   End Date
                 </label>
                 <input
                   type="date"
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
-                  className="w-full bg-gray-2 border border-gray-4 rounded-xl px-3 py-2 text-xs text-gray-12 font-bold outline-none focus:border-primary h-10"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-[#111827] font-semibold outline-none focus:border-[#111827] h-10"
                 />
               </div>
             </div>
           )}
 
-          {/* Footer stats or info could go here */}
-          <div className="border-t border-gray-4 pt-3 text-center">
-            <p className="text-[9px] font-medium text-gray-8 italic">
+          {/* Footer info */}
+          <div className="border-t border-gray-100 pt-3 text-center">
+            <p className="text-[11px] font-medium text-gray-400 italic">
               Syncing analytics across {mode.toLowerCase()} boundaries...
             </p>
           </div>
@@ -326,18 +324,22 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
       {/* FAB TRIGGER BUTTON */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl font-black text-sm shadow-xl transition-all duration-300 border ${
+        className={`pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-xs shadow-sm transition-all duration-300 border ${
           open
-            ? "bg-primary text-white border-primary shadow-primary/30 rotate-0"
-            : "bg-gray-1 text-gray-12 border-gray-4 hover:border-primary hover:shadow-primary/10"
+            ? "bg-[#F9FAFB] text-[#111827] border-[#D1D5DB]"
+            : "bg-white text-[#111827] border-[#E5E7EB] hover:border-[#D1D5DB]"
         }`}
       >
-        <Calendar size={18} className={open ? "text-white" : "text-primary"} />
+        <Calendar size={16} className="text-[#6B7280]" />
         <div className="flex flex-col items-start leading-tight">
-          <span className="uppercase tracking-widest text-[9px] opacity-70">
-            {mode === "MONTHLY" ? "Month" : mode === "QUARTERLY" ? "Quarter" : "Range"}
+          <span className="uppercase tracking-widest text-[9px] text-[#6B7280] font-bold">
+            {mode === "MONTHLY"
+              ? "Month"
+              : mode === "QUARTERLY"
+                ? "Quarter"
+                : "Range"}
           </span>
-          <span className="text-xs uppercase tracking-wider">
+          <span className="text-xs font-semibold text-[#111827]">
             {rangeData.label}
           </span>
         </div>

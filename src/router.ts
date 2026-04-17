@@ -10,8 +10,7 @@ export type Path =
   | `/approvals/components/ApprovalRow`
   | `/approvals/sales`
   | `/hr-master-log`
-  | `/hr/employee-management`
-  | `/log-task`
+  | `/hr/management`
   | `/login`
   | `/profile`
   | `/sales/daily`

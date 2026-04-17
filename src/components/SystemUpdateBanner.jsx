@@ -42,34 +42,25 @@ export default function SystemUpdateBanner() {
   const getIcon = (type) => {
     switch (type) {
       case "announcement":
-        return <Megaphone className="w-5 h-5 text-blue-500" />;
+        return <Megaphone className="w-5 h-5 text-[#111827]" />;
       case "feature":
-        return <Rocket className="w-5 h-5 text-purple-500" />;
+        return <Rocket className="w-5 h-5 text-[#111827]" />;
       case "fix":
-        return <Wrench className="w-5 h-5 text-green-500" />;
+        return <Wrench className="w-5 h-5 text-[#111827]" />;
       default:
-        return <Megaphone className="w-5 h-5 text-blue-500" />;
+        return <Megaphone className="w-5 h-5 text-[#111827]" />;
     }
   };
 
-  const getStyles = (type) => {
-    switch (type) {
-      case "announcement":
-        return "bg-blue-50 border-blue-200 text-blue-900";
-      case "feature":
-        return "bg-purple-50 border-purple-200 text-purple-900";
-      case "fix":
-        return "bg-green-50 border-green-200 text-green-900";
-      default:
-        return "bg-blue-50 border-blue-200 text-blue-900";
-    }
+  const getStyles = () => {
+    return "bg-white border-[#E5E7EB] text-[#111827]";
   };
 
   return (
     <div
-      className={`mb-6 p-4 rounded-xl border flex items-start gap-4 transition-all duration-300 ${getStyles(latestUpdate.type)} animate-in fade-in slide-in-from-top-4`}
+      className={`mb-6 p-4 rounded-xl border flex items-start gap-4 transition-all duration-300 ${getStyles()} animate-in fade-in slide-in-from-top-4`}
     >
-      <div className="p-2 bg-white rounded-full shrink-0 shadow-sm border border-gray-100">
+      <div className="p-2 bg-[#F9FAFB] rounded-full shrink-0 border border-[#E5E7EB]">
         {getIcon(latestUpdate.type)}
       </div>
       <div className="flex-1 min-w-0">
@@ -78,39 +69,47 @@ export default function SystemUpdateBanner() {
           onClick={handleToggle}
         >
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-sm uppercase tracking-wider">
+            <h3
+              className="font-medium uppercase tracking-wider text-[#6B7280]"
+              style={{ fontSize: "12px" }}
+            >
               {latestUpdate.type === "feature"
                 ? "New Features"
                 : latestUpdate.type === "fix"
                   ? "System Fixes"
                   : "Announcement"}
             </h3>
-            <span className="text-xs font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200/50 shadow-sm text-gray-500 mr-2">
+            <span
+              className="font-medium text-[#6B7280]"
+              style={{ fontSize: "12px" }}
+            >
               {new Date(latestUpdate.created_at).toLocaleDateString()}
             </span>
           </div>
-          <button className="text-gray-400 group-hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-white/50">
+          <button className="text-[#6B7280] group-hover:text-[#111827] transition-colors p-1 rounded-full hover:bg-[#F9FAFB]">
             {isMinimized ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
           </button>
         </div>
 
         <div
-          className={`text-sm overflow-hidden transition-all duration-300 ease-in-out ${isMinimized ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100"}`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out text-[#111827] ${isMinimized ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100"}`}
         >
           <ReactMarkdown
             components={{
               p: ({ ...props }) => (
-                <p className="mb-2 last:mb-0 opacity-90" {...props} />
+                <p className="mb-2 last:mb-0 text-sm" {...props} />
               ),
               ul: ({ ...props }) => (
                 <ul
-                  className="list-disc pl-5 mb-2 opacity-90 marker:text-gray-400"
+                  className="list-disc pl-5 mb-2 marker:text-[#6B7280]"
                   {...props}
                 />
               ),
-              li: ({ ...props }) => <li className="mb-1" {...props} />,
+              li: ({ ...props }) => (
+                <li className="mb-1" style={{ fontSize: "13px" }} {...props} />
+              ),
               strong: ({ ...props }) => (
-                <strong className="font-bold opacity-100" {...props} />
+                <strong className="font-semibold text-[#111827]" {...props} />
               ),
             }}
           >

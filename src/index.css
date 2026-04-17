@@ -113,8 +113,8 @@
     -webkit-backdrop-filter: blur(8px);
     background-color: rgba(0, 0, 0, 0.2);
     /* optional dim */
-    z-index: 40;
-    /* below nav if nav is z-50 */
+    z-index: 5000;
+    /* above page content but below specific modal overrides */
   }
 }
 
@@ -364,7 +364,6 @@ label[for] {
 .property-pill {
   @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-4 bg-gray-1 transition-all cursor-pointer select-none;
 }
-
 .property-pill:hover {
   @apply border-gray-5 bg-gray-2;
 }

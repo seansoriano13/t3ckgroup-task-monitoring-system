@@ -115,7 +115,7 @@ export default function SalesDashboard({ globalRange }) {
             <h1 className="text-2xl font-black text-gray-12 flex items-center uppercase">
               Sales Accomplishment Report
               {rangeLabel && (
-                <span className="text-purple-500 ml-2">— {rangeLabel}</span>
+                <span className="text-gray-12 ml-2">— {rangeLabel}</span>
               )}
             </h1>
             <p className="text-gray-9 mt-1 font-medium text-sm">
@@ -124,9 +124,9 @@ export default function SalesDashboard({ globalRange }) {
           </div>
           <button
             onClick={printReport}
-            className="bg-red-9 hover:bg-red-10 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-sm shrink-0 print:hidden"
+            className="bg-white hover:bg-gray-50 text-gray-900 font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm border border-gray-200 shrink-0 print:hidden"
           >
-            <Download size={16} /> Export PDF
+            <Download size={16} className="text-gray-500" /> Export PDF
           </button>
         </div>
       </div>

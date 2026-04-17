@@ -38,19 +38,23 @@ export default function Dashboard() {
           <PersonalizedHeroBanner />
 
           {/* PIPELINE SECTION */}
-          <div className="bg-gray-1 border border-gray-4 p-6 sm:p-10 rounded-4xl shadow-xl relative overflow-hidden">
+          <div className="relative">
             <div className="mb-8 border-b border-gray-4 pb-4 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-12 flex items-center uppercase">
                   Daily Task Accomplishment Report
                   {globalRange?.label && (
-                    <span className="text-purple-500 ml-2">— {globalRange.label}</span>
+                    <span className="text-[#111827] ml-2">— {globalRange.label}</span>
                   )}
                 </h2>
                 <p className="text-gray-9 mt-1 font-medium">
                   All task executions, approvals, and HR verifications.
                 </p>
               </div>
+              <FloatingMonthPicker
+                selectedRange={globalRange}
+                onChange={setGlobalRange}
+              />
             </div>
 
             <div className="grid gap-8 relative">
@@ -61,17 +65,14 @@ export default function Dashboard() {
           </div>
 
           {/* SALES SECTION */}
-          <div className="bg-gray-1 border border-gray-4 p-2 sm:p-10 pb-0 rounded-4xl shadow-xl relative overflow-hidden mt-12">
+          <div className="relative mt-12">
             <div className="relative w-full overflow-hidden">
               <SalesDashboard globalRange={globalRange} />
             </div>
           </div>
         </div>
 
-        <FloatingMonthPicker
-          selectedRange={globalRange}
-          onChange={setGlobalRange}
-        />
+
       </ProtectedRoute>
     );
   }
@@ -81,18 +82,23 @@ export default function Dashboard() {
     return (
       <ProtectedRoute>
         <div className="pb-10">
-          <div className="max-w-350 mx-auto px-2 xl:px-0 pt-6">
-            <SystemUpdateBanner />
-            <div className="mt-6">
-              <PersonalizedHeroBanner />
+          <div className="max-w-350 mx-auto px-2 xl:px-0 pt-6 flex items-end justify-between">
+            <div className="flex-1">
+              <SystemUpdateBanner />
+              <div className="mt-6">
+                <PersonalizedHeroBanner />
+              </div>
+            </div>
+            <div className="mb-0 ml-4 pb-2">
+              <FloatingMonthPicker
+                selectedRange={globalRange}
+                onChange={setGlobalRange}
+              />
             </div>
           </div>
           <SalesDashboard globalRange={globalRange} />
         </div>
-        <FloatingMonthPicker
-          selectedRange={globalRange}
-          onChange={setGlobalRange}
-        />
+
       </ProtectedRoute>
     );
   }
@@ -120,15 +126,10 @@ export default function Dashboard() {
             </div>
 
             <div className="flex flex-col items-end">
-              <div className="flex items-center gap-1.5 bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-9 shadow-sm w-max">
-                <Calendar size={12} />
-                <span className="uppercase tracking-wider">
-                  {globalRange.label}
-                </span>
-              </div>
-              <p className="text-[9px] uppercase tracking-widest text-primary font-black mt-1">
-                {globalRange.mode}
-              </p>
+              <FloatingMonthPicker
+                selectedRange={globalRange}
+                onChange={setGlobalRange}
+              />
             </div>
           </div>
 
@@ -141,10 +142,7 @@ export default function Dashboard() {
           )}
           <TasksList selectedRange={globalRange} />
         </div>
-        <FloatingMonthPicker
-          selectedRange={globalRange}
-          onChange={setGlobalRange}
-        />
+
       </div>
     </ProtectedRoute>
   );

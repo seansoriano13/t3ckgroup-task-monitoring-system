@@ -19,6 +19,7 @@ import { supabase } from "../lib/supabase.js";
 import { toast } from "react-hot-toast";
 
 import { activeChatService } from "../services/tasks/activeChatService";
+import { createPortal } from "react-dom";
 
 export default function TaskDetails({
   isOpen,
@@ -395,10 +396,10 @@ export default function TaskDetails({
     );
   };
 
-  return (
+  return createPortal(
     <>
       <div
-        className={`dropdown-backdrop transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`dropdown-backdrop z-[9998] transition-all duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
         onClick={onClose}
       />
 
@@ -779,6 +780,7 @@ export default function TaskDetails({
           }}
         />
       </div>
-    </>
+    </>,
+    document.body
   );
 }

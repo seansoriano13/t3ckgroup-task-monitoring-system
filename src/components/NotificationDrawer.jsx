@@ -154,30 +154,30 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       )}
 
       {/* Drawer */}
-      <div className={`fixed top-0 right-0 h-full w-[400px] max-w-full bg-gray-1 border-l border-gray-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-[400px] max-w-full bg-white border-l border-gray-200 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
          
-         <div className="p-6 border-b border-gray-4 flex justify-between items-start bg-gray-2/50 shrink-0">
+         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
             <div>
-               <h2 className="text-xl font-black text-gray-12 flex items-center gap-2">
-                  <Bell className="text-primary"/> Notifications
+               <h2 className="text-xl font-bold text-[#2D2D2D] flex items-center gap-2">
+                  <Bell size={20} className="text-[#2D2D2D]"/> Notifications
                </h2>
-               <p className="text-xs text-gray-9 mt-1 font-bold">Your Universal Action Hub</p>
+               <p className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider font-semibold">Your Universal Action Hub</p>
             </div>
             <div className="flex items-center gap-3">
                <button 
                   onClick={() => markAllReadMutation.mutate()} 
-                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-red-9 transition-colors bg-primary/10 px-2 py-1 rounded"
+                  className="text-[11px] font-semibold text-[#2D2D2D] hover:bg-gray-50 transition-colors bg-white border border-gray-200 px-3 py-1.5 rounded-md"
                >
                  Mark All Read
                </button>
-               <button onClick={onClose} className="p-1.5 text-gray-9 hover:bg-gray-4 rounded-full transition-colors">
+               <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-50 rounded-full transition-colors">
                   <X size={20}/>
                </button>
             </div>
          </div>
 
          {/* Tabs */}
-         <div className="flex px-6 pt-4 gap-2 border-b border-gray-4 shrink-0 overflow-x-auto custom-scrollbar pb-2">
+         <div className="flex px-6 pt-2 gap-6 border-b border-gray-100 shrink-0 overflow-x-auto custom-scrollbar">
              {['ALL', 'UNREAD', 'TASKS', 'SALES'].map(tab => {
                const isSalesStaff = user?.department?.toLowerCase().includes("sales") || user?.subDepartment?.toLowerCase().includes("sales");
                const isManagement = user?.isHr || user?.isSuperAdmin;
@@ -188,7 +188,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
                <button 
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg transition-colors whitespace-nowrap ${activeTab === tab ? 'bg-gray-12 text-gray-1 shadow' : 'text-gray-9 hover:bg-gray-3 hover:text-gray-12'}`}
+                  className={`pb-3 text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap border-b-2 ${activeTab === tab ? 'border-black text-black' : 'border-transparent text-gray-400 hover:text-black'}`}
                >
                   {tab}
                </button>
@@ -197,44 +197,44 @@ export default function NotificationDrawer({ isOpen, onClose }) {
          </div>
 
          {/* Feed */}
-         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+         <div className="flex-1 overflow-y-auto custom-scrollbar">
             {isLoading ? (
-               <div className="p-10 text-center text-gray-8 italic text-sm font-bold animate-pulse">Syncing timeline...</div>
+               <div className="p-10 text-center text-gray-400 italic text-sm font-medium animate-pulse">Syncing timeline...</div>
             ) : filteredNotifs.length === 0 ? (
                <div className="p-10 text-center flex flex-col items-center">
-                  <Bell size={32} className="text-gray-5 mb-3" />
-                  <p className="text-gray-9 font-bold">You're all caught up!</p>
-                  <p className="text-gray-8 text-xs mt-1">No alerts for this filter.</p>
+                  <Bell size={32} className="text-gray-200 mb-3" />
+                  <p className="text-gray-900 font-bold">You're all caught up!</p>
+                  <p className="text-gray-400 text-xs mt-1">No alerts for this filter.</p>
                </div>
             ) : (
                filteredNotifs.map(notif => (
                   <div 
                      key={notif.id} 
                      onClick={() => handleNotificationClick(notif)}
-                     className={`p-4 rounded-xl border transition-all cursor-pointer hover:border-gray-6 
-                        ${notif.type === 'TASK_ASSIGNED' && !notif.is_read ? 'bg-purple-500/5 border-purple-500/30' : ''}
-                        ${notif.is_read ? 'bg-gray-2/50 border-gray-3 opacity-75' : 'bg-gray-1 border-gray-1 shadow-md'}`}
+                     className={`p-6 border-b border-gray-100 transition-all cursor-pointer hover:bg-gray-50
+                        ${!notif.is_read ? 'bg-blue-50/50' : 'bg-white'}`}
                   >
-                     <div className="flex gap-3 items-start">
-                        <div className={`p-2 rounded-full shrink-0 ${notif.is_read ? 'bg-gray-3' : 'bg-blue-500/10'}`}>
+                     <div className="flex gap-4 items-start">
+                        <div className={`p-2 rounded-full shrink-0 ${notif.is_read ? 'bg-gray-100' : 'bg-blue-50'}`}>
                            {getIconForType(notif.type)}
                         </div>
                         <div className="flex-1 min-w-0">
                            <div className="flex justify-between items-start mb-1 gap-2">
-                              <h4 className={`text-sm font-black truncate ${notif.is_read ? 'text-gray-11' : 'text-gray-12'}`}>{notif.title}</h4>
-                              <span className="text-[10px] font-bold text-gray-8 uppercase tracking-widest shrink-0">
-                                 {new Date(notif.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                              </span>
+                              <h4 className={`text-sm font-bold truncate ${notif.is_read ? 'text-gray-600' : 'text-[#2D2D2D]'}`}>{notif.title}</h4>
                            </div>
-                           <p className="text-xs text-gray-10 leading-relaxed font-medium line-clamp-3">{notif.message}</p>
+                           <p className="text-xs text-gray-500 leading-relaxed font-normal">{notif.message}</p>
                            
-                           {notif.sender && (
-                              <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-8 flex items-center gap-1.5 border-t border-gray-4 pt-2">
-                                 Action by: <span className="text-gray-11">{notif.sender.name}</span>
-                              </p>
-                           )}
+                           <div className="mt-1.5 text-[12px] text-gray-400 flex items-center gap-1.5">
+                              {new Date(notif.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                              {notif.sender && (
+                                 <>
+                                    <span>•</span>
+                                    <span>By {notif.sender.name}</span>
+                                 </>
+                              )}
+                           </div>
                         </div>
-                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />}
+                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2" />}
                      </div>
                   </div>
                ))

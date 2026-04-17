@@ -1,7 +1,7 @@
 import { Bell, Moon, Sun, LogOut, Shield, Loader2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
-import HRCategoriesConfig from "../../components/HRCategoriesConfig.jsx";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import toast from "react-hot-toast";
@@ -439,8 +439,6 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
-
-        {isHr && <HRCategoriesConfig />}
 
         {/* DANGER ZONE SECTION */}
         <div className="bg-gray-2 border border-red-900/30 rounded-2xl shadow-lg overflow-hidden">

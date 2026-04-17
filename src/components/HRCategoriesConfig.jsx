@@ -1,15 +1,13 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Edit, Trash2, Loader2, XSquare, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, XSquare } from "lucide-react";
 import { employeeService } from "../services/employeeService";
 import { useAuth } from "../context/AuthContext";
 
 export default function HRCategoriesConfig() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const {
     data: categories = [],
@@ -27,6 +25,7 @@ export default function HRCategoriesConfig() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isNewDept, setIsNewDept] = useState(false);
   const [isNewSubDept, setIsNewSubDept] = useState(false);
 
@@ -126,6 +125,16 @@ export default function HRCategoriesConfig() {
     onError: (err) => toast.error(err?.message || "Failed to delete category."),
   });
 
+  const filteredCategories = useMemo(() => {
+    return categories.filter(
+      (cat) =>
+        cat.categoryId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cat.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cat.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cat.subDepartment.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [categories, searchTerm]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -150,67 +159,57 @@ export default function HRCategoriesConfig() {
   };
 
   return (
-    <div className="bg-gray-2 border border-gray-4 rounded-2xl shadow-lg overflow-hidden">
-      <div
-        onClick={() => setIsExpanded((v) => !v)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setIsExpanded((v) => !v);
-          }
-        }}
-        className="w-full p-5 border-b border-gray-3 bg-gray-1 flex items-center justify-between gap-4 text-left cursor-pointer"
-      >
-        <div className="flex items-center gap-3">
-          <ChevronDown
-            size={18}
-            className={`transition-transform ${isExpanded ? "rotate-180" : "rotate-0"}`}
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="bg-gray-2 border border-gray-4 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative z-20">
+        <div className="relative flex-1 md:max-w-sm">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-gray-6 transition-colors text-sm"
           />
-          <h2 className="text-sm font-bold text-gray-10 uppercase tracking-wider">
-           Categories Config
-          </h2>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-gray-9 bg-gray-3 border border-gray-4 px-2 py-1 rounded-lg">
-            {categories.length} categories
-          </span>
-
-          {isExpanded && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                openAdd();
-              }}
-              className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold transition-colors active:scale-95"
-            >
-              <Plus size={18} /> Add Category
-            </button>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={openAdd}
+          className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg font-bold transition-colors text-sm shadow-sm active:scale-95"
+        >
+          <Plus size={18} /> Add Category
+        </button>
       </div>
 
-      {isExpanded && (
-        <div className="p-5">
-          {isLoading ? (
-            <div className="py-10 flex flex-col items-center justify-center gap-3">
-              <Loader2 className="animate-spin" size={26} />
-              <p className="text-gray-9 font-bold">Loading categories...</p>
-            </div>
-          ) : isError ? (
-            <div className="py-8 text-center bg-red-a2 border border-red-a5 rounded-xl">
-              <p className="text-red-11 font-bold">Failed to load categories.</p>
-            </div>
-          ) : categories.length === 0 ? (
-            <div className="py-8 text-center text-gray-9">
-              No categories found. Add the first one.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse whitespace-nowrap">
+      <div className="bg-gray-2 border border-gray-4 rounded-xl shadow-lg overflow-x-auto">
+        {isLoading ? (
+          <div className="py-10 flex flex-col items-center justify-center gap-3">
+            <Loader2 className="animate-spin" size={26} />
+            <p className="text-gray-9 font-bold">Loading categories...</p>
+          </div>
+        ) : isError ? (
+          <div className="p-8 text-center bg-red-a2 border-b border-red-a5">
+            <p className="text-red-11 font-bold">Failed to load categories.</p>
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="p-8 text-center text-gray-9 font-bold">
+            No categories found. Add the first one.
+          </div>
+        ) : (
+          <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="bg-gray-1 border-b border-gray-4 text-xs font-bold text-gray-9 uppercase tracking-wider">
                     <th className="p-4">Category ID</th>
@@ -221,11 +220,12 @@ export default function HRCategoriesConfig() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-4">
-                  {categories.map((cat) => (
-                    <tr
-                      key={cat.id}
-                      className="hover:bg-gray-3/30 transition-colors"
-                    >
+                  {filteredCategories.length > 0 ? (
+                    filteredCategories.map((cat) => (
+                      <tr
+                        key={cat.id}
+                        className="hover:bg-gray-3/30 transition-colors"
+                      >
                       <td className="p-4">
                         <span className="text-xs font-bold text-gray-12 bg-gray-3 px-2 py-1 rounded border border-gray-4">
                           {cat.categoryId}
@@ -263,13 +263,21 @@ export default function HRCategoriesConfig() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="5"
+                      className="p-8 text-center text-gray-9 font-bold"
+                    >
+                      No categories found matching your search.
+                    </td>
+                  </tr>
+                )}
                 </tbody>
               </table>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {isModalOpen && (
         <div

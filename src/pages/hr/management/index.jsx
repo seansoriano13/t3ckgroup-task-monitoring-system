@@ -5,6 +5,7 @@ import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
 import { useAuth } from "../../../context/AuthContext";
 import { storageService } from "../../../services/storageService";
+import HRCategoriesConfig from "../../../components/HRCategoriesConfig.jsx";
 import {
   Search,
   UserPlus,
@@ -18,6 +19,7 @@ import {
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("employees");
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -74,6 +76,7 @@ export default function EmployeeManagement() {
     };
 
     resolveAvatars();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees]);
 
   const deleteMutation = useMutation({
@@ -108,38 +111,62 @@ export default function EmployeeManagement() {
   return (
     <ProtectedRoute requireHr={true}>
       <div className="max-w-7xl mx-auto space-y-6 pb-10 px-2 sm:px-0">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
-          <div>
-            <h1 className="text-3xl font-black text-gray-12">
-              Employee Management
-            </h1>
-            <p className="text-gray-9 mt-1 font-medium">
-              Manage system access, roles, and departments.
-            </p>
-          </div>
+        <div className="flex flex-col border-b border-gray-4 pb-4">
+          <h1 className="text-3xl font-black text-gray-12">
+            HR Management
+          </h1>
+          <p className="text-gray-9 mt-1 font-medium">
+            Manage system access, roles, departments, and task categories.
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-gray-2 border border-gray-4 rounded-xl w-fit">
           <button
-            onClick={handleAddNew}
-            className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold transition-colors"
+            onClick={() => setActiveTab("employees")}
+            className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${
+              activeTab === "employees"
+                ? "bg-gray-12 text-gray-1 shadow-md"
+                : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+            }`}
           >
-            <UserPlus size={18} /> Add Employee
+            Employees
+          </button>
+          <button
+            onClick={() => setActiveTab("categories")}
+            className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${
+              activeTab === "categories"
+                ? "bg-gray-12 text-gray-1 shadow-md"
+                : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+            }`}
+          >
+            Categories Config
           </button>
         </div>
 
-        <div className="bg-gray-2 border border-gray-4 p-4 rounded-xl flex gap-4 shadow-sm relative z-20">
-          <div className="relative flex-1">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-gray-6 transition-colors text-sm"
-            />
-          </div>
-        </div>
+        {activeTab === "employees" ? (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="bg-gray-2 border border-gray-4 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative z-20">
+              <div className="relative flex-1 md:max-w-sm">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="Search by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-gray-6 transition-colors text-sm"
+                />
+              </div>
+              <button
+                onClick={handleAddNew}
+                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg font-bold transition-colors text-sm"
+              >
+                <UserPlus size={18} /> Add Employee
+              </button>
+            </div>
 
         <div className="bg-gray-2 border border-gray-4 rounded-xl shadow-lg overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
@@ -250,6 +277,12 @@ export default function EmployeeManagement() {
             </tbody>
           </table>
         </div>
+        </div>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <HRCategoriesConfig />
+          </div>
+        )}
 
         {isModalOpen && (
           <EmployeeFormModal
@@ -562,7 +595,7 @@ function EmployeeFormModal({ employee, onClose }) {
                 }
                 className="rounded text-primary focus:ring-primary h-4 w-4 bg-gray-2 border-gray-4"
               />
-              101
+              Super Admin
             </label>
           </div>
 

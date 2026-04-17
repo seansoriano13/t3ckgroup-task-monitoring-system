@@ -260,39 +260,35 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
   return (
     <div className="space-y-8 mt-8 mb-8 transition-all duration-500">
       {/* === PERFORMANCE METRICS === */}
-      <div className="bg-gray-1 border border-gray-4 p-4 sm:p-6 rounded-xl shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-          <TrendingUp size={120} />
-        </div>
-
+      <div className="bg-white border border-[#E5E7EB] p-4 sm:p-6 rounded-lg">
         <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-gray-12 flex items-center uppercase">
+            <h2 className="text-2xl font-black text-[#111827] flex items-center uppercase">
               Performance Metrics
               {displayLabel && (
-                <span className="text-purple-500 ml-2">— {displayLabel}</span>
+                <span className="text-[#111827] ml-2">— {displayLabel}</span>
               )}
             </h2>
-            <p className="text-sm text-gray-9 font-medium mt-1">
+            <p className="text-sm text-[#6B7280] font-normal mt-1">
               Execution rate identifies planned tasks due in{" "}
-              <span className="text-gray-12 font-bold">{displayLabel}</span> vs
+              <span className="text-[#111827] font-semibold">{displayLabel}</span> vs
               actual completions.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {loadingAct ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-9 gap-3">
+            <div className="col-span-full flex flex-col items-center justify-center py-12 text-[#6B7280] gap-3">
               <Loader2 className="animate-spin" size={32} />
-              <p className="font-black uppercase tracking-widest text-xs">
+              <p className="font-semibold uppercase tracking-widest text-xs">
                 Synchronizing Metrics...
               </p>
             </div>
           ) : employeeStats.length === 0 ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-4 rounded-2xl bg-gray-2/50">
-              <Calculator className="text-gray-6 mb-2" size={32} />
-              <p className="text-gray-9 font-bold uppercase tracking-widest text-xs">
+            <div className="col-span-full flex flex-col items-center justify-center py-12 border border-dashed border-[#E5E7EB] rounded-lg">
+              <Calculator className="text-[#9CA3AF] mb-2" size={32} />
+              <p className="text-[#6B7280] font-medium uppercase tracking-widest text-xs">
                 No records for {monthLabel}
               </p>
             </div>
@@ -300,31 +296,31 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
             employeeStats.map((stat) => (
               <div
                 key={stat.name}
-                className="bg-gray-2 border border-gray-4 p-5 rounded-2xl flex flex-col gap-4 shadow-sm hover:border-gray-6 transition-all group"
+                className="bg-white border border-[#E5E7EB] p-4 rounded-lg flex flex-col gap-3 hover:border-[#D1D5DB] transition-colors"
               >
                 <div>
                   <div className="flex justify-between items-start mb-1">
-                    <p className="font-black text-gray-12 text-lg truncate flex-1 pr-2">
+                    <p className="font-bold text-[#111827] text-base truncate flex-1 pr-2">
                       {stat.name}
                     </p>
                     <span
-                      className={`text-[10px] font-black uppercase tracking-tighter px-2.5 py-1 rounded-lg shadow-sm border ${
+                      className={`text-[11px] font-semibold uppercase tracking-tight px-2 py-0.5 rounded-md bg-white border ${
                         stat.executionRate >= 80
-                          ? "bg-green-500 border-green-400 text-white"
+                          ? "border-green-500 text-green-700"
                           : stat.executionRate >= 50
-                            ? "bg-amber-400 border-amber-300 text-amber-900"
-                            : "bg-red-500 border-red-400 text-white"
+                            ? "border-amber-500 text-amber-700"
+                            : "border-red-500 text-red-700"
                       }`}
                     >
-                      {stat.executionRate}% EXECUTION
+                      {stat.executionRate}% Execution
                     </span>
                   </div>
-                  <p className="text-[10px] text-gray-9 font-black uppercase tracking-widest truncate">
+                  <p className="text-[10px] text-[#9CA3AF] font-medium uppercase tracking-widest truncate">
                     {stat.department}
                   </p>
                 </div>
 
-                <div className="space-y-2.5 mt-2">
+                <div className="mt-1">
                   <MetricRow
                     label="Month Pipeline"
                     value={stat.totalPipeline}
@@ -332,35 +328,24 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
                   <MetricRow
                     label="Due within Month"
                     value={stat.totalDue}
-                    color="text-blue-500 bg-blue-500/10"
                   />
                   <MetricRow
                     label="Tasks Completed"
                     value={stat.totalDone}
-                    color="text-emerald-500 bg-emerald-500/10"
                   />
                   <MetricRow
                     label="Backlog"
                     value={stat.totalIncomplete}
-                    color={
-                      stat.totalIncomplete > 0
-                        ? "text-red-500 bg-red-500/10 font-black"
-                        : "text-gray-6 bg-gray-6/10"
-                    }
+                    alert={stat.totalIncomplete > 0 ? "red" : null}
                   />
                   <MetricRow
                     label="Extra (Unplanned)"
                     value={stat.totalUnplanned}
-                    color="text-purple-500 bg-purple-500/10"
                   />
                   <MetricRow
                     label="Late Submissions"
                     value={stat.totalLate}
-                    color={
-                      stat.totalLate > 0
-                        ? "text-orange-500 bg-orange-500/10"
-                        : "text-gray-6 bg-gray-6/10"
-                    }
+                    alert={stat.totalLate > 0 ? "orange" : null}
                   />
                 </div>
               </div>
@@ -371,47 +356,47 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
 
       {/* === FINANCIAL OVERVIEW (Outcome-Based) === */}
       {isAdminView && expenseSummary && expenseSummary.totalCount > 0 && (
-        <div className="bg-gray-1 border border-gray-4 p-6 sm:p-8 rounded-3xl shadow-xl space-y-8">
+        <div className="bg-white border border-[#E5E7EB] p-6 sm:p-8 rounded-lg space-y-8">
           {/* ── HEADER ── */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#F3F4F6]">
             <div>
-              <h2 className="text-2xl font-black text-gray-12 uppercase tracking-tight">
+              <h2 className="text-2xl font-black text-[#111827] uppercase tracking-tight">
                 Financial Overview
               </h2>
-              <p className="text-sm text-gray-9 font-bold uppercase tracking-widest">
+              <p className="text-sm text-[#6B7280] font-medium uppercase tracking-widest">
                 {monthLabel}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               {/* Total Volume */}
-              <div className="bg-gray-2 px-4 py-2 border border-gray-4 rounded-xl">
-                <p className="text-[10px] font-black text-gray-8 uppercase tracking-widest">
+              <div className="bg-white px-4 py-2 border border-[#E5E7EB] rounded-lg">
+                <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
                   Gross Budget
                 </p>
-                <p className="text-lg font-black text-gray-12">
+                <p className="text-lg font-bold text-[#111827]">
                   ₱ {expenseSummary.totalExpense.toLocaleString()}
                 </p>
               </div>
 
               {/* Conversion Efficiency */}
               {expenseSummary.conversionRate !== null && (
-                <div className={`px-4 py-2 border rounded-xl ${
+                <div className={`px-4 py-2 bg-white border rounded-lg ${
                   expenseSummary.conversionRate >= 60
-                    ? "border-green-500/30 bg-green-500/5"
+                    ? "border-green-500/30"
                     : expenseSummary.conversionRate >= 30
-                      ? "border-amber-500/30 bg-amber-500/5"
-                      : "border-red-500/30 bg-red-500/5"
+                      ? "border-amber-500/30"
+                      : "border-red-500/30"
                 }`}>
-                  <p className="text-[10px] font-black text-gray-8 uppercase tracking-widest">
+                  <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
                     Conversion Rate
                   </p>
-                  <p className={`text-lg font-black ${
+                  <p className={`text-lg font-bold ${
                     expenseSummary.conversionRate >= 60
-                      ? "text-green-500"
+                      ? "text-green-600"
                       : expenseSummary.conversionRate >= 30
-                        ? "text-amber-500"
-                        : "text-red-500"
+                        ? "text-amber-600"
+                        : "text-red-600"
                   }`}>
                     {expenseSummary.conversionRate}%
                   </p>
@@ -424,12 +409,12 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
                 const isUp = pctChange > 0;
                 const isFlat = pctChange === 0;
                 return (
-                  <div className="px-4 py-2 border border-gray-4 rounded-xl bg-gray-2">
-                    <p className="text-[10px] font-black text-gray-8 uppercase tracking-widest">
+                  <div className="px-4 py-2 border border-[#E5E7EB] rounded-lg bg-white">
+                    <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
                       vs Last Month
                     </p>
-                    <p className={`text-lg font-black flex items-center gap-1 ${
-                      isFlat ? "text-gray-9" : isUp ? "text-red-500" : "text-green-500"
+                    <p className={`text-lg font-bold flex items-center gap-1 ${
+                      isFlat ? "text-[#6B7280]" : isUp ? "text-red-600" : "text-green-600"
                     }`}>
                       {isFlat ? "—" : isUp ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                       {isFlat ? "Flat" : `${Math.abs(pctChange)}%`}
@@ -447,54 +432,54 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
               amount={expenseSummary.wonExpense}
               count={expenseSummary.wonCount}
               icon={Trophy}
-              accentClass="text-green-500"
+              accentClass="text-green-600"
               borderClass="border-green-500/20 hover:border-green-500/40"
-              bgClass="bg-green-500/5"
+              bgClass="bg-white"
             />
             <OutcomeCard
               title="Lost Investments"
               amount={expenseSummary.lostExpense}
               count={expenseSummary.lostCount}
               icon={XCircle}
-              accentClass="text-red-500"
+              accentClass="text-red-600"
               borderClass="border-red-500/20 hover:border-red-500/40"
-              bgClass="bg-red-500/5"
+              bgClass="bg-white"
             />
             <OutcomeCard
               title="Pending Verdict"
               amount={expenseSummary.pendingExpense}
               count={expenseSummary.pendingCount}
               icon={Clock}
-              accentClass="text-amber-500"
+              accentClass="text-amber-600"
               borderClass="border-amber-500/20 hover:border-amber-500/40"
-              bgClass="bg-amber-500/5"
+              bgClass="bg-white"
             />
             <OutcomeCard
               title="Operations"
               amount={expenseSummary.bizDevExpense}
               count={expenseSummary.bizDevCount}
               icon={Briefcase}
-              accentClass="text-blue-500"
+              accentClass="text-blue-600"
               borderClass="border-blue-500/20 hover:border-blue-500/40"
-              bgClass="bg-blue-500/5"
+              bgClass="bg-white"
             />
           </div>
 
           {/* ── COMPACT LEGACY BREAKDOWN ── */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3 px-4 bg-gray-2 rounded-xl border border-gray-3 text-xs text-gray-9">
-            <span className="font-bold text-gray-11">Summary:</span>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3 px-4 bg-[#F9FAFB] rounded-lg border border-[#F3F4F6] text-xs text-[#6B7280]">
+            <span className="font-semibold text-[#111827]">Summary:</span>
             <span>
-              <span className="font-black text-gray-12">{expenseSummary.totalCount}</span> expense items
+              <span className="font-bold text-[#111827]">{expenseSummary.totalCount}</span> expense items
             </span>
-            <span className="hidden sm:inline text-gray-6">·</span>
+            <span className="hidden sm:inline text-[#D1D5DB]">·</span>
             <span>
-              Account Tasks: <span className="font-black text-gray-12">₱{expenseSummary.withRefExpense.toLocaleString()}</span>
-              <span className="text-gray-7 ml-1">({expenseSummary.withRefCount})</span>
+              Account Tasks: <span className="font-bold text-[#111827]">₱{expenseSummary.withRefExpense.toLocaleString()}</span>
+              <span className="text-[#9CA3AF] ml-1">({expenseSummary.withRefCount})</span>
             </span>
-            <span className="hidden sm:inline text-gray-6">·</span>
+            <span className="hidden sm:inline text-[#D1D5DB]">·</span>
             <span>
-              BizDev: <span className="font-black text-gray-12">₱{expenseSummary.bizDevExpense.toLocaleString()}</span>
-              <span className="text-gray-7 ml-1">({expenseSummary.bizDevCount})</span>
+              BizDev: <span className="font-bold text-[#111827]">₱{expenseSummary.bizDevExpense.toLocaleString()}</span>
+              <span className="text-[#9CA3AF] ml-1">({expenseSummary.bizDevCount})</span>
             </span>
           </div>
 
@@ -502,15 +487,15 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
           {expenseSummary.employeeBreakdown.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Users size={16} className="text-gray-9" />
-                <h3 className="text-xs font-black text-gray-10 uppercase tracking-widest">
+                <Users size={16} className="text-[#6B7280]" />
+                <h3 className="text-xs font-semibold text-[#6B7280] uppercase tracking-widest">
                   Expense Breakdown by Representative
                 </h3>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-gray-4">
+              <div className="overflow-x-auto rounded-lg border border-[#E5E7EB]">
                 <table className="w-full text-left border-collapse whitespace-nowrap">
                   <thead>
-                    <tr className="bg-gray-2 text-[10px] font-black text-gray-9 uppercase tracking-widest border-b border-gray-4">
+                    <tr className="bg-[#F9FAFB] text-[10px] font-semibold text-[#6B7280] uppercase tracking-widest border-b border-[#E5E7EB]">
                       <th className="p-3 pl-4">Representative</th>
                       <th className="p-3 text-right">Total Spent</th>
                       <th className="p-3 text-right">Won</th>
@@ -520,38 +505,38 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
                       <th className="p-3 text-center">Win Rate</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-3">
+                  <tbody className="divide-y divide-[#F3F4F6]">
                     {expenseSummary.employeeBreakdown.map((emp) => (
-                      <tr key={emp.name} className="hover:bg-gray-2/50 transition-colors">
-                        <td className="p-3 pl-4 font-bold text-sm text-gray-12">{emp.name}</td>
-                        <td className="p-3 text-right font-mono text-sm font-black text-gray-12">
+                      <tr key={emp.name} className="hover:bg-[#F9FAFB] transition-colors">
+                        <td className="p-3 pl-4 font-semibold text-sm text-[#111827]">{emp.name}</td>
+                        <td className="p-3 text-right font-mono text-sm font-bold text-[#111827]">
                           ₱{emp.total.toLocaleString()}
                         </td>
-                        <td className="p-3 text-right font-mono text-xs text-green-500 font-bold">
+                        <td className="p-3 text-right font-mono text-xs text-green-600 font-semibold">
                           {emp.won > 0 ? `₱${emp.won.toLocaleString()}` : "—"}
                         </td>
-                        <td className="p-3 text-right font-mono text-xs text-red-500 font-bold">
+                        <td className="p-3 text-right font-mono text-xs text-red-600 font-semibold">
                           {emp.lost > 0 ? `₱${emp.lost.toLocaleString()}` : "—"}
                         </td>
-                        <td className="p-3 text-right font-mono text-xs text-amber-500 font-bold">
+                        <td className="p-3 text-right font-mono text-xs text-amber-600 font-semibold">
                           {emp.pending > 0 ? `₱${emp.pending.toLocaleString()}` : "—"}
                         </td>
-                        <td className="p-3 text-right font-mono text-xs text-blue-500 font-bold">
+                        <td className="p-3 text-right font-mono text-xs text-blue-600 font-semibold">
                           {emp.bizDev > 0 ? `₱${emp.bizDev.toLocaleString()}` : "—"}
                         </td>
                         <td className="p-3 text-center">
                           {emp.winRate !== null ? (
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md bg-white border ${
                               emp.winRate >= 60
-                                ? "bg-green-500/10 text-green-500"
+                                ? "border-green-500 text-green-700"
                                 : emp.winRate >= 30
-                                  ? "bg-amber-500/10 text-amber-500"
-                                  : "bg-red-500/10 text-red-500"
+                                  ? "border-amber-500 text-amber-700"
+                                  : "border-red-500 text-red-700"
                             }`}>
                               {emp.winRate}%
                             </span>
                           ) : (
-                            <span className="text-[10px] text-gray-7">—</span>
+                            <span className="text-[11px] text-[#9CA3AF]">—</span>
                           )}
                         </td>
                       </tr>
@@ -579,32 +564,35 @@ function OutcomeCard({
   const Icon = icon;
   return (
     <div
-      className={`${bgClass} border ${borderClass} rounded-2xl p-5 flex flex-col relative overflow-hidden group transition-all`}
+      className={`${bgClass} border ${borderClass} rounded-lg p-5 flex flex-col relative overflow-hidden group transition-colors`}
     >
-      <div className="absolute -top-4 -right-4 opacity-[0.04] pointer-events-none">
-        <Icon size={100} />
-      </div>
-      <p className="text-[10px] font-black text-gray-9 uppercase tracking-widest mb-2 flex items-center gap-2">
+      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-widest mb-2 flex items-center gap-2">
         <Icon size={13} className={accentClass} /> {title}
       </p>
-      <p className={`text-2xl lg:text-3xl font-black text-gray-12 mb-1`}>
+      <p className="text-2xl lg:text-3xl font-bold text-[#111827] mb-1">
         ₱{amount.toLocaleString()}
       </p>
-      <span className="text-[10px] font-bold text-gray-8 uppercase tracking-widest mt-auto">
+      <span className="text-[10px] font-medium text-[#9CA3AF] uppercase tracking-widest mt-auto">
         {count} {count === 1 ? "item" : "items"}
       </span>
     </div>
   );
 }
 
-function MetricRow({ label, value, color = "text-gray-12 bg-gray-3" }) {
+function MetricRow({ label, value, alert = null }) {
   return (
-    <div className="flex justify-between items-center text-sm font-bold border-b border-gray-4/50 pb-2 last:border-0 last:pb-0">
-      <span className="text-gray-10">{label}</span>
-      <span
-        className={`${color} px-2 py-0.5 rounded text-xs min-w-[2rem] text-center`}
-      >
-        {value}
+    <div className="flex justify-between items-center text-sm border-b border-[#F3F4F6] py-1.5 last:border-0">
+      <span className="text-[#6B7280] font-normal">{label}</span>
+      <span className="flex items-center gap-1.5">
+        {alert === "red" && (
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+        )}
+        {alert === "orange" && (
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+        )}
+        <span className="text-[#111827] font-semibold text-xs tabular-nums">
+          {value}
+        </span>
       </span>
     </div>
   );

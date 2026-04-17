@@ -11,14 +11,16 @@ import {
   Check,
   Search,
 } from "lucide-react";
-import { supabase } from "../../lib/supabase.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+
 import toast from "react-hot-toast";
-import ChecklistTaskInput from "../../components/ChecklistTaskInput.jsx";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { taskService } from "../../services/taskService";
-import { useNavigate } from "react-router";
+
 import Select from "react-select";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
+import { taskService } from "../services/taskService";
+import ChecklistTaskInput from "./ChecklistTaskInput";
 
 // ─── Helpers ────────────────────────────────────────────────
 const getCurrentLocalTime = () => {
@@ -70,9 +72,9 @@ const PRIORITY_OPTIONS = [
 // ═════════════════════════════════════════════════════════════
 //  MODAL COMPONENT
 // ═════════════════════════════════════════════════════════════
-export function LogTaskModal({ isOpen, onClose }) {
+export default function LogTaskModal({ isOpen, onClose }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
+
   const queryClient = useQueryClient();
   const titleRef = useRef(null);
   const scrollContainerRef = useRef(null);
@@ -89,7 +91,7 @@ export function LogTaskModal({ isOpen, onClose }) {
         // For Select, we want to see the menu which opens BELOW
         const el = ref.current;
         const popover = el.querySelector(".popover-enter");
-        
+
         if (popover) {
           popover.scrollIntoView({
             behavior: "smooth",
@@ -230,10 +232,11 @@ export function LogTaskModal({ isOpen, onClose }) {
 
         if (isSuperAdmin) {
           empQuery = empQuery.or(
-            `is_super_admin.eq.false,is_super_admin.is.null,id.eq.${user.id}`
+            `is_super_admin.eq.false,is_super_admin.is.null,id.eq.${user.id}`,
           );
         } else if (!isHr && isHead) {
-          if (userSubDept) empQuery = empQuery.eq("sub_department", userSubDept);
+          if (userSubDept)
+            empQuery = empQuery.eq("sub_department", userSubDept);
           else empQuery = empQuery.eq("department", user.department);
         } else if (!isHr && !isHead) {
           empQuery = empQuery.eq("id", user.id);
@@ -245,7 +248,9 @@ export function LogTaskModal({ isOpen, onClose }) {
 
         const { data: headsData } = await supabase
           .from("employees")
-          .select("id, name, department, sub_department, is_head, is_super_admin")
+          .select(
+            "id, name, department, sub_department, is_head, is_super_admin",
+          )
           .or("is_head.eq.true,is_super_admin.eq.true")
           .neq("is_deleted", true)
           .order("name");
@@ -254,18 +259,34 @@ export function LogTaskModal({ isOpen, onClose }) {
           setAvailableHeads(headsData);
           if (!isHead && !isHr && !isSuperAdmin) {
             const directHeads = headsData.filter((h) => {
-              if (userSubDept && h.sub_department && h.sub_department.toUpperCase() !== "ALL") {
-                return h.sub_department.trim().toLowerCase() === userSubDept.trim().toLowerCase();
+              if (
+                userSubDept &&
+                h.sub_department &&
+                h.sub_department.toUpperCase() !== "ALL"
+              ) {
+                return (
+                  h.sub_department.trim().toLowerCase() ===
+                  userSubDept.trim().toLowerCase()
+                );
               }
-              if (h.department?.toUpperCase() !== "SUPER ADMIN" && user.department) {
-                return h.department?.trim().toLowerCase() === user.department?.trim().toLowerCase();
+              if (
+                h.department?.toUpperCase() !== "SUPER ADMIN" &&
+                user.department
+              ) {
+                return (
+                  h.department?.trim().toLowerCase() ===
+                  user.department?.trim().toLowerCase()
+                );
               }
               return false;
             });
             if (directHeads.length > 0) setSelectedHead(directHeads[0].id);
             else {
               const adminHeads = headsData.filter(
-                (h) => h.is_super_admin || h.sub_department?.trim().toUpperCase() === "ALL" || h.department?.trim().toUpperCase() === "SUPER ADMIN"
+                (h) =>
+                  h.is_super_admin ||
+                  h.sub_department?.trim().toUpperCase() === "ALL" ||
+                  h.department?.trim().toUpperCase() === "SUPER ADMIN",
               );
               if (adminHeads.length > 0) setSelectedHead(adminHeads[0].id);
             }
@@ -274,8 +295,14 @@ export function LogTaskModal({ isOpen, onClose }) {
           }
         }
 
-        setHrDeptFilter(isHr && !isSuperAdmin ? user.department || "ADMIN" : "");
-        setHrSubDeptFilter(isHr && !isSuperAdmin ? user.sub_department || user.subDepartment || "HR" : "");
+        setHrDeptFilter(
+          isHr && !isSuperAdmin ? user.department || "ADMIN" : "",
+        );
+        setHrSubDeptFilter(
+          isHr && !isSuperAdmin
+            ? user.sub_department || user.subDepartment || "HR"
+            : "",
+        );
       } catch (err) {
         console.error("Unexpected error fetching dropdowns:", err);
       } finally {
@@ -291,18 +318,29 @@ export function LogTaskModal({ isOpen, onClose }) {
     if (!formData.loggedById || !availableHeads.length) return;
     if (isHead && !isHr && !isSuperAdmin) return;
 
-    const selectedEmployee = employees.find((e) => e.id === formData.loggedById);
+    const selectedEmployee = employees.find(
+      (e) => e.id === formData.loggedById,
+    );
     if (!selectedEmployee) return;
 
     const empSubDept = selectedEmployee.sub_department;
     const empDept = selectedEmployee.department;
 
     const directHeads = availableHeads.filter((h) => {
-      if (empSubDept && h.sub_department && h.sub_department.toUpperCase() !== "ALL") {
-        return h.sub_department.trim().toLowerCase() === empSubDept.trim().toLowerCase();
+      if (
+        empSubDept &&
+        h.sub_department &&
+        h.sub_department.toUpperCase() !== "ALL"
+      ) {
+        return (
+          h.sub_department.trim().toLowerCase() ===
+          empSubDept.trim().toLowerCase()
+        );
       }
       if (h.department?.toUpperCase() !== "SUPER ADMIN" && empDept) {
-        return h.department?.trim().toLowerCase() === empDept?.trim().toLowerCase();
+        return (
+          h.department?.trim().toLowerCase() === empDept?.trim().toLowerCase()
+        );
       }
       return false;
     });
@@ -310,12 +348,22 @@ export function LogTaskModal({ isOpen, onClose }) {
     if (directHeads.length > 0) setSelectedHead(directHeads[0].id);
     else {
       const adminHeads = availableHeads.filter(
-        (h) => h.is_super_admin || h.sub_department?.trim().toUpperCase() === "ALL" || h.department?.trim().toUpperCase() === "SUPER ADMIN"
+        (h) =>
+          h.is_super_admin ||
+          h.sub_department?.trim().toUpperCase() === "ALL" ||
+          h.department?.trim().toUpperCase() === "SUPER ADMIN",
       );
       if (adminHeads.length > 0) setSelectedHead(adminHeads[0].id);
       else setSelectedHead("");
     }
-  }, [formData.loggedById, availableHeads, employees, isHead, isHr, isSuperAdmin]);
+  }, [
+    formData.loggedById,
+    availableHeads,
+    employees,
+    isHead,
+    isHr,
+    isSuperAdmin,
+  ]);
 
   // ── Mutation ──────────────────────────────────────────────
   const addTaskMutation = useMutation({
@@ -332,7 +380,7 @@ export function LogTaskModal({ isOpen, onClose }) {
         loggedById: user?.id,
       };
       queryClient.setQueryData(["dashboardTasks"], (old) =>
-        old ? [optimisticTask, ...old] : [optimisticTask]
+        old ? [optimisticTask, ...old] : [optimisticTask],
       );
       return { previousTasks };
     },
@@ -379,8 +427,12 @@ export function LogTaskModal({ isOpen, onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const selectedCategoryObj = categories.find((c) => c.category_id === formData.categoryId);
-  const isCommittee = selectedCategoryObj?.description?.toUpperCase().includes("COMMITTEE");
+  const selectedCategoryObj = categories.find(
+    (c) => c.category_id === formData.categoryId,
+  );
+  const isCommittee = selectedCategoryObj?.description
+    ?.toUpperCase()
+    .includes("COMMITTEE");
   const isOthersGlobal =
     selectedCategoryObj?.category_id?.toUpperCase().includes("OTHERS") ||
     selectedCategoryObj?.description?.toUpperCase().includes("OTHERS");
@@ -389,14 +441,23 @@ export function LogTaskModal({ isOpen, onClose }) {
     e.preventDefault();
     let mergedRemarks = "";
     if (isCommittee) {
-      if (!committeeRole) { toast?.error("Please select a specific Committee Role."); return; }
+      if (!committeeRole) {
+        toast?.error("Please select a specific Committee Role.");
+        return;
+      }
       mergedRemarks = `[COMMITTEE - ${committeeRole}]`;
       if (committeeRole === "OTHERS") {
-        if (!othersRemarks.trim()) { toast?.error("Please specify details for 'Others'."); return; }
+        if (!othersRemarks.trim()) {
+          toast?.error("Please specify details for 'Others'.");
+          return;
+        }
         mergedRemarks += ` ${othersRemarks.trim()}`;
       }
     } else if (isOthersGlobal) {
-      if (!othersRemarks.trim()) { toast?.error("Please specify details for your 'Others' task."); return; }
+      if (!othersRemarks.trim()) {
+        toast?.error("Please specify details for your 'Others' task.");
+        return;
+      }
       mergedRemarks = `[OTHERS] ${othersRemarks.trim()}`;
     }
     const payload = {
@@ -412,16 +473,24 @@ export function LogTaskModal({ isOpen, onClose }) {
   };
 
   // ── Filters / computed ────────────────────────────────────
-  const uniqueDepts = [...new Set(categories.map((c) => c.department).filter(Boolean))].sort();
-  const uniqueSubDepts = [...new Set(
-    categories.filter((c) => !hrDeptFilter || c.department === hrDeptFilter).map((c) => c.sub_department).filter(Boolean)
-  )].sort();
+  const uniqueDepts = [
+    ...new Set(categories.map((c) => c.department).filter(Boolean)),
+  ].sort();
+  const uniqueSubDepts = [
+    ...new Set(
+      categories
+        .filter((c) => !hrDeptFilter || c.department === hrDeptFilter)
+        .map((c) => c.sub_department)
+        .filter(Boolean),
+    ),
+  ].sort();
 
   const filteredEmployees = employees
     .filter((emp) => {
       if (!isHr) return true;
       if (hrDeptFilter && emp.department !== hrDeptFilter) return false;
-      if (hrSubDeptFilter && emp.sub_department !== hrSubDeptFilter) return false;
+      if (hrSubDeptFilter && emp.sub_department !== hrSubDeptFilter)
+        return false;
       return true;
     })
     .sort((a, b) => {
@@ -430,7 +499,9 @@ export function LogTaskModal({ isOpen, onClose }) {
       return a.name.localeCompare(b.name);
     });
 
-  const selectedEmployeeInfo = employees.find((emp) => emp.id === formData.loggedById) || {
+  const selectedEmployeeInfo = employees.find(
+    (emp) => emp.id === formData.loggedById,
+  ) || {
     department: user?.department || "N/A",
     sub_department: user?.sub_department || user?.subDepartment || "N/A",
   };
@@ -438,7 +509,16 @@ export function LogTaskModal({ isOpen, onClose }) {
   const filteredCategories = categories.filter((cat) => {
     const catId = cat.category_id?.toUpperCase() || "";
     const desc = cat.description?.toUpperCase() || "";
-    if (catId.includes("COMMITTEE") || catId.includes("OTHERS") || catId.includes("CHECKLIST") || desc.includes("COMMITTEE") || desc.includes("OTHERS") || desc.includes("CHECKLIST") || cat.sub_department === "ALL") return true;
+    if (
+      catId.includes("COMMITTEE") ||
+      catId.includes("OTHERS") ||
+      catId.includes("CHECKLIST") ||
+      desc.includes("COMMITTEE") ||
+      desc.includes("OTHERS") ||
+      desc.includes("CHECKLIST") ||
+      cat.sub_department === "ALL"
+    )
+      return true;
     if (isHr && hrSubDeptFilter) return cat.sub_department === hrSubDeptFilter;
     if (isHr && hrDeptFilter) return cat.department === hrDeptFilter;
     return cat.sub_department === selectedEmployeeInfo.sub_department;
@@ -447,7 +527,10 @@ export function LogTaskModal({ isOpen, onClose }) {
   const searchedCategories = filteredCategories.filter((cat) => {
     if (!categorySearch) return true;
     const q = categorySearch.toLowerCase();
-    return cat.category_id.toLowerCase().includes(q) || cat.description.toLowerCase().includes(q);
+    return (
+      cat.category_id.toLowerCase().includes(q) ||
+      cat.description.toLowerCase().includes(q)
+    );
   });
 
   const filteredHeads = (() => {
@@ -455,14 +538,14 @@ export function LogTaskModal({ isOpen, onClose }) {
     return availableHeads;
   })();
 
-  const currentPriority = PRIORITY_OPTIONS.find((p) => p.value === formData.priority) || PRIORITY_OPTIONS[0];
+  const currentPriority =
+    PRIORITY_OPTIONS.find((p) => p.value === formData.priority) ||
+    PRIORITY_OPTIONS[0];
 
   // ── Don't render if closed ────────────────────────────────
   if (!isOpen) return null;
 
   // ═══════════════════════════════════════════════════════════
-  //  NOTE: This component is imported as a named export by SideNav.
-  //  The default export below handles the /log-task route fallback.
   //  RENDER
   // ═══════════════════════════════════════════════════════════
   return (
@@ -583,7 +666,10 @@ export function LogTaskModal({ isOpen, onClose }) {
 
             {descriptionType === "checklist" ? (
               <div className="bg-gray-1 rounded-xl border border-gray-3 p-1">
-                <ChecklistTaskInput value={formData.taskDescription} onChange={handleChange} />
+                <ChecklistTaskInput
+                  value={formData.taskDescription}
+                  onChange={handleChange}
+                />
               </div>
             ) : (
               <textarea
@@ -611,21 +697,36 @@ export function LogTaskModal({ isOpen, onClose }) {
             <div className="relative z-[72]" ref={categoryRef}>
               <button
                 type="button"
-                onClick={() => { if (formData.loggedById) togglePopover("category"); }}
+                onClick={() => {
+                  if (formData.loggedById) togglePopover("category");
+                }}
                 className={`property-pill ${openPopover === "category" ? "active" : ""} ${!formData.loggedById ? "static" : ""}`}
               >
                 <Tag size={13} className="text-gray-8" />
-                <span className={formData.categoryId ? "text-gray-12" : "text-gray-7"}>
+                <span
+                  className={
+                    formData.categoryId ? "text-gray-12" : "text-gray-7"
+                  }
+                >
                   {formData.categoryId || "Category"}
                 </span>
-                {formData.loggedById && <ChevronDown size={12} className="text-gray-7" />}
+                {formData.loggedById && (
+                  <ChevronDown size={12} className="text-gray-7" />
+                )}
               </button>
               {openPopover === "category" && (
                 <div className="absolute bottom-full left-0 mb-1.5 bg-gray-2 border border-gray-4 rounded-xl shadow-2xl z-[72] w-[280px] popover-enter">
                   <div className="p-2 border-b border-gray-3">
                     <div className="flex items-center gap-2 px-2 py-1.5 bg-gray-1 rounded-lg border border-gray-3">
                       <Search size={14} className="text-gray-7 flex-shrink-0" />
-                      <input type="text" placeholder="Search categories…" value={categorySearch} onChange={(e) => setCategorySearch(e.target.value)} className="flex-1 bg-transparent outline-none text-xs text-gray-12 placeholder:text-gray-7" autoFocus />
+                      <input
+                        type="text"
+                        placeholder="Search categories…"
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        className="flex-1 bg-transparent outline-none text-xs text-gray-12 placeholder:text-gray-7"
+                        autoFocus
+                      />
                     </div>
                   </div>
                   <div className="max-h-[200px] overflow-y-auto p-1 scrollbar-hide">
@@ -635,14 +736,34 @@ export function LogTaskModal({ isOpen, onClose }) {
                       </p>
                     ) : (
                       searchedCategories.map((cat) => (
-                        <button key={cat.category_id} type="button" onClick={() => { setFormData((p) => ({ ...p, categoryId: cat.category_id })); setCommitteeRole(""); setOthersRemarks(""); setOpenPopover(null); }}
+                        <button
+                          key={cat.category_id}
+                          type="button"
+                          onClick={() => {
+                            setFormData((p) => ({
+                              ...p,
+                              categoryId: cat.category_id,
+                            }));
+                            setCommitteeRole("");
+                            setOthersRemarks("");
+                            setOpenPopover(null);
+                          }}
                           className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center gap-2 ${formData.categoryId === cat.category_id ? "bg-gray-4 text-gray-12 font-bold" : "text-gray-11 hover:bg-gray-3"}`}
                         >
                           <span className="truncate flex-1">
-                            <span className="font-semibold">{cat.category_id}</span>
-                            <span className="text-gray-8 ml-1.5">— {cat.description}</span>
+                            <span className="font-semibold">
+                              {cat.category_id}
+                            </span>
+                            <span className="text-gray-8 ml-1.5">
+                              — {cat.description}
+                            </span>
                           </span>
-                          {formData.categoryId === cat.category_id && <Check size={14} className="text-gray-10 flex-shrink-0" />}
+                          {formData.categoryId === cat.category_id && (
+                            <Check
+                              size={14}
+                              className="text-gray-10 flex-shrink-0"
+                            />
+                          )}
                         </button>
                       ))
                     )}
@@ -653,20 +774,39 @@ export function LogTaskModal({ isOpen, onClose }) {
 
             {/* Priority Pill */}
             <div className="relative z-[72]" ref={priorityRef}>
-              <button type="button" onClick={() => togglePopover("priority")} className={`property-pill ${openPopover === "priority" ? "active" : ""}`}>
-                <span className={`inline-block w-2 h-2 rounded-full ${currentPriority.dot}`} />
+              <button
+                type="button"
+                onClick={() => togglePopover("priority")}
+                className={`property-pill ${openPopover === "priority" ? "active" : ""}`}
+              >
+                <span
+                  className={`inline-block w-2 h-2 rounded-full ${currentPriority.dot}`}
+                />
                 <span className="text-gray-11">{currentPriority.label}</span>
                 <ChevronDown size={12} className="text-gray-7" />
               </button>
               {openPopover === "priority" && (
                 <div className="absolute bottom-full left-0 mb-1.5 bg-gray-2 border border-gray-4 rounded-xl shadow-2xl z-[72] min-w-[150px] popover-enter p-1">
                   {PRIORITY_OPTIONS.map((opt) => (
-                    <button key={opt.value} type="button" onClick={() => { setFormData((p) => ({ ...p, priority: opt.value })); setOpenPopover(null); }}
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData((p) => ({ ...p, priority: opt.value }));
+                        setOpenPopover(null);
+                      }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors ${formData.priority === opt.value ? "bg-gray-4 text-gray-12 font-bold" : "text-gray-11 hover:bg-gray-3"}`}
                     >
-                      <span className={`inline-block w-2 h-2 rounded-full ${opt.dot}`} />
+                      <span
+                        className={`inline-block w-2 h-2 rounded-full ${opt.dot}`}
+                      />
                       {opt.label}
-                      {formData.priority === opt.value && <Check size={13} className="ml-auto text-gray-9 flex-shrink-0" />}
+                      {formData.priority === opt.value && (
+                        <Check
+                          size={13}
+                          className="ml-auto text-gray-9 flex-shrink-0"
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -679,45 +819,77 @@ export function LogTaskModal({ isOpen, onClose }) {
             {/* Start Time (static pill) */}
             <div className="property-pill static" title="Start time (auto-set)">
               <Clock size={13} className="text-gray-7" />
-              <span className="text-gray-8">{formatDateTime(formData.startAt)}</span>
+              <span className="text-gray-8">
+                {formatDateTime(formData.startAt)}
+              </span>
             </div>
 
             {/* End Time */}
-            {(isHead || isHr) ? (
+            {isHead || isHr ? (
               <div className="relative z-[72]" ref={endTimeRef}>
-                <button type="button" onClick={() => togglePopover("endTime")} className={`property-pill ${openPopover === "endTime" ? "active" : ""}`}>
-                  <Clock size={13} className={formData.endAt ? "text-gray-11" : "text-gray-7"} />
-                  <span className={formData.endAt ? "text-gray-12" : "text-gray-7"}>{formData.endAt ? formatDateTime(formData.endAt) : "End time"}</span>
+                <button
+                  type="button"
+                  onClick={() => togglePopover("endTime")}
+                  className={`property-pill ${openPopover === "endTime" ? "active" : ""}`}
+                >
+                  <Clock
+                    size={13}
+                    className={formData.endAt ? "text-gray-11" : "text-gray-7"}
+                  />
+                  <span
+                    className={formData.endAt ? "text-gray-12" : "text-gray-7"}
+                  >
+                    {formData.endAt
+                      ? formatDateTime(formData.endAt)
+                      : "End time"}
+                  </span>
                   <ChevronDown size={12} className="text-gray-7" />
                 </button>
                 {openPopover === "endTime" && (
                   <div className="absolute bottom-full left-0 mb-1.5 bg-gray-2 border border-gray-4 rounded-xl shadow-2xl z-[72] p-3 popover-enter">
-                    <label className="text-[10px] font-bold text-gray-8 uppercase tracking-wider mb-1.5 block">End Date & Time</label>
-                    <input type="datetime-local" name="endAt" value={formData.endAt} onChange={handleChange} className="bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg px-3 py-2 text-xs outline-none transition-colors" />
+                    <label className="text-[10px] font-bold text-gray-8 uppercase tracking-wider mb-1.5 block">
+                      End Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      name="endAt"
+                      value={formData.endAt}
+                      onChange={handleChange}
+                      className="bg-gray-1 border border-gray-4 focus:border-gray-6 text-gray-12 rounded-lg px-3 py-2 text-xs outline-none transition-colors"
+                    />
                   </div>
                 )}
               </div>
             ) : (
-              <div className="property-pill static" title="End time (set by head)">
+              <div
+                className="property-pill static"
+                title="End time (set by head)"
+              >
                 <Clock size={13} className="text-gray-7" />
                 <span className="text-gray-8">No end time</span>
               </div>
             )}
 
-
             {/* Committee Roles */}
             {isCommittee && (
               <>
                 <div className="w-px h-4 bg-gray-4 mx-0.5" />
-                {["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"].map((role) => (
-                  <button key={role} type="button" onClick={() => setCommitteeRole(role)}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase transition-all border ${
-                      committeeRole === role ? "bg-gray-12 text-gray-1 border-gray-12" : "bg-gray-1 text-gray-10 border-gray-4 hover:border-gray-6"
-                    }`}
-                  >
-                    {role}
-                  </button>
-                ))}
+                {["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"].map(
+                  (role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => setCommitteeRole(role)}
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase transition-all border ${
+                        committeeRole === role
+                          ? "bg-gray-12 text-gray-1 border-gray-12"
+                          : "bg-gray-1 text-gray-10 border-gray-4 hover:border-gray-6"
+                      }`}
+                    >
+                      {role}
+                    </button>
+                  ),
+                )}
               </>
             )}
           </div>
@@ -725,39 +897,90 @@ export function LogTaskModal({ isOpen, onClose }) {
           {/* Others specify */}
           {(isOthersGlobal || (isCommittee && committeeRole === "OTHERS")) && (
             <div className="py-2 animate-slide-down">
-              <input type="text" required value={othersRemarks} onChange={(e) => setOthersRemarks(e.target.value)} placeholder="Specify details for this task…" className="w-full bg-transparent border border-gray-3/50 hover:border-gray-4 focus:border-gray-6 rounded-lg px-3 py-2 outline-none transition-all text-sm text-gray-12 placeholder:text-gray-6" />
+              <input
+                type="text"
+                required
+                value={othersRemarks}
+                onChange={(e) => setOthersRemarks(e.target.value)}
+                placeholder="Specify details for this task…"
+                className="w-full bg-transparent border border-gray-3/50 hover:border-gray-4 focus:border-gray-6 rounded-lg px-3 py-2 outline-none transition-all text-sm text-gray-12 placeholder:text-gray-6"
+              />
             </div>
           )}
 
           {/* ASSIGNMENT SECTION (HR / Head) */}
           {canAssignOthers && (
-            <div className="pt-3 border-t border-gray-3/30 mt-1" ref={assignmentRef}>
+            <div
+              className="pt-3 border-t border-gray-3/30 mt-1"
+              ref={assignmentRef}
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Users size={13} className="text-gray-7" />
-                <span className="text-[10px] font-bold text-gray-8 uppercase tracking-wider">Assignment</span>
+                <span className="text-[10px] font-bold text-gray-8 uppercase tracking-wider">
+                  Assignment
+                </span>
               </div>
 
               {/* HR Filters */}
               {isHr && (
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">Dept</span>
-                    <Select unstyled classNames={selectClassNames}
-                      options={[{ value: "", label: "All" }, ...uniqueDepts.map((d) => ({ value: d, label: d }))]}
-                      value={{ value: hrDeptFilter, label: hrDeptFilter || "All" }}
-                      onChange={(s) => { setHrDeptFilter(s.value); setHrSubDeptFilter(""); setFormData((p) => ({ ...p, loggedById: "", categoryId: "" })); }}
+                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">
+                      Dept
+                    </span>
+                    <Select
+                      unstyled
+                      classNames={selectClassNames}
+                      options={[
+                        { value: "", label: "All" },
+                        ...uniqueDepts.map((d) => ({ value: d, label: d })),
+                      ]}
+                      value={{
+                        value: hrDeptFilter,
+                        label: hrDeptFilter || "All",
+                      }}
+                      onChange={(s) => {
+                        setHrDeptFilter(s.value);
+                        setHrSubDeptFilter("");
+                        setFormData((p) => ({
+                          ...p,
+                          loggedById: "",
+                          categoryId: "",
+                        }));
+                      }}
                       isSearchable={false}
                       onMenuOpen={() => scrollToElement(assignmentRef, true)}
                     />
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">Sub-Dept</span>
-                    <Select unstyled
-                      classNames={{ ...selectClassNames, control: (s) => `${selectClassNames.control(s)} ${!hrDeptFilter && "opacity-50 pointer-events-none"}` }}
-                      options={[{ value: "", label: "All" }, ...uniqueSubDepts.map((s) => ({ value: s, label: s }))]}
-                      value={{ value: hrSubDeptFilter, label: hrSubDeptFilter || "All" }}
-                      onChange={(s) => { setHrSubDeptFilter(s.value); setFormData((p) => ({ ...p, loggedById: "", categoryId: "" })); }}
-                      isSearchable={false} isDisabled={!hrDeptFilter}
+                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">
+                      Sub-Dept
+                    </span>
+                    <Select
+                      unstyled
+                      classNames={{
+                        ...selectClassNames,
+                        control: (s) =>
+                          `${selectClassNames.control(s)} ${!hrDeptFilter && "opacity-50 pointer-events-none"}`,
+                      }}
+                      options={[
+                        { value: "", label: "All" },
+                        ...uniqueSubDepts.map((s) => ({ value: s, label: s })),
+                      ]}
+                      value={{
+                        value: hrSubDeptFilter,
+                        label: hrSubDeptFilter || "All",
+                      }}
+                      onChange={(s) => {
+                        setHrSubDeptFilter(s.value);
+                        setFormData((p) => ({
+                          ...p,
+                          loggedById: "",
+                          categoryId: "",
+                        }));
+                      }}
+                      isSearchable={false}
+                      isDisabled={!hrDeptFilter}
                       onMenuOpen={() => scrollToElement(assignmentRef, true)}
                     />
                   </div>
@@ -765,32 +988,66 @@ export function LogTaskModal({ isOpen, onClose }) {
               )}
 
               {/* Assign To */}
-              <Select unstyled classNames={selectClassNames}
-                options={filteredEmployees.map((emp) => ({ value: emp.id, label: emp.id === user.id ? "Myself" : emp.name }))}
-                value={filteredEmployees.find((e) => e.id === formData.loggedById)
-                  ? { value: formData.loggedById, label: formData.loggedById === user.id ? "Myself" : filteredEmployees.find((e) => e.id === formData.loggedById)?.name }
-                  : null}
-                onChange={(s) => { setFormData((p) => ({ ...p, loggedById: s.value, categoryId: "" })); setCommitteeRole(""); setOthersRemarks(""); }}
-                placeholder="Select Employee…" isSearchable
+              <Select
+                unstyled
+                classNames={selectClassNames}
+                options={filteredEmployees.map((emp) => ({
+                  value: emp.id,
+                  label: emp.id === user.id ? "Myself" : emp.name,
+                }))}
+                value={
+                  filteredEmployees.find((e) => e.id === formData.loggedById)
+                    ? {
+                        value: formData.loggedById,
+                        label:
+                          formData.loggedById === user.id
+                            ? "Myself"
+                            : filteredEmployees.find(
+                                (e) => e.id === formData.loggedById,
+                              )?.name,
+                      }
+                    : null
+                }
+                onChange={(s) => {
+                  setFormData((p) => ({
+                    ...p,
+                    loggedById: s.value,
+                    categoryId: "",
+                  }));
+                  setCommitteeRole("");
+                  setOthersRemarks("");
+                }}
+                placeholder="Select Employee…"
+                isSearchable
                 onMenuOpen={() => scrollToElement(assignmentRef, true)}
               />
               {isHr && filteredEmployees.length === 0 && (
-                <p className="text-[10px] text-red-500 mt-1 font-semibold">No employees found.</p>
+                <p className="text-[10px] text-red-500 mt-1 font-semibold">
+                  No employees found.
+                </p>
               )}
 
               {/* Dept/Sub-Dept (when assigning to other) */}
               {!isAssigningSelf && formData.loggedById && (
                 <div className="mt-2 grid grid-cols-2 gap-2 animate-slide-down">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">Department</span>
+                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">
+                      Department
+                    </span>
                     <div className="min-h-[34px] flex items-center bg-gray-2 border border-gray-3/50 rounded-lg px-3">
-                      <p className="text-xs font-semibold text-gray-10">{selectedEmployeeInfo.department}</p>
+                      <p className="text-xs font-semibold text-gray-10">
+                        {selectedEmployeeInfo.department}
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">Sub-Department</span>
+                    <span className="text-[9px] font-bold text-gray-7 uppercase tracking-wider pl-1">
+                      Sub-Department
+                    </span>
                     <div className="min-h-[34px] flex items-center bg-gray-2 border border-gray-3/50 rounded-lg px-3">
-                      <p className="text-xs font-semibold text-gray-10">{selectedEmployeeInfo.sub_department}</p>
+                      <p className="text-xs font-semibold text-gray-10">
+                        {selectedEmployeeInfo.sub_department}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -803,14 +1060,34 @@ export function LogTaskModal({ isOpen, onClose }) {
                     <ClipboardList size={11} className="text-gray-6" />
                     Report To (Head)
                   </span>
-                  <Select unstyled classNames={selectClassNames}
-                    options={[{ value: "", label: "— No specific head —" }, ...filteredHeads.map((h) => ({ value: h.id, label: `${h.name} — ${h.sub_department || h.department}${h.is_super_admin ? " (Admin)" : ""}` }))]}
-                    value={selectedHead ? { value: selectedHead, label: filteredHeads.find((h) => h.id === selectedHead)?.name || "— No specific head —" } : { value: "", label: "— No specific head —" }}
-                    onChange={(s) => setSelectedHead(s.value)} isSearchable
+                  <Select
+                    unstyled
+                    classNames={selectClassNames}
+                    options={[
+                      { value: "", label: "— No specific head —" },
+                      ...filteredHeads.map((h) => ({
+                        value: h.id,
+                        label: `${h.name} — ${h.sub_department || h.department}${h.is_super_admin ? " (Admin)" : ""}`,
+                      })),
+                    ]}
+                    value={
+                      selectedHead
+                        ? {
+                            value: selectedHead,
+                            label:
+                              filteredHeads.find((h) => h.id === selectedHead)
+                                ?.name || "— No specific head —",
+                          }
+                        : { value: "", label: "— No specific head —" }
+                    }
+                    onChange={(s) => setSelectedHead(s.value)}
+                    isSearchable
                     onMenuOpen={() => scrollToElement(assignmentRef, true)}
                   />
                   {filteredHeads.length === 0 && formData.loggedById && (
-                    <p className="text-[10px] text-gray-8 mt-0.5 font-semibold">No heads mapped.</p>
+                    <p className="text-[10px] text-gray-8 mt-0.5 font-semibold">
+                      No heads mapped.
+                    </p>
                   )}
                 </div>
               )}
@@ -829,9 +1106,13 @@ export function LogTaskModal({ isOpen, onClose }) {
               }`}
               onClick={() => setCreateMore(!createMore)}
             >
-              {createMore && <Check size={10} className="text-white" strokeWidth={3} />}
+              {createMore && (
+                <Check size={10} className="text-white" strokeWidth={3} />
+              )}
             </div>
-            <span className="text-[11px] text-gray-8 group-hover:text-gray-11 transition-colors select-none font-medium">Create more</span>
+            <span className="text-[11px] text-gray-8 group-hover:text-gray-11 transition-colors select-none font-medium">
+              Create more
+            </span>
           </label>
           <div className="flex items-center gap-2">
             <button
@@ -845,7 +1126,11 @@ export function LogTaskModal({ isOpen, onClose }) {
               type="submit"
               form="log-task-form"
               className="flex items-center gap-2 px-5 py-2 rounded-lg font-semibold bg-primary text-white hover:bg-primary-hover shadow-sm transition-all disabled:opacity-50 text-xs"
-              disabled={isLoadingData || !formData.loggedById || addTaskMutation.isPending}
+              disabled={
+                isLoadingData ||
+                !formData.loggedById ||
+                addTaskMutation.isPending
+              }
             >
               {addTaskMutation.isPending ? "Creating…" : "Create Task"}
               <kbd className="text-[9px] font-medium bg-white/15 text-white/70 px-1.5 py-0.5 rounded border border-white/20 hidden sm:inline-block">
@@ -857,11 +1142,4 @@ export function LogTaskModal({ isOpen, onClose }) {
       </div>
     </>
   );
-}
-
-// ─── Route fallback (generouted still maps this file to /log-task) ───
-export default function LogTaskPage() {
-  const nav = useNavigate();
-  useEffect(() => { nav("/", { replace: true }); }, [nav]);
-  return null;
 }

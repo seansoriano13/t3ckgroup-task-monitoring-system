@@ -7,41 +7,50 @@ export function SummaryMetrics({
   winRate,
   showQuota,
 }) {
+  const count = 2 + (showQuota ? 1 : 0) + (winRate !== null ? 1 : 0);
+
   return (
-    <div className={`grid grid-cols-1 ${showQuota ? "md:grid-cols-4" : "md:grid-cols-3"} gap-4`}>
-      <div className="bg-gray-1 border border-gray-4 p-5 rounded-2xl border-b-4 transition-transform hover:-translate-y-1">
-        <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-widest flex items-center gap-2 mb-2">
-          <TrendingUp size={13} className="text-green-500" /> Total Completed
-          Sales
+    <div
+      className="bg-white border border-gray-200 rounded-xl overflow-hidden"
+      style={{ display: "grid", gridTemplateColumns: `repeat(${count}, 1fr)` }}
+    >
+      {/* Total Completed Sales */}
+      <div className="p-5 flex flex-col gap-1">
+        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+          <TrendingUp size={12} className="text-gray-400" /> Total Completed Sales
         </h3>
-        <p className="text-3xl font-black text-gray-12">
-          ₱{totalWon.toLocaleString()}
+        <p className="text-2xl font-black text-gray-900 tabular-nums">
+          ₱{totalWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
       </div>
-      <div className="bg-gray-1 border border-gray-4 p-5 rounded-2xl border-b-4 transition-transform hover:-translate-y-1">
-        <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-widest flex items-center gap-2 mb-2">
-          <TrendingDown size={13} className="text-red-500" /> Total Lost Sales
+
+      {/* Total Lost Sales */}
+      <div className="p-5 flex flex-col gap-1 border-l border-gray-200">
+        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+          <TrendingDown size={12} className="text-gray-400" /> Total Lost Sales
         </h3>
-        <p className="text-3xl font-black text-gray-12">
-          ₱{totalLost.toLocaleString()}
+        <p className="text-2xl font-black text-gray-900 tabular-nums">
+          ₱{totalLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
       </div>
+
+      {/* Quota Achievement */}
       {showQuota && (
-        <div className="bg-gray-1 border border-gray-4 p-5 rounded-2xl border-b-4 relative overflow-hidden transition-transform hover:-translate-y-1">
-          <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-widest flex items-center gap-2 mb-2">
-            <Trophy size={13} className="text-blue-500" /> Quota Achievement
+        <div className="p-5 flex flex-col gap-1 border-l border-gray-200">
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+            <Trophy size={12} className="text-gray-400" /> Quota Achievement
           </h3>
-          <p className="text-3xl font-black text-gray-12">{companyPct}%</p>
-          <div className="absolute top-0 right-0 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl -mr-8 -mt-8" />
+          <p className="text-2xl font-black text-gray-900 tabular-nums">{companyPct}%</p>
         </div>
       )}
+
+      {/* Team Win Rate */}
       {winRate !== null && (
-        <div className="bg-gray-1 border border-gray-4 p-5 rounded-2xl border-b-4 relative overflow-hidden transition-transform hover:-translate-y-1">
-          <h3 className="text-[10px] font-black text-gray-9 uppercase tracking-widest flex items-center gap-2 mb-2">
-            <Target size={13} className="text-purple-500" /> Team Win Rate
+        <div className="p-5 flex flex-col gap-1 border-l border-gray-200">
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+            <Target size={12} className="text-gray-400" /> Team Win Rate
           </h3>
-          <p className="text-3xl font-black text-gray-12">{winRate}%</p>
-          <div className="absolute top-0 right-0 w-28 h-28 bg-purple-500/10 rounded-full blur-2xl -mr-8 -mt-8" />
+          <p className="text-2xl font-black text-gray-900 tabular-nums">{winRate}%</p>
         </div>
       )}
     </div>

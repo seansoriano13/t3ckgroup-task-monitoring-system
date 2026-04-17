@@ -27,7 +27,7 @@ import NotificationDrawer from "./NotificationDrawer";
 import ActiveChatsDrawer from "./ActiveChatsDrawer";
 import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
-import { LogTaskModal } from "../pages/log-task/index.jsx";
+import LogTaskModal from "./LogTaskModal";
 import Select, { components } from "react-select";
 
 export default function SideNav({ onOpenAddTask }) {
@@ -70,7 +70,7 @@ export default function SideNav({ onOpenAddTask }) {
       { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
       { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
-      { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
+      { label: "HR Management", link: "/hr/management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
       {
         label: "Activity Log",
@@ -123,8 +123,8 @@ export default function SideNav({ onOpenAddTask }) {
 
     if (user?.isHr) {
       navLinks.push({
-        label: "Employee Mgmt",
-        link: "/hr/employee-management",
+        label: "HR Management",
+        link: "/hr/management",
         icon: Users,
       });
       if (!isSales) {

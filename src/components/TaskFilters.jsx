@@ -149,11 +149,13 @@ export default function TaskFilters({
               className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50 cursor-pointer"
             >
               <option value="ALL">All Depts</option>
-              {uniqueDepts.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
+              {uniqueDepts
+                .filter((d) => d !== "ALL")
+                .map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -168,11 +170,13 @@ export default function TaskFilters({
               className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-2.5 text-sm disabled:opacity-50 cursor-pointer"
             >
               <option value="ALL">All Sub-Depts</option>
-              {uniqueSubDepts.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
+              {uniqueSubDepts
+                .filter((s) => s !== "ALL")
+                .map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
             </select>
           </div>
 

@@ -16,23 +16,24 @@ import { Clock } from "lucide-react";
 import { TrendingUp } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
 import { formatTaskPreview } from "../utils/taskFormatters";
+import LogTaskModal from "./LogTaskModal";
 
 function InsightBar({ label, count, total, color }) {
   const percentage = total === 0 ? 0 : Math.round((count / total) * 100);
 
   return (
     <div>
-      <div className="flex justify-between text-xs mb-1 font-bold">
-        <span className="text-gray-11">{label}</span>
-        <span className="text-gray-12">
+      <div className="flex justify-between text-xs mb-1">
+        <span className="text-gray-11 font-medium">{label}</span>
+        <span className="text-[#111827] font-semibold">
           {count}{" "}
-          <span className="text-gray-8 font-normal">({percentage}%)</span>
+          <span className="text-[#6B7280] font-normal">({percentage}%)</span>
         </span>
       </div>
-      <div className="w-full bg-gray-3 rounded-full h-2 overflow-hidden border border-gray-4">
+      <div className="w-full rounded-full overflow-hidden" style={{ height: "4px", backgroundColor: "#F3F4F6" }}>
         <div
-          className={`h-2 rounded-full ${color} transition-all duration-1000`}
-          style={{ width: `${percentage}%` }}
+          className={`rounded-full ${color} transition-all duration-1000`}
+          style={{ width: `${percentage}%`, height: "4px" }}
         ></div>
       </div>
     </div>
@@ -51,6 +52,7 @@ export default function TasksList({ selectedRange }) {
 
   const [selectedTask, setSelectedTask] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isLogTaskOpen, setIsLogTaskOpen] = useState(false);
 
   const { data: rawTasks = [], isLoading } = useQuery({
     queryKey: ["dashboardTasks", user?.id, isManagement ? "all" : "personal"],
@@ -180,7 +182,7 @@ export default function TasksList({ selectedRange }) {
       <section className="space-y-6">
           <div className="flex justify-between items-end">
             <div className="flex items-center gap-2">
-              <User size={18} className="text-primary" />
+              <User size={18} className="text-[#111827]" />
               <h2 className="text-lg font-bold text-gray-12">My Tasks</h2>
             </div>
             <Link
@@ -260,8 +262,14 @@ export default function TasksList({ selectedRange }) {
               })}
             </div>
           ) : (
-            <div className="p-10 text-center border border-dashed border-gray-4 rounded-xl text-gray-9 text-sm">
-              You haven't logged any personal tasks for this month.
+            <div className="p-8 text-center border border-solid border-[#E5E7EB] rounded-xl text-gray-9 text-sm flex flex-col items-center gap-3">
+              <p>You haven't logged any personal tasks for this month.</p>
+              <button
+                onClick={() => setIsLogTaskOpen(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#111827] hover:bg-[#374151] px-4 py-2 rounded-lg transition-colors"
+              >
+                + Log a New Task
+              </button>
             </div>
           )}
         </section>
@@ -282,9 +290,9 @@ export default function TasksList({ selectedRange }) {
             </div>
             <Link
               to="/tasks"
-              className="flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium text-[#111827] bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] px-4 py-2 rounded-lg transition-colors"
             >
-              View Full Directory <ArrowUpRight size={16} />
+              View Full Directory <ArrowUpRight size={16} className="text-[#6B7280]" />
             </Link>
           </div>
 
@@ -298,38 +306,38 @@ export default function TasksList({ selectedRange }) {
               </div>
               <div className="divide-y divide-gray-4">
                 {teamTasks.length > 0 ? (
-                  teamTasks.slice(0, 5).map((task) => (
+                  teamTasks.slice(0, 5).map((task) => {
+                    const categoryDisplay = (task.categoryId || "")
+                      .toLowerCase()
+                      .replace(/\b\w/g, (c) => c.toUpperCase());
+                    return (
                     <div
                       key={task.id}
                       onClick={() => handleOpenDrawer(task)}
-                      className="p-4 hover:bg-gray-2 transition-colors cursor-pointer flex items-start gap-4"
+                      className="px-4 py-2.5 hover:bg-gray-2 transition-colors cursor-pointer flex items-center gap-3"
                     >
-                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0 border border-primary/20">
+                      {/* Compact 24px avatar */}
+                      <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-semibold text-[10px] shrink-0">
                         {task.loggedByName
                           ? task.loggedByName.charAt(0).toUpperCase()
                           : "?"}
                       </div>
+                      {/* Main text block */}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-12 font-medium truncate">
                           {task.submittedByName &&
                           task.submittedByName !== task.loggedByName ? (
                             <>
-                              <span className="font-bold">
-                                {task.submittedByName}
-                              </span>{" "}
+                              <span className="font-semibold">{task.submittedByName}</span>{" "}
                               logged a task for{" "}
-                              <span className="font-bold">
-                                {task.loggedByName}
-                              </span>{" "}
-                              in <span className="font-bold">{task.categoryId}</span>
+                              <span className="font-semibold">{task.loggedByName}</span>{" "}
+                              in <span className="font-semibold">{categoryDisplay}</span>
                             </>
                           ) : (
                             <>
-                              <span className="font-bold">
-                                {task.loggedByName}
-                              </span>{" "}
+                              <span className="font-semibold">{task.loggedByName}</span>{" "}
                               logged a task in{" "}
-                              <span className="font-bold">{task.categoryId}</span>
+                              <span className="font-semibold">{categoryDisplay}</span>
                             </>
                           )}
                         </p>
@@ -337,50 +345,38 @@ export default function TasksList({ selectedRange }) {
                           {formatTaskPreview(task.taskDescription)}
                         </p>
                       </div>
-                      <div className="text-right shrink-0 flex flex-col items-end justify-between h-full gap-2">
-                        {/* Upper Right: Date */}
-                        <span className="text-[10px] font-bold text-gray-8 uppercase tracking-wider">
-                          {new Date(task.createdAt).toLocaleDateString(
-                            undefined,
-                            { month: "short", day: "numeric" },
-                          )}
-                        </span>
-
-                        {/* Lower Right: Status Indicators */}
-                        <div className="flex items-center gap-1.5 mt-auto">
-                          {/* HR Verified Icon (Only shows if task is Complete AND Verified) */}
+                      {/* Inline: status dot(s) + date */}
+                      <div className="shrink-0 flex items-center gap-1.5">
                           {task.status === TASK_STATUS.COMPLETE && task.hrVerified && (
-                            <CheckCircle2
-                              className="text-green-700"
-                              size={13}
-                            />
+                            <CheckCircle2 className="text-green-700" size={12} />
                           )}
-
-                          {/* Primary Status Dot */}
                           <span
-                            className={`w-2.5 h-2.5 rounded-full shadow-sm ${
+                            className={`w-2 h-2 rounded-full ${
                               task.status === TASK_STATUS.COMPLETE
                                 ? "bg-green-500"
                                 : task.status === TASK_STATUS.AWAITING_APPROVAL
-                                  ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                                  ? "bg-blue-500"
                                   : task.status === TASK_STATUS.NOT_APPROVED
                                     ? "bg-red-500"
                                     : "bg-amber-500"
                             }`}
                             title={`Status: ${task.status}`}
                           />
-
-                          {/* High Priority Pulse */}
                           {task.priority === "HIGH" && (
                             <span
-                              className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse ml-1 shadow-[0_0_8px_rgba(220,38,38,0.6)]"
+                              className="w-2 h-2 rounded-full bg-red-600 animate-pulse"
                               title="High Priority"
                             />
                           )}
-                        </div>
+                          <span className="text-[10px] font-medium text-[#6B7280] uppercase tracking-wide ml-0.5">
+                            {new Date(task.createdAt).toLocaleDateString(
+                              undefined,
+                              { month: "short", day: "numeric" },
+                            )}
+                          </span>
                       </div>
                     </div>
-                  ))
+                  );})
                 ) : (
                   <div className="p-10 text-center text-gray-9 text-sm font-medium">
                     No recent tasks found.
@@ -539,11 +535,11 @@ export default function TasksList({ selectedRange }) {
               </div>
 
               {/* Dynamic Action Box based on Role */}
-              <div className="mt-auto bg-primary/5 border border-primary/20 rounded-lg p-4">
-                <p className="text-xs text-primary font-bold uppercase tracking-wider mb-1">
+              <div className="mt-auto rounded-lg p-4" style={{ background: "#F8FAFF", border: "1px solid #E0E7FF" }}>
+                <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "#3B4A9E" }}>
                   System Tip
                 </p>
-                <p className="text-sm text-gray-11 font-medium leading-relaxed">
+                <p className="text-sm font-medium leading-relaxed" style={{ color: "#111827" }}>
                   {!isHead &&
                     !isHr &&
                     "Tasks marked 'Rejected' require your immediate revision to proceed."}
@@ -567,6 +563,11 @@ export default function TasksList({ selectedRange }) {
           editTaskMutation.mutateAsync(updatedData)
         }
         onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
+      />
+
+      <LogTaskModal
+        isOpen={isLogTaskOpen}
+        onClose={() => setIsLogTaskOpen(false)}
       />
     </div>
   );

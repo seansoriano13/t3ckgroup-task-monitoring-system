@@ -9,6 +9,7 @@ import {
   Tag,
   DollarSign,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
@@ -66,10 +67,10 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
     outcomeMutation.mutate({ id: activity.id, outcome: val || null });
   };
 
-  return (
+  return createPortal(
     <>
       <div
-        className={`dropdown-backdrop z-[99] transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`dropdown-backdrop z-[9998] transition-all duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
         onClick={onClose}
       />
       <div
@@ -385,6 +386,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
           />
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

@@ -150,7 +150,7 @@ export default function DashboardStats({ selectedRange }) {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="bg-white border border-[#E5E7EB] rounded-2xl grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-[#E5E7EB] overflow-hidden shadow-sm">
       {/* --- EMPLOYEE VIEW --- */}
       {!isManagement && (
         <>
@@ -159,28 +159,24 @@ export default function DashboardStats({ selectedRange }) {
             value={stats.myPending}
             subtitle="Drafting"
             icon={<Clock size={20} className="text-gray-9" />}
-            borderColor="border-t-gray-500"
           />
           <StatCard
             title="Pending Approval"
             value={stats.myPendingApproval}
             subtitle="Head Review"
-            icon={<Clock size={20} className="text-yellow-500" />}
-            borderColor="border-t-yellow-500"
+            icon={<Clock size={20} className="text-yellow-600" />}
           />
           <StatCard
             title="Pending HR Verification"
             value={stats.myPendingHr}
             subtitle="HR Verification"
-            icon={<ShieldAlert size={20} className="text-amber-500" />}
-            borderColor="border-t-amber-500"
+            icon={<ShieldAlert size={20} className="text-red-600" />}
           />
           <StatCard
             title="My Completed"
             value={stats.myCompleted}
             subtitle="Verified this Month"
-            icon={<CheckCircle2 size={20} className="text-green-500" />}
-            borderColor="border-t-green-500"
+            icon={<CheckCircle2 size={20} className="text-green-600" />}
           />
         </>
       )}
@@ -192,30 +188,25 @@ export default function DashboardStats({ selectedRange }) {
             title="Pending Approval"
             value={stats.teamPendingApprovals}
             subtitle="Requires Review"
-            icon={<AlertCircle size={20} className="text-primary" />}
-            borderColor="border-t-primary"
-            highlight={stats.teamPendingApprovals > 0}
+            icon={<AlertCircle size={20} className="text-[#111827]" />}
           />
           <StatCard
             title="Rejected Tasks"
             value={stats.teamRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-red-500" />}
-            borderColor="border-t-red-500"
+            icon={<XCircle size={20} className="text-red-600" />}
           />
           <StatCard
             title="Pending HR Verification"
             value={stats.teamPendingHr}
             subtitle="Waiting HR Review"
-            icon={<Clock size={20} className="text-amber-500" />}
-            borderColor="border-t-amber-500"
+            icon={<Clock size={20} className="text-amber-600" />}
           />
           <StatCard
             title="Completed Tasks"
             value={stats.teamCompleted}
             subtitle="Completed this Month"
-            icon={<CheckCircle2 size={20} className="text-blue-500" />}
-            borderColor="border-t-blue-500"
+            icon={<CheckCircle2 size={20} className="text-emerald-600" />}
           />
         </>
       )}
@@ -227,30 +218,25 @@ export default function DashboardStats({ selectedRange }) {
             title="Pending Approval"
             value={stats.hrPendingApprovals}
             subtitle="Head Review"
-            icon={<Clock size={20} className="text-yellow-500" />}
-            borderColor="border-t-yellow-500"
+            icon={<Clock size={20} className="text-yellow-600" />}
           />
           <StatCard
             title="Pending Verification"
             value={stats.hrPendingVerification}
             subtitle="HR Action Required"
-            icon={<ShieldAlert size={20} className="text-primary" />}
-            borderColor="border-t-primary"
-            highlight={stats.hrPendingVerification > 0}
+            icon={<ShieldAlert size={20} className="text-red-600" />}
           />
           <StatCard
             title="Rejected Tasks"
             value={stats.hrRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-red-500" />}
-            borderColor="border-t-red-500"
+            icon={<XCircle size={20} className="text-red-600" />}
           />
           <StatCard
             title="All Tasks"
             value={stats.hrAllTasks}
             subtitle="Org Output this Month"
-            icon={<Database size={20} className="text-blue-500" />}
-            borderColor="border-t-blue-500"
+            icon={<Database size={20} className="text-blue-600" />}
           />
         </>
       )}
@@ -259,30 +245,23 @@ export default function DashboardStats({ selectedRange }) {
 }
 
 // Reusable Sub-component for the cards
-function StatCard({ title, value, subtitle, icon, highlight }) {
+function StatCard({ title, value, subtitle, icon }) {
   return (
-    <div
-      className={`bg-gray-1 rounded-xl p-5 border border-gray-4 shadow-sm relative overflow-hidden transition-all ${highlight ? "bg-primary/5 border-primary/30" : ""}`}
-    >
+    <div className="bg-white p-5 relative overflow-hidden transition-all">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
             {title}
           </p>
-          <h3 className="text-3xl font-black text-gray-12 mt-1">{value}</h3>
+          <h3 className="text-3xl font-black text-[#111827] mt-1">{value}</h3>
         </div>
-        <div className="p-2 bg-gray-2 rounded-lg border border-gray-4">
+        <div className="flex items-center justify-center">
           {icon}
         </div>
       </div>
-      <p className="text-[10px] font-semibold text-gray-9 uppercase tracking-widest">
+      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
         {subtitle}
       </p>
-
-      {/* Decorative background glow if highlighted */}
-      {highlight && (
-        <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-primary/20 blur-xl rounded-full pointer-events-none" />
-      )}
     </div>
   );
 }

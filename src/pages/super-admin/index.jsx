@@ -178,10 +178,11 @@ export default function SuperAdminDashboard() {
           </div>
 
           {/* Inline range label — quick overview, FAB for full picker */}
-          <div className="flex items-center gap-1 bg-gray-2 border border-gray-4 rounded-lg shadow-inner py-1.5 px-4 h-fit">
-            <span className="text-xs font-bold text-gray-11 uppercase tracking-wider select-none text-center min-w-[110px]">
-              {selectedRange?.label || "Loading Range"}
-            </span>
+          <div className="flex items-center gap-2">
+            <FloatingMonthPicker
+              selectedRange={selectedRange}
+              onChange={setSelectedRange}
+            />
           </div>
         </div>
 
@@ -238,10 +239,7 @@ export default function SuperAdminDashboard() {
       </div>
       )}
 
-      <FloatingMonthPicker
-        selectedRange={selectedRange}
-        onChange={setSelectedRange}
-      />
+
     </ProtectedRoute>
   );
 }
