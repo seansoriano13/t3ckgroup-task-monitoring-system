@@ -9,6 +9,7 @@ import { supabase } from "../lib/supabase.js";
 import { ThemeToggle } from "./ThemeToggle";
 import { TASK_STATUS } from "../constants/status";
 import PersonalizedHeroBanner from "./PersonalizedHeroBanner";
+import { Input } from "@/components/ui/input";
 
 function DashboardHeader() {
   const { user } = useAuth();
@@ -91,14 +92,14 @@ function DashboardHeader() {
       {/* 1. TOP BAR: SEARCH & BELL */}
       <div className="flex gap-3 items-center">
         <div className="relative flex-1">
-          <input
-            className={`${INPUT_STYLE} text-gray-12 px-4! pr-10! placeholder:text-sm placeholder:text-gray-10 w-full`}
-            placeholder="Search..."
+          <Input
+            className="w-full pl-4 pr-10 h-11"
+            placeholder="Search tasks, projects, or employees..."
             type="text"
           />
           <Search
             size={18}
-            className="absolute text-gray-6 right-3 top-1/2 -translate-y-1/2"
+            className="absolute text-slate-400 right-3 top-1/2 -translate-y-1/2"
           />
         </div>
 
@@ -107,26 +108,25 @@ function DashboardHeader() {
 
       {/* 2. EXPRESS BANNER: Responsive stacking */}
       {pendingCount > 0 && (
-        <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/20 p-2 rounded-lg text-primary shrink-0">
-              <AlertCircle size={20} />
+        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-2.5 rounded-xl text-indigo-600 shadow-sm border border-indigo-50 shrink-0">
+              <AlertCircle size={22} />
             </div>
             <div>
-              <h3 className="text-gray-12 font-bold text-sm">
-                Action Required
+              <h3 className="text-foreground font-bold text-sm tracking-tight">
+                Review Required
               </h3>
-              <p className="text-gray-10 text-xs mt-0.5">
-                <span className="font-bold text-primary">{pendingCount}</span>{" "}
-                tasks need your {isHr ? "verification" : "approval"}.
+              <p className="text-slate-500 text-xs mt-0.5">
+                You have <span className="font-bold text-indigo-600">{pendingCount}</span> internal tasks awaiting your {isHr ? "verification" : "approval"}.
               </p>
             </div>
           </div>
           <Link
             to="/approvals"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-gray-1 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-red-a3"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-200"
           >
-            Approvals <ArrowRight size={16} />
+            Go to Approvals <ArrowRight size={16} />
           </Link>
         </div>
       )}

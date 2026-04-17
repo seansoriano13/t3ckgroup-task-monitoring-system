@@ -11,6 +11,7 @@ import LogTaskDetailsSection from "./log-task/LogTaskDetailsSection";
 import LogTaskPropertyBar from "./log-task/LogTaskPropertyBar";
 import LogTaskAssignmentBar from "./log-task/LogTaskAssignmentBar";
 import LogTaskFooter from "./log-task/LogTaskFooter";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 // ═════════════════════════════════════════════════════════════
 //  MODAL COMPONENT
@@ -198,21 +199,15 @@ export default function LogTaskModal({ isOpen, onClose }) {
 
   // Refined hooks needed... let's quickly check useLogTaskData and useLogTaskHandlers again.
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <div
-        className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
-        onClick={onClose}
-      />
-
-      <div
-        className={`fixed z-[70] bg-gray-1 border border-gray-4 shadow-2xl flex flex-col transition-all duration-300 w-[680px] max-w-[95vw] rounded-2xl ${isExpanded
-          ? "top-4 bottom-4 left-1/2 -translate-x-1/2 max-h-none animate-in fade-in duration-300"
-          : "inset-0 m-auto h-fit max-h-[90vh] modal-enter"
-          }`}
-        onClick={(e) => e.stopPropagation()}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className={`p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl ${
+          isExpanded
+            ? "top-4 bottom-4 !translate-y-0 h-[calc(100vh-2rem)] max-h-none overflow-hidden"
+            : "max-h-[90vh] overflow-hidden"
+        }`}
       >
 
         <LogTaskHeader
@@ -277,14 +272,14 @@ export default function LogTaskModal({ isOpen, onClose }) {
           {/* Committee / Others details */}
           {(isCommittee || isOthersGlobal) && (
             <div className="py-3 animate-slide-down">
-              <label className="block text-[10px] font-bold text-gray-8 uppercase tracking-widest mb-2">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                 {isCommittee ? "Committee Details" : "Others Details"}
               </label>
               {isCommittee && (
                 <select
                   value={committeeRole}
                   onChange={(e) => setCommitteeRole(e.target.value)}
-                  className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs text-gray-12 outline-none mb-2"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none mb-2"
                 >
                   <option value="">Select Committee Role...</option>
                   <option value="CHAIRPERSON">CHAIRPERSON</option>
@@ -298,7 +293,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
                   placeholder="Specify details..."
                   value={othersRemarks}
                   onChange={(e) => setOthersRemarks(e.target.value)}
-                  className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs text-gray-12 outline-none h-20 resize-none"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none h-20 resize-none"
                 />
               )}
             </div>
@@ -311,7 +306,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
           isSubmitting={isSubmitting}
           onClose={onClose}
         />
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -5,6 +5,8 @@ import { useAuth } from "../context/AuthContext";
 import { useLocation } from "react-router";
 import toast from "react-hot-toast";
 import { CheckCircle2, DollarSign, XCircle, MapPin, Loader2, Clock, CheckSquare, Square, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function ExpenseApprovalQueue({ isSuperAdmin }) {
   const { user } = useAuth();
@@ -129,7 +131,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
   if (selfApproveEnabled) return null;
 
   if (isLoading) return (
-    <div className="p-6 text-center text-gray-11 text-sm font-medium flex items-center justify-center gap-2 bg-gray-1 border border-gray-4 rounded-2xl mb-6">
+    <div className="p-6 text-center text-muted-foreground text-sm font-medium flex items-center justify-center gap-2 bg-card border border-border rounded-2xl mb-6">
       <Loader2 size={16} className="animate-spin" /> Loading expense queue...
     </div>
   );
@@ -137,99 +139,102 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
   console.log(appSettings)
 
   if (pendingExpenses.length === 0) return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-sm mb-6 px-5 py-4 flex items-center justify-between">
+    <div className="bg-card border border-border rounded-2xl shadow-sm mb-6 px-5 py-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="bg-gray-2 p-1.5 rounded-lg">
+        <div className="bg-muted p-1.5 rounded-lg">
           <CheckCircle2 size={18} className="text-green-500" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-gray-12">Expense Approval Queue</h2>
-          <p className="text-xs text-gray-9">No pending expense approvals — all clear.</p>
+          <h2 className="text-sm font-bold text-foreground">Expense Approval Queue</h2>
+          <p className="text-xs text-muted-foreground">No pending expense approvals — all clear.</p>
         </div>
       </div>
-      <span className="text-xs font-bold text-gray-11 bg-gray-3 px-2.5 py-1 rounded-full">0 pending</span>
+      <span className="text-xs font-bold text-muted-foreground bg-muted/80 px-2.5 py-1 rounded-full">0 pending</span>
     </div>
   );
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-sm overflow-hidden mb-6">
+    <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden mb-6">
       {/* Header */}
-      <div className="px-5 py-3.5 border-b border-gray-3 flex items-center justify-between gap-3 flex-wrap bg-gray-2">
+      <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 flex-wrap bg-muted">
         <div className="flex items-center gap-3">
           {/* Select All checkbox */}
-          <button onClick={toggleAll} className="shrink-0 text-gray-9 hover:text-gray-12 transition-colors">
+          <button onClick={toggleAll} className="shrink-0 text-muted-foreground hover:text-foreground transition-colors">
             {allSelected
-              ? <CheckSquare size={18} className="text-gray-12" />
+              ? <CheckSquare size={18} className="text-foreground" />
               : <Square size={18} />
             }
           </button>
           <div className="flex items-center gap-2">
-            <Clock size={16} className="text-gray-9" />
+            <Clock size={16} className="text-muted-foreground" />
             <div>
-              <h2 className="text-sm font-bold text-gray-12">Expense Approval Queue</h2>
+              <h2 className="text-sm font-bold text-foreground">Expense Approval Queue</h2>
               {someSelected
-                ? <p className="text-xs text-gray-11">{filteredExpenses.filter(e => selected.has(e.id)).length} of {filteredExpenses.length} selected</p>
-                : <p className="text-xs text-gray-9">{filteredExpenses.length}{filteredExpenses.length !== pendingExpenses.length ? ` of ${pendingExpenses.length}` : ''} pending authorization</p>
+                ? <p className="text-xs text-muted-foreground">{filteredExpenses.filter(e => selected.has(e.id)).length} of {filteredExpenses.length} selected</p>
+                : <p className="text-xs text-muted-foreground">{filteredExpenses.length}{filteredExpenses.length !== pendingExpenses.length ? ` of ${pendingExpenses.length}` : ''} pending authorization</p>
               }
             </div>
           </div>
-        </div>
-
-        {/* Bulk action buttons */}
+        </div>        {/* Bulk action buttons */}
         <div className="flex items-center gap-2">
           {someSelected ? (
             <>
-              <button
+              <Button
                 onClick={() => {
                   if (window.confirm(`Approve all ${selected.size} selected expense${selected.size > 1 ? "s" : ""}?`)) {
                     bulkApproveMutation.mutate(selected);
                   }
                 }}
                 disabled={isPending}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-12 hover:bg-gray-11 text-gray-1 text-xs font-bold rounded-lg transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+                size="sm"
+                className="flex items-center shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {bulkApproveMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                {bulkApproveMutation.isPending ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <CheckCircle2 size={14} className="mr-1.5" />}
                 Approve {selected.size === pendingExpenses.length ? "All" : `${selected.size} Selected`}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setSelected(new Set())}
-                className="px-3 py-1.5 text-xs font-bold text-gray-11 hover:text-gray-12 transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 Clear
-              </button>
+              </Button>
             </>
           ) : (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setSelected(new Set(pendingExpenses.map(e => e.id)))}
-              className="px-3 py-1.5 text-xs font-semibold text-gray-10 hover:text-gray-12 border border-gray-4 rounded-lg transition-colors bg-gray-2"
+              className="text-muted-foreground hover:text-foreground shadow-sm"
             >
               Select All
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       {/* Search bar */}
-      <div className="px-4 py-2.5 border-b border-gray-3 flex items-center gap-2 bg-gray-1">
-        <Search size={14} className="text-gray-9 shrink-0" />
-        <input
+      <div className="px-4 py-2 border-b border-border flex items-center gap-2 bg-card">
+        <Search size={16} className="text-muted-foreground shrink-0" />
+        <Input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search employee, account, reference..."
-          className="flex-1 text-sm text-gray-12 placeholder-gray-8 bg-transparent outline-none"
+          className="flex-1 text-sm border-none shadow-none focus-visible:ring-0 px-1"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="text-gray-9 hover:text-gray-12 transition-colors">
+          <Button variant="ghost" size="icon" onClick={() => setSearch('')} className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors shrink-0">
             <X size={14} />
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Items */}
-      <div className="divide-y divide-gray-3 max-h-[420px] overflow-y-auto custom-scrollbar">
+      <div className="divide-y divide-border max-h-[420px] overflow-y-auto custom-scrollbar">
         {filteredExpenses.length === 0 && (
-          <p className="text-center text-sm text-gray-9 py-6 italic bg-gray-1">No results match "{search}"</p>
+          <p className="text-center text-sm text-muted-foreground py-6 italic bg-card">No results match "{search}"</p>
         )}
         {filteredExpenses.map(task => {
           const isHighlighted = task.id === highlightExpenseId;
@@ -240,64 +245,68 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
               ref={el => itemRefs.current[task.id] = el}
               className={`px-5 py-4 flex items-start gap-3 transition-colors ${
                 isHighlighted ? "bg-primary/5 border-l-4 border-primary" :
-                isChecked ? "bg-gray-2" : "hover:bg-gray-2/50 bg-gray-1"
+                isChecked ? "bg-muted" : "hover:bg-muted/50 bg-card"
               }`}
             >
               {/* Row checkbox */}
               <button
                 onClick={() => toggleOne(task.id)}
-                className="mt-0.5 shrink-0 text-gray-8 hover:text-gray-11 transition-colors"
+                className="mt-0.5 shrink-0 text-slate-400 hover:text-muted-foreground transition-colors"
               >
-                {isChecked ? <CheckSquare size={16} className="text-gray-12" /> : <Square size={16} />}
+                {isChecked ? <CheckSquare size={16} className="text-foreground" /> : <Square size={16} />}
               </button>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-xs font-semibold text-gray-10">{task.employees?.name}</span>
+                  <span className="text-xs font-semibold text-muted-foreground/80">{task.employees?.name}</span>
                   <span className="text-gray-7 text-xs">·</span>
-                  <span className="text-xs text-gray-9">
+                  <span className="text-xs text-muted-foreground">
                     {new Date(task.scheduled_date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
                 </div>
 
-                <p className="text-sm font-bold text-gray-12 truncate">
+                <p className="text-sm font-bold text-foreground truncate">
                   {task.account_name}
-                  <span className="ml-2 text-[10px] font-semibold text-gray-10 uppercase tracking-wider border border-gray-4 rounded px-1.5 py-0.5 align-middle bg-gray-2">
+                  <span className="ml-2 text-[10px] font-semibold text-muted-foreground/80 uppercase tracking-wider border border-border rounded px-1.5 py-0.5 align-middle bg-muted">
                     {task.activity_type}
                   </span>
                 </p>
 
                 {task.address && (
-                  <p className="text-xs text-gray-9 flex items-center gap-1 mt-0.5 truncate">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 truncate">
                     <MapPin size={11} /> {task.address}
                   </p>
                 )}
 
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-11 bg-gray-2 border border-gray-4 px-2.5 py-1 rounded-lg">
-                    <DollarSign size={12} className="text-gray-9" />
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-lg">
+                    <DollarSign size={12} className="text-muted-foreground" />
                     ₱ {Number(task.expense_amount).toLocaleString()}
                   </div>
                   {task.reference_number && (
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-11 bg-gray-2 border border-gray-4 px-2.5 py-1 rounded-lg">
-                      Ref: <span className="text-gray-12">{task.reference_number}</span>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-lg">
+                      Ref: <span className="text-foreground">{task.reference_number}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Individual action buttons */}
-              <div className="flex gap-1.5 shrink-0">
-                <button
+              <div className="flex gap-2 shrink-0">
+                <Button
+                  size="icon"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 w-8 shadow-sm"
                   onClick={() => approveMutation.mutate({ id: task.id, isApproved: true })}
                   disabled={isPending}
                   title="Approve"
-                  className="p-2 bg-gray-12 hover:bg-gray-11 text-gray-1 rounded-lg transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  <CheckCircle2 size={14} />
-                </button>
-                <button
+                  <CheckCircle2 size={16} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 h-8 w-8"
                   onClick={() => {
                     if (window.confirm("Reject this expense? The activity will be marked as REJECTED.")) {
                       approveMutation.mutate({ id: task.id, isApproved: false });
@@ -305,10 +314,9 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
                   }}
                   disabled={isPending}
                   title="Reject"
-                  className="p-2 bg-gray-1 hover:bg-red-500/10 text-red-500 rounded-lg border border-gray-4 hover:border-red-500/30 transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  <XCircle size={14} />
-                </button>
+                  <XCircle size={16} />
+                </Button>
               </div>
             </div>
           );

@@ -298,9 +298,9 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
       {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-12">My Profile</h1>
-        <p className="text-gray-9 mt-1">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-4xl font-black text-foreground tracking-tight">My Profile</h1>
+        <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.15em]">
           Manage your employee information and access levels.
         </p>
       </div>
@@ -308,24 +308,24 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN: The ID Card */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 flex flex-col gap-2 items-center text-center shadow-lg">
+          <div className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-3 items-center text-center shadow-sm">
             <div className="relative">
               <img
                 src={user?.picture || "/default-avatar.png"}
                 alt="Profile"
-                className="w-24 h-24 rounded-full border-4 border-gray-3 shadow-md mb-4"
+                className="w-24 h-24 rounded-2xl border-4 border-border shadow-md mb-4 object-cover"
                 referrerPolicy="no-referrer"
               />
               {/* Role Badges floating on the avatar */}
               {(user?.isHead || user?.isHr) && (
                 <div className="flex gap-2">
                   {user?.isHead && (
-                    <span className="bg-amber-100 text-amber-600 border border-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
                       Head
                     </span>
                   )}
                   {user?.isHr && (
-                    <span className="bg-purple-100 text-purple-600 border border-purple-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
                       HR
                     </span>
                   )}
@@ -334,11 +334,9 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-bold text-gray-12">
-                {user?.name || "Employee Name"}
-              </h2>
-              <p className="text-gray-9 text-sm mt-1 flex items-center gap-2 justify-center">
-                <Mail size={14} /> {user?.email || "email@t3ckgroup.com"}
+              <h2 className="text-xl font-black text-foreground">{user?.name || "Employee Name"}</h2>
+              <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 justify-center">
+                <Mail size={13} /> {user?.email || "email@t3ckgroup.com"}
               </p>
             </div>
           </div>
@@ -349,21 +347,21 @@ export default function ProfilePage() {
         {/* RIGHT COLUMN: Details & Stats */}
         <div className="lg:col-span-2 space-y-6">
           {/* Department Info */}
-          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 shadow-lg">
-            <h3 className="text-sm font-bold text-gray-10 uppercase tracking-wider mb-4 border-b border-gray-3 pb-2">
-              Organizational Details
-            </h3>
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5 border-b border-border pb-3">
+                Organizational Details
+              </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex gap-4 items-start">
-                <div className="p-3 bg-gray-3 rounded-xl">
+                <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-500">
                   <Building2 size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
                     Department
                   </p>
-                  <p className="text-gray-12 font-bold mt-0.5">
+                  <p className="text-foreground font-black mt-0.5 text-sm">
                     {user?.department || "Unassigned"}
                   </p>
                 </div>
@@ -374,10 +372,10 @@ export default function ProfilePage() {
                   <Briefcase size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
                     Sub-Department
                   </p>
-                  <p className="text-gray-12 font-bold mt-0.5">
+                  <p className="text-foreground font-black mt-0.5 text-sm">
                     {user?.subDepartment || "N/A"}
                   </p>
                 </div>
@@ -388,10 +386,10 @@ export default function ProfilePage() {
                   <ShieldCheck size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
                     System ID
                   </p>
-                  <p className="text-gray-10 font-mono text-xs mt-1 break-all">
+                <p className="text-muted-foreground font-mono text-xs mt-1 break-all select-all">
                     {user?.id || "UUID_PENDING"}
                   </p>
                 </div>
@@ -402,36 +400,36 @@ export default function ProfilePage() {
           {/* Live Dynamic Stats */}
           {!user?.isSuperAdmin && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
-                <div className="p-3 bg-gray-3 rounded-full text-gray-9">
+              <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-center text-indigo-500">
                   <Hash size={20} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-12">
+                  <p className="text-2xl font-black text-foreground">
                     {isStatsLoading ? (
                       <Loader2 size={16} className="animate-spin mt-1 mb-2" />
                     ) : (
                       stats?.primary
                     )}
                   </p>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
                     {stats?.primaryLabel || "Metrics"}
                   </p>
                 </div>
               </div>
-              <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
-                <div className="p-3 bg-green-900/20 rounded-full text-green-500">
+              <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-500">
                   <ShieldCheck size={20} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-400">
+                  <p className="text-2xl font-black text-emerald-600">
                     {isStatsLoading ? (
                       <Loader2 size={16} className="animate-spin mt-1 mb-2" />
                     ) : (
                       stats?.secondary
                     )}
                   </p>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
                     {stats?.secondaryLabel || "Completed"}
                   </p>
                 </div>
@@ -440,18 +438,18 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="lg:col-span-3 bg-gray-2 border border-gray-4 rounded-2xl p-4 md:p-5 shadow-lg space-y-5">
-            <div className="flex items-start justify-between gap-3">
+        <div className="lg:col-span-3 bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm space-y-5">
+            <div className="flex items-start justify-between gap-3 border-b border-border pb-4">
               <div>
-                <h3 className="text-base font-bold text-gray-12">Dashboard personalization</h3>
-                <p className="text-xs text-gray-9 mt-1">
+                <h3 className="text-base font-black text-foreground">Dashboard Personalization</h3>
+                <p className="text-xs text-muted-foreground mt-1">
                   Banner, quote, and avatar apply across all dashboard views.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-4 bg-gray-1 p-3 space-y-3">
-              <p className="text-xs font-semibold text-gray-9">Live preview</p>
+            <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Preview</p>
               <div className="relative rounded-lg overflow-hidden h-24">
                 <img
                   src={bannerPreviewUrl || "/leaf-background.jpg"}
@@ -470,21 +468,21 @@ export default function ProfilePage() {
                 <img
                   src={avatarPreviewUrl || "/default-avatar.png"}
                   alt="Avatar preview"
-                  className="w-10 h-10 rounded-full object-cover border border-gray-4"
+                  className="w-10 h-10 rounded-xl object-cover border border-border"
                 />
-                <span className="text-xs text-gray-9">
+                <span className="text-xs text-muted-foreground font-medium">
                   Profile photo preview ({isUsingDefaultAvatar ? "Default" : "Custom"})
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 rounded-xl border border-gray-4 p-3">
-                <p className="text-xs font-semibold text-gray-9">Profile photo</p>
+              <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Profile photo</p>
                 <button
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-sm font-black transition border border-border uppercase tracking-widest text-[10px]"
                 >
                   <UploadCloud size={16} /> {avatarFile ? avatarFile.name : "Upload avatar"}
                 </button>
@@ -495,7 +493,7 @@ export default function ProfilePage() {
                     setRemoveAvatar(true);
                   }}
                   disabled={isUsingDefaultAvatar}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
                 >
                   Reset to default
                 </button>
@@ -511,12 +509,12 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <div className="space-y-2 rounded-xl border border-gray-4 p-3">
-                <p className="text-xs font-semibold text-gray-9">Dashboard banner</p>
+              <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dashboard banner</p>
                 <button
                   type="button"
                   onClick={() => bannerInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
                 >
                   <UploadCloud size={16} /> {bannerFile ? bannerFile.name : "Upload banner"}
                 </button>
@@ -539,7 +537,7 @@ export default function ProfilePage() {
                     setBannerFile(null);
                     setRemoveBanner(false);
                   }}
-                  className="w-full rounded-lg border border-gray-4 bg-gray-1 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/60"
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all"
                   placeholder="Paste Unsplash image URL"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -554,7 +552,7 @@ export default function ProfilePage() {
                       setBannerFile(null);
                       setRemoveBanner(false);
                     }}
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
                   >
                     Random Unsplash
                   </button>
@@ -566,7 +564,7 @@ export default function ProfilePage() {
                       setRemoveBanner(true);
                     }}
                     disabled={isUsingDefaultBanner}
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
                   >
                     Reset banner
                   </button>
@@ -574,9 +572,9 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="space-y-2 rounded-xl border border-gray-4 p-3">
+            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-gray-9">Motivational Quote</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Motivational Quote</p>
                 <span className="text-[11px] text-gray-8">{quoteLength}/72</span>
               </div>
               <textarea
@@ -586,7 +584,7 @@ export default function ProfilePage() {
                   setCustomQuote(e.target.value);
                   setRemoveQuote(false);
                 }}
-                className="w-full min-h-[70px] rounded-lg border border-gray-4 bg-gray-1 p-2 text-sm outline-none focus:ring-2 focus:ring-primary/60"
+                className="w-full min-h-[70px] rounded-xl border border-border bg-muted/40 p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all resize-none"
                 placeholder="Write your 7-word motivational quote (all users)..."
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -594,7 +592,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => generateQuoteMutation.mutate()}
                   disabled={generateQuoteMutation.isPending}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/90 hover:bg-primary text-white text-sm font-semibold transition disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest transition disabled:opacity-70 shadow-lg shadow-indigo-100"
                 >
                   {generateQuoteMutation.isPending ? (
                     <Loader2 size={16} className="animate-spin" />
@@ -610,7 +608,7 @@ export default function ProfilePage() {
                     setRemoveQuote(true);
                   }}
                   disabled={isUsingDefaultQuote}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
                 >
                   Reset quote
                 </button>
@@ -621,7 +619,7 @@ export default function ProfilePage() {
               type="button"
               onClick={() => savePreferencesMutation.mutate()}
               disabled={isSaving}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gray-12 text-gray-1 text-sm font-bold hover:opacity-90 transition disabled:opacity-70"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 transition disabled:opacity-70"
             >
               {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               Save dashboard settings

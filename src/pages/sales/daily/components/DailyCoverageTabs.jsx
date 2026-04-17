@@ -30,14 +30,16 @@ export function DailyCoverageTabs({
             onClick={() => setSelectedDate(wd.dateStr)}
             className={`flex flex-col items-center justify-center min-w-[64px] h-16 rounded-2xl border transition-all ${
               selectedDate === wd.dateStr
-                ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
+                ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105"
                 : allTasksDone
-                  ? "bg-green-500/10 border-green-500/30 text-green-700 hover:bg-green-500/20 shadow-sm"
-                  : "bg-gray-1 border-gray-4 text-gray-10 hover:border-gray-6"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 shadow-sm"
+                  : "bg-card border-border text-muted-foreground hover:border-indigo-200 hover:bg-muted/50"
             }`}
           >
             <span
-              className={`text-[10px] items-center justify-center flex font-bold uppercase tracking-widest ${selectedDate === wd.dateStr ? "text-white/80" : allTasksDone ? "text-green-600/80" : "text-gray-8"}`}
+              className={`text-[10px] items-center justify-center flex font-black uppercase tracking-widest ${
+                selectedDate === wd.dateStr ? "text-white/80" : allTasksDone ? "text-emerald-600/80" : "text-slate-400"
+              }`}
             >
               {wd.label}{" "}
               {hasTasks && !allTasksDone && (

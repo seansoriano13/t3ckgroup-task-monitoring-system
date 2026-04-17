@@ -7,7 +7,7 @@ export function ScheduleTabs({
   isGreen,
 }) {
   return (
-    <div className="flex gap-2 border-b border-gray-4 pb-0 overflow-x-auto">
+    <div className="flex gap-1 border-b border-border pb-0 overflow-x-auto">
       {weekDates.map((d, idx) => {
         const hasTasks = activitiesData.some(
           (a) =>
@@ -20,7 +20,11 @@ export function ScheduleTabs({
           <button
             key={d.dateStr}
             onClick={() => setActiveTab(idx)}
-            className={`px-6 py-3 font-bold text-sm tracking-wide border-b-2 transition-colors whitespace-nowrap ${activeTab === idx ? "border-gray-a3  bg-gray-a3" : "border-transparent text-gray-9 hover:text-gray-12 hover:bg-gray-2"}`}
+            className={`px-5 py-3 font-bold text-sm tracking-wide border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
+              activeTab === idx
+                ? "border-indigo-600 text-indigo-600 bg-indigo-50/50"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
           >
             {d.label}{" "}
             {hasTasks && (
@@ -28,12 +32,10 @@ export function ScheduleTabs({
                 className={`w-2 h-2 rounded-full ${isGreen ? "bg-green-500" : "bg-yellow-500"} inline-block ml-1 mb-0.5 shadow-sm`}
               ></span>
             )}
-            <span className="text-xs font-normal text-gray-8 block">
-              {d.dateStr}
-            </span>
+              <span className={`text-[10px] font-bold text-muted-foreground block mt-0.5`}>{d.dateStr}</span>
             {dayStats && (
-              <span className="text-[10px] font-bold text-gray-8 block">
-                AM {dayStats.amCount}/5 | PM {dayStats.pmCount}/5
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mt-0.5">
+                AM {dayStats.amCount}/5 · PM {dayStats.pmCount}/5
               </span>
             )}
           </button>

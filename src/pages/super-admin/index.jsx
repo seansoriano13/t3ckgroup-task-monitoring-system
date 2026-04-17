@@ -159,21 +159,20 @@ export default function SuperAdminDashboard() {
   return (
     <ProtectedRoute requireSuperAdmin={true}>
       {loadingEmps || loadingQuotas ? (
-        <div className="flex h-[80vh] items-center justify-center space-x-2 text-gray-9">
-          <Loader2 className="animate-spin" />
-          <p className="font-bold">Syncing Super Admin Metrics...</p>
+        <div className="flex h-[80vh] items-center justify-center space-x-2 text-muted-foreground">
+          <Loader2 className="animate-spin text-indigo-500" />
+          <p className="font-black uppercase tracking-widest text-sm">Syncing Super Admin Metrics...</p>
         </div>
       ) : (
         <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
         <SystemUpdateBanner />
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-3xl font-black text-gray-12 flex items-center gap-2">
+            <h1 className="text-4xl font-black text-foreground tracking-tight flex items-center gap-2">
               Admin Control
             </h1>
-            <p className="text-gray-9 mt-1 font-medium">
-              Manage Sales Quotas, configure tracking rules, and review
-              department activities.
+            <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.15em]">
+              Manage Sales Quotas, configure tracking rules, and review department activities.
             </p>
           </div>
 
@@ -189,25 +188,25 @@ export default function SuperAdminDashboard() {
         <SystemUpdateManager />
 
         <ExpenseApprovalQueue isSuperAdmin={true} />
-        <div className="bg-gray-1 border border-gray-4 p-4 sm:p-6 rounded-xl shadow-lg">
-          <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+        <div className="bg-card border border-border p-5 sm:p-6 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
             <div>
-              <h2 className="text-xl font-bold text-gray-12">Set Sales Quotas</h2>
-              <p className="text-xs text-gray-9 mt-0.5">
+              <h2 className="text-lg font-black text-foreground">Set Sales Quotas</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Edit any quotas below, then hit <strong>Save All</strong> to commit changes.
               </p>
             </div>
             <button
               onClick={handleSaveAll}
               disabled={isSavingAll || !hasPendingChanges}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-widest transition-all shrink-0
-                bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/20
-                disabled:bg-gray-4 disabled:text-gray-8 disabled:shadow-none disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shrink-0
+                bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100
+                disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none disabled:cursor-not-allowed"
             >
               {isSavingAll ? (
-                <><Loader2 size={16} className="animate-spin" /> Saving...</>
+                <><Loader2 size={15} className="animate-spin" /> Saving...</>
               ) : (
-                <><CheckCheck size={16} /> Save All</>
+                <><CheckCheck size={15} /> Save All</>
               )}
             </button>
           </div>
@@ -227,7 +226,7 @@ export default function SuperAdminDashboard() {
             ))}
           </div>
           {salesEmployees.length === 0 && (
-            <p className="text-gray-9 italic">
+            <p className="text-muted-foreground italic text-sm">
               No employees found matching 'Sales' department criteria.
             </p>
           )}
@@ -282,32 +281,27 @@ function QuotaCard({ employee, value, serverValue, avatarUrl, onChange }) {
 
   return (
     <div
-      className={`bg-gray-2 border rounded-xl p-4 flex flex-col justify-between transition-all ${
-        isDirty ? "border-purple-500/50 shadow-sm shadow-purple-500/10" : "border-gray-4"
+      className={`bg-card border rounded-2xl p-5 flex flex-col justify-between transition-all ${
+        isDirty ? "border-indigo-300 shadow-md shadow-indigo-50" : "border-border hover:border-indigo-100"
       }`}
     >
       <div className="flex items-start gap-4 mb-4">
         <img
           src={avatarUrl || "/default-avatar.png"}
           alt={employee.name}
-          className="w-12 h-12 rounded-xl border border-gray-4 object-cover shadow-sm bg-gray-3 shrink-0"
-          onError={(e) => {
-            e.target.src = "/default-avatar.png";
-          }}
+          className="w-12 h-12 rounded-xl border border-border object-cover shadow-sm bg-muted shrink-0"
+          onError={(e) => { e.target.src = "/default-avatar.png"; }}
         />
         <div className="min-w-0">
-          <p className="font-bold text-gray-12 text-lg truncate">{employee.name}</p>
-          <p className="text-[10px] text-gray-9 font-black uppercase tracking-widest truncate">
+          <p className="font-black text-foreground text-base truncate">{employee.name}</p>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">
             {employee.role || employee.sub_department || "Sales Rep"}
           </p>
         </div>
       </div>
 
       <div className="relative">
-        <PhilippinePeso
-          size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-        />
+        <PhilippinePeso size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           ref={inputRef}
           type="text"
@@ -315,15 +309,15 @@ function QuotaCard({ employee, value, serverValue, avatarUrl, onChange }) {
           placeholder="0"
           value={displayValue}
           onChange={handleChange}
-          className={`w-full bg-gray-1 border text-gray-12 rounded-lg pl-8 pr-14 py-2 text-sm font-bold outline-none transition-colors ${
+          className={`w-full bg-muted/40 border text-foreground rounded-xl pl-8 pr-14 py-2.5 text-sm font-bold outline-none transition-all ${
             isDirty
-              ? "border-purple-500 focus:border-purple-400"
-              : "border-gray-4 focus:border-purple-500"
+              ? "border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
           }`}
         />
         {isDirty && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-purple-400 uppercase tracking-widest pointer-events-none">
-            edited
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-indigo-500 uppercase tracking-widest pointer-events-none">
+            EDITED
           </span>
         )}
       </div>

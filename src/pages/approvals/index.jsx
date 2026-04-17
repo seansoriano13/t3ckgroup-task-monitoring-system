@@ -14,6 +14,7 @@ import TaskFilters from "../../components/TaskFilters.jsx";
 
 import { ApprovalHeader } from "./components/ApprovalHeader";
 import { ApprovalRow } from "./components/ApprovalRow";
+import { Button } from "@/components/ui/button";
 
 export default function ApprovalsPage() {
   const { user } = useAuth();
@@ -389,7 +390,7 @@ export default function ApprovalsPage() {
 
   if (isLoading)
     return (
-      <div className="py-20 text-center text-gray-9 font-bold">
+      <div className="py-20 text-center text-muted-foreground font-bold">
         Loading Queue...
       </div>
     );
@@ -443,7 +444,7 @@ export default function ApprovalsPage() {
         {filteredTasks.length > 0 ? (
           <div className="flex flex-col gap-4">
             {(searchQuery || priorityFilter !== "ALL") && (
-              <p className="text-xs font-bold text-gray-9 px-1">
+              <p className="text-xs font-bold text-muted-foreground px-1">
                 Showing {filteredTasks.length} of {pendingTasks.length} tasks
               </p>
             )}
@@ -468,27 +469,36 @@ export default function ApprovalsPage() {
             ))}
           </div>
         ) : pendingTasks.length > 0 ? (
-          <div className="text-center py-16 bg-gray-2 border border-gray-4 border-dashed rounded-xl">
-            <Search size={32} className="mx-auto text-gray-7 mb-3" />
-            <p className="text-gray-12 font-bold">No tasks match your filter</p>
-            <button
+          <div className="flex flex-col items-center justify-center py-20 bg-card border border-border border-dashed rounded-xl shadow-sm text-center">
+            <div className="p-4 bg-muted rounded-full mb-4 ring-4 ring-muted/50">
+               <Search size={28} className="text-muted-foreground" />
+            </div>
+            <p className="text-foreground font-semibold text-lg tracking-tight">No tasks match your filter</p>
+            <p className="text-muted-foreground mt-1.5 text-sm max-w-sm mx-auto">
+              Try adjusting your search query or current priority filter to find what you're looking for.
+            </p>
+            <Button
+              variant="outline"
               onClick={() => {
                 setSearchQuery("");
                 setPriorityFilter("ALL");
               }}
-              className="mt-3 text-xs font-bold text-primary hover:underline"
+              className="mt-6 font-semibold"
             >
               Clear filters
-            </button>
+            </Button>
           </div>
         ) : (
-          <div className="text-center py-20 bg-gray-2 border border-gray-4 border-dashed rounded-xl shadow-sm">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-400 mb-4">
+          <div className="flex flex-col items-center justify-center py-24 bg-card border border-border rounded-xl shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)] text-center relative overflow-hidden group">
+            {/* Soft blob decoration inside empty state */}
+            <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
+            
+            <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100/50 text-emerald-600 mb-6 shadow-sm ring-4 ring-emerald-50">
               <CheckCircle2 size={32} />
             </div>
-            <p className="text-gray-12 font-bold text-xl">Inbox Zero!</p>
-            <p className="text-gray-9 mt-2">
-              There are no pending tasks waiting for your review.
+            <p className="text-foreground font-bold text-2xl tracking-tight relative">Inbox Zero!</p>
+            <p className="text-muted-foreground mt-2 relative font-medium">
+              You're all caught up. No pending approvals require your attention.
             </p>
           </div>
         )}

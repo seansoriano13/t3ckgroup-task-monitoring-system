@@ -17,6 +17,9 @@ import ImageAttachment from "./ImageAttachment";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.js";
 import { toast } from "react-hot-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
 
 import { activeChatService } from "../services/tasks/activeChatService";
 import { createPortal } from "react-dom";
@@ -70,7 +73,7 @@ export default function TaskDetails({
   useEffect(() => {
     if (isOpen && task) {
       if (user?.id) {
-         activeChatService.markAsRead(user.id, "TASK", task.id);
+        activeChatService.markAsRead(user.id, "TASK", task.id);
       }
 
       const taskDept =
@@ -328,9 +331,9 @@ export default function TaskDetails({
     if (!isOpen || isSubmitting || isEditing) return;
 
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
-        if (e.key !== "Enter") return;
+      if (e.key !== "Enter") return;
     }
-    
+
     if (isFinalized || !canEvaluate) return;
 
     if (!isHr) {
@@ -360,7 +363,7 @@ export default function TaskDetails({
     toast(
       (t) => (
         <div className="flex flex-col gap-3">
-          <span className="font-bold text-sm text-gray-12">
+          <span className="font-bold text-sm text-foreground">
             Are you sure you want to delete this task? It will be removed from
             the active queues.
           </span>
@@ -381,7 +384,7 @@ export default function TaskDetails({
               Confirm Delete
             </button>
             <button
-              className="bg-gray-3 hover:bg-gray-4 text-gray-11 px-4 py-1.5 rounded text-sm font-bold transition-colors border border-gray-4"
+              className="bg-muted/50 hover:bg-slate-200 text-muted-foreground px-4 py-1.5 rounded text-sm font-bold transition-colors border border-border"
               onClick={() => toast.dismiss(t.id)}
             >
               Cancel
@@ -407,7 +410,7 @@ export default function TaskDetails({
         ref={modalRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-white border-l border-gray-200 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-card border-l border-border shadow-2xl z-[9999] transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <TaskHeader
           isEditing={isEditing}
@@ -415,7 +418,7 @@ export default function TaskDetails({
           onClose={onClose}
         />
 
-        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-white">
+        <div className="p-8 flex-1 overflow-y-auto space-y-8 custom-scrollbar bg-card">
           <div className="space-y-4">
             <ManagementSection
               isEditing={isEditing}
@@ -444,25 +447,25 @@ export default function TaskDetails({
             {/* --- PROJECT / CAMPAIGN TITLE --- */}
             {(isEditing || formData.projectTitle) && (
               <div className="flex flex-col gap-1.5 pt-2">
-                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                   <FolderKanban size={12} /> Project / Campaign Title
                   {isEditing && (
-                    <span className="font-normal text-gray-7 normal-case tracking-normal">
+                    <span className="font-normal text-slate-500 normal-case tracking-normal">
                       (optional)
                     </span>
                   )}
                 </label>
                 {isEditing ? (
-                  <input
+                  <Input
                     type="text"
                     name="projectTitle"
                     value={formData.projectTitle}
                     onChange={handleChange}
                     placeholder="e.g. Q2 Brand Awareness Campaign"
-                    className="min-h-[44px] w-full bg-white border border-[#E5E7EB] text-[#111827] rounded-lg px-4 outline-none transition-colors text-[14px] placeholder:text-gray-400"
+                    className="h-11 shadow-sm"
                   />
                 ) : (
-                  <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold text-violet-400 flex items-center gap-2">
+                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-indigo-600 flex items-center gap-2 shadow-sm">
                     <FolderKanban size={14} />
                     {formData.projectTitle}
                   </div>
@@ -474,62 +477,61 @@ export default function TaskDetails({
             {((isEditing &&
               taskDept?.toUpperCase() === "ADMIN") ||
               formData.paymentVoucher) && (
-              <div className="flex flex-col gap-1.5 pt-2">
-                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
-                  <Receipt size={12} /> Payment Voucher
-                  {isEditing && (
-                    <span className="font-normal text-gray-7 normal-case tracking-normal">
-                      (optional)
-                    </span>
+                <div className="flex flex-col gap-1.5 pt-2">
+                  <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Receipt size={12} /> Payment Voucher
+                    {isEditing && (
+                      <span className="font-normal text-slate-500 normal-case tracking-normal">
+                        (optional)
+                      </span>
+                    )}
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      type="text"
+                      name="paymentVoucher"
+                      value={formData.paymentVoucher || ""}
+                      onChange={handleChange}
+                      placeholder="e.g. PV-2026-001"
+                      className="h-11 shadow-sm"
+                    />
+                  ) : (
+                    <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-slate-700 flex items-center gap-2 shadow-sm">
+                      <Receipt size={14} />
+                      {formData.paymentVoucher}
+                    </div>
                   )}
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="paymentVoucher"
-                    value={formData.paymentVoucher || ""}
-                    onChange={handleChange}
-                    placeholder="e.g. PV-2026-001"
-                    className="min-h-[44px] w-full bg-white border border-[#E5E7EB] text-[#111827] rounded-lg px-4 outline-none transition-colors text-[14px] placeholder:text-gray-400"
-                  />
-                ) : (
-                  <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold flex items-center gap-2">
-                    <Receipt size={14} />
-                    {formData.paymentVoucher}
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
             <div className="flex flex-col gap-1.5 pt-2">
               {isEditing ? (
                 <div className="flex items-center justify-between pl-1">
-                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                     Task Details
                   </label>
-                  <div className="flex gap-1 bg-gray-3 p-0.5 rounded-lg border border-gray-4">
+                  <div className="flex gap-1 bg-muted/50 p-0.5 rounded-lg border border-border">
                     <button
                       type="button"
                       onClick={() => setDescriptionType("description")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
-                        descriptionType === "description" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
-                      }`}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "description" ? "bg-card text-foreground shadow-sm" : "text-slate-400 hover:text-muted-foreground/80"
+                        }`}
                     >
                       Description
                     </button>
                     <button
                       type="button"
                       onClick={() => setDescriptionType("checklist")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
-                        descriptionType === "checklist" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                      }`}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "checklist" ? "bg-card text-muted-foreground00 shadow-sm" : "text-slate-400 hover:text-slate-50000"
+                        }`}
                     >
                       Checklist
                     </button>
                   </div>
                 </div>
               ) : (
-                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] pl-1 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                   Description
                 </label>
               )}
@@ -541,17 +543,17 @@ export default function TaskDetails({
                     onChange={handleChange}
                   />
                 ) : (
-                  <textarea
+                  <Textarea
                     name="taskDescription"
                     value={
                       typeof formData.taskDescription === "string" &&
-                      (formData.taskDescription.trim().startsWith("[") || formData.taskDescription.trim().startsWith("{"))
+                        (formData.taskDescription.trim().startsWith("[") || formData.taskDescription.trim().startsWith("{"))
                         ? ""
                         : formData.taskDescription
                     }
                     onChange={handleChange}
                     required
-                    className="w-full bg-white border border-[#E5E7EB] text-[#111827] rounded-lg p-4 outline-none transition-colors h-24 resize-none text-[14px]"
+                    className="w-full bg-card border border-border text-foreground rounded-xl p-4 outline-none transition-all h-32 resize-none text-[14px] shadow-sm"
                   />
                 )
               ) : isChecklistFormat ? (
@@ -575,15 +577,15 @@ export default function TaskDetails({
                   }}
                 />
               ) : (
-                <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
+                <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground leading-relaxed text-[15px] whitespace-pre-wrap shadow-sm">
                   {task.taskDescription}
                 </div>
               )}
             </div>
 
             {/* --- ATTACHMENTS (all tasks, owner only) --- */}
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
-              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-border mt-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                 Attachments
               </label>
               <ImageAttachment
@@ -611,13 +613,12 @@ export default function TaskDetails({
 
             {/* --- GRADE SELECTOR (for evaluation) --- */}
             {!isEditing && (
-              <div className={`p-4 rounded-xl border ${
-                isComplete
-                  ? "bg-gray-3/50 border-gray-4"
-                  : isNotApproved
-                    ? "bg-red-a2 border-red-a5"
-                    : "border-gray-6"
-              }`}>
+              <div className={`p-4 rounded-xl border ${isComplete
+                ? "bg-muted/50/50 border-border"
+                : isNotApproved
+                  ? "bg-destructive/10 border-destructive/20"
+                  : "border-primary/20"
+                }`}>
                 <div className="grid gap-1 mb-3">
                   <div className="text-xs font-bold uppercase tracking-wider">
                     {isFinalized
@@ -628,10 +629,10 @@ export default function TaskDetails({
                   </div>
 
                   {isFinalized && task.evaluatedByName && (
-                    <div className="text-[11px] text-gray-8 flex items-center justify-between">
+                    <div className="text-[11px] text-slate-400 flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         Evaluated by:{" "}
-                        <span className="font-bold text-gray-11">
+                        <span className="font-bold text-muted-foreground">
                           {task.evaluatedByName}
                         </span>
                       </div>
@@ -655,7 +656,7 @@ export default function TaskDetails({
 
             {/* --- UNIFIED ACTIVITY TIMELINE --- */}
             {!isEditing && (
-              <div className="pt-2 border-t border-gray-200 mt-2">
+              <div className="pt-2 border-t border-border mt-2">
                 <TaskActivityTimeline
                   taskId={task.id}
                   legacyRemarks={timelineLegacyRemarks}
@@ -668,30 +669,30 @@ export default function TaskDetails({
             )}
 
             {!isEditing && task.editedById && (
-              <div className="pt-4 border-t border-gray-4 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-gray-8">
+              <div className="pt-4 border-t border-border flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 <p className="flex items-center gap-1.5">
                   <PencilLine size={12} /> Last Modified By{" "}
-                  <span className="text-gray-10">{task.editedByName}</span>
+                  <span className="text-muted-foreground/80">{task.editedByName}</span>
                 </p>
                 <p>{formatDate(task.editedAt)}</p>
               </div>
             )}
-            
+
             {/* KEYBOARD SHORTCUTS HINT */}
             {!isFinalized && !isEditing && canEvaluate && (
               <div className="pt-2 flex justify-center opacity-70 mb-4 pb-4">
-                <p className="text-[10px] text-gray-8 font-bold tracking-widest uppercase flex items-center gap-2">
+                <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase flex items-center gap-2">
                   Shortcuts:
                   {!isHr ? (
                     <>
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">1-5</span> Select Grade
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">Enter</span> Approve
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">1-5</span> Select Grade
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">Enter</span> Approve
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
                     </>
                   ) : (
                     <>
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">V / Enter</span> Verify
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">V / Enter</span> Verify
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
                     </>
                   )}
                 </p>

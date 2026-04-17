@@ -4,10 +4,10 @@ import { LOG_TASK_SELECT_STYLES } from "../../constants/task";
 
 const FieldBox = ({ label, children }) => (
   <div className="flex flex-col gap-1.5">
-    <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
       {label}
     </label>
-    <div className="min-h-[44px] flex items-center w-full bg-gray-1 border border-gray-4 rounded-lg px-2 shadow-sm transition-all">
+    <div className="min-h-[44px] flex items-center w-full bg-card border border-border rounded-lg px-2 shadow-sm transition-all">
       {children}
     </div>
   </div>
@@ -41,12 +41,12 @@ export default function LogTaskAssignmentBar({
       {/* ORGANIZATION SECTION (HR only) */}
       {isHr && (
         <div className="space-y-3">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-10 uppercase tracking-widest pl-1">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/80 uppercase tracking-widest pl-1">
             <Users size={12} /> Assignment
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                 Dept
               </label>
               <Select
@@ -67,7 +67,7 @@ export default function LogTaskAssignmentBar({
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                 Sub-Dept
               </label>
               <Select
@@ -95,7 +95,7 @@ export default function LogTaskAssignmentBar({
       {canAssignOthers && (
         <div className="space-y-1.5">
           {!isHr && (
-            <label className="text-[10px] font-bold text-gray-8 uppercase tracking-widest flex items-center gap-1.5 pl-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 pl-1">
               <Users size={12} /> Assign To
             </label>
           )}
@@ -125,7 +125,7 @@ export default function LogTaskAssignmentBar({
       {/* REPORTED TO SECTION */}
       {showHeadDropdown && (
         <div className="space-y-1.5 pt-1">
-          <label className="text-[10px] font-bold text-gray-8 uppercase tracking-widest flex items-center gap-1.5 pl-1">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 pl-1">
             <ClipboardList size={12} /> Report To (Head)
           </label>
           <Select

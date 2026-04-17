@@ -85,20 +85,15 @@ export default function LogSalesPage() {
   return (
     <ProtectedRoute>
       <div className="max-w-3xl mx-auto space-y-6 pb-10 px-2 sm:px-4">
-        <div className="border-b border-gray-4 pb-4">
-          <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3">
+        <div className="border-b border-border pb-6">
+          <h1 className="text-4xl font-black text-foreground flex items-center gap-3 tracking-tight">
             {isOrder ? (
-              <>
-                <ShoppingCart size={28} className="text-green-500" /> Sales
-                Order
-              </>
+              <><ShoppingCart size={28} className="text-emerald-500" /> Sales Order</>
             ) : (
-              <>
-                <FileText size={28} className="text-blue-500" /> Sales Quotation
-              </>
+              <><FileText size={28} className="text-indigo-500" /> Sales Quotation</>
             )}
           </h1>
-          <p className="text-gray-9 mt-1 font-medium">
+          <p className="text-muted-foreground mt-1.5 font-medium text-sm">
             {isOrder
               ? "Record Completed Sale operations to contribute to your monthly Quota Rankings."
               : "Record Quotations sent to clients. These do not count toward your Quota until converted to Sales Orders."}
@@ -107,47 +102,39 @@ export default function LogSalesPage() {
 
         <form
           onSubmit={handleSubmit}
-          className={`bg-gray-1 border p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 transition-colors duration-300 ${isOrder ? "border-green-500/30" : "border-blue-500/30"}`}
+          className={`bg-card border p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 transition-colors duration-300 ${
+            isOrder ? "border-emerald-200" : "border-indigo-200"
+          }`}
         >
           {/* Record Type Toggle */}
-          <div className="flex bg-gray-2 p-1 rounded-xl border border-gray-4 shadow-inner mb-6">
+          <div className="flex bg-muted p-1 rounded-xl border border-border shadow-inner mb-6">
             <button
               type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  record_type: RECORD_TYPE.SALES_ORDER,
-                })
-              }
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg transition-all ${
+              onClick={() => setFormData({ ...formData, record_type: RECORD_TYPE.SALES_ORDER })}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
                 isOrder
-                  ? "bg-green-600 text-white shadow-md transform scale-[1.02]"
-                  : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+                  ? "bg-emerald-600 text-white shadow-md scale-[1.02]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-card"
               }`}
             >
-              <ShoppingCart size={16} /> Sales Order
+              <ShoppingCart size={15} /> Sales Order
             </button>
             <button
               type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  record_type: RECORD_TYPE.SALES_QUOTATION,
-                })
-              }
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg transition-all ${
+              onClick={() => setFormData({ ...formData, record_type: RECORD_TYPE.SALES_QUOTATION })}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
                 !isOrder
-                  ? "bg-blue-600 text-white shadow-md transform scale-[1.02]"
-                  : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+                  ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-card"
               }`}
             >
-              <FileText size={16} /> Sales Quotation
+              <FileText size={15} /> Sales Quotation
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 Date
               </label>
               <input
@@ -157,21 +144,25 @@ export default function LogSalesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, date: e.target.value })
                 }
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 font-bold"
+                className="w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 font-bold transition-all"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 Status
               </label>
-              <div className="flex bg-gray-2 border border-gray-4 rounded-lg p-1">
+              <div className="flex bg-muted border border-border rounded-xl p-1">
                 <button
                   type="button"
                   onClick={() =>
                     setFormData({ ...formData, status: REVENUE_STATUS.COMPLETED })
                   }
-                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === REVENUE_STATUS.COMPLETED ? (isOrder ? "bg-green-600 text-white shadow-md" : "bg-blue-600 text-white shadow-md") : "text-gray-9 hover:text-gray-12"}`}
+                  className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${
+                    formData.status === REVENUE_STATUS.COMPLETED
+                      ? isOrder ? "bg-emerald-600 text-white shadow-md" : "bg-indigo-600 text-white shadow-md"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
                   {isOrder ? "COMPLETED" : "SUBMITTED / LOGGED"}
                 </button>
@@ -180,7 +171,11 @@ export default function LogSalesPage() {
                   onClick={() =>
                     setFormData({ ...formData, status: REVENUE_STATUS.LOST })
                   }
-                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === REVENUE_STATUS.LOST ? "bg-red-500 text-white shadow-md" : "text-gray-9 hover:text-gray-12"}`}
+                  className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${
+                    formData.status === REVENUE_STATUS.LOST
+                      ? "bg-destructive text-white shadow-md"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
                   LOST
                 </button>
@@ -188,7 +183,7 @@ export default function LogSalesPage() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 Account / Client Name
               </label>
               <input
@@ -199,12 +194,14 @@ export default function LogSalesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, account: e.target.value })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 Product / Item
               </label>
               <input
@@ -218,12 +215,14 @@ export default function LogSalesPage() {
                     product_item_sold: e.target.value,
                   })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 {isOrder ? "SO Number" : "Quotation Number"}{" "}
                 <span className="normal-case font-medium text-gray-8">
                   (Optional)
@@ -243,7 +242,9 @@ export default function LogSalesPage() {
                     });
                   }
                 }}
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
@@ -268,17 +269,17 @@ export default function LogSalesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, revenue_amount: e.target.value })
                   }
-                  className={`w-full bg-gray-2 border font-black text-xl rounded-lg pl-10 pr-4 py-3 outline-none shadow-inner ${
+                  className={`w-full bg-muted/40 border font-black text-2xl rounded-xl pl-10 pr-4 py-3 outline-none shadow-inner transition-all ${
                     isOrder
-                      ? "border-green-900/40 text-green-500 focus:border-green-500"
-                      : "border-blue-900/40 text-blue-500 focus:border-blue-500"
+                      ? "border-emerald-200 text-emerald-600 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                      : "border-indigo-200 text-indigo-600 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                   }`}
                 />
               </div>
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 Ref #
               </label>
               <input
@@ -288,12 +289,14 @@ export default function LogSalesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, reference_number: e.target.value })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 Remarks
               </label>
               <textarea
@@ -302,19 +305,21 @@ export default function LogSalesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, remarks: e.target.value })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none resize-none h-12 ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none resize-none h-24 transition-all ${
+                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
           </div>
 
-          <div className="pt-6 border-t border-gray-4">
+          <div className="pt-6 border-t border-border">
             <button
               disabled={mutation.isPending}
               type="submit"
-              className={`w-full text-white font-black text-lg py-4 rounded-xl flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-lg ${
+              className={`w-full text-white font-black text-base py-4 rounded-2xl flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-xl uppercase tracking-widest ${
                 isOrder
-                  ? "bg-green-600 hover:bg-green-700 shadow-green-900/20"
-                  : "bg-blue-600 hover:bg-blue-700 shadow-blue-900/20"
+                  ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
+                  : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200"
               }`}
             >
               <Save size={24} />

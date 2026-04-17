@@ -224,8 +224,8 @@ export default function DailyExecutionPage() {
   if (isLoading || !user?.id) {
     return (
       <ProtectedRoute excludeSuperAdmin={true}>
-        <div className="flex justify-center items-center h-[80vh] text-gray-9 gap-3 font-bold">
-          <Loader2 className="animate-spin" /> Fetching Daily Checklist...
+        <div className="flex justify-center items-center h-[80vh] text-muted-foreground gap-3 font-bold">
+          <Loader2 className="animate-spin text-indigo-500" /> Fetching Daily Checklist...
         </div>
       </ProtectedRoute>
     );
@@ -235,19 +235,18 @@ export default function DailyExecutionPage() {
     <ProtectedRoute excludeSuperAdmin={true}>
       <div className="max-w-6xl mx-auto space-y-6 pb-10 px-2 sm:px-4">
         {/* HEADER & DATE PICKER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-4 pb-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3 tracking-tight">
+            <h1 className="text-3xl font-black text-foreground flex items-center gap-3 tracking-tight">
               Daily Checklist
             </h1>
-            <p className="text-gray-9 mt-1 font-medium text-sm">
-              Tap the circles to cross off your planned calls and execution
-              targets.
+            <p className="text-muted-foreground mt-1 font-medium text-sm">
+              Tap the circles to cross off your planned calls and execution targets.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-inner">
-              <CalendarIcon size={16} className="text-gray-8 mr-2" />
+            <div className="bg-card border border-border rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-sm hover:border-indigo-300 transition-colors">
+              <CalendarIcon size={16} className="text-indigo-500" />
               <input
                 type="date"
                 value={formatDateToYMD(currentDateObj)}
@@ -256,7 +255,7 @@ export default function DailyExecutionPage() {
                   setCurrentDateObj(d);
                   setSelectedDate(formatDateToYMD(d));
                 }}
-                className="bg-transparent text-gray-12 font-bold outline-none cursor-pointer text-sm"
+                className="bg-transparent text-foreground font-bold outline-none cursor-pointer text-sm"
               />
             </div>
 
@@ -265,13 +264,13 @@ export default function DailyExecutionPage() {
                 {!isRequestingDayDelete ? (
                   <button
                     onClick={() => setIsRequestingDayDelete(true)}
-                    className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 rounded-lg text-xs font-bold transition-all border border-red-500/20"
+                    className="px-3 py-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl text-xs font-bold transition-all border border-destructive/20"
                   >
                     Request Deletion
                   </button>
                 ) : (
-                  <div className="absolute right-0 top-12 z-50 bg-white border border-red-500/30 rounded-xl shadow-xl p-4 w-[300px] animate-in slide-in-from-right-2">
-                    <label className="text-[10px] font-bold text-red-600 uppercase tracking-widest block mb-1">
+                  <div className="absolute right-0 top-12 z-50 bg-card border border-destructive/20 rounded-2xl shadow-2xl p-5 w-[300px] animate-in slide-in-from-right-2">
+                    <label className="text-[10px] font-black text-destructive uppercase tracking-widest block mb-2">
                       Reason for Deleting this day?
                     </label>
                     <textarea
@@ -279,13 +278,13 @@ export default function DailyExecutionPage() {
                       value={dayDeleteReason}
                       onChange={(e) => setDayDeleteReason(e.target.value)}
                       placeholder="E.g. Public holiday, system error..."
-                      className="w-full bg-gray-1 border border-red-500/20 rounded-lg p-3 text-sm text-gray-12 outline-none focus:border-red-500 mb-3"
+                      className="w-full bg-muted/40 border border-border rounded-xl p-3 text-sm text-foreground outline-none focus:border-destructive/40 focus:ring-2 focus:ring-destructive/10 mb-4 transition-all"
                       rows={2}
                     />
                     <div className="flex gap-2 justify-end">
                       <button
                         onClick={() => setIsRequestingDayDelete(false)}
-                        className="px-3 py-1.5 text-xs text-gray-8 font-bold"
+                        className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground font-bold transition-colors"
                       >
                         Cancel
                       </button>
@@ -295,7 +294,7 @@ export default function DailyExecutionPage() {
                           !dayDeleteReason.trim() ||
                           requestDayDeleteMutation.isPending
                         }
-                        className="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50"
+                        className="px-4 py-1.5 bg-destructive hover:bg-destructive/90 text-white text-xs font-bold rounded-xl shadow-sm shadow-red-100 disabled:opacity-50 transition-all"
                       >
                         {requestDayDeleteMutation.isPending
                           ? "Submitting..."
@@ -320,22 +319,22 @@ export default function DailyExecutionPage() {
 
         {/* ALERTS */}
         {isFutureWeek && (
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
-            <h2 className="text-lg font-black text-blue-600 dark:text-blue-500 mb-1 flex items-center justify-center gap-2">
-              <AlertCircle size={20} /> Future Week Locked
+          <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
+            <h2 className="text-base font-black text-indigo-700 mb-1 flex items-center justify-center gap-2">
+              <AlertCircle size={18} /> Future Week Locked
             </h2>
-            <p className="text-gray-10 font-medium text-sm">
+            <p className="text-muted-foreground font-medium text-sm">
               Execution is currently locked because this week hasn't officially
               begun. The schedule is viewed in read-only mode.
             </p>
           </div>
         )}
         {planStatus === "DRAFT" && !isFutureWeek && (
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
-            <h2 className="text-lg font-black text-yellow-600 dark:text-yellow-500 mb-1 flex items-center justify-center gap-2">
-              <AlertCircle size={20} /> Plan Execution Locked
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
+            <h2 className="text-base font-black text-amber-700 mb-1 flex items-center justify-center gap-2">
+              <AlertCircle size={18} /> Plan Execution Locked
             </h2>
-            <p className="text-gray-10 font-medium text-sm">
+            <p className="text-muted-foreground font-medium text-sm">
               Your schedule for this week is still in <strong>DRAFT</strong>{" "}
               mode. Submit your plan to enable execution triggers.
             </p>

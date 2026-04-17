@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status.js";
+import { Card } from "@/components/ui/card";
 
 export default function DashboardStats({ selectedRange }) {
   const { user } = useAuth();
@@ -145,12 +146,12 @@ export default function DashboardStats({ selectedRange }) {
 
   if (isLoading) {
     return (
-      <div className="h-24 bg-gray-2 rounded-xl border border-gray-4 animate-pulse"></div>
+      <div className="h-24 bg-muted rounded-xl border border-border animate-pulse"></div>
     );
   }
 
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-2xl grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-[#E5E7EB] overflow-hidden shadow-sm">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {/* --- EMPLOYEE VIEW --- */}
       {!isManagement && (
         <>
@@ -158,25 +159,29 @@ export default function DashboardStats({ selectedRange }) {
             title="My Pending"
             value={stats.myPending}
             subtitle="Drafting"
-            icon={<Clock size={20} className="text-gray-9" />}
+            icon={<Clock size={20} className="text-slate-400" />}
+            color="indigo"
           />
           <StatCard
             title="Pending Approval"
             value={stats.myPendingApproval}
             subtitle="Head Review"
-            icon={<Clock size={20} className="text-yellow-600" />}
+            icon={<Clock size={20} className="text-amber-500" />}
+            color="amber"
           />
           <StatCard
             title="Pending HR Verification"
             value={stats.myPendingHr}
             subtitle="HR Verification"
-            icon={<ShieldAlert size={20} className="text-red-600" />}
+            icon={<ShieldAlert size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="My Completed"
             value={stats.myCompleted}
             subtitle="Verified this Month"
-            icon={<CheckCircle2 size={20} className="text-green-600" />}
+            icon={<CheckCircle2 size={20} className="text-emerald-500" />}
+            color="emerald"
           />
         </>
       )}
@@ -188,25 +193,29 @@ export default function DashboardStats({ selectedRange }) {
             title="Pending Approval"
             value={stats.teamPendingApprovals}
             subtitle="Requires Review"
-            icon={<AlertCircle size={20} className="text-[#111827]" />}
+            icon={<AlertCircle size={20} className="text-indigo-500" />}
+            color="indigo"
           />
           <StatCard
             title="Rejected Tasks"
             value={stats.teamRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-red-600" />}
+            icon={<XCircle size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="Pending HR Verification"
             value={stats.teamPendingHr}
             subtitle="Waiting HR Review"
-            icon={<Clock size={20} className="text-amber-600" />}
+            icon={<Clock size={20} className="text-amber-500" />}
+            color="amber"
           />
           <StatCard
             title="Completed Tasks"
             value={stats.teamCompleted}
             subtitle="Completed this Month"
-            icon={<CheckCircle2 size={20} className="text-emerald-600" />}
+            icon={<CheckCircle2 size={20} className="text-emerald-500" />}
+            color="emerald"
           />
         </>
       )}
@@ -218,25 +227,29 @@ export default function DashboardStats({ selectedRange }) {
             title="Pending Approval"
             value={stats.hrPendingApprovals}
             subtitle="Head Review"
-            icon={<Clock size={20} className="text-yellow-600" />}
+            icon={<Clock size={20} className="text-amber-500" />}
+            color="amber"
           />
           <StatCard
             title="Pending Verification"
             value={stats.hrPendingVerification}
             subtitle="HR Action Required"
-            icon={<ShieldAlert size={20} className="text-red-600" />}
+            icon={<ShieldAlert size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="Rejected Tasks"
             value={stats.hrRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-red-600" />}
+            icon={<XCircle size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="All Tasks"
             value={stats.hrAllTasks}
             subtitle="Org Output this Month"
-            icon={<Database size={20} className="text-blue-600" />}
+            icon={<Database size={20} className="text-indigo-500" />}
+            color="indigo"
           />
         </>
       )}
@@ -245,23 +258,32 @@ export default function DashboardStats({ selectedRange }) {
 }
 
 // Reusable Sub-component for the cards
-function StatCard({ title, value, subtitle, icon }) {
+function StatCard({ title, value, subtitle, icon, color }) {
+  const colorMap = {
+    indigo: "from-indigo-500/10 to-transparent",
+    amber: "from-amber-500/10 to-transparent",
+    destructive: "from-destructive/10 to-transparent",
+    emerald: "from-emerald-500/10 to-transparent",
+  };
+
   return (
-    <div className="bg-white p-5 relative overflow-hidden transition-all">
-      <div className="flex justify-between items-start mb-4">
+    <Card className="p-6 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm">
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`} />
+      
+      <div className="flex justify-between items-start mb-5 relative z-10">
         <div>
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1">
             {title}
           </p>
-          <h3 className="text-3xl font-black text-[#111827] mt-1">{value}</h3>
+          <h3 className="text-4xl font-extrabold tracking-tight text-foreground">{value}</h3>
         </div>
-        <div className="flex items-center justify-center">
+        <div className="p-2.5 rounded-xl bg-muted/50 border border-border group-hover:bg-muted transition-colors">
           {icon}
         </div>
       </div>
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest relative z-10">
         {subtitle}
       </p>
-    </div>
+    </Card>
   );
 }

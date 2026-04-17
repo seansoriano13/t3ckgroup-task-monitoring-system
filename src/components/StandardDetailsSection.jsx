@@ -3,8 +3,8 @@ import { formatDate } from "../utils/formatDate";
 import { extractOthersDetailsFromRemarks } from "../utils/taskFormatters";
 import { FieldBox } from "./FieldBox";
 import StatusBadge from "./StatusBadge";
-import { CheckCircle2, Clock } from "lucide-react";
 import { TASK_STATUS } from "../constants/status";
+import { Input } from "@/components/ui/input";
 
 const StandardDetailsSection = ({
   isEditing,
@@ -34,9 +34,9 @@ const StandardDetailsSection = ({
                 value={formData.categoryId}
                 onChange={handleChange}
                 disabled={!formData.loggedById && isManagement}
-                className="w-full bg-transparent px-3 py-2 outline-none text-sm text-gray-12 cursor-pointer disabled:opacity-50"
+                className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground cursor-pointer disabled:opacity-50"
               >
-                <option value="" disabled className="text-gray-8">
+                <option value="" disabled className="text-slate-400">
                   {topologyData?.isLoadingTop
                     ? "Loading..."
                     : !formData.loggedById && isManagement
@@ -60,9 +60,9 @@ const StandardDetailsSection = ({
             </div>
           ) : (
             <div className="mx-3 my-1.5 flex items-center">
-              <span className="text-xs font-bold text-gray-11 bg-gray-3 px-2 py-1.5 rounded-lg border border-gray-4 leading-relaxed inline-block">
+              <span className="text-xs font-bold text-foreground bg-muted p-2 rounded-xl border border-border leading-relaxed inline-block">
                 {task.categoryId}
-                <span className="font-medium text-gray-10 ml-1">
+                <span className="font-medium text-slate-400 ml-1">
                   - {categoryLabel}
                 </span>
               </span>
@@ -75,12 +75,12 @@ const StandardDetailsSection = ({
               name="priority"
               value={formData.priority}
               onChange={handleChange}
-              className={`w-full bg-transparent px-3 py-2 outline-none text-sm font-bold cursor-pointer ${formData.priority === "HIGH" ? "text-red-9" : "text-gray-12"}`}
+              className={`w-full bg-transparent px-3 py-2 outline-none text-sm font-bold cursor-pointer ${formData.priority === "HIGH" ? "text-red-9" : "text-foreground"}`}
             >
-              <option value="LOW" className="text-gray-12">
+              <option value="LOW" className="text-foreground">
                 LOW
               </option>
-              <option value="MEDIUM" className="text-gray-12">
+              <option value="MEDIUM" className="text-foreground">
                 MEDIUM
               </option>
               <option value="HIGH" className="text-red-9">
@@ -88,12 +88,12 @@ const StandardDetailsSection = ({
               </option>
             </select>
           ) : (
-            <p
-              className={`px-3 text-sm font-bold flex items-center gap-1.5 ${task.priority === "HIGH" ? "text-red-9" : "text-gray-12"}`}
+            <div
+               className={`px-3 text-sm font-bold flex items-center gap-2 ${task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-amber-600" : "text-slate-400"}`}
             >
-              {task.priority === "HIGH" && <AlertCircle size={14} />}{" "}
-              {task.priority || "NORMAL"}
-            </p>
+              <div className={`w-2 h-2 rounded-full ${task.priority === "HIGH" ? "bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.4)]" : task.priority === "MEDIUM" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-slate-300"} shrink-0`} />
+              {task.priority || "LOW"}
+            </div>
           )}
         </FieldBox>
       </div>
@@ -105,7 +105,7 @@ const StandardDetailsSection = ({
         </FieldBox>
         {/* {!isEditing && (
           <FieldBox label="Created At" isEditing={false}>
-            <p className="px-3 text-sm font-semibold text-gray-11">
+            <p className="px-3 text-sm font-semibold text-muted-foreground">
               {formatDate(task.createdAt)}
             </p>
           </FieldBox>
@@ -114,7 +114,7 @@ const StandardDetailsSection = ({
           <FieldBox label="HR Verification Status" isEditing={false}>
             <div className="px-3 flex items-center">
               {task.status !== TASK_STATUS.COMPLETE ? (
-                <span className="text-sm font-semibold text-gray-8">
+                <span className="text-sm font-semibold text-slate-400">
                   N/A (Awaiting Manager)
                 </span>
               ) : task.hrVerified ? (
@@ -133,42 +133,31 @@ const StandardDetailsSection = ({
       <div className="grid grid-cols-2 gap-4">
         <FieldBox label="Start Time" isEditing={isEditing}>
           {isEditing ? (
-            <input
+            <Input
               disabled
               type="datetime-local"
               name="startAt"
               value={formData.startAt}
               onChange={handleChange}
-              className="min-h-[44px] w-full
-                               bg-gray-1 border border-gray-4
-                               focus:border-red-9 text-gray-12
-                               rounded-lg px-3 outline-none transition-colors text-sm
-                               [color-scheme:dark]
-
-                               disabled:opacity-50
-                               disabled:cursor-not-allowed
-                               disabled:bg-gray-2
-                               disabled:border-gray-3
-                               disabled:text-gray-9
-                             "
+              className="w-full h-11 pointer-events-none opacity-50"
             />
           ) : (
-            <p className="px-3 text-sm font-semibold text-gray-12">
+            <p className="px-3 text-sm font-semibold text-foreground">
               {formatDate(task.startAt)}
             </p>
           )}
         </FieldBox>
         <FieldBox label="End Time" isEditing={isEditing}>
           {isEditing ? (
-            <input
+            <Input
               type="datetime-local"
               name="endAt"
               value={formData.endAt}
               onChange={handleChange}
-              className="w-full bg-transparent px-3 py-2 outline-none text-sm text-gray-12 [color-scheme:dark]"
+              className="w-full h-11"
             />
           ) : (
-            <p className="px-3 text-sm font-semibold text-gray-12">
+            <p className="px-3 text-sm font-semibold text-foreground">
               {formatDate(task.endAt)}
             </p>
           )}

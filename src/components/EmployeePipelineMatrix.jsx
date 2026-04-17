@@ -132,42 +132,42 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
   if (isLoading || employeeStats.length === 0) return null;
 
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm p-5 overflow-hidden">
+    <div className="bg-card border border-border rounded-2xl shadow-sm p-5 overflow-hidden">
       <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-[#111827] flex items-center gap-2 tracking-tight">
-            <Activity className="text-[#111827]" size={18} /> Team Pipeline
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 tracking-tight">
+            <Activity className="text-foreground" size={18} /> Team Pipeline
             Radar
           </h2>
           <p className="text-sm text-[#6B7280] mt-0.5">
             {isHr ? "Organization-wide metrics" : "Performance metrics"} •{" "}
-            <span className="font-semibold text-[#111827]">
+            <span className="font-semibold text-foreground">
               {selectedRange?.label || "This Range"}
             </span>
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border border-[#E5E7EB] rounded-lg px-3 py-1.5 min-w-[200px]">
+          <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1.5 min-w-[200px]">
             <Search size={14} className="text-[#9CA3AF]" />
             <input
               type="text"
               placeholder="Search employee..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs text-[#111827] placeholder-[#9CA3AF] w-full"
+              className="bg-transparent border-none outline-none text-xs text-foreground placeholder-[#9CA3AF] w-full"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="text-[#9CA3AF] hover:text-[#111827]"
+                className="text-[#9CA3AF] hover:text-foreground"
               >
                 <X size={12} />
               </button>
             )}
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-3 py-1.5 rounded-lg h-full">
+          <div className="hidden sm:flex items-center gap-1.5 bg-card border border-border px-3 py-1.5 rounded-lg h-full">
             <Users size={14} className="text-[#9CA3AF]" />
             <span className="text-xs text-[#6B7280]">
               {employeeStats.length} members
@@ -184,7 +184,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             onClick={() =>
               navigate("/tasks", { state: { filterEmployeeId: emp.id } })
             }
-            className="cursor-pointer min-w-[260px] sm:min-w-[290px] flex flex-col snap-start hover:border-gray-6 transition-colors"
+            className="cursor-pointer min-w-[260px] sm:min-w-[290px] flex flex-col snap-start hover:border-slate-300 transition-colors"
             style={{
               background: "#FFFFFF",
               border: "1px solid #E5E7EB",

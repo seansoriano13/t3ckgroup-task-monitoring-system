@@ -156,7 +156,7 @@ export default function SideNav({ onOpenAddTask }) {
         <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center bg-primary text-white font-bold text-[11px] shrink-0 shadow-sm">
           {user?.department?.charAt(0)?.toUpperCase() || "T3"}
         </div>
-        <span className="font-semibold text-[14.5px] truncate text-gray-12 uppercase tracking-wide mt-[1px]">
+        <span className="font-semibold text-[14.5px] truncate text-sidebar-foreground uppercase tracking-wide mt-[1px]">
           {user?.department || "T3CKGROUP"}
         </span>
       </div>
@@ -165,7 +165,7 @@ export default function SideNav({ onOpenAddTask }) {
 
   const CustomDropdownIndicator = (props) => (
     <components.DropdownIndicator {...props}>
-      <ChevronDown size={14} className="text-gray-10" />
+      <ChevronDown size={14} className="text-sidebar-foreground/60" />
     </components.DropdownIndicator>
   );
 
@@ -190,8 +190,8 @@ export default function SideNav({ onOpenAddTask }) {
     indicatorSeparator: () => ({ display: "none" }),
     menu: (base) => ({
       ...base,
-      backgroundColor: "var(--color-gray-2, #fff)",
-      border: "1px solid var(--color-gray-4, #ddd)",
+      backgroundColor: "var(--sidebar)",
+      border: "1px solid var(--sidebar-border)",
       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
       borderRadius: "6px",
       overflow: "hidden",
@@ -203,9 +203,9 @@ export default function SideNav({ onOpenAddTask }) {
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isFocused
-        ? "var(--color-red-a1)"
+        ? "var(--sidebar-accent)"
         : "transparent",
-      color: "var(--color-gray-11, #000)",
+      color: "var(--sidebar-foreground)",
       cursor: "pointer",
       padding: "8px 12px",
       fontSize: "13px",
@@ -223,7 +223,7 @@ export default function SideNav({ onOpenAddTask }) {
       <div className="md:hidden fixed top-3 left-3 z-40">
         <button
           onClick={() => setIsMobileOpen(true)}
-          className="text-gray-11 hover:text-gray-12 bg-gray-2/80 backdrop-blur-md border border-gray-4 p-1.5 rounded-lg shadow-sm transition-colors"
+          className="text-sidebar-foreground/80 hover:text-sidebar-foreground bg-sidebar border-r border-sidebar-border/80 backdrop-blur-md border border-sidebar-border p-1.5 rounded-lg shadow-sm transition-colors"
         >
           <PanelRight size={18} strokeWidth={2} />
         </button>
@@ -242,7 +242,7 @@ export default function SideNav({ onOpenAddTask }) {
         className={`
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
           fixed md:sticky top-0 left-0 h-screen z-50 flex flex-col 
-          bg-gray-2  text-sm font-sans
+          bg-sidebar border-r border-sidebar-border  text-sm font-sans
           transition-transform duration-300 ease-in-out
           w-[240px] shrink-0 overflow-y-auto scrollbar-hide
         `}
@@ -251,7 +251,7 @@ export default function SideNav({ onOpenAddTask }) {
         <div className="md:hidden absolute top-4 right-4 z-50">
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="text-gray-10 hover:text-gray-12 p-1 bg-gray-2 rounded-md shadow-sm border border-gray-4"
+            className="text-sidebar-foreground/60 hover:text-sidebar-foreground p-1 bg-sidebar border-r border-sidebar-border rounded-md shadow-sm border border-sidebar-border"
           >
             <PanelLeft size={18} strokeWidth={2} />
           </button>
@@ -277,7 +277,7 @@ export default function SideNav({ onOpenAddTask }) {
               setIsMobileOpen(false);
               setIsLogTaskOpen(true);
             }}
-            className="shrink-0 p-2 rounded-lg border border-gray-4 bg-gray-1 text-gray-11 hover:text-gray-12 hover:bg-red-a1 hover:border-red-a2 transition-all"
+            className="shrink-0 p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent text-sidebar-primary transition-all"
             title="Log new task"
           >
             <SquarePen size={15} strokeWidth={2.2} />
@@ -293,7 +293,7 @@ export default function SideNav({ onOpenAddTask }) {
               setIsNotifOpen(true);
               setIsMobileOpen(false);
             }}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isNotifOpen ? "bg-red-a2 text-gray-12" : "hover:bg-red-a1 text-gray-11 hover:text-gray-12"}`}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isNotifOpen ? "bg-sidebar-accent text-sidebar-primary text-sidebar-foreground" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
           >
             <div className="flex items-center gap-3.5">
               <svg
@@ -305,20 +305,20 @@ export default function SideNav({ onOpenAddTask }) {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-gray-10 group-hover:text-gray-11"
+                className="text-sidebar-foreground/60 group-hover:text-sidebar-foreground/80"
               >
                 <path d="M4 11V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
                 <path d="M4 11h3a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2h3" />
                 <path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
               </svg>
               <span
-                className={`font-medium text-[13.5px] ${isNotifOpen ? "text-gray-12" : ""}`}
+                className={`font-medium text-[13.5px] ${isNotifOpen ? "text-sidebar-foreground" : ""}`}
               >
                 Notification
               </span>
             </div>
             {unreadCount > 0 && (
-              <span className="text-[11px] font-medium text-gray-11 group-hover:text-gray-12 bg-gray-3 group-hover:bg-gray-4 px-1.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-medium text-sidebar-foreground/80 group-hover:text-sidebar-foreground bg-sidebar-accent/50 group-hover:bg-sidebar-accent/80 px-1.5 py-0.5 rounded-full">
                 {unreadCount}
               </span>
             )}
@@ -329,7 +329,7 @@ export default function SideNav({ onOpenAddTask }) {
               setIsChatsOpen(true);
               setIsMobileOpen(false);
             }}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isChatsOpen ? "bg-red-a2 text-gray-12" : "hover:bg-red-a1 text-gray-11 hover:text-gray-12"}`}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isChatsOpen ? "bg-sidebar-accent text-sidebar-primary text-sidebar-foreground" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
           >
             <div className="flex items-center gap-3.5">
               <svg
@@ -341,7 +341,7 @@ export default function SideNav({ onOpenAddTask }) {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-gray-11"
+                className="text-sidebar-foreground/80"
               >
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                 <path d="M9 12h6" />
@@ -350,7 +350,7 @@ export default function SideNav({ onOpenAddTask }) {
               <span className="font-medium text-[13.5px]">Chats</span>
             </div>
             {unreadChatsCount > 0 && (
-              <span className="text-[11px] font-medium text-gray-12 bg-gray-4 px-1.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-medium text-sidebar-foreground bg-sidebar-accent/80 px-1.5 py-0.5 rounded-full">
                 {unreadChatsCount}
               </span>
             )}
@@ -358,8 +358,8 @@ export default function SideNav({ onOpenAddTask }) {
         </div>
 
         {/* 4. Combined Workspace Menus */}
-        <div className="px-3 flex-1 flex flex-col text-gray-11 pb-4">
-          <div className="px-3 mt-2 mb-3 flex items-center justify-between text-gray-10 group/header cursor-pointer">
+        <div className="px-3 flex-1 flex flex-col text-sidebar-foreground/80 pb-4">
+          <div className="px-3 mt-2 mb-3 flex items-center justify-between text-sidebar-foreground/60 group/header cursor-pointer">
             <span className="text-[12px] font-medium tracking-wide">
               Workspace
             </span>
@@ -384,12 +384,12 @@ export default function SideNav({ onOpenAddTask }) {
                   onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) =>
                     `flex gap-3.5 items-center px-3 py-2.5 rounded-md font-medium transition-colors ${isActive
-                      ? "text-gray-12 bg-red-a2"
-                      : "hover:text-gray-12 hover:bg-red-a1 text-gray-11"
+                      ? "text-sidebar-foreground bg-sidebar-accent text-sidebar-primary"
+                      : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
                     }`
                   }
                 >
-                  <Icon size={15} strokeWidth={2.2} className="text-gray-10" />
+                  <Icon size={15} strokeWidth={2.2} className="text-sidebar-foreground/60" />
                   <span className="truncate text-[13.5px] mt-[1px]">
                     {navLink.label}
                   </span>

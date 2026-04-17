@@ -24,14 +24,14 @@ export function ScheduleDayView({
 }) {
   return (
     <>
-      <div className="flex justify-between items-center mt-6 mb-2 border-b border-gray-4 pb-2">
-        <h2 className="text-xl font-black text-gray-12">
+      <div className="flex justify-between items-center mt-6 mb-3 border-b border-border pb-3">
+        <h2 className="text-xl font-black text-foreground tracking-tight">
           {currentDateObj.label} Schedule
         </h2>
         {!isLocked && (
           <div className="relative">
             <select
-              className="appearance-none bg-gray-2 hover:bg-gray-3 border border-gray-4 text-gray-12 text-xs font-bold uppercase tracking-wider px-3 py-2 pr-8 rounded-lg outline-none cursor-pointer transition-colors shadow-sm"
+              className="appearance-none bg-card hover:bg-muted border border-border text-foreground text-[10px] font-black uppercase tracking-widest px-3 py-2 pr-8 rounded-xl outline-none cursor-pointer transition-all shadow-sm"
               value=""
               onChange={(e) =>
                 handleActionSelect(e.target.value, currentDateObj.dateStr)
@@ -57,10 +57,7 @@ export function ScheduleDayView({
                   </option>
                 ))}
             </select>
-            <Settings
-              size={14}
-              className="absolute right-2.5 top-2.5 text-gray-8 pointer-events-none"
-            />
+            <Settings size={14} className="absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
           </div>
         )}
       </div>
@@ -68,8 +65,8 @@ export function ScheduleDayView({
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* AM COLUMN */}
         <div className="space-y-4">
-          <div className="bg-gray-2 border border-gray-4 rounded-t-xl p-3 border-b-0">
-            <h3 className="font-black text-gray-12 tracking-widest uppercase text-center">
+          <div className="bg-muted/50 border border-border rounded-t-xl p-4 border-b-0">
+            <h3 className="font-black text-foreground tracking-[0.2em] uppercase text-center text-xs">
               MORNING (AM)
             </h3>
           </div>
@@ -126,8 +123,8 @@ export function ScheduleDayView({
 
         {/* PM COLUMN */}
         <div className="space-y-4">
-          <div className="bg-gray-2 border border-gray-4 rounded-t-xl p-3 border-b-0">
-            <h3 className="font-black text-gray-12 tracking-widest uppercase text-center">
+          <div className="bg-muted/50 border border-border rounded-t-xl p-4 border-b-0">
+            <h3 className="font-black text-foreground tracking-[0.2em] uppercase text-center text-xs">
               AFTERNOON (PM)
             </h3>
           </div>

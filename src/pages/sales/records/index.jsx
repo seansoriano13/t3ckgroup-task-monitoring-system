@@ -81,17 +81,17 @@ export default function SalesRecordsPage() {
 
         {/* SHARED FILTERS */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-black uppercase tracking-widest text-gray-9">
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
             Quick Views
           </span>
           {presetOptions.map((preset) => (
             <button
               key={preset.id}
               onClick={() => applyPreset(preset.id)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${
+              className={`text-[10px] font-black px-3 py-1.5 rounded-xl border transition-all ${
                 activePreset === preset.id
-                  ? "bg-primary text-white border-primary"
-                  : "bg-gray-1 text-gray-11 border-gray-4 hover:bg-gray-2"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
               }`}
             >
               {preset.label}
@@ -99,30 +99,30 @@ export default function SalesRecordsPage() {
           ))}
         </div>
 
-        <div className="sticky top-2 z-10 bg-gray-2/95 backdrop-blur border border-gray-4 rounded-xl p-3 flex flex-wrap gap-2">
-          <span className="text-[11px] font-bold px-2 py-1 rounded bg-gray-1 border border-gray-4">
+        <div className="sticky top-2 z-10 bg-card/95 backdrop-blur border border-border rounded-2xl px-5 py-3 flex flex-wrap gap-2 shadow-sm">
+          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground">
             Total: {recordsSummary.total}
           </span>
-          <span className="text-[11px] font-bold px-2 py-1 rounded bg-green-500/10 text-green-700 border border-green-500/20">
+          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
             Completed: {recordsSummary.completedPct}%
           </span>
           {activeTab === "ACTIVITIES" && (
-            <span className="text-[11px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-700 border border-blue-500/20">
+            <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
               Unplanned: {recordsSummary.unplannedPct}%
             </span>
           )}
-          <span className="text-[11px] font-bold px-2 py-1 rounded bg-amber-500/10 text-amber-700 border border-amber-500/20">
+          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
             {activeTab === "ACTIVITIES" ? "Pending Expense" : "Unverified"}:{" "}
             {recordsSummary.pendingExpense}
           </span>
           {activeTab === "ACTIVITIES" && (
             <span
-              className={`text-[11px] font-bold px-2 py-1 rounded border ${
+              className={`text-[10px] font-black px-3 py-1.5 rounded-lg border ${
                 planVariance.direction === "balanced"
-                  ? "bg-gray-1 text-gray-11 border-gray-4"
+                  ? "bg-muted text-muted-foreground border-border"
                   : planVariance.direction === "over"
-                    ? "bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
-                    : "bg-red-500/10 text-red-700 border-red-500/20"
+                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                    : "bg-red-50 text-red-700 border-red-200"
               }`}
             >
               Plan vs Actual: {planVariance.planned} vs {planVariance.completed} (
@@ -198,19 +198,19 @@ export default function SalesRecordsPage() {
         )}
 
         {employeeInsights.length > 0 && (
-          <div className="bg-gray-1 border border-gray-4 rounded-xl p-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-gray-10 mb-3">
+          <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
               Team Consistency Risk
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {employeeInsights.slice(0, 6).map((insight) => (
-                <div key={insight.employeeId} className="bg-gray-2 border border-gray-4 rounded-lg p-3">
-                  <p className="font-bold text-sm text-gray-12">{insight.employeeName}</p>
-                  <p className="text-[11px] text-gray-9 mt-1">
-                    Consistency {insight.consistencyScore}% | Risk {insight.riskScore}%
+                <div key={insight.employeeId} className="bg-muted/30 border border-border rounded-xl p-4 hover:border-indigo-200 transition-colors">
+                  <p className="font-black text-sm text-foreground">{insight.employeeName}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1.5 font-bold">
+                    Consistency {insight.consistencyScore}% · Risk {insight.riskScore}%
                   </p>
-                  <p className="text-[10px] text-gray-8 mt-1">
-                    Completion {insight.completionRate}% | Unplanned {insight.unplannedRate}%
+                  <p className="text-[10px] text-slate-400 mt-1 font-bold uppercase tracking-wider">
+                    Completion {insight.completionRate}% · Unplanned {insight.unplannedRate}%
                   </p>
                 </div>
               ))}

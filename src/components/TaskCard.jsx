@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -12,7 +12,7 @@ import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import { useAuth } from "../context/AuthContext";
 import { TASK_STATUS } from "../constants/status";
 
-export default function TaskCard({ task, onView, onSilentUpdate }) {
+const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -94,7 +94,7 @@ export default function TaskCard({ task, onView, onSilentUpdate }) {
   return (
     <div 
       onClick={onView}
-      className="bg-white p-5 rounded-xl border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 group flex flex-col h-full cursor-pointer relative"
+      className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer relative"
     >
       {/* Row 1: The Eyebrow (Context) */}
       <div className="flex justify-between items-start gap-3 mb-3">
@@ -111,12 +111,12 @@ export default function TaskCard({ task, onView, onSilentUpdate }) {
 
       {/* Row 2: The Core (Action) */}
       <div className="flex-1">
-        <h3 className="text-base text-[#111827] font-semibold leading-snug line-clamp-2">
+        <h3 className="text-base text-foreground font-semibold leading-snug line-clamp-2">
           {displayTitle}
         </h3>
         
         {displaySnippet && !isExpanded && (
-          <p className="text-[13px] text-gray-500 mt-1 line-clamp-2">
+          <p className="text-[13px] text-slate-400 mt-1 line-clamp-2">
             {displaySnippet}
           </p>
         )}
@@ -138,12 +138,14 @@ export default function TaskCard({ task, onView, onSilentUpdate }) {
       </div>
 
       {/* Row 3: The Footer (Metadata) */}
-      <div className="mt-5 pt-4 flex items-center gap-2 overflow-hidden text-xs text-gray-500 w-full border-t border-gray-100">
+      <div className="mt-5 pt-4 flex items-center gap-2 overflow-hidden text-xs text-slate-400 w-full border-t border-gray-100">
         
         {isManagement && task.loggedByName && (
           <div className="flex items-center gap-1.5 shrink-0" title={task.loggedByName}>
-            <User size={12} className="text-gray-400" />
-            <span className="truncate max-w-[80px] font-medium text-gray-700">{task.loggedByName}</span>
+            <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200 uppercase">
+              {task.loggedByName.charAt(0)}
+            </div>
+            <span className="truncate max-w-[80px] font-semibold text-foreground/80">{task.loggedByName}</span>
           </div>
         )}
 
@@ -153,8 +155,8 @@ export default function TaskCard({ task, onView, onSilentUpdate }) {
 
         {task.projectTitle && (
           <div className="flex items-center gap-1.5 overflow-hidden shrink min-w-0" title={task.projectTitle}>
-            <FolderKanban size={12} className="text-gray-400 shrink-0" />
-            <span className="truncate font-medium text-gray-700">{task.projectTitle}</span>
+            <FolderKanban size={13} className="text-slate-400 shrink-0" />
+            <span className="truncate font-semibold text-foreground/80">{task.projectTitle}</span>
           </div>
         )}
 
@@ -163,11 +165,13 @@ export default function TaskCard({ task, onView, onSilentUpdate }) {
         )}
 
         {task.priority && (
-          <div className="flex items-center gap-1 shrink-0 font-medium text-gray-700">
-            {task.priority === "HIGH" && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>}
-            {task.priority === "MEDIUM" && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>}
-            {task.priority === "LOW" && <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>}
-            <span className="capitalize">{task.priority.toLowerCase()}</span>
+          <div className="flex items-center gap-1.5 shrink-0 font-bold text-[10px] uppercase tracking-wider">
+            {task.priority === "HIGH" && <span className="w-1.5 h-1.5 rounded-full bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.4)] shrink-0"></span>}
+            {task.priority === "MEDIUM" && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)] shrink-0"></span>}
+            {task.priority === "LOW" && <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>}
+            <span className={task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-amber-600" : "text-slate-400"}>
+              {task.priority}
+            </span>
           </div>
         )}
 
@@ -187,7 +191,7 @@ export default function TaskCard({ task, onView, onSilentUpdate }) {
               e.stopPropagation();
               setIsExpanded(!isExpanded);
             }}
-            className="ml-auto text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shrink-0"
+            className="ml-auto text-gray-400 hover:text-muted-foreground00 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shrink-0"
           >
             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             {isExpanded ? "Collapse" : "Expand"}
@@ -196,4 +200,6 @@ export default function TaskCard({ task, onView, onSilentUpdate }) {
       </div>
     </div>
   );
-}
+});
+
+export default TaskCard;

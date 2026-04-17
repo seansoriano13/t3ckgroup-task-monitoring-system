@@ -6,6 +6,8 @@ import { formatTaskPreview } from "../../../utils/taskFormatters";
 import ImageAttachment from "../../../components/ImageAttachment.jsx";
 import ChecklistTaskRenderer from "../../../components/ChecklistTaskRenderer.jsx";
 import { TASK_STATUS } from "../../../constants/status.js";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export function ApprovalRow({
   task,
@@ -165,9 +167,9 @@ export function ApprovalRow({
       ref={rowRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className={`bg-gray-1 outline-none border transition-all rounded-xl shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${expanded
-          ? "border-gray-6 shadow-lg"
-          : "border-gray-4 hover:border-gray-6"
+      className={`outline-none border transition-all rounded-xl focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${expanded
+          ? "border-primary/20 shadow-[0_8px_30px_rgb(0,0,0,0.08)] bg-card"
+          : "border-border bg-card shadow-sm hover:border-border/80 hover:shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)] hover:-translate-y-0.5"
         }`}
     >
       {/* COMPACT ROW */}
@@ -182,27 +184,27 @@ export function ApprovalRow({
                 type="checkbox"
                 checked={!!isSelected}
                 onChange={() => onToggleSelection(task.id)}
-                className="w-5 h-5 rounded-md border-gray-4 text-purple-600 focus:ring-purple-500 accent-purple-600 hover:ring-2 hover:ring-purple-500/50 transition-all cursor-pointer shadow-sm"
+                className="w-5 h-5 rounded-md border-border text-purple-600 focus:ring-purple-500 accent-purple-600 hover:ring-2 hover:ring-purple-500/50 transition-all cursor-pointer shadow-sm"
                 title="Select for bulk approval"
               />
             </div>
           )}
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-3 flex items-center justify-center font-bold text-gray-12 shrink-0 border border-gray-4 text-xs md:text-base">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-foreground shrink-0 border border-border text-xs md:text-base">
             {task.loggedByName
               ? task.loggedByName.charAt(0).toUpperCase()
               : "?"}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-gray-12 text-xs md:text-sm truncate">
+            <h3 className="font-bold text-foreground text-xs md:text-sm truncate">
               {task.loggedByName}
             </h3>
-            <p className="text-[9px] md:text-[10px] text-gray-9 font-bold uppercase tracking-widest truncate">
+            <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">
               {task.categoryId}
             </p>
           </div>
 
-          <div className="hidden md:block ml-4 pl-4 border-l border-gray-4">
-            <p className="text-sm font-semibold text-gray-11 line-clamp-1 max-w-md">
+          <div className="hidden md:block ml-4 pl-4 border-l border-border">
+            <p className="text-sm font-semibold text-muted-foreground line-clamp-1 max-w-md">
               {formatTaskPreview(task.taskDescription)}
             </p>
           </div>
@@ -210,12 +212,12 @@ export function ApprovalRow({
 
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
           <div className="flex flex-col items-end leading-tight">
-            <span className="text-[10px] md:text-xs font-bold text-gray-9">
+            <span className="text-[10px] md:text-xs font-bold text-muted-foreground">
               {formatDate(task.createdAt)}
             </span>
             {task.editedAt && (
               <span
-                className="text-[9px] md:text-[10px] text-gray-8 font-bold uppercase tracking-widest"
+                className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest"
                 title={`Last modified ${formatDate(task.editedAt)}${task.editedByName ? ` by ${task.editedByName}` : ""}`}
               >
                 Mod: {formatDate(task.editedAt)}
@@ -239,7 +241,7 @@ export function ApprovalRow({
           )}
 
           <button
-            className="text-gray-8 hover:text-primary transition-colors p-1"
+            className="text-slate-400 hover:text-primary transition-colors p-1"
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails(task);
@@ -249,7 +251,7 @@ export function ApprovalRow({
             <Maximize2 size={16} />
           </button>
 
-          <button className="text-gray-8 hover:text-gray-12 transition-colors p-1">
+          <button className="text-slate-400 hover:text-foreground transition-colors p-1">
             {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
         </div>
@@ -257,11 +259,11 @@ export function ApprovalRow({
 
       {/* EXPANDED ACTION AREA */}
       {expanded && (
-        <div className="p-4 border-t border-gray-4 bg-gray-2/50 rounded-b-xl animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="p-4 border-t border-border bg-muted/50 rounded-b-xl animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Col: Full Description */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-2 block">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
                 Task Description
               </label>
               {task.taskDescription &&
@@ -274,14 +276,14 @@ export function ApprovalRow({
                   />
                 </div>
               ) : (
-                <div className="bg-gray-1 p-3 md:p-4 rounded-lg border border-gray-4 text-xs md:text-sm text-gray-12 whitespace-pre-wrap leading-relaxed shadow-inner">
+                <div className="bg-card p-3 md:p-4 rounded-lg border border-border text-xs md:text-sm text-foreground whitespace-pre-wrap leading-relaxed shadow-inner">
                   {formatTaskPreview(task.taskDescription)}
                 </div>
               )}
 
               {task.attachments && task.attachments.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-4/50">
-                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-2 block">
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
                     Screenshots / Attachments
                   </label>
                   <ImageAttachment
@@ -301,7 +303,7 @@ export function ApprovalRow({
                 /* --- HR UI --- */
                 <>
                   <div className="flex flex-col gap-2">
-                    <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                       Manager's Evaluation
                     </p>
                     <div className="flex gap-1.5 md:gap-2 pointer-events-none select-none">
@@ -319,7 +321,7 @@ export function ApprovalRow({
                             key={num}
                             className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${isSelected
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                                : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
+                                : "bg-muted text-muted-foreground/80 border-border opacity-40"
                               }`}
                           >
                             {num}
@@ -330,42 +332,43 @@ export function ApprovalRow({
                   </div>
 
                   {task.remarks && (
-                    <div className="bg-gray-1 border border-gray-4 p-3 rounded-xl">
-                      <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1">
+                    <div className="bg-card border border-border p-3 rounded-xl">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                         Manager Remarks
                       </p>
-                      <p className="text-xs text-gray-12">{task.remarks}</p>
+                      <p className="text-xs text-foreground">{task.remarks}</p>
                     </div>
                   )}
 
                   <div>
-                    <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1 block">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block">
                       HR Verification Notes
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={hrRemarks}
                       onChange={(e) => setHrRemarks(e.target.value)}
                       placeholder="Audit notes..."
-                      className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                      className="w-full bg-background"
                     />
                   </div>
 
                   <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-                    <button
+                    <Button
+                      variant="outline"
                       onClick={handleHrReject}
                       disabled={!hrRemarks || isSubmitting}
-                      className="order-2 sm:order-1 px-4 py-2.5 rounded-lg font-bold text-sm bg-gray-3 border border-gray-4 text-gray-11 hover:text-red-11 transition-colors disabled:opacity-50"
+                      className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
                     >
                       Not Approve
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={handleHrVerify}
                       disabled={isSubmitting}
-                      className="order-1 sm:order-2 px-6 py-2.5 rounded-lg font-bold text-sm bg-green-600 text-white shadow-lg shadow-green-900/20 hover:bg-green-700 transition-colors active:scale-95 disabled:opacity-50"
+                      className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
                       Verify & Sign
-                    </button>
+                    </Button>
                   </div>
                 </>
               ) : (
@@ -391,7 +394,7 @@ export function ApprovalRow({
                             onClick={() => setGrade(num)}
                             className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${grade === num
                                 ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                                : "bg-gray-2 text-gray-10 border-gray-4 hover:border-gray-6 hover:bg-gray-3"
+                                : "bg-muted text-muted-foreground/80 border-border hover:border-slate-300 hover:bg-slate-100"
                               }`}
                           >
                             {num}
@@ -402,33 +405,34 @@ export function ApprovalRow({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider mb-1 block">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block">
                       Evaluation Remarks
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
                       placeholder="Add feedback..."
-                      className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg px-3 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                      className="w-full bg-background mt-1"
                     />
                   </div>
 
                   <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-                    <button
+                    <Button
+                      variant="outline"
                       onClick={handleHeadReject}
                       disabled={!remarks || isSubmitting}
-                      className="order-2 sm:order-1 px-4 py-2.5 rounded-lg font-bold text-sm bg-gray-3 border border-gray-4 text-gray-11 hover:text-red-11 transition-colors disabled:opacity-50"
+                      className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
                     >
                       Not Approve
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={handleHeadApprove}
                       disabled={grade === null || isSubmitting}
-                      className="order-1 sm:order-2 px-6 py-2.5 rounded-lg font-bold text-sm bg-green-600 text-white shadow-lg shadow-green-900/20 hover:bg-green-700 transition-colors active:scale-95 disabled:opacity-50"
+                      className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
                       Approve Task
-                    </button>
+                    </Button>
                   </div>
                 </>
               )}
@@ -436,19 +440,19 @@ export function ApprovalRow({
           </div>
 
           {/* KEYBOARD SHORTCUTS HINT */}
-          <div className="mt-6 pt-3 border-t border-gray-4/50 flex justify-center opacity-70">
-            <p className="text-[10px] text-gray-8 font-bold tracking-widest uppercase flex items-center gap-2">
+          <div className="mt-6 pt-3 border-t border-border/50 flex justify-center opacity-70">
+            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase flex items-center gap-2">
               Shortcuts:
               {!isHr ? (
                 <>
-                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">1-5</span> Select Grade
-                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">Enter</span> Approve
-                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">1-5</span> Select Grade
+                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">Enter</span> Approve
+                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
                 </>
               ) : (
                 <>
-                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">V / Enter</span> Verify
-                  <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">V / Enter</span> Verify
+                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
                 </>
               )}
             </p>

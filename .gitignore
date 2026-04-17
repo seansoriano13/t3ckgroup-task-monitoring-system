@@ -40,3 +40,7 @@ supabase/.cache
 # Cursor
 /.cursor
 
+# JS AI
+/cleanup_*
+/update_*
+

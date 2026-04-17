@@ -11,6 +11,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select, { components } from "react-select";
 import { TASK_STATUS } from "../constants/status";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // Custom Control Component to render the icon natively inside React-Select
 const IconControl = ({ children, ...props }) => {
@@ -20,7 +22,7 @@ const IconControl = ({ children, ...props }) => {
   return (
     <components.Control {...props}>
       {Icon && (
-        <span className={`pl-2 pr-1 flex items-center shrink-0 ${isActive ? 'text-gray-12' : 'text-gray-7'}`}>
+        <span className={`pl-2 pr-1 flex items-center shrink-0 ${isActive ? 'text-foreground' : 'text-slate-400'}`}>
           <Icon size={14} />
         </span>
       )}
@@ -85,27 +87,27 @@ export default function TaskFilters({
       control: (state) =>
         `min-h-[40px] md:min-h-[46px] w-full border ${
           state.isFocused 
-            ? "border-gray-6 ring-1 ring-gray-6 bg-gray-1" 
+            ? "border-primary/50 ring-1 ring-primary/20 bg-card" 
             : isActive
-              ? "border-gray-5 bg-gray-2 font-medium"
-              : "border-gray-4 bg-gray-1"
-        } hover:border-gray-5 rounded-lg px-2 shadow-sm transition-all cursor-pointer flex items-center`,
+              ? "border-primary/20 bg-muted font-medium"
+              : "border-border bg-card"
+        } hover:border-border/80 rounded-lg px-2 shadow-sm transition-all cursor-pointer flex items-center`,
       menu: () =>
-        `mt-1 bg-gray-1 border border-gray-4 rounded-lg shadow-xl overflow-hidden z-[50] min-w-max popover-enter`,
+        `mt-1 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-[50] min-w-max popover-enter`,
       menuList: () => `p-1`,
       option: (state) =>
         `px-3 py-2 cursor-pointer transition-colors rounded-md text-[13px] ${
           state.isFocused 
-            ? "bg-gray-3 text-gray-12" 
+            ? "bg-muted/80 text-foreground" 
             : state.isSelected 
-              ? "bg-gray-4 text-gray-12 font-bold" 
-              : "text-gray-11 bg-transparent"
+              ? "bg-slate-200 text-foreground font-bold" 
+              : "text-muted-foreground bg-transparent"
         }`,
-      singleValue: () => `text-gray-12 font-[500] text-[13px]`,
-      placeholder: () => `text-gray-7 text-[13px]`,
-      input: () => `text-gray-12 text-[13px]`,
+      singleValue: () => `text-foreground font-[500] text-[13px]`,
+      placeholder: () => `text-slate-400 text-[13px]`,
+      input: () => `text-foreground text-[13px]`,
       indicatorSeparator: () => `hidden`,
-      dropdownIndicator: () => `text-gray-8 hover:text-gray-10 p-1`,
+      dropdownIndicator: () => `text-slate-400 hover:text-muted-foreground/80 p-1`,
       valueContainer: () => `gap-1 px-1`,
     };
   };
@@ -156,15 +158,15 @@ export default function TaskFilters({
         {/* Search */}
         <div className="relative flex-1 w-full">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-7"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             size={18}
           />
-          <input
+          <Input
             type="text"
             placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus-within:border-gray-6 focus-within:ring-1 focus-within:ring-gray-6 transition-all placeholder:text-gray-7 text-[13px] h-[40px] md:h-[46px] shadow-sm hover:border-gray-5"
+            className="w-full pl-10 pr-4 block h-[40px] md:h-[46px]"
           />
         </div>
 
@@ -173,8 +175,8 @@ export default function TaskFilters({
           <div className="flex gap-2 items-center flex-nowrap">
             
             {/* DATE PICKER */}
-            <div className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${startDate || endDate ? "bg-gray-2 text-gray-12 border-gray-5 font-medium" : "bg-gray-1 border-gray-4 hover:border-gray-5 text-gray-12"}`}>
-              <CalendarIcon size={16} className={`${startDate || endDate ? "text-gray-12" : "text-gray-7"} mr-2 shrink-0`} />
+            <div className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${startDate || endDate ? "bg-muted text-foreground border-primary/20 font-medium" : "bg-card border-border hover:border-border/80 text-foreground"}`}>
+              <CalendarIcon size={16} className={`${startDate || endDate ? "text-foreground" : "text-slate-400"} mr-2 shrink-0`} />
               <DatePicker
                 selectsRange={true}
                 startDate={startDate}
@@ -182,7 +184,7 @@ export default function TaskFilters({
                 onChange={(update) => setDateRange(update)}
                 isClearable={true}
                 placeholderText="Date Range"
-                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${startDate || endDate ? "text-gray-12 placeholder:text-gray-8 font-medium" : "text-gray-12 placeholder:text-gray-7"}`}
+                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${startDate || endDate ? "text-foreground placeholder:text-slate-400 font-medium" : "text-foreground placeholder:text-slate-400"}`}
               />
             </div>
 
@@ -203,21 +205,21 @@ export default function TaskFilters({
               </div>
             )}
 
-            {/* ADD FILTER TOGGLE */}
-            <button
+            <Button
+              variant={showAdvanced ? "secondary" : "outline"}
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`flex items-center gap-2 px-4 h-[40px] md:h-[46px] rounded-lg border text-[13px] shadow-sm font-semibold transition-colors shrink-0 ${showAdvanced ? "bg-gray-3 border-gray-6 text-gray-12" : "bg-gray-1 border-gray-4 text-gray-11 hover:border-gray-5 hover:bg-gray-2"}`}
+              className={`flex items-center gap-2 h-[40px] md:h-[46px] text-[13px] shrink-0 font-semibold`}
             >
               <Filter size={16} />
               Add Filter
-            </button>
+            </Button>
           </div>
 
           {/* CLEAR ALL ESCAPE HATCH */}
           {isAnyFilterActive && (
             <button
               onClick={handleClearAll}
-              className="ml-auto xl:ml-2 text-sm text-gray-500 hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
+              className="ml-auto xl:ml-2 text-sm text-slate-400 hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
             >
               Clear All
             </button>

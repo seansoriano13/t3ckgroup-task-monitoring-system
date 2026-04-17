@@ -31,22 +31,22 @@ export function ScheduleHeader({
   const readinessPercent = Math.min(100, Math.round((weekSummary.daysReady / totalDaysRequired) * 100));
 
   return (
-    <div className="space-y-4 border-b border-gray-4 pb-4 mt-2">
+    <div className="space-y-5 border-b border-border pb-6 mt-2">
       {/* TITLE & ACTIONS ROW */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-12">Weekly Coverage Plan</h1>
-          <p className="text-gray-9 mt-1 font-medium">Plan your tasks and sales calls for the upcoming week.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Weekly Coverage Plan</h1>
+          <p className="text-muted-foreground mt-1 font-medium text-sm">Plan your tasks and sales calls for the upcoming week.</p>
         </div>
         
         <div className="flex items-center gap-3 flex-wrap">
-          <span className={`text-xs font-bold px-3 py-1.5 rounded-lg border uppercase tracking-widest flex items-center ${
-            plan.status === 'APPROVED' || plan.status === 'SUBMITTED' ? 'bg-green-500/10 text-green-700 border-green-500/20' :
-            plan.status === 'REVISION' ? 'bg-blue-500/10 text-blue-700 border-blue-500/20' :
-            plan.status === 'LOCKED' ? 'bg-amber-500/10 text-amber-700 border-amber-500/20' :
-            'bg-gray-3 text-gray-10 border-gray-4'
+          <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border uppercase tracking-[0.2em] flex items-center shadow-sm ${
+            plan.status === 'APPROVED' || plan.status === 'SUBMITTED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+            plan.status === 'REVISION' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+            plan.status === 'LOCKED' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+            'bg-muted text-muted-foreground border-border'
           }`}>
-            Status: {plan.status}
+            {plan.status || 'DRAFT'}
           </span>
 
           {!isLocked || plan.status === 'REVISION' ? (
@@ -60,7 +60,7 @@ export function ScheduleHeader({
                     if (window.confirm(msg)) deletePlanMutation.mutate();
                   }}
                   disabled={deletePlanMutation.isPending || submitMutation.isPending || saveMutation.isPending}
-                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
+                  className="p-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-transparent hover:border-destructive/20"
                   title={plan.status === 'REVISION' ? 'Discard Amendment' : 'Delete Draft'}
                 >
                   {deletePlanMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : plan.status === 'REVISION' ? <X size={16} /> : <Trash2 size={16} />}
@@ -70,23 +70,23 @@ export function ScheduleHeader({
               <button 
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending || deletePlanMutation.isPending || submitMutation.isPending}
-                className="px-4 py-2 bg-gray-2 hover:bg-gray-3 border border-gray-4 text-gray-12 rounded-lg font-bold flex items-center gap-2 transition-colors shadow-sm"
+                className="px-4 py-2 bg-card hover:bg-muted border border-border text-foreground rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm h-10"
               >
                 {saveMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
                 Save Draft
               </button>
 
-              <div className="relative group flex items-center bg-gray-1 border border-gray-3 p-1 rounded-xl shadow-sm">
+              <div className="relative group flex items-center bg-card border border-border p-1 rounded-xl shadow-sm">
                 <button 
                   onClick={() => submitMutation.mutate()}
                   disabled={submitMutation.isPending || saveMutation.isPending || !allDaysFilled}
-                  className={`px-5 py-1.5 ${allDaysFilled ? "bg-primary hover:bg-primary/90 text-white shadow shadow-primary/20 cursor-pointer" : "bg-gray-4 text-gray-8 cursor-not-allowed"} rounded-lg font-bold flex items-center gap-2 transition-all`}
+                  className={`px-5 py-1.5 ${allDaysFilled ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 cursor-pointer" : "bg-muted text-muted-foreground cursor-not-allowed"} rounded-lg font-bold flex items-center gap-2 transition-all h-8`}
                 >
                   {submitMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} 
                   {plan.status === 'REVISION' ? 'Submit Amendments' : 'Submit Plan'}
                 </button>
                 <div 
-                  className="px-2 text-gray-6 hover:text-gray-9 cursor-help transition-colors" 
+                  className="px-2 text-slate-400 hover:text-muted-foreground cursor-help transition-colors" 
                   title="Remember to submit your schedule by Friday End of Day for the following week! Note: Mon-Sat require at least 5 AM/PM tasks each to unlock submission. Sunday is optional."
                 >
                   <HelpCircle size={16} />
@@ -98,30 +98,30 @@ export function ScheduleHeader({
             !isRequestingAmendment ? (
               <button 
                 onClick={() => setIsRequestingAmendment(true)} 
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold flex items-center gap-2 transition-all shadow shadow-amber-500/20"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold flex items-center gap-2 transition-all shadow-md shadow-amber-200 h-10"
               >
                 Request Amendment
               </button>
             ) : (
-              <div className="flex items-center gap-2 bg-amber-500/5 p-1 rounded-xl border border-amber-500/20">
+              <div className="flex items-center gap-2 bg-amber-50 p-1.5 rounded-xl border border-amber-200 shadow-sm">
                 <input 
                   autoFocus
                   type="text" 
                   value={amendmentReason} 
                   onChange={(e) => setAmendmentReason(e.target.value)} 
                   placeholder="Reason for amendment..." 
-                  className="text-sm px-3 py-1.5 rounded-lg border border-amber-500/30 outline-none w-[220px] bg-white" 
+                  className="text-sm px-3 py-2 rounded-lg border border-amber-200 outline-none w-[220px] bg-white focus:border-amber-400 transition-colors font-medium" 
                 />
                 <button 
                   onClick={() => requestAmendmentMutation.mutate()} 
                   disabled={!amendmentReason.trim() || requestAmendmentMutation.isPending} 
-                  className="px-3 py-1.5 text-xs font-bold bg-amber-500 text-white rounded-lg disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg disabled:opacity-50 transition-colors"
                 >
                   {requestAmendmentMutation.isPending ? "Submitting..." : "Submit"}
                 </button>
                 <button 
                   onClick={() => setIsRequestingAmendment(false)} 
-                  className="px-3 py-1.5 text-xs font-bold text-gray-8 hover:text-gray-12 transition-colors"
+                  className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-foreground transition-colors"
                 >
                   Cancel
                 </button>
@@ -135,8 +135,8 @@ export function ScheduleHeader({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
         <div className="flex items-center gap-4 flex-wrap">
           {/* Date Picker */}
-          <div className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 flex items-center shadow-sm">
-            <CalendarIcon size={16} className="text-gray-8 mr-2" />
+          <div className="bg-card border border-border rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-sm hover:border-indigo-300 transition-colors">
+            <CalendarIcon size={16} className="text-indigo-500" />
             <input
               type="date"
               value={weekStartDate}
@@ -144,35 +144,35 @@ export function ScheduleHeader({
                 const pickedDate = new Date(e.target.value);
                 const startOfWeek = getStartOfWeek(e.target.value);
                 setWeekStartDate(formatDateToYMD(startOfWeek));
-                const dayIndex = pickedDate.getDay() - 1; // Mon=0, Fri=4, Sat=5
+                const dayIndex = pickedDate.getDay() - 1;
                 if (dayIndex >= 0 && dayIndex <= 5) {
                   setActiveTab(dayIndex);
                 } else if (pickedDate.getDay() === 0) {
                   setActiveTab((includeSunday || includeSaturday) ? 6 : 0);
                 }
               }}
-              className="bg-transparent text-gray-12 text-sm font-bold outline-none cursor-pointer"
+              className="bg-transparent text-foreground text-sm font-bold outline-none cursor-pointer"
             />
           </div>
 
           {/* Toggles */}
           {!isLocked && (
-            <div className="flex items-center gap-4 bg-gray-1 border border-gray-3 rounded-lg px-3 py-2 shadow-sm">
+            <div className="flex items-center gap-4 bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm">
               <label className="flex items-center gap-2 cursor-pointer">
-                <div className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${compactMode ? 'bg-primary' : 'bg-gray-5'}`}>
-                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${compactMode ? 'translate-x-[14px]' : 'translate-x-[2px]'}`} />
+                <div className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${compactMode ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform ${compactMode ? 'translate-x-[14px]' : 'translate-x-[2px]'}`} />
                 </div>
-                <span className="text-xs font-bold text-gray-10 select-none">Compact Mode</span>
+                <span className="text-xs font-bold text-muted-foreground select-none">Compact</span>
                 <input type="checkbox" className="sr-only" checked={compactMode} onChange={() => setCompactMode(!compactMode)} />
               </label>
 
-              <div className="w-[1px] h-4 bg-gray-3" />
+              <div className="w-px h-4 bg-border" />
 
               <label className="flex items-center gap-2 cursor-pointer">
-                <div className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${includeSaturday ? 'bg-primary' : 'bg-gray-5'}`}>
-                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${includeSaturday ? 'translate-x-[14px]' : 'translate-x-[2px]'}`} />
+                <div className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${includeSaturday ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform ${includeSaturday ? 'translate-x-[14px]' : 'translate-x-[2px]'}`} />
                 </div>
-                <span className="text-xs font-bold text-gray-10 select-none">Include Weekends</span>
+                <span className="text-xs font-bold text-muted-foreground select-none">+ Weekends</span>
                 <input type="checkbox" className="sr-only" checked={includeSaturday} onChange={(e) => {
                   const checked = e.target.checked;
                   setIncludeSaturday(checked);
@@ -191,15 +191,15 @@ export function ScheduleHeader({
         {/* Readiness Metrics */}
         <div className="flex items-center gap-3">
           <span 
-            className="text-sm font-bold text-gray-10 flex items-center gap-1.5 cursor-help select-none" 
+            className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 cursor-help select-none" 
             title={`Missing AM: ${weekSummary.missingAM} | Missing PM: ${weekSummary.missingPM} | Unplanned Ratio: ${unplannedRatio}%`}
           >
-            <CheckCircle2 size={18} className={weekSummary.daysReady >= totalDaysRequired ? "text-green-500" : "text-gray-5"} />
-            Readiness: <span className="text-gray-12">{weekSummary.daysReady} of {totalDaysRequired} Days</span>
+            <CheckCircle2 size={16} className={weekSummary.daysReady >= totalDaysRequired ? "text-emerald-500" : "text-slate-300"} />
+            Readiness: <span className="text-foreground font-black">{weekSummary.daysReady}/{totalDaysRequired}</span>
           </span>
-          <div className="w-[100px] h-2 bg-gray-3 rounded-full overflow-hidden shadow-inner">
+          <div className="w-[120px] h-2.5 bg-muted rounded-full overflow-hidden shadow-inner border border-border/30">
             <div 
-              className={`h-full transition-all duration-500 ease-out ${readinessPercent === 100 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-primary'}`} 
+              className={`h-full transition-all duration-700 ease-out ${readinessPercent === 100 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-indigo-500'}`} 
               style={{ width: `${readinessPercent}%` }} 
             />
           </div>

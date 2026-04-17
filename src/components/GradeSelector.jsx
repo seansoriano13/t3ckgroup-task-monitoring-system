@@ -13,11 +13,11 @@ export default function GradeSelector({
   finalized = false,
 }) {
   const activeColorMap = {
-    1: "bg-red-500 text-gray-1 border-red-500 shadow-red-500/40",
-    2: "bg-orange-500 text-gray-1 border-orange-500 shadow-orange-500/40",
-    3: "bg-yellow-500 text-gray-1 border-yellow-500 shadow-yellow-500/40",
-    4: "bg-lime-500 text-gray-1 border-lime-500 shadow-lime-500/40",
-    5: "bg-green-500 text-gray-1 border-green-500 shadow-green-500/40",
+    1: "bg-destructive text-white border-destructive shadow-[0_0_15px_rgba(239,68,68,0.3)]",
+    2: "bg-orange-600 text-white border-orange-600 shadow-[0_0_15px_rgba(234,88,12,0.3)]",
+    3: "bg-amber-500 text-white border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]",
+    4: "bg-lime-600 text-white border-lime-600 shadow-[0_0_15px_rgba(101,163,13,0.3)]",
+    5: "bg-emerald-600 text-white border-emerald-600 shadow-[0_0_15px_rgba(5,150,105,0.3)]",
   };
 
   const hoverColorMap = {
@@ -37,10 +37,10 @@ export default function GradeSelector({
           return (
             <div
               key={num}
-              className={`flex-1 py-2.5 rounded-lg font-black border text-sm text-center transition-all ${
+              className={`flex-1 py-3 rounded-xl font-extrabold border text-sm text-center transition-all ${
                 isSelected
-                  ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                  : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
+                  ? `${activeColorMap[num]} scale-[1.05]`
+                  : "bg-muted/30 text-slate-400 border-border opacity-40"
               }`}
             >
               {num}
@@ -54,14 +54,14 @@ export default function GradeSelector({
             type="button"
             disabled={!canEvaluate}
             onClick={() => onSelect?.(num)}
-            className={`flex-1 py-2.5 rounded-lg font-bold transition-all border ${
+            className={`flex-1 py-3 rounded-xl font-bold transition-all border ${
               !canEvaluate ? "opacity-50 cursor-not-allowed" : ""
             } ${
               isSelected
-                ? `${activeColorMap[num]} ${hoverColorMap[num]} shadow-lg scale-[1.02]`
-                : `bg-gray-2 text-gray-10 border-gray-4 ${
+                ? `${activeColorMap[num]} shadow-xl scale-[1.05]`
+                : `bg-card text-muted-foreground border-border ${
                     canEvaluate
-                      ? "hover:border-gray-6 hover:bg-gray-3"
+                      ? "hover:border-primary/30 hover:bg-muted/50"
                       : ""
                   }`
             }`}
