@@ -275,7 +275,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
               <div
                 className="w-full overflow-hidden flex"
                 style={{
-                  height: "4px",
+                  height: "6px",
                   borderRadius: "2px",
                   background: "#F3F4F6",
                 }}
@@ -387,7 +387,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     }}
                   />
                   {emp.verified}
-                  <span>Done</span>
+                  <span>Ver</span>
                 </span>
               </div>
             </div>
