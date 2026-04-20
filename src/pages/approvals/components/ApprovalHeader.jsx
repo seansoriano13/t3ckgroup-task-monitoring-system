@@ -6,9 +6,9 @@ export function ApprovalHeader({
   isSuperAdmin,
   appSettings,
   pendingTasksCount,
-  delayedTasksCount,
+  filteredTasksCount,
   selectedCount,
-  onSelectAllDelayed,
+  onSelectAllPending,
   onDeselectAll,
   handleBulkApprove,
 }) {
@@ -37,7 +37,7 @@ export function ApprovalHeader({
         </p>
       </div>
       <div className="flex items-center gap-3">
-        {isSuperAdmin && appSettings?.enable_bulk_approval && (
+        {appSettings?.enable_bulk_approval && (
           <>
             {selectedCount > 0 ? (
               <>
@@ -57,14 +57,14 @@ export function ApprovalHeader({
                   <CheckCircle2 className="mr-2 h-4 w-4" /> Approve {selectedCount} Selected
                 </Button>
               </>
-            ) : delayedTasksCount > 0 ? (
+            ) : filteredTasksCount > 0 ? (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onSelectAllDelayed}
+                onClick={onSelectAllPending}
                 className="font-semibold shadow-sm"
               >
-                <CheckSquare className="mr-2 h-4 w-4" /> Select All Delayed
+                <CheckSquare className="mr-2 h-4 w-4" /> Select All
               </Button>
             ) : null}
           </>

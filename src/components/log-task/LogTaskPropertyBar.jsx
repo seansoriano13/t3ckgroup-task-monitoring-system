@@ -32,12 +32,13 @@ export default function LogTaskPropertyBar({
           }}
           className={`property-pill ${openPopover === "category" ? "active" : ""} ${!formData.loggedById ? "static" : ""}`}
         >
-          <Tag size={13} className="text-slate-400" />
+          <Tag size={13} className={formData.categoryId ? "text-indigo-500" : "text-slate-400"} />
           <span className={formData.categoryId ? "text-foreground" : "text-gray-7"}>
             {formData.categoryId || "Category"}
+            {!formData.categoryId && <span className="text-destructive ml-0.5">*</span>}
           </span>
           {formData.loggedById && (
-            <ChevronDown size={12} className="text-gray-7" />
+            <ChevronDown size={12} className={formData.categoryId ? "text-indigo-400" : "text-gray-7"} />
           )}
         </button>
         {openPopover === "category" && (

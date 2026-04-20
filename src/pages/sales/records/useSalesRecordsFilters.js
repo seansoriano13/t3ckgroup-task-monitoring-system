@@ -21,16 +21,24 @@ export function useSalesRecordsFilters(user) {
   const [activeTab, setActiveTab] = useState("ACTIVITIES");
   const [viewMode, setViewMode] = useState("BOARD");
 
-  // ── Filters ───────────────────────────────────────────────────────────
+  // ── Filters (Activities) ───────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEmp, setFilterEmp] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterType, setFilterType] = useState("ALL");
-  const [filterRecordType, setFilterRecordType] = useState("ALL");
   const [timeframe, setTimeframe] = useState("MONTHLY");
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
   const [sortBy, setSortBy] = useState("NEWEST");
   const [activePreset, setActivePreset] = useState("custom");
+
+  // ── Filters (Revenue — independent) ─────────────────────────────────
+  const [revSearchTerm, setRevSearchTerm] = useState("");
+  const [revFilterEmp, setRevFilterEmp] = useState("ALL");
+  const [revFilterStatus, setRevFilterStatus] = useState("ALL");
+  const [revFilterRecordType, setRevFilterRecordType] = useState("ALL");
+  const [revTimeframe, setRevTimeframe] = useState("MONTHLY");
+  const [revSelectedDateFilter, setRevSelectedDateFilter] = useState("");
+  const [revSortBy, setRevSortBy] = useState("NEWEST");
 
   // ── Selected / editing ────────────────────────────────────────────────
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -68,15 +76,15 @@ export function useSalesRecordsFilters(user) {
   useEffect(() => {
     uxMetricsService.trackEvent("salesRecords.filterChanged", {
       activeTab,
-      timeframe,
-      filterStatus,
+      timeframe: activeTab === "ACTIVITIES" ? timeframe : revTimeframe,
+      filterStatus: activeTab === "ACTIVITIES" ? filterStatus : revFilterStatus,
       filterType,
-      filterRecordType,
-      sortBy,
+      filterRecordType: revFilterRecordType,
+      sortBy: activeTab === "ACTIVITIES" ? sortBy : revSortBy,
       activePreset,
     });
     uxMetricsService.incrementCounter("salesRecords.filterChangeCount");
-  }, [activeTab, timeframe, filterStatus, filterType, filterRecordType, sortBy, activePreset]);
+  }, [activeTab, timeframe, filterStatus, filterType, revFilterRecordType, sortBy, activePreset, revTimeframe, revFilterStatus, revSortBy]);
 
   // ── Mutations ─────────────────────────────────────────────────────────
   const updateRevMutation = useMutation({
@@ -117,9 +125,13 @@ export function useSalesRecordsFilters(user) {
         if (canViewAllSales) {
           setTimeframe("MONTHLY");
           setSelectedDateFilter(`${y}-${m}`);
+          setRevTimeframe("MONTHLY");
+          setRevSelectedDateFilter(`${y}-${m}`);
         } else {
           setTimeframe("DAILY");
           setSelectedDateFilter(`${y}-${m}-${d}`);
+          setRevTimeframe("DAILY");
+          setRevSelectedDateFilter(`${y}-${m}-${d}`);
         }
       });
     }
@@ -225,7 +237,7 @@ export function useSalesRecordsFilters(user) {
     return rawRevenue.filter((a) => a.employee_id === user?.id);
   }, [rawRevenue, canViewAllSales, user?.id]);
 
-  // ── Helper: date-range filter (shared between activities & revenue) ───
+  // ── Helper: date-range filter for activities ──────────────────────────
   const matchesDateFilter = useCallback((dateValue) => {
     if (!selectedDateFilter || !dateValue) return !selectedDateFilter;
     if (timeframe === "DAILY") return dateValue === selectedDateFilter;
@@ -247,6 +259,29 @@ export function useSalesRecordsFilters(user) {
     }
     return true;
   }, [selectedDateFilter, timeframe]);
+
+  // ── Helper: date-range filter for revenue (uses rev-prefixed state) ───
+  const matchesRevDateFilter = useCallback((dateValue) => {
+    if (!revSelectedDateFilter || !dateValue) return !revSelectedDateFilter;
+    if (revTimeframe === "DAILY") return dateValue === revSelectedDateFilter;
+    if (revTimeframe === "MONTHLY" || revTimeframe === "YEARLY")
+      return dateValue.startsWith(revSelectedDateFilter);
+    if (revTimeframe === "WEEKLY") {
+      const [y, m, d] = revSelectedDateFilter.split("-").map(Number);
+      const selectedD = new Date(y, m - 1, d);
+      const day = selectedD.getDay();
+      const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
+      const startOfWeek = new Date(selectedD);
+      startOfWeek.setDate(diff);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      const fmt = (dt) =>
+        `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+      return dateValue >= fmt(startOfWeek) && dateValue <= fmt(endOfWeek);
+    }
+    return true;
+  }, [revSelectedDateFilter, revTimeframe]);
 
   // ── Filtered activities ───────────────────────────────────────────────
   const filteredActivities = useMemo(() => {
@@ -320,37 +355,37 @@ export function useSalesRecordsFilters(user) {
     matchesDateFilter,
   ]);
 
-  // ── Filtered revenue ──────────────────────────────────────────────────
+  // ── Filtered revenue (uses rev-prefixed filters) ──────────────────────
   const filteredRevenue = useMemo(() => {
     let filtered = allowedRevenue;
-    if (filterEmp !== "ALL")
-      filtered = filtered.filter((a) => a.employee_id === filterEmp);
-    if (filterRecordType !== "ALL")
+    if (revFilterEmp !== "ALL")
+      filtered = filtered.filter((a) => a.employee_id === revFilterEmp);
+    if (revFilterRecordType !== "ALL")
       filtered = filtered.filter(
         (a) =>
-          a.record_type === filterRecordType ||
-          (filterRecordType === "SALES_ORDER" && !a.record_type),
+          a.record_type === revFilterRecordType ||
+          (revFilterRecordType === "SALES_ORDER" && !a.record_type),
       );
-    if (filterStatus !== "ALL") {
-      if (filterStatus === "APPROVED") {
+    if (revFilterStatus !== "ALL") {
+      if (revFilterStatus === "APPROVED") {
         filtered = filtered.filter(
           (a) =>
             (a.status === REVENUE_STATUS.COMPLETED || a.status === REVENUE_STATUS.APPROVED) &&
             a.is_verified,
         );
-      } else if (filterStatus === "INCOMPLETE") {
+      } else if (revFilterStatus === "INCOMPLETE") {
         filtered = filtered.filter(
           (a) => a.status === "LOST" || a.status === "REJECTED",
         );
-      } else if (filterStatus === "UNVERIFIED") {
+      } else if (revFilterStatus === "UNVERIFIED") {
         filtered = filtered.filter((a) => a.is_verified === false);
       }
     }
-    if (selectedDateFilter) {
-      filtered = filtered.filter((a) => matchesDateFilter(a.date));
+    if (revSelectedDateFilter) {
+      filtered = filtered.filter((a) => matchesRevDateFilter(a.date));
     }
-    if (searchTerm) {
-      const lower = searchTerm.toLowerCase();
+    if (revSearchTerm) {
+      const lower = revSearchTerm.toLowerCase();
       filtered = filtered.filter(
         (a) =>
           (a.account && a.account.toLowerCase().includes(lower)) ||
@@ -363,11 +398,11 @@ export function useSalesRecordsFilters(user) {
             a.quotation_number.toLowerCase().includes(lower)),
       );
     }
-    if (sortBy === "NEWEST") {
+    if (revSortBy === "NEWEST") {
       filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else if (sortBy === "OLDEST") {
+    } else if (revSortBy === "OLDEST") {
       filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
-    } else if (sortBy === "NAME") {
+    } else if (revSortBy === "NAME") {
       filtered.sort((a, b) =>
         (a.employees?.name || "").localeCompare(b.employees?.name || ""),
       );
@@ -375,13 +410,13 @@ export function useSalesRecordsFilters(user) {
     return filtered;
   }, [
     allowedRevenue,
-    filterEmp,
-    filterStatus,
-    searchTerm,
-    selectedDateFilter,
-    filterRecordType,
-    sortBy,
-    matchesDateFilter,
+    revFilterEmp,
+    revFilterStatus,
+    revSearchTerm,
+    revSelectedDateFilter,
+    revFilterRecordType,
+    revSortBy,
+    matchesRevDateFilter,
   ]);
 
   // ── Board data (grouped activities) ───────────────────────────────────
@@ -565,10 +600,13 @@ export function useSalesRecordsFilters(user) {
     [user?.id],
   );
 
-  // ── Pagination-resetting wrapper ──────────────────────────────────────
-  const wrapFilter = (setter) => (val) => {
+  // ── Pagination-resetting wrappers ─────────────────────────────────────
+  const wrapActFilter = (setter) => (val) => {
     setter(val);
     setActivitiesPage(1);
+  };
+  const wrapRevFilter = (setter) => (val) => {
+    setter(val);
     setRevenuePage(1);
   };
 
@@ -580,26 +618,39 @@ export function useSalesRecordsFilters(user) {
     setActiveTab,
     viewMode,
     setViewMode,
-    // filters
+    // filters (activities)
     searchTerm,
-    setSearchTerm: wrapFilter(setSearchTerm),
+    setSearchTerm: wrapActFilter(setSearchTerm),
     filterEmp,
-    setFilterEmp: wrapFilter(setFilterEmp),
+    setFilterEmp: wrapActFilter(setFilterEmp),
     filterStatus,
-    setFilterStatus: wrapFilter(setFilterStatus),
+    setFilterStatus: wrapActFilter(setFilterStatus),
     filterType,
-    setFilterType: wrapFilter(setFilterType),
-    filterRecordType,
-    setFilterRecordType: wrapFilter(setFilterRecordType),
+    setFilterType: wrapActFilter(setFilterType),
     timeframe,
-    setTimeframe: wrapFilter(setTimeframe),
+    setTimeframe: wrapActFilter(setTimeframe),
     selectedDateFilter,
-    setSelectedDateFilter: wrapFilter(setSelectedDateFilter),
+    setSelectedDateFilter: wrapActFilter(setSelectedDateFilter),
     sortBy,
-    setSortBy: wrapFilter(setSortBy),
+    setSortBy: wrapActFilter(setSortBy),
     activePreset,
     presetOptions,
     applyPreset,
+    // filters (revenue — independent)
+    revSearchTerm,
+    setRevSearchTerm: wrapRevFilter(setRevSearchTerm),
+    revFilterEmp,
+    setRevFilterEmp: wrapRevFilter(setRevFilterEmp),
+    revFilterStatus,
+    setRevFilterStatus: wrapRevFilter(setRevFilterStatus),
+    revFilterRecordType,
+    setRevFilterRecordType: wrapRevFilter(setRevFilterRecordType),
+    revTimeframe,
+    setRevTimeframe: wrapRevFilter(setRevTimeframe),
+    revSelectedDateFilter,
+    setRevSelectedDateFilter: wrapRevFilter(setRevSelectedDateFilter),
+    revSortBy,
+    setRevSortBy: wrapRevFilter(setRevSortBy),
     // selection
     selectedActivity,
     setSelectedActivity,

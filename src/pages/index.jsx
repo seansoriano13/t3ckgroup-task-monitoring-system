@@ -5,7 +5,6 @@ import TasksList from "../components/TasksList.jsx";
 import SalesDashboard from "../components/SalesDashboard.jsx";
 import { useState } from "react";
 import DashboardStats from "../components/DashboardStats.jsx";
-import { Calendar, TrendingUp } from "lucide-react";
 import EmployeePipelineMatrix from "../components/EmployeePipelineMatrix.jsx";
 import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
 import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
@@ -133,22 +132,11 @@ export default function Dashboard() {
 
           <DashboardStats selectedRange={globalRange} />
 
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
-            <div className={user?.is_head || user?.isHead ? "xl:col-span-12" : "xl:col-span-8"}>
-              <TasksList selectedRange={globalRange} />
-            </div>
+          {!(user?.is_head || user?.isHead) && (
+            <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
+          )}
 
-            {!(user?.is_head || user?.isHead) && (
-              <div className="xl:col-span-4 space-y-8">
-                <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                    <TrendingUp size={14} className="text-indigo-600" /> Output Matrix
-                  </h3>
-                  <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
-                </div>
-              </div>
-            )}
-          </div>
+          <TasksList selectedRange={globalRange} />
 
           {(user?.is_head || user?.isHead) && (
             <div className="mt-4">

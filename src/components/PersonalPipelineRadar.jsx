@@ -99,9 +99,9 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
               Visual performance tracking for{" "}
               {selectedMonth
                 ? new Date(selectedMonth).toLocaleString("default", {
-                    month: "long",
-                    year: "numeric",
-                  })
+                  month: "long",
+                  year: "numeric",
+                })
                 : "this month"}
             </p>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, Maximize2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Maximize2, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate } from "../../../utils/formatDate.js";
 import { formatTaskPreview } from "../../../utils/taskFormatters";
@@ -167,9 +167,12 @@ export function ApprovalRow({
       ref={rowRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className={`outline-none border transition-all rounded-xl focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${expanded
-        ? "bg-card"
-        : "border-border bg-card shadow-sm hover:bg-muted/60"
+      className={`outline-none border transition-all duration-300 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${
+        isSelected
+            ? "border-primary shadow-[0_0_15px_rgba(79,70,229,0.15)] bg-primary/5"
+            : expanded
+              ? "bg-card border-border"
+              : "border-border bg-card shadow-sm hover:border-primary/30"
         }`}
     >
       {/* COMPACT ROW */}
@@ -178,21 +181,34 @@ export function ApprovalRow({
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-          {appSettings?.enable_bulk_approval && isDelayed && onToggleSelection && (
-            <div className="shrink-0 flex items-center pr-2" onClick={(e) => e.stopPropagation()}>
-              <input
-                type="checkbox"
-                checked={!!isSelected}
-                onChange={() => onToggleSelection(task.id)}
-                className="w-5 h-5 rounded-md border-border text-purple-600 transition-all cursor-pointer shadow-sm"
-                title="Select for bulk approval"
-              />
-            </div>
-          )}
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/20 shadow-inner">
-            {task.loggedByName
-              ? task.loggedByName.charAt(0).toUpperCase()
-              : "?"}
+          <div 
+             className={`relative w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-black border shadow-inner transition-all duration-300 overflow-hidden ${
+                 appSettings?.enable_bulk_approval && onToggleSelection 
+                   ? "cursor-pointer hover:scale-105 hover:shadow-md" 
+                   : ""
+             } ${
+                 isSelected 
+                   ? "bg-primary text-primary-foreground border-primary" 
+                   : "bg-primary/10 text-primary border-primary/20"
+             }`}
+             onClick={(e) => {
+                 if (appSettings?.enable_bulk_approval && onToggleSelection) {
+                     e.stopPropagation();
+                     onToggleSelection(task.id);
+                 }
+             }}
+             title={appSettings?.enable_bulk_approval && onToggleSelection ? (isSelected ? "Deselect task" : "Select for bulk approval") : undefined}
+          >
+             {/* The Check Icon */}
+             <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isSelected ? "scale-100 opacity-100 rotate-0" : "scale-50 opacity-0 -rotate-90"}`}>
+                 <CheckCircle2 size={24} className="text-white" />
+             </div>
+             {/* The Avatar Initial */}
+             <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isSelected ? "scale-50 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0"}`}>
+                {task.loggedByName
+                  ? task.loggedByName.charAt(0).toUpperCase()
+                  : "?"}
+             </div>
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-bold text-foreground text-xs md:text-sm truncate">

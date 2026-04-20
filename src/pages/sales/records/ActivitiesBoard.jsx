@@ -69,16 +69,49 @@ export default function ActivitiesBoard({
  * Daily column card
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function DailyColumn({ dateBlock, timeframe, onActivityClick, appSettings }) {
+  const allActivities = [...(dateBlock.AM || []), ...(dateBlock.PM || [])];
+  const total = allActivities.length;
+  const done = allActivities.filter((a) => a.status === REVENUE_STATUS.APPROVED).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const pctColor =
+    pct >= 80
+      ? "text-green-600 bg-green-500/10 border-green-500/20"
+      : pct >= 50
+        ? "text-yellow-600 bg-yellow-500/10 border-yellow-500/20"
+        : "text-red-600 bg-red-500/10 border-red-500/20";
+
+  const barColor =
+    pct >= 80 ? "bg-green-500" : pct >= 50 ? "bg-yellow-400" : "bg-red-400";
+
   return (
     <div className="min-w-[280px] sm:min-w-[320px] w-[280px] sm:w-[320px] shrink-0 bg-gray-2 rounded-xl border border-gray-4 p-4 flex flex-col snap-start">
-      <h3
-        className="font-bold text-gray-12 mb-3 bg-gray-3 px-3 py-1.5 rounded-lg text-center font-mono text-sm tracking-wide truncate"
-        title={dateBlock.dateStr}
-      >
-        {timeframe === "WEEKLY"
-          ? dateBlock.dateStr
-          : `${new Date(dateBlock.dateStr).toLocaleDateString("en-US", { weekday: "long" })} - ${dateBlock.dateStr}`}
-      </h3>
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <h3
+          className="font-bold text-gray-12 bg-gray-3 px-3 py-1.5 rounded-lg font-mono text-sm tracking-wide truncate flex-1 text-center"
+          title={dateBlock.dateStr}
+        >
+          {timeframe === "WEEKLY"
+            ? dateBlock.dateStr
+            : `${new Date(dateBlock.dateStr).toLocaleDateString("en-US", { weekday: "long" })} - ${dateBlock.dateStr}`}
+        </h3>
+        {total > 0 && (
+          <span className={`text-xs font-black px-2.5 py-1 rounded-full border shrink-0 ${pctColor}`}>
+            {pct}%
+          </span>
+        )}
+      </div>
+
+      {/* Completion bar */}
+      {total > 0 && (
+        <div className="h-1 bg-gray-100 rounded-full mb-3">
+          <div
+            className={`h-1 rounded-full transition-all duration-500 ${barColor}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
+      {total === 0 && <div className="mb-3" />}
 
       <div className="space-y-4 flex-1 flex flex-col">
         <TimeBlock

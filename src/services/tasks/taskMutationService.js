@@ -645,8 +645,8 @@ export const taskMutationService = {
     return true;
   },
 
-  // 6. BULK APPROVE (Super Admin fallback)
-  async bulkApproveTasks(taskIds, adminId) {
+  // 6. BULK APPROVE
+  async bulkApproveTasks(taskIds, adminId, grade = 3, remarks = "Bulk approved via system bypass") {
     if (!taskIds || taskIds.length === 0) return;
 
     const { data: admin } = await supabase
@@ -663,8 +663,8 @@ export const taskMutationService = {
       .from("tasks")
       .update({
         status: TASK_STATUS.COMPLETE,
-        grade: 3, // Default neutral grade
-        remarks: "Bulk approved via system bypass",
+        grade: grade, // Default neutral grade
+        remarks: remarks,
         evaluated_by: adminId,
         evaluated_at: new Date().toISOString(),
         edited_by: adminId,
@@ -680,13 +680,13 @@ export const taskMutationService = {
       taskActivityService.addApprovalEntry(
         task.id,
         adminId,
-        "Bulk approved via system bypass",
-        { event: "APPROVED", grade: 3, bulk: true },
+        remarks,
+        { event: "APPROVED", grade: grade, bulk: true },
       );
       taskActivityService.addSystemEvent(
         task.id,
-        `Task bulk-approved by ${admin?.name || "Admin"} — Grade: 3`,
-        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.COMPLETE, grade: 3 },
+        `Task bulk-approved by ${admin?.name || "Admin"} — Grade: ${grade}`,
+        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.COMPLETE, grade: grade },
       );
     }
 
@@ -719,5 +719,37 @@ export const taskMutationService = {
     );
 
     return data;
+  },
+
+  async undoBulkApproval(taskIds, adminId) {
+    if (!taskIds || taskIds.length === 0) return;
+
+    // Reset workflow to AWAITING_APPROVAL 
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        status: TASK_STATUS.AWAITING_APPROVAL,
+        grade: 0,
+        remarks: "",
+        hr_verified: false,
+        hr_verified_at: null,
+        evaluated_by: null,
+        evaluated_at: null,
+        edited_by: adminId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", taskIds)
+      .select();
+
+    if (error) throw error;
+
+    for (const task of data) {
+      taskActivityService.addSystemEvent(
+        task.id,
+        "Bulk approval reverted by Manager.",
+        { event: "STATUS_CHANGE", new_status: TASK_STATUS.AWAITING_APPROVAL }
+      );
+    }
+    return true;
   },
 };

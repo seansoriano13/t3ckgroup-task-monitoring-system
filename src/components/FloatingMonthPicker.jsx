@@ -162,7 +162,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const content = (
     <div
       ref={panelRef}
-      className={`fixed bottom-6 right-6 flex flex-col items-end gap-3 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}
+      className={`fixed bottom-16 right-16 flex flex-col items-end gap-3 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}
     >
       {/* EXPANDED PANEL */}
       {open && (
@@ -188,11 +188,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
               <button
                 key={m}
                 onClick={() => setMode(m)}
-                className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all duration-200 active:scale-95 ${
-                  mode === m
-                    ? "bg-background text-foreground shadow-sm border border-border/50"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                }`}
+                className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all duration-200 active:scale-95 ${mode === m
+                  ? "bg-background text-foreground shadow-sm border border-border/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                  }`}
               >
                 {MODE_LABELS[m]}
               </button>
@@ -248,11 +247,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                               )}`
                             )
                           }
-                          className={`relative w-full h-full flex flex-col items-center justify-center rounded-md text-[11px] font-semibold transition-all duration-200 active:scale-95 border ${
-                            isSelected
-                              ? "bg-primary text-primary-foreground shadow-sm border-transparent"
-                              : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-transparent hover:border-border/50"
-                          }`}
+                          className={`relative w-full h-full flex flex-col items-center justify-center rounded-md text-[11px] font-semibold transition-all duration-200 active:scale-95 border ${isSelected
+                            ? "bg-primary text-primary-foreground shadow-sm border-transparent"
+                            : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-transparent hover:border-border/50"
+                            }`}
                         >
                           {mLabel}
                           {isNow && !isSelected && (
@@ -271,11 +269,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                       <button
                         key={q}
                         onClick={() => setQuarter(q)}
-                        className={`w-full h-full flex items-center justify-center rounded-md text-[13px] font-semibold transition-all duration-200 active:scale-95 border ${
-                          quarter === q
-                            ? "bg-primary text-primary-foreground shadow-md border-transparent"
-                            : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-transparent hover:border-border/50"
-                        }`}
+                        className={`w-full h-full flex items-center justify-center rounded-md text-[13px] font-semibold transition-all duration-200 active:scale-95 border ${quarter === q
+                          ? "bg-primary text-primary-foreground shadow-md border-transparent"
+                          : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-transparent hover:border-border/50"
+                          }`}
                       >
                         Q{q}
                       </button>
@@ -333,11 +330,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
       {/* FAB TRIGGER BUTTON */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg transition-all duration-300 active:scale-95 border ${
-          open
-            ? "bg-accent text-accent-foreground border-border ring-2 ring-primary/10 shadow-xl"
-            : "bg-card text-foreground border-border hover:border-border/80 hover:bg-accent/50"
-        }`}
+        className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg transition-all duration-300 active:scale-95 border ${open
+          ? "bg-accent text-accent-foreground border-border ring-2 ring-primary/10 shadow-xl"
+          : "bg-card text-foreground border-border hover:border-border/80 hover:bg-accent/50"
+          }`}
       >
         <div className={`p-2 rounded-lg transition-colors ${open ? "bg-background shadow-sm" : "bg-muted"}`}>
           <Calendar size={18} className={open ? "text-primary" : "text-muted-foreground"} />
@@ -347,8 +343,8 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
             {mode === "MONTHLY"
               ? "Month"
               : mode === "QUARTERLY"
-              ? "Quarter"
-              : "Range"}
+                ? "Quarter"
+                : "Range"}
           </span>
           <span className="text-[13px] font-bold text-foreground">
             {rangeData.label}

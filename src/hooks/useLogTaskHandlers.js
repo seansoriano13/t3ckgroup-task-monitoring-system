@@ -158,6 +158,11 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
 
   const handleSubmit = (e, { isCommittee, isOthersGlobal }) => {
     e.preventDefault();
+
+    if (!formData.categoryId) {
+      toast.error("Please select a Category before logging your task.");
+      return;
+    }
     let mergedRemarks = "";
     if (isCommittee) {
       if (!committeeRole) {

@@ -14,6 +14,7 @@ import TaskFilters from "../../components/TaskFilters.jsx";
 
 import { ApprovalHeader } from "./components/ApprovalHeader";
 import { ApprovalRow } from "./components/ApprovalRow";
+import BulkGradeModal from "./components/BulkGradeModal";
 import { Button } from "@/components/ui/button";
 
 export default function ApprovalsPage() {
@@ -70,6 +71,16 @@ export default function ApprovalsPage() {
 
   const [allEmployees, setAllEmployees] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
+
+  // Pagination & Bulk Grade Modal
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+  const [isBulkGradeModalOpen, setIsBulkGradeModalOpen] = useState(false);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, priorityFilter, sortBy, dateRange, statusFilter, deptFilter, subDeptFilter, employeeFilter]);
+
 
   useEffect(() => {
     if (!isHead && !isHr) return;
@@ -354,8 +365,8 @@ export default function ApprovalsPage() {
     });
   }, [filteredTasks]);
 
-  const handleSelectAllDelayed = () => {
-    const ids = delayedTasks.map(t => t.id);
+  const handleSelectAllPending = () => {
+    const ids = filteredTasks.map(t => t.id);
     setSelectedTaskIds(ids);
   };
 
@@ -367,26 +378,44 @@ export default function ApprovalsPage() {
     );
   };
 
-  const handleBulkApprove = async () => {
-    if (!selectedTaskIds.length) return;
+  const handleUndoBulk = async (taskIds) => {
+    try {
+      await taskService.undoBulkApproval(taskIds, user.id);
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Bulk approval reverted successfully.");
+    } catch (err) {
+      toast.error(err.message || "Failed to revert bulk approval.");
+    }
+  };
 
-    if (
-      !window.confirm(
-        `Bulk approve ${selectedTaskIds.length} selected tasks? This will assign a neutral grade (3) and move them to completion.`,
-      )
-    )
-      return;
+  const handleBulkApprove = async ({ grade, remarks }) => {
+    if (!selectedTaskIds.length) return;
+    setIsBulkGradeModalOpen(false);
 
     try {
-      await taskService.bulkApproveTasks(selectedTaskIds, user.id);
+      const idsToUndo = [...selectedTaskIds];
+      await taskService.bulkApproveTasks(selectedTaskIds, user.id, grade, remarks);
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setSelectedTaskIds([]);
-      toast.success(`Success! ${selectedTaskIds.length} tasks cleared.`);
+      toast.success(`Success! ${idsToUndo.length} tasks clear.`, {
+        action: {
+          label: "Undo",
+          onClick: () => handleUndoBulk(idsToUndo)
+        },
+        duration: 6000,
+      });
     } catch (err) {
       toast.error(err.message || "Bulk approval failed.");
     }
   };
+
+  const paginatedTasks = useMemo(() => {
+    return filteredTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  }, [filteredTasks, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
 
   if (isLoading)
     return (
@@ -403,11 +432,11 @@ export default function ApprovalsPage() {
           isSuperAdmin={isSuperAdmin}
           appSettings={appSettings}
           pendingTasksCount={pendingTasks.length}
-          delayedTasksCount={delayedTasks.length}
+          filteredTasksCount={filteredTasks.length}
           selectedCount={selectedTaskIds.length}
-          onSelectAllDelayed={handleSelectAllDelayed}
+          onSelectAllPending={handleSelectAllPending}
           onDeselectAll={handleDeselectAll}
-          handleBulkApprove={handleBulkApprove}
+          handleBulkApprove={() => setIsBulkGradeModalOpen(true)}
         />
 
         {pendingTasks.length > 0 && (
@@ -448,7 +477,7 @@ export default function ApprovalsPage() {
                 Showing {filteredTasks.length} of {pendingTasks.length} tasks
               </p>
             )}
-            {filteredTasks.map((task) => (
+            {paginatedTasks.map((task) => (
               <ApprovalRow
                 key={task.id}
                 task={task}
@@ -464,14 +493,47 @@ export default function ApprovalsPage() {
                 }
                 appSettings={appSettings}
                 isSelected={selectedTaskIds.includes(task.id)}
-                onToggleSelection={isSuperAdmin && appSettings?.enable_bulk_approval ? toggleTaskSelection : undefined}
+                onToggleSelection={appSettings?.enable_bulk_approval ? toggleTaskSelection : undefined}
               />
             ))}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-border pt-6 mt-4">
+                <span className="text-sm font-semibold text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.max(1, prev - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ) : pendingTasks.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-card border border-border border-dashed rounded-xl shadow-sm text-center">
             <div className="p-4 bg-muted rounded-full mb-4 ring-4 ring-muted/50">
-               <Search size={28} className="text-muted-foreground" />
+              <Search size={28} className="text-muted-foreground" />
             </div>
             <p className="text-foreground font-semibold text-lg tracking-tight">No tasks match your filter</p>
             <p className="text-muted-foreground mt-1.5 text-sm max-w-sm mx-auto">
@@ -492,7 +554,7 @@ export default function ApprovalsPage() {
           <div className="flex flex-col items-center justify-center py-24 bg-card border border-border rounded-xl shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)] text-center relative overflow-hidden group">
             {/* Soft blob decoration inside empty state */}
             <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
-            
+
             <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100/50 text-emerald-600 mb-6 shadow-sm ring-4 ring-emerald-50">
               <CheckCircle2 size={32} />
             </div>
@@ -513,6 +575,15 @@ export default function ApprovalsPage() {
         }
         onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
       />
+
+      <BulkGradeModal
+        isOpen={isBulkGradeModalOpen}
+        onClose={() => setIsBulkGradeModalOpen(false)}
+        selectedCount={selectedTaskIds.length}
+        onConfirm={handleBulkApprove}
+        isSubmitting={editTaskMutation.isPending}
+      />
+
     </ProtectedRoute>
   );
 }

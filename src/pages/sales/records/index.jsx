@@ -23,6 +23,7 @@ export default function SalesRecordsPage() {
     setActiveTab,
     viewMode,
     setViewMode,
+    // activities filters
     searchTerm,
     setSearchTerm,
     filterEmp,
@@ -31,8 +32,6 @@ export default function SalesRecordsPage() {
     setFilterStatus,
     filterType,
     setFilterType,
-    filterRecordType,
-    setFilterRecordType,
     timeframe,
     setTimeframe,
     selectedDateFilter,
@@ -42,6 +41,22 @@ export default function SalesRecordsPage() {
     activePreset,
     presetOptions,
     applyPreset,
+    // revenue filters (independent)
+    revSearchTerm,
+    setRevSearchTerm,
+    revFilterEmp,
+    setRevFilterEmp,
+    revFilterStatus,
+    setRevFilterStatus,
+    revFilterRecordType,
+    setRevFilterRecordType,
+    revTimeframe,
+    setRevTimeframe,
+    revSelectedDateFilter,
+    setRevSelectedDateFilter,
+    revSortBy,
+    setRevSortBy,
+    // selection
     selectedActivity,
     setSelectedActivity,
     editingRevenue,
@@ -135,27 +150,27 @@ export default function SalesRecordsPage() {
         <SalesFilters
           activeTab={activeTab}
           viewMode={viewMode}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          timeframe={timeframe}
-          setTimeframe={setTimeframe}
-          selectedDateFilter={selectedDateFilter}
-          setSelectedDateFilter={setSelectedDateFilter}
-          filterEmp={filterEmp}
-          setFilterEmp={setFilterEmp}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
+          searchTerm={activeTab === "ACTIVITIES" ? searchTerm : revSearchTerm}
+          setSearchTerm={activeTab === "ACTIVITIES" ? setSearchTerm : setRevSearchTerm}
+          timeframe={activeTab === "ACTIVITIES" ? timeframe : revTimeframe}
+          setTimeframe={activeTab === "ACTIVITIES" ? setTimeframe : setRevTimeframe}
+          selectedDateFilter={activeTab === "ACTIVITIES" ? selectedDateFilter : revSelectedDateFilter}
+          setSelectedDateFilter={activeTab === "ACTIVITIES" ? setSelectedDateFilter : setRevSelectedDateFilter}
+          filterEmp={activeTab === "ACTIVITIES" ? filterEmp : revFilterEmp}
+          setFilterEmp={activeTab === "ACTIVITIES" ? setFilterEmp : setRevFilterEmp}
+          filterStatus={activeTab === "ACTIVITIES" ? filterStatus : revFilterStatus}
+          setFilterStatus={activeTab === "ACTIVITIES" ? setFilterStatus : setRevFilterStatus}
           filterType={filterType}
           setFilterType={setFilterType}
-          filterRecordType={filterRecordType}
-          setFilterRecordType={setFilterRecordType}
+          filterRecordType={revFilterRecordType}
+          setFilterRecordType={setRevFilterRecordType}
           canViewAllSales={canViewAllSales}
           user={user}
           uniqueEmployees={uniqueEmployees}
           isVerificationEnforced={isVerificationEnforced}
           showDateFilter={true}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
+          sortBy={activeTab === "ACTIVITIES" ? sortBy : revSortBy}
+          setSortBy={activeTab === "ACTIVITIES" ? setSortBy : setRevSortBy}
         />
 
         {/* ACTIVITIES VIEWS */}
@@ -188,8 +203,8 @@ export default function SalesRecordsPage() {
             revenuePage={revenuePage}
             setRevenuePage={setRevenuePage}
             itemsPerPage={itemsPerPage}
-            filterRecordType={filterRecordType}
-            setFilterRecordType={setFilterRecordType}
+            filterRecordType={revFilterRecordType}
+            setFilterRecordType={setRevFilterRecordType}
             onRowClick={setEditingRevenue}
             user={user}
             isVerificationEnforced={isVerificationEnforced}

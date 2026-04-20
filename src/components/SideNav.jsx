@@ -153,11 +153,20 @@ export default function SideNav({ onOpenAddTask }) {
   const CustomPlaceholder = (props) => (
     <components.Placeholder {...props}>
       <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer hover:opacity-80 transition-opacity">
-        <div className="w-[22px] h-[22px] rounded-md flex items-center justify-center bg-primary text-white font-bold text-[11px] shrink-0 shadow-sm">
-          {user?.department?.charAt(0)?.toUpperCase() || "T3"}
-        </div>
-        <span className="font-semibold text-[14.5px] truncate text-sidebar-foreground uppercase tracking-wide mt-[1px]">
-          {user?.department || "T3CKGROUP"}
+        {user?.picture ? (
+          <img
+            src={user.picture}
+            alt={user?.name || "Profile"}
+            className="w-[24px] h-[24px] rounded-md object-cover shrink-0 shadow-sm"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-[24px] h-[24px] rounded-md flex items-center justify-center bg-primary text-white font-bold text-[11px] shrink-0 shadow-sm">
+            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+        )}
+        <span className="font-semibold text-[14px] truncate text-sidebar-foreground tracking-wide mt-[0.5px]">
+          {user?.name || "User"}
         </span>
       </div>
     </components.Placeholder>
