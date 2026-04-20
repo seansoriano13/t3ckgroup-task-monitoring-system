@@ -161,7 +161,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
       {/* Summary header */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left p-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors"
+        className="w-full text-left p-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors cursor-pointer"
       >
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5 truncate">

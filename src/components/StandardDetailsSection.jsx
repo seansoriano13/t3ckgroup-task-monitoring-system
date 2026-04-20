@@ -5,6 +5,8 @@ import { FieldBox } from "./FieldBox";
 import StatusBadge from "./StatusBadge";
 import { TASK_STATUS } from "../constants/status";
 import { Input } from "@/components/ui/input";
+import { Clock } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 const StandardDetailsSection = ({
   isEditing,
@@ -89,7 +91,7 @@ const StandardDetailsSection = ({
             </select>
           ) : (
             <div
-               className={`px-3 text-sm font-bold flex items-center gap-2 ${task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-amber-600" : "text-slate-400"}`}
+              className={`px-3 text-sm font-bold flex items-center gap-2 ${task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-amber-600" : "text-slate-400"}`}
             >
               <div className={`w-2 h-2 rounded-full ${task.priority === "HIGH" ? "bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.4)]" : task.priority === "MEDIUM" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-slate-300"} shrink-0`} />
               {task.priority || "LOW"}

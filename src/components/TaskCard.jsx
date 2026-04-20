@@ -44,7 +44,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
             (item) => item && typeof item === "object" && item.checked,
           ).length;
         }
-      } catch (e) {}
+      } catch (e) { }
     } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
         parsedDesc = JSON.parse(trimmed);
@@ -55,7 +55,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
             (item) => item && typeof item === "object" && item.checked,
           ).length;
         }
-      } catch (e) {}
+      } catch (e) { }
     } else if (Array.isArray(task.taskDescription)) {
       isChecklistFormat = true;
       parsedDesc = task.taskDescription;
@@ -92,13 +92,13 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
   }
 
   return (
-    <div 
+    <div
       onClick={onView}
       className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer relative"
     >
       {/* Row 1: The Eyebrow (Context) */}
       <div className="flex justify-between items-start gap-3 mb-3">
-        <div 
+        <div
           className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold truncate mr-2"
           title={task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"}
         >
@@ -114,7 +114,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
         <h3 className="text-base text-foreground font-semibold leading-snug line-clamp-2">
           {displayTitle}
         </h3>
-        
+
         {displaySnippet && !isExpanded && (
           <p className="text-[13px] text-slate-400 mt-1 line-clamp-2">
             {displaySnippet}
@@ -123,7 +123,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
 
         {/* Expanded Checklist */}
         {isChecklistFormat && isExpanded && (
-          <div 
+          <div
             className="mt-4 pt-4 border-t border-gray-100"
             onClick={(e) => e.stopPropagation()}
           >
@@ -139,7 +139,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
 
       {/* Row 3: The Footer (Metadata) */}
       <div className="mt-5 pt-4 flex items-center gap-2 overflow-hidden text-xs text-slate-400 w-full border-t border-gray-100">
-        
+
         {isManagement && task.loggedByName && (
           <div className="flex items-center gap-1.5 shrink-0" title={task.loggedByName}>
             <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200 uppercase">
@@ -183,7 +183,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
             </div>
           </>
         )}
-        
+
         {/* Expand/Collapse Checklist */}
         {isChecklistFormat && (
           <button
@@ -191,7 +191,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
               e.stopPropagation();
               setIsExpanded(!isExpanded);
             }}
-            className="ml-auto text-gray-400 hover:text-muted-foreground00 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shrink-0"
+            className="ml-auto text-gray-400 hover:text-black cursor-pointer hover:scale-110 transition-all duration-300 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shrink-0"
           >
             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             {isExpanded ? "Collapse" : "Expand"}

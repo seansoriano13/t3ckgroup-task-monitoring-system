@@ -10,18 +10,20 @@ export function EmployeeRankingsTable({
 }) {
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
 
+
   // Collect unique sub-departments for filter chips
   const subDepts = useMemo(() => {
     const set = new Set();
     leaderboard.forEach((e) => {
-      if (e.sub_department) set.add(e.sub_department);
+      const team = e.sub_department || e.department;
+      if (team) set.add(team);
     });
     return ["ALL", ...Array.from(set).sort()];
   }, [leaderboard]);
 
   const filtered = useMemo(() => {
     if (subDeptFilter === "ALL") return leaderboard;
-    return leaderboard.filter((e) => e.sub_department === subDeptFilter);
+    return leaderboard.filter((e) => (e.sub_department || e.department) === subDeptFilter);
   }, [leaderboard, subDeptFilter]);
 
   if (leaderboard.length === 0 && !isLoading) {
@@ -56,11 +58,10 @@ export function EmployeeRankingsTable({
               <button
                 key={sd}
                 onClick={() => setSubDeptFilter(sd)}
-                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
-                  subDeptFilter === sd
-                    ? "bg-gray-100 text-gray-900 border border-gray-200"
-                    : "text-gray-400 hover:text-gray-700 bg-transparent border border-transparent"
-                }`}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${subDeptFilter === sd
+                  ? "bg-gray-100 text-gray-900 border border-gray-200"
+                  : "text-gray-400 hover:text-gray-700 bg-transparent border border-transparent"
+                  }`}
               >
                 {sd === "ALL" ? "All Teams" : sd}
               </button>
@@ -96,6 +97,7 @@ export function EmployeeRankingsTable({
                 isSelf;
               const totalDeals = emp.dealsWon + emp.dealsLost;
 
+
               return (
                 <tr
                   key={emp.employee_id}
@@ -115,9 +117,9 @@ export function EmployeeRankingsTable({
                         You
                       </span>
                     )}
-                    {emp.sub_department && (
+                    {(emp.sub_department || emp.department) && (
                       <span className="ml-2 text-[10px] font-bold text-gray-7 uppercase tracking-wider">
-                        {emp.sub_department}
+                        {emp.sub_department || emp.department}
                       </span>
                     )}
                   </td>
@@ -153,13 +155,12 @@ export function EmployeeRankingsTable({
                   <td className="p-4 text-center">
                     {emp.winRate !== null ? (
                       <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
-                          emp.winRate >= 70
-                            ? "border-green-300 text-green-700"
-                            : emp.winRate >= 40
-                              ? "border-amber-300 text-amber-700"
-                              : "border-red-300 text-red-700"
-                        }`}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${emp.winRate >= 70
+                          ? "border-green-300 text-green-700"
+                          : emp.winRate >= 40
+                            ? "border-amber-300 text-amber-700"
+                            : "border-red-300 text-red-700"
+                          }`}
                       >
                         {emp.winRate}%
                       </span>
@@ -174,13 +175,12 @@ export function EmployeeRankingsTable({
                       <div className="flex items-center justify-center gap-2 w-max mx-auto">
                         <div className="w-20 h-1 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
                           <div
-                            className={`h-full ${
-                              pct >= 100
-                                ? "bg-green-500"
-                                : pct >= 50
-                                  ? "bg-amber-400"
-                                  : "bg-red-400"
-                            } transition-all duration-700`}
+                            className={`h-full ${pct >= 100
+                              ? "bg-green-500"
+                              : pct >= 50
+                                ? "bg-amber-400"
+                                : "bg-red-400"
+                              } transition-all duration-700`}
                             style={{
                               width: `${Math.min(pct, 100)}%`,
                             }}

@@ -184,9 +184,8 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             onClick={() =>
               navigate("/tasks", { state: { filterEmployeeId: emp.id } })
             }
-            className="cursor-pointer min-w-[260px] sm:min-w-[290px] flex flex-col snap-start hover:border-slate-300 transition-colors"
+            className="cursor-pointer min-w-[260px] sm:min-w-[290px] flex flex-col snap-start hover:border-slate-300 transition-colors hover:bg-slate-50"
             style={{
-              background: "#FFFFFF",
               border: "1px solid #E5E7EB",
               borderRadius: "8px",
               padding: "16px",
@@ -241,7 +240,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                   background: "transparent",
                 }}
               >
-                <Star size={11} style={{ color: "#9CA3AF" }} />
+                <Star size={11} className="text-gray-6 fill-gray-6" />
                 <span
                   style={{
                     fontSize: "12px",
@@ -271,11 +270,11 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                 <span style={{ color: "#374151" }}>{emp.total} Total</span>
               </div>
 
-              {/* The Visual Bar – 4px thin sparkline, no gaps */}
+
               <div
                 className="w-full overflow-hidden flex"
                 style={{
-                  height: "4px",
+                  height: "7px",
                   borderRadius: "2px",
                   background: "#F3F4F6",
                 }}
@@ -387,7 +386,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     }}
                   />
                   {emp.verified}
-                  <span>Done</span>
+                  <span>Ver</span>
                 </span>
               </div>
             </div>

@@ -94,6 +94,7 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
           empId,
           name: act.employees?.name || "Sales Rep",
           department: act.employees?.department || "Sales",
+          sub_department: act.employees?.sub_department || "",
           totalPipeline: 0,
           totalDue: 0,
           totalDone: 0,
@@ -316,7 +317,7 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
                     </span>
                   </div>
                   <p className="text-[10px] text-[#9CA3AF] font-medium uppercase tracking-widest truncate">
-                    {stat.department}
+                    {stat.sub_department || stat.department}
                   </p>
                 </div>
 

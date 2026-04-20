@@ -242,7 +242,7 @@ export default function SideNav({ onOpenAddTask }) {
         className={`
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
           fixed md:sticky top-0 left-0 h-screen z-50 flex flex-col 
-          bg-sidebar border-r border-sidebar-border  text-sm font-sans
+          bg-sidebar   text-sm font-sans
           transition-transform duration-300 ease-in-out
           w-[240px] shrink-0 overflow-y-auto scrollbar-hide
         `}

@@ -318,9 +318,8 @@ export default function SalesHeadApprovalsPage() {
 
   if (isLoadingCurrent) {
     return (
-      <div className="py-20 text-center text-gray-9 font-bold flex flex-col items-center gap-4">
-        <Activity size={32} className="animate-pulse text-primary" />
-        <p>Loading Sales Action Queue...</p>
+      <div className="py-20 text-center text-muted-foreground font-bold">
+        Loading Sales Action Queue...
       </div>
     );
   }
@@ -329,18 +328,21 @@ export default function SalesHeadApprovalsPage() {
     <ProtectedRoute requireHead={true}>
       <div className="max-w-6xl mx-auto space-y-8 pb-12 px-4 sm:px-6">
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-gray-4 pb-6 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border pb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-black text-gray-12 tracking-tight">
-              Sales Verification Queue
+            <h1 className="text-4xl font-extrabold tracking-tight">
+              <span className="text-foreground">Sales Verification</span>{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary pr-1">
+                Queue
+              </span>
             </h1>
-            <p className="text-gray-9 mt-1 text-sm font-medium">
+            <p className="text-muted-foreground mt-2 font-medium">
               Review and verify actual daily activities logged by your team.
             </p>
           </div>
-          <div className="bg-primary/10 border border-primary/20 px-4 py-2.5 rounded-xl flex items-center gap-3 shadow-inner">
-            <Layers size={18} className="text-primary" />
-            <span className="text-primary font-bold text-sm">
+          <div className="bg-card border border-border px-4 py-2.5 rounded-lg flex items-center gap-2.5 shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)]">
+            <Layers size={16} className="text-primary" />
+            <span className="text-foreground font-bold text-sm tracking-tight">
               {activeTab === "PENDING"
                 ? `${processedActivities.length} Pending Actions`
                 : `${processedActivities.length} Verified`}
@@ -349,13 +351,13 @@ export default function SalesHeadApprovalsPage() {
         </div>
 
         {/* TAB TOGGLE */}
-        <div className="flex items-center gap-1 bg-gray-2 border border-gray-4 rounded-xl p-1 w-fit">
+        <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-fit">
           <button
             onClick={() => setActiveTab("PENDING")}
             className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${
               activeTab === "PENDING"
-                ? "bg-white text-gray-12 shadow-sm border border-gray-4"
-                : "text-gray-9 hover:text-gray-11 hover:bg-gray-3"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted-foreground/10"
             }`}
           >
             <CheckCircle2 size={14} />
@@ -364,7 +366,7 @@ export default function SalesHeadApprovalsPage() {
               <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
                 activeTab === "PENDING"
                   ? "bg-primary/10 text-primary"
-                  : "bg-gray-4 text-gray-8"
+                  : "bg-muted-foreground/20 text-muted-foreground"
               }`}>
                 {rawPending.length}
               </span>
@@ -374,8 +376,8 @@ export default function SalesHeadApprovalsPage() {
             onClick={() => setActiveTab("VERIFIED")}
             className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${
               activeTab === "VERIFIED"
-                ? "bg-white text-gray-12 shadow-sm border border-gray-4"
-                : "text-gray-9 hover:text-gray-11 hover:bg-gray-3"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted-foreground/10"
             }`}
           >
             <History size={14} />
@@ -384,7 +386,7 @@ export default function SalesHeadApprovalsPage() {
               <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
                 activeTab === "VERIFIED"
                   ? "bg-primary/10 text-primary"
-                  : "bg-gray-4 text-gray-8"
+                  : "bg-muted-foreground/20 text-muted-foreground"
               }`}>
                 {rawVerified.length}
               </span>
@@ -429,18 +431,21 @@ export default function SalesHeadApprovalsPage() {
 
         {/* EMPTY STATE */}
         {groupedData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 bg-gray-1 border border-gray-4 border-dashed rounded-2xl shadow-sm">
-            <div className={`w-20 h-20 rounded-full mb-6 flex items-center justify-center shadow-inner ${
+          <div className="flex flex-col items-center justify-center py-24 bg-card border border-border rounded-xl shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)] text-center relative overflow-hidden group">
+            {/* Soft blob decoration inside empty state */}
+            <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
+
+            <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${
               activeTab === "PENDING"
-                ? "bg-green-500/10 text-green-500"
-                : "bg-gray-3 text-gray-8"
+                ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
+                : "bg-muted text-muted-foreground ring-muted/50"
             }`}>
-              {activeTab === "PENDING" ? <CheckCircle2 size={40} /> : <History size={40} />}
+              {activeTab === "PENDING" ? <CheckCircle2 size={32} /> : <History size={32} />}
             </div>
-            <h3 className="text-2xl font-black text-gray-12 mb-2">
+            <h3 className="text-foreground font-bold text-2xl tracking-tight relative">
               {activeTab === "PENDING" ? "Inbox Zero!" : "No Verified Activities"}
             </h3>
-            <p className="text-gray-9 text-sm text-center max-w-sm">
+            <p className="text-muted-foreground mt-2 relative font-medium max-w-sm">
               {activeTab === "PENDING"
                 ? "All sales activities for your department have been verified. Great job!"
                 : "Activities you've verified will appear here so you can undo if needed."}
@@ -477,9 +482,9 @@ function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unv
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm transition-all">
+    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all">
       <div 
-        className="bg-gray-3/50 p-4 border-b border-gray-4 flex items-center justify-between cursor-pointer hover:bg-gray-3 transition-colors"
+        className="bg-muted/30 p-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/60 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
@@ -487,22 +492,22 @@ function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unv
             {empGroup.employeeName.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-12 leading-tight">
+            <h2 className="text-lg font-bold text-foreground leading-tight">
               {empGroup.employeeName}
             </h2>
-            <p className="text-xs text-gray-9 font-semibold uppercase tracking-widest mt-0.5">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">
               {empGroup.dates.reduce((acc, d) => acc + d.activities.length, 0)}{" "}
               {mode === "PENDING" ? "Items Pending" : "Items Verified"}
             </p>
           </div>
         </div>
-        <button className="p-2 text-gray-8 hover:text-gray-12 hover:bg-gray-4 rounded-full transition-colors">
+        <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
           {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>
       </div>
 
       {isExpanded && (
-        <div className="divide-y divide-gray-4">
+        <div className="divide-y divide-border">
           {empGroup.dates.map((dateGroup) => (
             <DateGroupBlock
               key={dateGroup.date}
@@ -536,12 +541,12 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-white">
+    <div className="p-4 sm:p-6 bg-card">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-2 text-gray-11 font-black text-sm">
+        <div className="flex items-center gap-2 text-foreground font-black text-sm">
           <CalendarDays size={18} className="text-primary" />
           <span className="uppercase tracking-widest">{dateGroup.date}</span>
-          <span className="bg-gray-2 text-gray-9 border border-gray-4 px-2 py-0.5 rounded-md text-[10px] ml-2">
+          <span className="bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-md text-[10px] ml-2">
             {dateGroup.activities.length} Logs
           </span>
         </div>
@@ -549,19 +554,19 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
         {mode === "PENDING" ? (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="relative flex-1 sm:w-64">
-              <MessageSquare size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8" />
+              <MessageSquare size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Remarks for entire day..."
                 value={dayRemarks}
                 onChange={(e) => setDayRemarks(e.target.value)}
-                className="w-full bg-gray-1 text-xs text-gray-12 border border-gray-4 rounded-lg pl-9 pr-3 py-2 outline-none focus:border-primary transition-colors"
+                className="w-full bg-background text-xs text-foreground border border-input focus-visible:ring-1 focus-visible:ring-ring rounded-lg pl-9 pr-3 py-2 outline-none transition-colors"
               />
             </div>
             <button
               onClick={handleVerifyDay}
               disabled={isSubmittingBulk}
-              className="flex items-center justify-center gap-2 bg-gray-12 hover:bg-black text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap"
             >
               <CheckCircle2 size={16} /> Verify Entire Day
             </button>
@@ -570,7 +575,7 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
           <button
             onClick={handleUnverifyDay}
             disabled={isSubmittingBulk}
-            className="flex items-center justify-center gap-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap"
+            className="flex items-center justify-center gap-2 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap"
           >
             <Undo2 size={16} /> Undo Entire Day
           </button>
@@ -604,7 +609,7 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
               {amActivities.length > 0 ? (
                 amActivities.map(renderCard)
               ) : (
-                <div className="text-xs text-gray-8 italic bg-gray-2 border border-dashed border-gray-4 rounded-lg py-4 text-center">
+                <div className="text-xs text-muted-foreground italic bg-muted border border-dashed border-border rounded-lg py-4 text-center">
                   No AM activities
                 </div>
               )}
@@ -620,7 +625,7 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
               {pmActivities.length > 0 ? (
                 pmActivities.map(renderCard)
               ) : (
-                <div className="text-xs text-gray-8 italic bg-gray-2 border border-dashed border-gray-4 rounded-lg py-4 text-center">
+                <div className="text-xs text-muted-foreground italic bg-muted border border-dashed border-border rounded-lg py-4 text-center">
                   No PM activities
                 </div>
               )}
@@ -630,7 +635,7 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
             {otherActivities.length > 0 && (
               <div className="lg:col-span-2 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-9 bg-gray-2 border border-gray-4 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-md flex items-center gap-1.5">
                     <Clock size={11} /> Unspecified — {otherActivities.length} {otherActivities.length === 1 ? "Log" : "Logs"}
                   </span>
                 </div>
@@ -655,10 +660,10 @@ function ActivityCard({ activity, verifyMutation, onViewDetails }) {
   };
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-xl p-4 flex flex-col hover:border-gray-6 hover:shadow-md transition-all group">
+    <div className="bg-card border border-border rounded-xl p-4 flex flex-col hover:border-primary/50 hover:shadow-md transition-all group">
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h4 className="text-sm font-bold text-gray-12 line-clamp-1" title={activity.account_name}>
+          <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
             {activity.account_name || "No Account Specify"}
           </h4>
           <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
@@ -666,7 +671,7 @@ function ActivityCard({ activity, verifyMutation, onViewDetails }) {
           </span>
         </div>
         <div className="flex gap-2 text-[10px] font-black tracking-widest uppercase items-center">
-          <span className="text-gray-9 bg-gray-3 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-4">
+          <span className="text-muted-foreground bg-muted px-2 py-1 rounded-md flex items-center gap-1 border border-border">
             <Clock size={12} /> {activity.time_of_day}
           </span>
           {activity.is_unplanned && (
@@ -675,7 +680,7 @@ function ActivityCard({ activity, verifyMutation, onViewDetails }) {
             </span>
           )}
           <button 
-            className="text-gray-8 hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
+            className="text-muted-foreground hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); onViewDetails(activity); }}
             title="Open Full Details"
           >
@@ -684,26 +689,26 @@ function ActivityCard({ activity, verifyMutation, onViewDetails }) {
         </div>
       </div>
 
-      <p className="text-xs text-gray-11 flex-1 leading-relaxed mb-4 line-clamp-3" title={activity.details_daily}>
-        <span className="font-bold text-gray-12">Details:</span> {activity.details_daily || "-"}
+      <p className="text-xs text-muted-foreground flex-1 leading-relaxed mb-4 line-clamp-3" title={activity.details_daily}>
+        <span className="font-bold text-foreground">Details:</span> {activity.details_daily || "-"}
       </p>
 
       {/* FOOTER ACTIONS */}
-      <div className="pt-3 border-t border-gray-4 flex flex-col xl:flex-row gap-3">
+      <div className="pt-3 border-t border-border flex flex-col xl:flex-row gap-3">
         <div className="flex-1 relative">
-          <MessageSquare size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-8" />
+          <MessageSquare size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Feedback..."
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
-            className="w-full bg-white text-[11px] text-gray-12 border border-gray-4 rounded-md pl-8 pr-2 py-1.5 outline-none focus:border-primary transition-colors"
+            className="w-full bg-background text-[11px] text-foreground border border-input focus-visible:ring-1 focus-visible:ring-ring rounded-md pl-8 pr-2 py-1.5 outline-none transition-colors"
           />
         </div>
         <button
           onClick={handleVerify}
           disabled={isSubmitting}
-          className="flex items-center justify-center gap-1.5 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 border border-green-200 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+          className="flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
         >
           <CheckCircle2 size={14} /> Verify Activity
         </button>
@@ -726,10 +731,10 @@ function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
     : "—";
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-xl p-4 flex flex-col hover:border-gray-6 hover:shadow-md transition-all group">
+    <div className="bg-card border border-border rounded-xl p-4 flex flex-col hover:border-primary/50 hover:shadow-md transition-all group">
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h4 className="text-sm font-bold text-gray-12 line-clamp-1" title={activity.account_name}>
+          <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
             {activity.account_name || "No Account Specify"}
           </h4>
           <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
@@ -737,7 +742,7 @@ function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
           </span>
         </div>
         <div className="flex gap-2 text-[10px] font-black tracking-widest uppercase items-center">
-          <span className="text-gray-9 bg-gray-3 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-4">
+          <span className="text-muted-foreground bg-muted px-2 py-1 rounded-md flex items-center gap-1 border border-border">
             <Clock size={12} /> {activity.time_of_day}
           </span>
           {activity.is_unplanned && (
@@ -746,7 +751,7 @@ function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
             </span>
           )}
           <button 
-            className="text-gray-8 hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
+            className="text-muted-foreground hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); onViewDetails(activity); }}
             title="Open Full Details"
           >
@@ -755,30 +760,30 @@ function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
         </div>
       </div>
 
-      <p className="text-xs text-gray-11 flex-1 leading-relaxed mb-2 line-clamp-3" title={activity.details_daily}>
-        <span className="font-bold text-gray-12">Details:</span> {activity.details_daily || "-"}
+      <p className="text-xs text-muted-foreground flex-1 leading-relaxed mb-2 line-clamp-3" title={activity.details_daily}>
+        <span className="font-bold text-foreground">Details:</span> {activity.details_daily || "-"}
       </p>
 
       {/* Verification metadata */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-[10px]">
-        <span className="text-gray-8 flex items-center gap-1">
-          <CheckCircle2 size={10} className="text-green-500" />
-          Verified: <span className="text-gray-11 font-semibold">{verifiedAtFormatted}</span>
+        <span className="text-muted-foreground flex items-center gap-1">
+          <CheckCircle2 size={10} className="text-emerald-500" />
+          Verified: <span className="text-foreground font-semibold">{verifiedAtFormatted}</span>
         </span>
         {activity.head_remarks && (
-          <span className="text-gray-8 flex items-center gap-1">
+          <span className="text-muted-foreground flex items-center gap-1">
             <MessageSquare size={10} />
-            Remarks: <span className="text-gray-11 font-semibold italic">"{activity.head_remarks}"</span>
+            Remarks: <span className="text-foreground font-semibold italic">"{activity.head_remarks}"</span>
           </span>
         )}
       </div>
 
       {/* FOOTER ACTIONS */}
-      <div className="pt-3 border-t border-gray-4 flex justify-end">
+      <div className="pt-3 border-t border-border flex justify-end">
         <button
           onClick={() => unverifyMutation.mutate({ activityId: activity.id })}
           disabled={isSubmitting}
-          className="flex items-center justify-center gap-1.5 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 border border-red-200 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+          className="flex items-center justify-center gap-1.5 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
         >
           <Undo2 size={14} /> Undo Verify
         </button>

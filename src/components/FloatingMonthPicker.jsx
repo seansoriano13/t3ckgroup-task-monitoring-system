@@ -166,153 +166,165 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
     >
       {/* EXPANDED PANEL */}
       {open && (
-        <div className="pointer-events-auto mb-3 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-80 flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="pointer-events-auto modal-enter origin-bottom-right mb-2 bg-popover/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-4 w-[340px] flex flex-col gap-4">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <p className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
-              <LayoutGrid size={12} className="text-[#6B7280]" />
+          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+            <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <Calendar size={13} className="text-muted-foreground" />
               Time Range Analysis
             </p>
             <button
               onClick={goToday}
-              className="flex items-center gap-1 text-[10px] font-bold text-[#6B7280] hover:text-[#111827] transition-colors"
+              className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-foreground transition-all hover:bg-muted p-1.5 rounded-md active:scale-95"
             >
               <RotateCcw size={11} />
-              Reset to Now
+              Reset
             </button>
           </div>
 
           {/* Mode Switcher */}
-          <div className="grid grid-cols-4 gap-1">
+          <div className="grid grid-cols-4 gap-1 bg-muted/40 p-1 rounded-lg border border-border/50">
             {MODES.map((m) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
-                className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${mode === m
-                    ? "bg-[#111827] text-white shadow-sm"
-                    : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"
-                  }`}
+                className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all duration-200 active:scale-95 ${
+                  mode === m
+                    ? "bg-background text-foreground shadow-sm border border-border/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                }`}
               >
                 {MODE_LABELS[m]}
               </button>
             ))}
           </div>
 
-          {/* Navigation Controls */}
-          {mode !== "CUSTOM" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between bg-gray-2 border border-gray-4 rounded-xl p-1.5 gap-2">
-                <button
-                  onClick={navPrev}
-                  className="p-2 rounded-lg hover:bg-gray-3 text-gray-9 hover:text-gray-12 transition-colors"
-                >
-                  <ChevronLeft size={18} />
-                </button>
+          {/* Fixed Height Content Area */}
+          <div className="h-[156px] flex flex-col gap-3">
+            {mode !== "CUSTOM" ? (
+              <>
+                <div className="flex items-center justify-between border border-border bg-card rounded-lg p-1.5 shadow-sm">
+                  <button
+                    onClick={navPrev}
+                    className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-95"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
 
-                <div className="flex-1 text-center">
-                  <span className="text-sm font-black text-gray-12 uppercase tracking-wide">
-                    {rangeData.label}
-                  </span>
+                  <div className="flex-1 text-center">
+                    <span className="text-[13px] font-bold text-foreground tracking-wide">
+                      {rangeData.label}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={navNext}
+                    className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-95"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
 
-                <button
-                  onClick={navNext}
-                  className="p-2 rounded-lg hover:bg-gray-3 text-gray-9 hover:text-gray-12 transition-colors"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-
-              {/* Monthly Grid Quick-Jump (Only in Monthly Mode) */}
-              {mode === "MONTHLY" && (
-                <div className="grid grid-cols-4 gap-1">
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const isSelected = i + 1 === Number(month.split("-")[1]);
-                    const isNow =
-                      i === now.getMonth() &&
-                      Number(month.split("-")[0]) === now.getFullYear();
-                    const mLabel = new Date(2000, i, 1).toLocaleString(
-                      "default",
-                      { month: "short" },
-                    );
-                    return (
-                      <button
-                        key={i}
-                        onClick={() =>
-                          setMonth(
-                            `${month.split("-")[0]}-${String(i + 1).padStart(
-                              2,
-                              "0",
-                            )}`,
-                          )
-                        }
-                        className={`py-1.5 rounded-lg text-[10px] font-bold transition-all ${isSelected
-                            ? "bg-[#111827] text-white shadow-sm"
-                            : "bg-transparent text-[#6B7280] hover:bg-gray-100"
+                {/* Monthly Grid Quick-Jump */}
+                {mode === "MONTHLY" && (
+                  <div className="grid grid-cols-4 gap-1 flex-1">
+                    {Array.from({ length: 12 }, (_, i) => {
+                      const isSelected = i + 1 === Number(month.split("-")[1]);
+                      const isNow =
+                        i === now.getMonth() &&
+                        Number(month.split("-")[0]) === now.getFullYear();
+                      const mLabel = new Date(2000, i, 1).toLocaleString(
+                        "default",
+                        { month: "short" }
+                      );
+                      return (
+                        <button
+                          key={i}
+                          onClick={() =>
+                            setMonth(
+                              `${month.split("-")[0]}-${String(i + 1).padStart(
+                                2,
+                                "0"
+                              )}`
+                            )
+                          }
+                          className={`relative w-full h-full flex flex-col items-center justify-center rounded-md text-[11px] font-semibold transition-all duration-200 active:scale-95 border ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground shadow-sm border-transparent"
+                              : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-transparent hover:border-border/50"
                           }`}
-                      >
-                        {mLabel}
-                        {isNow && !isSelected && (
-                          <span className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-green-500" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                        >
+                          {mLabel}
+                          {isNow && !isSelected && (
+                            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
-              {/* Quarter Grid Quick-Jump (Only in Quarterly Mode) */}
-              {mode === "QUARTERLY" && (
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4].map((q) => (
-                    <button
-                      key={q}
-                      onClick={() => setQuarter(q)}
-                      className={`py-2 rounded-lg text-[11px] font-bold transition-all ${quarter === q
-                          ? "bg-[#111827] text-white shadow-sm"
-                          : "bg-transparent text-[#6B7280] hover:bg-gray-100"
+                {/* Quarter Grid Quick-Jump */}
+                {mode === "QUARTERLY" && (
+                  <div className="grid grid-cols-4 gap-2 flex-1">
+                    {[1, 2, 3, 4].map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => setQuarter(q)}
+                        className={`w-full h-full flex items-center justify-center rounded-md text-[13px] font-semibold transition-all duration-200 active:scale-95 border ${
+                          quarter === q
+                            ? "bg-primary text-primary-foreground shadow-md border-transparent"
+                            : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-transparent hover:border-border/50"
                         }`}
-                    >
-                      Q{q}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                      >
+                        Q{q}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-          {/* Custom Date Pickers */}
-          {mode === "CUSTOM" && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-[9px] font-black text-gray-9 uppercase tracking-widest ml-1">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={customStart}
-                  onChange={(e) => setCustomStart(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-[#111827] font-semibold outline-none focus:border-[#111827] h-10"
-                />
+                {/* Yearly Grid Filler */}
+                {mode === "YEARLY" && (
+                  <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-border/50 rounded-lg bg-muted/10">
+                    <TrendingUp size={24} className="text-muted-foreground/30 mb-2" />
+                    <span className="text-[12px] font-semibold text-muted-foreground/50 uppercase tracking-widest">
+                      Yearly Overview
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col gap-4 flex-1 justify-center rounded-lg border border-border/50 bg-muted/10 p-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-0.5">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={customStart}
+                    onChange={(e) => setCustomStart(e.target.value)}
+                    className="w-full bg-background border border-border rounded-md px-3 py-2 text-[13px] text-foreground font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-[38px] cursor-pointer"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-0.5">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={customEnd}
+                    onChange={(e) => setCustomEnd(e.target.value)}
+                    className="w-full bg-background border border-border rounded-md px-3 py-2 text-[13px] text-foreground font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-[38px] cursor-pointer"
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest ml-1">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={customEnd}
-                  onChange={(e) => setCustomEnd(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-[#111827] font-semibold outline-none focus:border-[#111827] h-10"
-                />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Footer info */}
-          <div className="border-t border-gray-100 pt-3 text-center">
-            <p className="text-[11px] font-medium text-gray-400 italic">
-              Syncing analytics across {mode.toLowerCase()} boundaries...
+          <div className="border-t border-border/50 pt-3 text-center">
+            <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">
+              Syncing {mode.toLowerCase()} boundaries
             </p>
           </div>
         </div>
@@ -321,21 +333,24 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
       {/* FAB TRIGGER BUTTON */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold text-xs shadow-sm transition-all duration-300 border ${open
-            ? "bg-[#F9FAFB] text-[#111827] border-[#D1D5DB]"
-            : "bg-white text-[#111827] border-[#E5E7EB] hover:border-[#D1D5DB]"
-          }`}
+        className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg transition-all duration-300 active:scale-95 border ${
+          open
+            ? "bg-accent text-accent-foreground border-border ring-2 ring-primary/10 shadow-xl"
+            : "bg-card text-foreground border-border hover:border-border/80 hover:bg-accent/50"
+        }`}
       >
-        <Calendar size={16} className="text-[#6B7280]" />
-        <div className="flex flex-col items-start leading-tight">
-          <span className="uppercase tracking-widest text-[9px] text-[#6B7280] font-bold">
+        <div className={`p-2 rounded-lg transition-colors ${open ? "bg-background shadow-sm" : "bg-muted"}`}>
+          <Calendar size={18} className={open ? "text-primary" : "text-muted-foreground"} />
+        </div>
+        <div className="flex flex-col items-start leading-[1.25]">
+          <span className="uppercase tracking-widest text-[9.5px] text-muted-foreground font-bold mb-0.5">
             {mode === "MONTHLY"
               ? "Month"
               : mode === "QUARTERLY"
-                ? "Quarter"
-                : "Range"}
+              ? "Quarter"
+              : "Range"}
           </span>
-          <span className="text-xs font-semibold text-[#111827]">
+          <span className="text-[13px] font-bold text-foreground">
             {rangeData.label}
           </span>
         </div>

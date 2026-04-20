@@ -168,8 +168,8 @@ export function ApprovalRow({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       className={`outline-none border transition-all rounded-xl focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${expanded
-          ? "border-primary/20 shadow-[0_8px_30px_rgb(0,0,0,0.08)] bg-card"
-          : "border-border bg-card shadow-sm hover:border-border/80 hover:shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)] hover:-translate-y-0.5"
+        ? "bg-card"
+        : "border-border bg-card shadow-sm hover:bg-muted/60"
         }`}
     >
       {/* COMPACT ROW */}
@@ -184,12 +184,12 @@ export function ApprovalRow({
                 type="checkbox"
                 checked={!!isSelected}
                 onChange={() => onToggleSelection(task.id)}
-                className="w-5 h-5 rounded-md border-border text-purple-600 focus:ring-purple-500 accent-purple-600 hover:ring-2 hover:ring-purple-500/50 transition-all cursor-pointer shadow-sm"
+                className="w-5 h-5 rounded-md border-border text-purple-600 transition-all cursor-pointer shadow-sm"
                 title="Select for bulk approval"
               />
             </div>
           )}
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-foreground shrink-0 border border-border text-xs md:text-base">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/20 shadow-inner">
             {task.loggedByName
               ? task.loggedByName.charAt(0).toUpperCase()
               : "?"}
@@ -320,8 +320,8 @@ export function ApprovalRow({
                           <div
                             key={num}
                             className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${isSelected
-                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                                : "bg-muted text-muted-foreground/80 border-border opacity-40"
+                              ? `${activeColorMap[num]} shadow-md scale-[1.05]`
+                              : "bg-muted text-muted-foreground/80 border-border opacity-40"
                               }`}
                           >
                             {num}
@@ -393,8 +393,8 @@ export function ApprovalRow({
                             key={num}
                             onClick={() => setGrade(num)}
                             className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${grade === num
-                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                                : "bg-muted text-muted-foreground/80 border-border hover:border-slate-300 hover:bg-slate-100"
+                              ? `${activeColorMap[num]} shadow-md scale-[1.05]`
+                              : "bg-muted text-muted-foreground/80 border-border hover:border-slate-300 hover:bg-slate-100"
                               }`}
                           >
                             {num}

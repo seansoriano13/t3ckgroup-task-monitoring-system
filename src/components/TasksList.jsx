@@ -282,7 +282,7 @@ export default function TasksList({ selectedRange }) {
       {isManagement && (
         <section className="mt-8 border-t border-border pt-8">
           <div className="flex justify-between items-center mb-8 bg-card p-6 rounded-2xl border border-border shadow-sm overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
               <Activity size={100} />
             </div>
             <div className="relative z-10">

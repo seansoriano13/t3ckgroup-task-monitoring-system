@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 const IconControl = ({ children, ...props }) => {
   const Icon = props.selectProps.icon;
   const isActive = props.hasValue && props.getValue()[0]?.value !== "ALL" && props.getValue()[0]?.value !== "NEWEST";
-  
+
   return (
     <components.Control {...props}>
       {Icon && (
@@ -58,7 +58,9 @@ export default function TaskFilters({
   setSortBy,
 }) {
   const [startDate, endDate] = dateRange || [null, null];
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(employeeFilter);
+
+
 
   const isAnyFilterActive =
     statusFilter !== "ALL" ||
@@ -85,23 +87,21 @@ export default function TaskFilters({
     const isActive = value && value !== defaultVal;
     return {
       control: (state) =>
-        `min-h-[40px] md:min-h-[46px] w-full border ${
-          state.isFocused 
-            ? "border-primary/50 ring-1 ring-primary/20 bg-card" 
-            : isActive
-              ? "border-primary/20 bg-muted font-medium"
-              : "border-border bg-card"
+        `min-h-[40px] md:min-h-[46px] w-full border ${state.isFocused
+          ? "border-primary/50 ring-1 ring-primary/20 bg-card"
+          : isActive
+            ? "border-primary/20 bg-muted font-medium"
+            : "border-border bg-card"
         } hover:border-border/80 rounded-lg px-2 shadow-sm transition-all cursor-pointer flex items-center`,
       menu: () =>
         `mt-1 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-[50] min-w-max popover-enter`,
       menuList: () => `p-1`,
       option: (state) =>
-        `px-3 py-2 cursor-pointer transition-colors rounded-md text-[13px] ${
-          state.isFocused 
-            ? "bg-muted/80 text-foreground" 
-            : state.isSelected 
-              ? "bg-slate-200 text-foreground font-bold" 
-              : "text-muted-foreground bg-transparent"
+        `px-3 py-2 cursor-pointer transition-colors rounded-md text-[13px] ${state.isFocused
+          ? "bg-muted/80 text-foreground"
+          : state.isSelected
+            ? "bg-slate-200 text-foreground font-bold"
+            : "text-muted-foreground bg-transparent"
         }`,
       singleValue: () => `text-foreground font-[500] text-[13px]`,
       placeholder: () => `text-slate-400 text-[13px]`,
@@ -154,7 +154,7 @@ export default function TaskFilters({
     <div className="grid gap-3 md:gap-4">
       {/* Row 1: Search & Permanent Filters */}
       <div className="bg-white border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
-        
+
         {/* Search */}
         <div className="relative flex-1 w-full">
           <Search
@@ -173,7 +173,7 @@ export default function TaskFilters({
         {/* Action Group */}
         <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto justify-between xl:justify-start hide-scrollbar">
           <div className="flex gap-2 items-center flex-nowrap">
-            
+
             {/* DATE PICKER */}
             <div className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${startDate || endDate ? "bg-muted text-foreground border-primary/20 font-medium" : "bg-card border-border hover:border-border/80 text-foreground"}`}>
               <CalendarIcon size={16} className={`${startDate || endDate ? "text-foreground" : "text-slate-400"} mr-2 shrink-0`} />
@@ -230,35 +230,35 @@ export default function TaskFilters({
       {/* Row 2: Advanced Filters (Hidden by Default) */}
       {showAdvanced && (
         <div className="bg-gray-50 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
-          
+
           {/* Status Filter */}
           {showStatusFilter && (
-             <div className="flex-1 min-w-[170px]">
-               <Select
-                 options={statusOptions}
-                 value={statusOptions.find(o => o.value === statusFilter) || statusOptions[0]}
-                 onChange={(selected) => setStatusFilter(selected.value)}
-                 classNames={getSelectClassNames(statusFilter, "ALL")}
-                 components={{ Control: IconControl }}
-                 icon={Filter}
-                 isSearchable={false}
-                 menuPosition="fixed"
-                 unstyled
-               />
-             </div>
+            <div className="flex-1 min-w-[170px]">
+              <Select
+                options={statusOptions}
+                value={statusOptions.find(o => o.value === statusFilter) || statusOptions[0]}
+                onChange={(selected) => setStatusFilter(selected.value)}
+                classNames={getSelectClassNames(statusFilter, "ALL")}
+                components={{ Control: IconControl }}
+                icon={Filter}
+                isSearchable={false}
+                menuPosition="fixed"
+                unstyled
+              />
+            </div>
           )}
 
           {/* Priority */}
           <div className="flex-1 min-w-[150px]">
-             <Select
-               options={priorityOptions}
-               value={priorityOptions.find(o => o.value === priorityFilter) || priorityOptions[0]}
-               onChange={(selected) => setPriorityFilter(selected.value)}
-               classNames={getSelectClassNames(priorityFilter, "ALL")}
-               isSearchable={false}
-               menuPosition="fixed"
-               unstyled
-             />
+            <Select
+              options={priorityOptions}
+              value={priorityOptions.find(o => o.value === priorityFilter) || priorityOptions[0]}
+              onChange={(selected) => setPriorityFilter(selected.value)}
+              classNames={getSelectClassNames(priorityFilter, "ALL")}
+              isSearchable={false}
+              menuPosition="fixed"
+              unstyled
+            />
           </div>
 
           {/* Management specific */}

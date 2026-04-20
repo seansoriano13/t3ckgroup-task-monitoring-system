@@ -201,6 +201,7 @@ export default function TasksPage() {
     },
   );
 
+
   // --- HANDLERS TO RESET PAGINATION ---
   const wrapFilter = (setter) => (val) => {
     setter(val);

@@ -43,7 +43,7 @@ export const salesAdminService = {
     let query = supabase
       .from("sales_activities")
       .select(
-        "*, employees!sales_activities_employee_id_fkey(name, department, is_super_admin), sales_weekly_plans!sales_activities_plan_id_fkey(status)",
+        "*, employees!sales_activities_employee_id_fkey(name, department, sub_department, is_super_admin), sales_weekly_plans!sales_activities_plan_id_fkey(status)",
       )
       .neq("is_deleted", true)
       .order("scheduled_date", { ascending: false });
@@ -101,7 +101,7 @@ export const salesAdminService = {
     if (quotaMonthKeys.length > 0) {
       const { data: qData, error: qErr } = await supabase
         .from("sales_quotas")
-        .select("*, employees(name, sub_department)")
+        .select("*, employees(name, sub_department, department)")
         .in("month_year", quotaMonthKeys);
       if (qErr) throw qErr;
       quotas = qData || [];
@@ -111,7 +111,7 @@ export const salesAdminService = {
     const { data: revenues, error: rErr } = await supabase
       .from("sales_revenue_logs")
       .select(
-        "*, employees!sales_revenue_logs_employee_id_fkey(name, sub_department)",
+        "*, employees!sales_revenue_logs_employee_id_fkey(name, sub_department, department)",
       )
       .eq("record_type", "SALES_ORDER")
       .gte("date", startDate)
@@ -128,6 +128,7 @@ export const salesAdminService = {
           employee_id: q.employee_id,
           name: q.employees?.name || "Unknown",
           sub_department: q.employees?.sub_department || "",
+          department: q.employees?.department || "",
           quota: 0,
           revenueWon: 0,
           revenueLost: 0,
@@ -145,6 +146,7 @@ export const salesAdminService = {
           employee_id: r.employee_id,
           name: r.employees?.name || "Sales Rep",
           sub_department: r.employees?.sub_department || "",
+          department: r.employees?.department || "Sales",
           quota: 0,
           revenueWon: 0,
           revenueLost: 0,
