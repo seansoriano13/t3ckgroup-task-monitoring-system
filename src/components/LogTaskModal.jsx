@@ -186,8 +186,6 @@ export default function LogTaskModal({ isOpen, onClose }) {
     return cat.sub_department === selectedEmployeeInfo.sub_department;
   });
 
-  console.log(filteredCategories)
-
   const searchedCategories = filteredCategories.filter((cat) => {
     if (!categorySearch) return true;
     const q = categorySearch.toLowerCase();
@@ -203,11 +201,10 @@ export default function LogTaskModal({ isOpen, onClose }) {
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className={`p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl ${
-          isExpanded
+        className={`p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl ${isExpanded
             ? "top-4 bottom-4 !translate-y-0 h-[calc(100vh-2rem)] max-h-none overflow-hidden"
             : "max-h-[90vh] overflow-hidden"
-        }`}
+          }`}
       >
 
         <LogTaskHeader

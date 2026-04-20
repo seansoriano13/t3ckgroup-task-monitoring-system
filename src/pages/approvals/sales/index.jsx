@@ -41,6 +41,48 @@ export default function SalesHeadApprovalsPage() {
   });
   const [viewActivity, setViewActivity] = useState(null);
   const [sortBy, setSortBy] = useState("NEWEST");
+  const [selectedActivities, setSelectedActivities] = useState(new Set());
+  const [bulkRemarks, setBulkRemarks] = useState("");
+
+  const handleToggleSelection = (id) => {
+    setSelectedActivities((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleToggleDaySelection = (activityIds, isSelected) => {
+    setSelectedActivities((prev) => {
+      const next = new Set(prev);
+      activityIds.forEach(id => {
+        if (isSelected) next.add(id);
+        else next.delete(id);
+      });
+      return next;
+    });
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedActivities(new Set());
+    setBulkRemarks("");
+  };
+
+  const handleBulkAction = () => {
+    if (selectedActivities.size === 0) return;
+    const activityIds = Array.from(selectedActivities);
+    if (activeTab === "PENDING") {
+      bulkVerifyMutation.mutate({ activityIds, remarks: bulkRemarks });
+    } else {
+      bulkUnverifyMutation.mutate({ activityIds });
+    }
+  };
+
+  // Clear selections on tab change
+  useEffect(() => {
+    handleDeselectAll();
+  }, [activeTab]);
 
   // ── Pending activities query ──
   const { data: rawPending = [], isLoading } = useQuery({
@@ -201,7 +243,7 @@ export default function SalesHeadApprovalsPage() {
     processedActivities.forEach((act) => {
       const empName = act.employees?.name || "Unknown Employee";
       if (!map.has(empName)) map.set(empName, new Map());
-      
+
       const dateMap = map.get(empName);
       const date = act.scheduled_date || "Unknown Date";
       if (!dateMap.has(date)) dateMap.set(date, []);
@@ -259,6 +301,7 @@ export default function SalesHeadApprovalsPage() {
       salesService.bulkVerifyActivities(activityIds, remarks, user?.id, user),
     onSuccess: (_, variables) => {
       invalidateAll();
+      handleDeselectAll();
       const count = variables.activityIds.length;
       const ids = variables.activityIds;
 
@@ -309,6 +352,7 @@ export default function SalesHeadApprovalsPage() {
       salesService.bulkUnverifyActivities(activityIds),
     onSuccess: (_, variables) => {
       invalidateAll();
+      handleDeselectAll();
       toast.success(`Undid verification for ${variables.activityIds.length} activities.`);
     },
     onError: (err) => toast.error(err.message),
@@ -350,48 +394,90 @@ export default function SalesHeadApprovalsPage() {
           </div>
         </div>
 
-        {/* TAB TOGGLE */}
-        <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-fit">
-          <button
-            onClick={() => setActiveTab("PENDING")}
-            className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${
-              activeTab === "PENDING"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted-foreground/10"
-            }`}
-          >
-            <CheckCircle2 size={14} />
-            Pending Verification
-            {rawPending.length > 0 && (
-              <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                activeTab === "PENDING"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted-foreground/20 text-muted-foreground"
-              }`}>
-                {rawPending.length}
+        {/* TAB TOGGLE & BULK ACTIONS */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
+          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-fit">
+            <button
+              onClick={() => setActiveTab("PENDING")}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${activeTab === "PENDING"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted-foreground/10"
+                }`}
+            >
+              <CheckCircle2 size={14} />
+              Pending Verification
+              {rawPending.length > 0 && (
+                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "PENDING"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}>
+                  {rawPending.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("VERIFIED")}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${activeTab === "VERIFIED"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted-foreground/10"
+                }`}
+            >
+              <History size={14} />
+              Recently Verified
+              {rawVerified.length > 0 && (
+                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "VERIFIED"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}>
+                  {rawVerified.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* BULK ACTION BAR */}
+          {selectedActivities.size > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 animate-in fade-in slide-in-from-right-2 duration-200">
+              <span className="text-sm font-bold text-foreground bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
+                {selectedActivities.size} Selected
               </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("VERIFIED")}
-            className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${
-              activeTab === "VERIFIED"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted-foreground/10"
-            }`}
-          >
-            <History size={14} />
-            Recently Verified
-            {rawVerified.length > 0 && (
-              <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                activeTab === "VERIFIED"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted-foreground/20 text-muted-foreground"
-              }`}>
-                {rawVerified.length}
-              </span>
-            )}
-          </button>
+
+              <button
+                onClick={handleDeselectAll}
+                className="text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-border cursor-pointer"
+              >
+                Deselect All
+              </button>
+
+              {activeTab === "PENDING" && (
+                <div className="relative">
+                  <MessageSquare size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Remarks"
+                    value={bulkRemarks}
+                    onChange={(e) => setBulkRemarks(e.target.value)}
+                    className="w-40 sm:w-56 bg-background text-xs text-foreground border border-input focus-visible:ring-1 focus-visible:ring-ring rounded-lg pl-8 pr-3 py-1.5 outline-none transition-all"
+                  />
+                </div>
+              )}
+
+              <button
+                onClick={handleBulkAction}
+                disabled={activeTab === "PENDING" ? bulkVerifyMutation.isPending : bulkUnverifyMutation.isPending}
+                className={`flex items-center justify-center gap-2 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap cursor-pointer ${activeTab === "PENDING"
+                    ? "bg-emerald-500 hover:bg-emerald-600"
+                    : "bg-destructive/80 hover:bg-destructive text-destructive-foreground border border-destructive/20"
+                  }`}
+              >
+                {activeTab === "PENDING" ? (
+                  <><CheckCircle2 size={16} /> Verify Selected</>
+                ) : (
+                  <><Undo2 size={16} /> Undo Selected</>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* SEARCH & FILTERS */}
@@ -424,8 +510,8 @@ export default function SalesHeadApprovalsPage() {
         {/* APPROVAL QUEUES (only show on pending tab) */}
         {activeTab === "PENDING" && (
           <div className="space-y-6">
-             <PlanAmendmentApprovalQueue initialExpandedId={location.state?.highlightPlanId} />
-             <DayDeletionApprovalQueue initialHighlightDate={location.state?.highlightDeletionDate} />
+            <PlanAmendmentApprovalQueue initialExpandedId={location.state?.highlightPlanId} />
+            <DayDeletionApprovalQueue initialHighlightDate={location.state?.highlightDeletionDate} />
           </div>
         )}
 
@@ -435,11 +521,10 @@ export default function SalesHeadApprovalsPage() {
             {/* Soft blob decoration inside empty state */}
             <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
 
-            <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${
-              activeTab === "PENDING"
+            <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${activeTab === "PENDING"
                 ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
                 : "bg-muted text-muted-foreground ring-muted/50"
-            }`}>
+              }`}>
               {activeTab === "PENDING" ? <CheckCircle2 size={32} /> : <History size={32} />}
             </div>
             <h3 className="text-foreground font-bold text-2xl tracking-tight relative">
@@ -463,27 +548,30 @@ export default function SalesHeadApprovalsPage() {
                 unverifyMutation={unverifyMutation}
                 bulkUnverifyMutation={bulkUnverifyMutation}
                 onViewDetails={setViewActivity}
+                selectedActivities={selectedActivities}
+                onToggleSelection={handleToggleSelection}
+                onToggleDaySelection={handleToggleDaySelection}
               />
             ))}
           </div>
         )}
       </div>
 
-      <SalesTaskDetailsModal 
-        isOpen={!!viewActivity} 
-        onClose={() => setViewActivity(null)} 
-        activity={viewActivity} 
+      <SalesTaskDetailsModal
+        isOpen={!!viewActivity}
+        onClose={() => setViewActivity(null)}
+        activity={viewActivity}
       />
     </ProtectedRoute>
   );
 }
 
-function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unverifyMutation, bulkUnverifyMutation, onViewDetails }) {
+function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unverifyMutation, bulkUnverifyMutation, onViewDetails, selectedActivities, onToggleSelection, onToggleDaySelection }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all">
-      <div 
+      <div
         className="bg-muted/30 p-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/60 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -518,6 +606,9 @@ function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unv
               unverifyMutation={unverifyMutation}
               bulkUnverifyMutation={bulkUnverifyMutation}
               onViewDetails={onViewDetails}
+              selectedActivities={selectedActivities}
+              onToggleSelection={onToggleSelection}
+              onToggleDaySelection={onToggleDaySelection}
             />
           ))}
         </div>
@@ -526,60 +617,35 @@ function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unv
   );
 }
 
-function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, unverifyMutation, bulkUnverifyMutation, onViewDetails }) {
-  const [dayRemarks, setDayRemarks] = useState("");
-  const isSubmittingBulk = mode === "PENDING" ? bulkVerifyMutation.isPending : bulkUnverifyMutation.isPending;
+function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, unverifyMutation, bulkUnverifyMutation, onViewDetails, selectedActivities, onToggleSelection, onToggleDaySelection }) {
+  const allIds = dateGroup.activities.map((a) => a.id);
+  const isAllSelected = dateGroup.activities.length > 0 && allIds.every((id) => selectedActivities.has(id));
+  const isSomeSelected = !isAllSelected && allIds.some((id) => selectedActivities.has(id));
 
-  const handleVerifyDay = () => {
-    const ids = dateGroup.activities.map((a) => a.id);
-    bulkVerifyMutation.mutate({ activityIds: ids, remarks: dayRemarks });
-  };
-
-  const handleUnverifyDay = () => {
-    const ids = dateGroup.activities.map((a) => a.id);
-    bulkUnverifyMutation.mutate({ activityIds: ids });
+  const handleDaySelectAll = () => {
+    onToggleDaySelection(allIds, !isAllSelected);
   };
 
   return (
     <div className="p-4 sm:p-6 bg-card">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-6">
         <div className="flex items-center gap-2 text-foreground font-black text-sm">
-          <CalendarDays size={18} className="text-primary" />
+          <div className="shrink-0 flex items-center pr-2 border-r border-border" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={isAllSelected}
+              ref={(input) => { if (input) input.indeterminate = isSomeSelected; }}
+              onChange={handleDaySelectAll}
+              className="w-4 h-4 rounded border-input text-primary transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
+              title={isAllSelected ? "Deselect all for date" : "Select all for date"}
+            />
+          </div>
+          <CalendarDays size={18} className="text-primary ml-1" />
           <span className="uppercase tracking-widest">{dateGroup.date}</span>
           <span className="bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-md text-[10px] ml-2">
             {dateGroup.activities.length} Logs
           </span>
         </div>
-
-        {mode === "PENDING" ? (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="relative flex-1 sm:w-64">
-              <MessageSquare size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Remarks for entire day..."
-                value={dayRemarks}
-                onChange={(e) => setDayRemarks(e.target.value)}
-                className="w-full bg-background text-xs text-foreground border border-input focus-visible:ring-1 focus-visible:ring-ring rounded-lg pl-9 pr-3 py-2 outline-none transition-colors"
-              />
-            </div>
-            <button
-              onClick={handleVerifyDay}
-              disabled={isSubmittingBulk}
-              className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap"
-            >
-              <CheckCircle2 size={16} /> Verify Entire Day
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleUnverifyDay}
-            disabled={isSubmittingBulk}
-            className="flex items-center justify-center gap-2 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap"
-          >
-            <Undo2 size={16} /> Undo Entire Day
-          </button>
-        )}
       </div>
 
       {(() => {
@@ -592,9 +658,9 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
 
         const renderCard = (act) =>
           mode === "PENDING" ? (
-            <ActivityCard key={act.id} activity={act} verifyMutation={verifyMutation} onViewDetails={onViewDetails} />
+            <ActivityCard key={act.id} activity={act} onViewDetails={onViewDetails} isSelected={selectedActivities.has(act.id)} onToggleSelection={() => onToggleSelection(act.id)} />
           ) : (
-            <VerifiedActivityCard key={act.id} activity={act} unverifyMutation={unverifyMutation} onViewDetails={onViewDetails} />
+            <VerifiedActivityCard key={act.id} activity={act} onViewDetails={onViewDetails} isSelected={selectedActivities.has(act.id)} onToggleSelection={() => onToggleSelection(act.id)} />
           );
 
         return (
@@ -651,24 +717,28 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
   );
 }
 
-function ActivityCard({ activity, verifyMutation, onViewDetails }) {
-  const [remarks, setRemarks] = useState("");
-  const isSubmitting = verifyMutation.isPending;
-
-  const handleVerify = () => {
-    verifyMutation.mutate({ activityId: activity.id, remarks });
-  };
-
+function ActivityCard({ activity, onViewDetails, isSelected, onToggleSelection }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-4 flex flex-col hover:border-primary/50 hover:shadow-md transition-all group">
+    <div className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${isSelected ? "border-primary shadow-sm bg-primary/5" : "border-border hover:border-primary/50"
+      }`}>
       <div className="flex justify-between items-start mb-3">
-        <div>
-          <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
-            {activity.account_name || "No Account Specify"}
-          </h4>
-          <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
-            {activity.activity_type}
-          </span>
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 mt-0.5" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onToggleSelection}
+              className="w-4 h-4 rounded border-input text-primary transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
+              {activity.account_name || "No Account Specify"}
+            </h4>
+            <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
+              {activity.activity_type}
+            </span>
+          </div>
         </div>
         <div className="flex gap-2 text-[10px] font-black tracking-widest uppercase items-center">
           <span className="text-muted-foreground bg-muted px-2 py-1 rounded-md flex items-center gap-1 border border-border">
@@ -679,7 +749,7 @@ function ActivityCard({ activity, verifyMutation, onViewDetails }) {
               Unplanned
             </span>
           )}
-          <button 
+          <button
             className="text-muted-foreground hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); onViewDetails(activity); }}
             title="Open Full Details"
@@ -689,57 +759,46 @@ function ActivityCard({ activity, verifyMutation, onViewDetails }) {
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground flex-1 leading-relaxed mb-4 line-clamp-3" title={activity.details_daily}>
+      <p className="text-xs text-muted-foreground flex-1 leading-relaxed line-clamp-3" title={activity.details_daily}>
         <span className="font-bold text-foreground">Details:</span> {activity.details_daily || "-"}
       </p>
-
-      {/* FOOTER ACTIONS */}
-      <div className="pt-3 border-t border-border flex flex-col xl:flex-row gap-3">
-        <div className="flex-1 relative">
-          <MessageSquare size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Feedback..."
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            className="w-full bg-background text-[11px] text-foreground border border-input focus-visible:ring-1 focus-visible:ring-ring rounded-md pl-8 pr-2 py-1.5 outline-none transition-colors"
-          />
-        </div>
-        <button
-          onClick={handleVerify}
-          disabled={isSubmitting}
-          className="flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
-        >
-          <CheckCircle2 size={14} /> Verify Activity
-        </button>
-      </div>
     </div>
   );
 }
 
-function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
-  const isSubmitting = unverifyMutation.isPending;
+function VerifiedActivityCard({ activity, onViewDetails, isSelected, onToggleSelection }) {
 
   const verifiedAtFormatted = activity.head_verified_at
     ? new Date(activity.head_verified_at).toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
     : "—";
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 flex flex-col hover:border-primary/50 hover:shadow-md transition-all group">
+    <div className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${isSelected ? "border-primary shadow-sm bg-primary/5" : "border-border hover:border-primary/50"
+      }`}>
       <div className="flex justify-between items-start mb-3">
-        <div>
-          <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
-            {activity.account_name || "No Account Specify"}
-          </h4>
-          <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
-            {activity.activity_type}
-          </span>
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 mt-0.5" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onToggleSelection}
+              className="w-4 h-4 rounded border-input text-primary transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
+              {activity.account_name || "No Account Specify"}
+            </h4>
+            <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
+              {activity.activity_type}
+            </span>
+          </div>
         </div>
         <div className="flex gap-2 text-[10px] font-black tracking-widest uppercase items-center">
           <span className="text-muted-foreground bg-muted px-2 py-1 rounded-md flex items-center gap-1 border border-border">
@@ -750,7 +809,7 @@ function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
               Unplanned
             </span>
           )}
-          <button 
+          <button
             className="text-muted-foreground hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); onViewDetails(activity); }}
             title="Open Full Details"
@@ -765,7 +824,7 @@ function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
       </p>
 
       {/* Verification metadata */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-[10px]">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[10px]">
         <span className="text-muted-foreground flex items-center gap-1">
           <CheckCircle2 size={10} className="text-emerald-500" />
           Verified: <span className="text-foreground font-semibold">{verifiedAtFormatted}</span>
@@ -776,17 +835,6 @@ function VerifiedActivityCard({ activity, unverifyMutation, onViewDetails }) {
             Remarks: <span className="text-foreground font-semibold italic">"{activity.head_remarks}"</span>
           </span>
         )}
-      </div>
-
-      {/* FOOTER ACTIONS */}
-      <div className="pt-3 border-t border-border flex justify-end">
-        <button
-          onClick={() => unverifyMutation.mutate({ activityId: activity.id })}
-          disabled={isSubmitting}
-          className="flex items-center justify-center gap-1.5 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
-        >
-          <Undo2 size={14} /> Undo Verify
-        </button>
       </div>
     </div>
   );

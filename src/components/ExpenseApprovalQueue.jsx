@@ -136,8 +136,6 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
     </div>
   );
 
-  console.log(appSettings)
-
   if (pendingExpenses.length === 0) return (
     <div className="bg-card border border-border rounded-2xl shadow-sm mb-6 px-5 py-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -243,10 +241,9 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
             <div
               key={task.id}
               ref={el => itemRefs.current[task.id] = el}
-              className={`px-5 py-4 flex items-start gap-3 transition-colors ${
-                isHighlighted ? "bg-primary/5 border-l-4 border-primary" :
-                isChecked ? "bg-muted" : "hover:bg-muted/50 bg-card"
-              }`}
+              className={`px-5 py-4 flex items-start gap-3 transition-colors ${isHighlighted ? "bg-primary/5 border-l-4 border-primary" :
+                  isChecked ? "bg-muted" : "hover:bg-muted/50 bg-card"
+                }`}
             >
               {/* Row checkbox */}
               <button

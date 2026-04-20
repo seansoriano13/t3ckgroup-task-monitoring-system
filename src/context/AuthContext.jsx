@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth Event:", event);
-      
+
       if (session?.user) {
         // If we have a session, always try to resolve the employee
         resolveEmployee(session.user);

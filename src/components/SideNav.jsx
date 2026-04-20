@@ -293,7 +293,7 @@ export default function SideNav({ onOpenAddTask }) {
               setIsNotifOpen(true);
               setIsMobileOpen(false);
             }}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isNotifOpen ? "bg-sidebar-accent text-sidebar-primary text-sidebar-foreground" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isNotifOpen ? "bg-sidebar-accent text-sidebar-primary shadow-sm" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
           >
             <div className="flex items-center gap-3.5">
               <svg
@@ -305,20 +305,20 @@ export default function SideNav({ onOpenAddTask }) {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-sidebar-foreground/60 group-hover:text-sidebar-foreground/80"
+                className={`transition-colors ${isNotifOpen ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground/80"}`}
               >
                 <path d="M4 11V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
                 <path d="M4 11h3a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2h3" />
                 <path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
               </svg>
               <span
-                className={`font-medium text-[13.5px] ${isNotifOpen ? "text-sidebar-foreground" : ""}`}
+                className={`text-[13.5px] transition-all ${isNotifOpen ? "font-bold text-sidebar-primary" : "font-medium"}`}
               >
                 Notification
               </span>
             </div>
             {unreadCount > 0 && (
-              <span className="text-[11px] font-medium text-sidebar-foreground/80 group-hover:text-sidebar-foreground bg-sidebar-accent/50 group-hover:bg-sidebar-accent/80 px-1.5 py-0.5 rounded-full">
+              <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full transition-colors ${isNotifOpen ? "bg-sidebar-primary text-white" : "text-sidebar-foreground/80 group-hover:text-sidebar-foreground bg-sidebar-accent/50 group-hover:bg-sidebar-accent/80"}`}>
                 {unreadCount}
               </span>
             )}
@@ -329,7 +329,7 @@ export default function SideNav({ onOpenAddTask }) {
               setIsChatsOpen(true);
               setIsMobileOpen(false);
             }}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isChatsOpen ? "bg-sidebar-accent text-sidebar-primary text-sidebar-foreground" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isChatsOpen ? "bg-sidebar-accent text-sidebar-primary shadow-sm" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
           >
             <div className="flex items-center gap-3.5">
               <svg
@@ -341,16 +341,16 @@ export default function SideNav({ onOpenAddTask }) {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-sidebar-foreground/80"
+                className={`transition-colors ${isChatsOpen ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground/80"}`}
               >
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                 <path d="M9 12h6" />
                 <path d="M12 9v6" />
               </svg>
-              <span className="font-medium text-[13.5px]">Chats</span>
+              <span className={`text-[13.5px] transition-all ${isChatsOpen ? "font-bold text-sidebar-primary" : "font-medium"}`}>Chats</span>
             </div>
             {unreadChatsCount > 0 && (
-              <span className="text-[11px] font-medium text-sidebar-foreground bg-sidebar-accent/80 px-1.5 py-0.5 rounded-full">
+              <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full transition-colors ${isChatsOpen ? "bg-sidebar-primary text-white" : "text-sidebar-foreground bg-sidebar-accent/80"}`}>
                 {unreadChatsCount}
               </span>
             )}
@@ -383,16 +383,24 @@ export default function SideNav({ onOpenAddTask }) {
                   }
                   onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex gap-3.5 items-center px-3 py-2.5 rounded-md font-medium transition-colors ${isActive
-                      ? "text-sidebar-foreground bg-sidebar-accent text-sidebar-primary"
+                    `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${isActive
+                      ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
                       : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
                     }`
                   }
                 >
-                  <Icon size={15} strokeWidth={2.2} className="text-sidebar-foreground/60" />
-                  <span className="truncate text-[13.5px] mt-[1px]">
-                    {navLink.label}
-                  </span>
+                  {({ isActive }) => (
+                    <>
+                      <Icon 
+                        size={15} 
+                        strokeWidth={2.2} 
+                        className={`transition-colors ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`} 
+                      />
+                      <span className={`truncate text-[13.5px] mt-[1px] transition-all ${isActive ? "font-bold text-sidebar-primary" : "font-medium"}`}>
+                        {navLink.label}
+                      </span>
+                    </>
+                  )}
                 </NavLink>
               );
             })}
