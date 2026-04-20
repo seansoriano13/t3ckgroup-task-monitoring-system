@@ -7,6 +7,9 @@ import {
   TrendingUp,
   Search,
   X,
+  List,
+  LayoutGrid,
+  Rows3
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
@@ -22,6 +25,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
 
   const userDepartment = user?.department;
   const [searchTerm, setSearchTerm] = useState("");
+  const [layoutMode, setLayoutMode] = useState("stack"); // "row" | "stack" | "grid"
 
   // Fetch ALL tasks (we will filter them down for Heads)
   const { data: rawTasks = [], isLoading } = useQuery({
@@ -167,6 +171,30 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             )}
           </div>
 
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-lg">
+            <button
+              onClick={() => setLayoutMode("row")}
+              className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-white shadow-sm text-blue-600" : "text-slate-400 hover:text-slate-600"}`}
+              title="Single Row"
+            >
+              <List size={16} />
+            </button>
+            <button
+              onClick={() => setLayoutMode("stack")}
+              className={`p-1 rounded transition-all ${layoutMode === "stack" ? "bg-white shadow-sm text-blue-600" : "text-slate-400 hover:text-slate-600"}`}
+              title="3-Row Stack"
+            >
+              <Rows3 size={16} />
+            </button>
+            <button
+              onClick={() => setLayoutMode("grid")}
+              className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-slate-400 hover:text-slate-600"}`}
+              title="Full Grid"
+            >
+              <LayoutGrid size={16} />
+            </button>
+          </div>
+
           <div className="hidden sm:flex items-center gap-1.5 bg-card border border-border px-3 py-1.5 rounded-lg h-full">
             <Users size={14} className="text-[#9CA3AF]" />
             <span className="text-xs text-[#6B7280]">
@@ -176,15 +204,20 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
         </div>
       </div>
 
-      {/* HORIZONTAL SCROLLING GRID */}
-      <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x">
+      {/* DYNAMIC PIPELINE GRID */}
+      <div className={`
+        ${layoutMode === "row" ? "flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+        ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+        ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4" : ""}
+      `}>
         {filteredStats.map((emp) => (
           <div
             key={emp.id}
             onClick={() =>
               navigate("/tasks", { state: { filterEmployeeId: emp.id } })
             }
-            className="cursor-pointer min-w-[260px] sm:min-w-[290px] flex flex-col snap-start hover:border-slate-300 transition-colors hover:bg-slate-50"
+            className={`cursor-pointer flex flex-col transition-colors hover:bg-slate-50 hover:border-slate-300 ${layoutMode === "grid" ? "w-full" : "min-w-[260px] sm:min-w-[290px] snap-start"
+              }`}
             style={{
               border: "1px solid #E5E7EB",
               borderRadius: "8px",
