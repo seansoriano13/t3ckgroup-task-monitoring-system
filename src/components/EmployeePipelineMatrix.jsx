@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ShieldAlert, Star, Users, TrendingUp, Search, X } from "lucide-react";
+import { Activity, ShieldAlert, Star, Users, TrendingUp, Search, X, List, LayoutGrid, Rows3 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
@@ -14,6 +14,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
 
   const userDepartment = user?.department;
   const [searchTerm, setSearchTerm] = useState("");
+  const [layoutMode, setLayoutMode] = useState("stack"); // "row" | "stack" | "grid"
 
   // Fetch ALL tasks (we will filter them down for Heads)
   const { data: rawTasks = [], isLoading } = useQuery({
@@ -149,6 +150,30 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             )}
           </div>
           
+          <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 p-1 rounded-lg h-full">
+            <button
+              onClick={() => setLayoutMode("row")}
+              className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-white shadow-sm text-primary" : "text-gray-9 hover:text-gray-12"}`}
+              title="Single Row"
+            >
+              <List size={16} />
+            </button>
+            <button
+              onClick={() => setLayoutMode("stack")}
+              className={`p-1 rounded transition-all ${layoutMode === "stack" ? "bg-white shadow-sm text-primary" : "text-gray-9 hover:text-gray-12"}`}
+              title="3-Row Stack"
+            >
+              <Rows3 size={16} />
+            </button>
+            <button
+              onClick={() => setLayoutMode("grid")}
+              className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-white shadow-sm text-primary" : "text-gray-9 hover:text-gray-12"}`}
+              title="Full Grid"
+            >
+              <LayoutGrid size={16} />
+            </button>
+          </div>
+
           <div className="hidden sm:flex items-center gap-1.5 bg-gray-2 border border-gray-4 px-3 py-1.5 rounded-lg h-full">
             <Users size={14} className="text-gray-10" />
             <span className="text-xs font-bold text-gray-11 tracking-wider uppercase">
@@ -158,13 +183,19 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
         </div>
       </div>
 
-      {/* HORIZONTAL SCROLLING GRID */}
-      <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
+      {/* DYNAMIC PIPELINE GRID */}
+      <div className={`
+        ${layoutMode === "row" ? "flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+        ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+        ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 px-0.5" : ""}
+      `}>
         {filteredStats.map((emp) => (
           <div
             key={emp.id}
             onClick={() => navigate("/tasks", { state: { filterEmployeeId: emp.id } })}
-            className="cursor-pointer min-w-[280px] sm:min-w-[320px] bg-gray-2 border border-gray-4 rounded-xl p-4 flex flex-col gap-4 snap-start hover:border-gray-5 transition-colors"
+            className={`cursor-pointer bg-gray-2 border border-gray-4 rounded-xl p-4 flex flex-col gap-4 transition-colors hover:border-gray-5 ${
+              layoutMode === "grid" ? "w-full" : "min-w-[280px] sm:min-w-[320px] snap-start"
+            }`}
           >
             {/* Header: Avatar & Name */}
             <div className="flex justify-between items-start gap-3">
