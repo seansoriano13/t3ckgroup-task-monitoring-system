@@ -233,11 +233,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
           <LogTaskPropertyBar
             formData={formData}
             setFormData={setFormData}
-            openPopover={openPopover}
-            onTogglePopover={togglePopoverWithScroll}
-            categorySearch={categorySearch}
-            setCategorySearch={setCategorySearch}
-            searchedCategories={searchedCategories}
+            categories={filteredCategories}
             isLoadingData={isLoadingData}
             categoryRef={categoryRef}
             priorityRef={priorityRef}

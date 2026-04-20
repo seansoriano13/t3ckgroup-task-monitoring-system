@@ -124,21 +124,19 @@ export default function EmployeeManagement() {
         <div className="flex items-center gap-1 p-1 bg-card border border-border rounded-xl w-fit shadow-sm">
           <button
             onClick={() => setActiveTab("employees")}
-            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
-              activeTab === "employees"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
+            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${activeTab === "employees"
+              ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
           >
             Employees
           </button>
           <button
             onClick={() => setActiveTab("categories")}
-            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
-              activeTab === "categories"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
+            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${activeTab === "categories"
+              ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
           >
             Categories Config
           </button>
@@ -168,99 +166,99 @@ export default function EmployeeManagement() {
               </button>
             </div>
 
-        <div className="bg-card border border-border rounded-2xl shadow-sm overflow-x-auto">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-muted/50 border-b border-border text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
-                <th className="p-4">Name</th>
-                <th className="p-4">Email</th>
-                <th className="p-4">Department</th>
-                <th className="p-4">Sub-Dept</th>
-                <th className="p-4">Role</th>
-                <th className="p-4">Role Flags</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-                <tbody className="divide-y divide-border">
-              {isLoading ? (
-                <tr>
-                  <td colSpan="6" className="p-10 text-center text-muted-foreground font-bold">
-                    <Loader2 size={24} className="animate-spin mx-auto mb-2 text-indigo-500" />
-                    Loading employees...
-                  </td>
-                </tr>
-              ) : filteredEmployees.length > 0 ? (
-                filteredEmployees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="p-4 text-sm font-bold text-foreground flex items-center gap-3">
-                      <img
-                        src={resolvedAvatars[emp.id] || "/default-avatar.png"}
-                        alt={emp.name}
-                        className="w-9 h-9 rounded-xl border border-border object-cover shadow-sm shrink-0"
-                        onError={(e) => { e.target.src = "/default-avatar.png"; }}
-                      />
-                      <div className="truncate">
-                        <p className="font-black text-foreground">{emp.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                          {emp.id?.slice(0, 8)}...
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-muted-foreground">{emp.email}</td>
-                    <td className="p-4 text-sm text-muted-foreground">{emp.department || "-"}</td>
-                    <td className="p-4 text-sm text-muted-foreground">{emp.subDepartment || "-"}</td>
-                    <td className="p-4 text-sm text-foreground font-semibold">{emp.role || "-"}</td>
-                    <td className="p-4 text-xs flex gap-1 items-center flex-wrap">
-                      {emp.isSuperAdmin && (
-                        <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
-                          <Shield size={11} /> Super Admin
-                        </span>
-                      )}
-                      {emp.isHr && (
-                        <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
-                          HR
-                        </span>
-                      )}
-                      {emp.isHead && (
-                        <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
-                          Head
-                        </span>
-                      )}
-                      {!emp.isSuperAdmin && !emp.isHr && !emp.isHead && (
-                        <span className="bg-muted text-muted-foreground border border-border px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
-                          Standard
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right space-x-2">
-                      <button
-                        onClick={() => handleEdit(emp)}
-                        className="p-2 bg-muted hover:bg-muted/70 text-foreground rounded-xl transition-all inline-block hover:border-indigo-200 border border-transparent"
-                        title="Edit Employee"
-                      >
-                        <Edit size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(emp.id)}
-                        className="p-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl transition-all inline-block border border-transparent hover:border-destructive/20"
-                        title="Delete Employee"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </td>
+            <div className="bg-card border border-border rounded-2xl shadow-sm overflow-x-auto">
+              <table className="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
+                    <th className="p-4">Name</th>
+                    <th className="p-4">Email</th>
+                    <th className="p-4">Department</th>
+                    <th className="p-4">Sub-Dept</th>
+                    <th className="p-4">Role</th>
+                    <th className="p-4">Role Flags</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="p-10 text-center text-muted-foreground font-bold italic text-sm">
-                    No employees found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="6" className="p-10 text-center text-muted-foreground font-bold">
+                        <Loader2 size={24} className="animate-spin mx-auto mb-2 text-indigo-500" />
+                        Loading employees...
+                      </td>
+                    </tr>
+                  ) : filteredEmployees.length > 0 ? (
+                    filteredEmployees.map((emp) => (
+                      <tr key={emp.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="p-4 text-sm font-bold text-foreground flex items-center gap-3">
+                          <img
+                            src={resolvedAvatars[emp.id] || "/default-avatar.png"}
+                            alt={emp.name}
+                            className="w-9 h-9 rounded-xl border border-border object-cover shadow-sm shrink-0"
+                            onError={(e) => { e.target.src = "/default-avatar.png"; }}
+                          />
+                          <div className="truncate">
+                            <p className="font-black text-foreground">{emp.name}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                              {emp.id?.slice(0, 8)}...
+                            </p>
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground">{emp.email}</td>
+                        <td className="p-4 text-sm text-muted-foreground">{emp.department || "-"}</td>
+                        <td className="p-4 text-sm text-muted-foreground">{emp.subDepartment || "-"}</td>
+                        <td className="p-4 text-sm text-foreground font-semibold">{emp.role || "-"}</td>
+                        <td className="p-4 text-xs flex gap-1">
+                          {emp.isSuperAdmin && (
+                            <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
+                              <Shield size={11} /> Super Admin
+                            </span>
+                          )}
+                          {emp.isHr && (
+                            <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
+                              HR
+                            </span>
+                          )}
+                          {emp.isHead && (
+                            <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
+                              Head
+                            </span>
+                          )}
+                          {!emp.isSuperAdmin && !emp.isHr && !emp.isHead && (
+                            <span className="bg-muted text-muted-foreground border border-border px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
+                              Standard
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleEdit(emp)}
+                            className="p-2 bg-muted hover:bg-muted/70 text-foreground rounded-xl transition-all inline-block hover:border-indigo-200 border border-transparent"
+                            title="Edit Employee"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(emp.id)}
+                            className="p-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl transition-all inline-block border border-transparent hover:border-destructive/20"
+                            title="Delete Employee"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="p-10 text-center text-muted-foreground font-bold italic text-sm">
+                        No employees found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <HRCategoriesConfig />
@@ -586,7 +584,7 @@ function EmployeeFormModal({ employee, onClose }) {
             <button
               type="button"
               onClick={onClose}
-            className="flex-1 py-2.5 bg-muted hover:bg-muted/70 text-foreground font-black rounded-xl transition-colors text-[11px] uppercase tracking-widest"
+              className="flex-1 py-2.5 bg-muted hover:bg-muted/70 text-foreground font-black rounded-xl transition-colors text-[11px] uppercase tracking-widest"
             >
               Cancel
             </button>

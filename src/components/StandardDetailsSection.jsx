@@ -6,7 +6,8 @@ import StatusBadge from "./StatusBadge";
 import { TASK_STATUS } from "../constants/status";
 import { Input } from "@/components/ui/input";
 import { Clock } from "lucide-react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ChevronDown } from "lucide-react";
+import PriorityDropdown from "./dropdowns/PriorityDropdown";
 
 const StandardDetailsSection = ({
   isEditing,
@@ -73,22 +74,22 @@ const StandardDetailsSection = ({
         </FieldBox>
         <FieldBox label="Priority" isEditing={isEditing}>
           {isEditing ? (
-            <select
-              name="priority"
+            <PriorityDropdown
               value={formData.priority}
-              onChange={handleChange}
-              className={`w-full bg-transparent px-3 py-2 outline-none text-sm font-bold cursor-pointer ${formData.priority === "HIGH" ? "text-red-9" : "text-foreground"}`}
-            >
-              <option value="LOW" className="text-foreground">
-                LOW
-              </option>
-              <option value="MEDIUM" className="text-foreground">
-                MEDIUM
-              </option>
-              <option value="HIGH" className="text-red-9">
-                HIGH
-              </option>
-            </select>
+              onChange={(val) =>
+                handleChange({ target: { name: "priority", value: val } })
+              }
+              triggerClassName="w-full bg-transparent px-3 py-2 outline-none text-sm font-bold cursor-pointer flex items-center gap-2"
+              customTrigger={({ isOpen, currentPriority }) => (
+                <div className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-colors ${isOpen ? 'bg-muted/50' : 'hover:bg-muted/30'} cursor-pointer`}>
+                  <div className={`flex items-center gap-2 ${currentPriority.value === 'HIGH' ? 'text-destructive' : currentPriority.value === 'MEDIUM' ? 'text-amber-600' : 'text-slate-500'}`}>
+                    <div className={`w-2 h-2 rounded-full ${currentPriority.dot}`} />
+                    <span className="font-bold">{currentPriority.label}</span>
+                  </div>
+                  <ChevronDown size={14} className="text-slate-400" />
+                </div>
+              )}
+            />
           ) : (
             <div
               className={`px-3 text-sm font-bold flex items-center gap-2 ${task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-amber-600" : "text-slate-400"}`}

@@ -752,4 +752,41 @@ export const taskMutationService = {
     }
     return true;
   },
+
+  async bulkUnverifyTasks(taskIds, hrId) {
+    if (!taskIds || taskIds.length === 0) return;
+
+    const { data: hr } = await supabase
+      .from("employees")
+      .select("is_hr, is_super_admin, name")
+      .eq("id", hrId)
+      .single();
+
+    if (!hr?.is_hr && !hr?.is_super_admin) {
+      throw new Error("Unauthorized: Only HR/Admins can unverify tasks.");
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        hr_verified: false,
+        hr_verified_at: null,
+        hr_remarks: "",
+        edited_by: hrId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", taskIds)
+      .select();
+
+    if (error) throw error;
+
+    for (const task of data) {
+      taskActivityService.addSystemEvent(
+        task.id,
+        `HR verification undone by ${hr?.name || "HR"}.`,
+        { event: "HR_UNDO" }
+      );
+    }
+    return true;
+  },
 };

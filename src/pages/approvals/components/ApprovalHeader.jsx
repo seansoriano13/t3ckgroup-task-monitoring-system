@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, CheckSquare, XSquare } from "lucide-react";
+import { CheckCircle2, Clock, CheckSquare, XSquare, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function ApprovalHeader({
@@ -11,6 +11,8 @@ export function ApprovalHeader({
   onSelectAllPending,
   onDeselectAll,
   handleBulkApprove,
+  handleUndoBulk,
+  isVerifiedTab,
 }) {
   const title = isSuperAdmin ? "Task Verification Queue" : isHr ? "HR Verification Queue" : "Manager Task Queue";
   
@@ -50,11 +52,12 @@ export function ApprovalHeader({
                   <XSquare className="mr-2 h-4 w-4" /> Deselect All
                 </Button>
                 <Button
-                  onClick={handleBulkApprove}
+                  onClick={isVerifiedTab ? handleUndoBulk : handleBulkApprove}
                   size="sm"
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-sm"
+                  className={`font-semibold shadow-sm text-white ${isVerifiedTab ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"}`}
                 >
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Approve {selectedCount} Selected
+                  {isVerifiedTab ? <Undo2 className="mr-2 h-4 w-4" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                  {isVerifiedTab ? "Undo" : "Approve"} {selectedCount} Selected
                 </Button>
               </>
             ) : filteredTasksCount > 0 ? (
@@ -72,7 +75,7 @@ export function ApprovalHeader({
         <div className="bg-card border border-border px-4 py-2.5 rounded-lg flex items-center gap-2.5 shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)]">
           <Clock size={16} className="text-primary" />
           <span className="text-foreground font-bold text-sm tracking-tight">
-            {pendingTasksCount} Pending
+            {pendingTasksCount} {isVerifiedTab ? "Verified" : "Pending"}
           </span>
         </div>
       </div>

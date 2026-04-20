@@ -6,7 +6,7 @@ import { taskService } from "../../services/taskService.js";
 import { supabase } from "../../lib/supabase.js";
 import { TASK_STATUS } from "../../constants/status.js";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
-import { Search, CheckCircle2 } from "lucide-react"
+import { Search, CheckCircle2, History } from "lucide-react";
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import TaskDetails from "../../components/TaskDetails.jsx";
@@ -46,6 +46,7 @@ export default function ApprovalsPage() {
   const navigate = useNavigate();
   const [autoOpenId, setAutoOpenId] = useState(null);
   const [viewTask, setViewTask] = useState(null); // Full Modal State
+  const [activeTab, setActiveTab] = useState("PENDING"); // "PENDING" | "VERIFIED"
 
   // Filter state (Head-only UX)
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,7 +80,11 @@ export default function ApprovalsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, priorityFilter, sortBy, dateRange, statusFilter, deptFilter, subDeptFilter, employeeFilter]);
+    setSelectedTaskIds([]);
+    if (activeTab === "VERIFIED") {
+      setStatusFilter("ALL");
+    }
+  }, [searchQuery, priorityFilter, sortBy, dateRange, statusFilter, deptFilter, subDeptFilter, employeeFilter, activeTab]);
 
 
   useEffect(() => {
@@ -233,8 +238,36 @@ export default function ApprovalsPage() {
     appSettings,
   ]);
 
+  const verifiedTasks = useMemo(() => {
+    return rawTasks
+      .filter((t) => {
+        const isNotMe = t.loggedById !== user?.id;
+        if (!isNotMe) return false;
+
+        if (isHr) {
+          return t.status === TASK_STATUS.COMPLETE && t.hrVerified;
+        }
+
+        if (isHead || isSuperAdmin) {
+          if (isSuperAdmin) {
+            return t.status === TASK_STATUS.COMPLETE && t.evaluatedById != null;
+          }
+          return t.status === TASK_STATUS.COMPLETE && t.evaluatedById === user?.id;
+        }
+
+        return false;
+      })
+      .sort((a, b) => {
+        const aDate = isHr ? a.hrVerifiedAt : a.evaluatedAt;
+        const bDate = isHr ? b.hrVerifiedAt : b.evaluatedAt;
+        return new Date(bDate || b.createdAt) - new Date(aDate || a.createdAt);
+      });
+  }, [rawTasks, user?.id, isHr, isHead, isSuperAdmin]);
+
+  const activeRawData = activeTab === "PENDING" ? pendingTasks : verifiedTasks;
+
   const filteredTasks = useMemo(() => {
-    let result = [...pendingTasks];
+    let result = [...activeRawData];
 
     const q = searchQuery.trim().toLowerCase();
     if (q) {
@@ -318,7 +351,7 @@ export default function ApprovalsPage() {
 
     return result;
   }, [
-    pendingTasks,
+    activeRawData,
     searchQuery,
     priorityFilter,
     sortBy,
@@ -378,6 +411,23 @@ export default function ApprovalsPage() {
     );
   };
 
+  const handleUndoBulkDirect = async () => {
+    if (!selectedTaskIds.length) return;
+    try {
+      if (isHr && activeTab === "VERIFIED") {
+        await taskService.bulkUnverifyTasks(selectedTaskIds, user.id);
+      } else {
+        await taskService.undoBulkApproval(selectedTaskIds, user.id);
+      }
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      setSelectedTaskIds([]);
+      toast.success("Action reverted successfully.");
+    } catch (err) {
+      toast.error(err.message || "Failed to revert action.");
+    }
+  };
+
   const handleUndoBulk = async (taskIds) => {
     try {
       await taskService.undoBulkApproval(taskIds, user.id);
@@ -431,15 +481,59 @@ export default function ApprovalsPage() {
           isHr={isHr}
           isSuperAdmin={isSuperAdmin}
           appSettings={appSettings}
-          pendingTasksCount={pendingTasks.length}
+          pendingTasksCount={activeRawData.length}
           filteredTasksCount={filteredTasks.length}
           selectedCount={selectedTaskIds.length}
           onSelectAllPending={handleSelectAllPending}
           onDeselectAll={handleDeselectAll}
           handleBulkApprove={() => setIsBulkGradeModalOpen(true)}
+          handleUndoBulk={handleUndoBulkDirect}
+          isVerifiedTab={activeTab === "VERIFIED"}
         />
 
-        {pendingTasks.length > 0 && (
+        {/* TAB TOGGLE */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/50 pb-4 mt-2">
+          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("PENDING")}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${activeTab === "PENDING"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted-foreground/10"
+                }`}
+            >
+              <CheckCircle2 size={14} />
+              Pending
+              {pendingTasks.length > 0 && (
+                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "PENDING"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}>
+                  {pendingTasks.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("VERIFIED")}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${activeTab === "VERIFIED"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted-foreground/10"
+                }`}
+            >
+              <History size={14} />
+              Recently {isHr ? 'Verified' : 'Approved'}
+              {verifiedTasks.length > 0 && (
+                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "VERIFIED"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}>
+                  {verifiedTasks.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {activeRawData.length > 0 && (
           <TaskFilters
             searchTerm={searchQuery}
             setSearchTerm={setSearchQuery}
@@ -462,19 +556,19 @@ export default function ApprovalsPage() {
             uniqueDepts={uniqueDepts}
             uniqueSubDepts={uniqueSubDepts}
             uniqueEmployees={uniqueEmployees}
-            showStatusFilter={true}
+            showStatusFilter={activeTab === "PENDING"}
             sortBy={sortBy}
             setSortBy={setSortBy}
           />
         )}
 
-        {!isHr && <ExpenseApprovalQueue isSuperAdmin={false} />}
+        {!isHr && activeTab === "PENDING" && <ExpenseApprovalQueue isSuperAdmin={false} />}
 
         {filteredTasks.length > 0 ? (
           <div className="flex flex-col gap-4">
             {(searchQuery || priorityFilter !== "ALL") && (
               <p className="text-xs font-bold text-muted-foreground px-1">
-                Showing {filteredTasks.length} of {pendingTasks.length} tasks
+                Showing {filteredTasks.length} of {activeRawData.length} tasks
               </p>
             )}
             {paginatedTasks.map((task) => (
@@ -494,6 +588,7 @@ export default function ApprovalsPage() {
                 appSettings={appSettings}
                 isSelected={selectedTaskIds.includes(task.id)}
                 onToggleSelection={appSettings?.enable_bulk_approval ? toggleTaskSelection : undefined}
+                isVerifiedTab={activeTab === "VERIFIED"}
               />
             ))}
 
@@ -555,12 +650,19 @@ export default function ApprovalsPage() {
             {/* Soft blob decoration inside empty state */}
             <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
 
-            <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100/50 text-emerald-600 mb-6 shadow-sm ring-4 ring-emerald-50">
-              <CheckCircle2 size={32} />
+            <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${activeTab === "PENDING"
+              ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
+              : "bg-muted text-muted-foreground ring-muted/50"
+              }`}>
+              {activeTab === "PENDING" ? <CheckCircle2 size={32} /> : <History size={32} />}
             </div>
-            <p className="text-foreground font-bold text-2xl tracking-tight relative">Inbox Zero!</p>
+            <p className="text-foreground font-bold text-2xl tracking-tight relative">
+              {activeTab === "PENDING" ? "Inbox Zero!" : "No Verified Tasks"}
+            </p>
             <p className="text-muted-foreground mt-2 relative font-medium">
-              You're all caught up. No pending approvals require your attention.
+              {activeTab === "PENDING"
+                ? "You're all caught up. No pending approvals require your attention."
+                : "Tasks you've verified will appear here."}
             </p>
           </div>
         )}

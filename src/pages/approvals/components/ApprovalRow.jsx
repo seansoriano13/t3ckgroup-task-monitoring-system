@@ -20,11 +20,12 @@ export function ApprovalRow({
   appSettings,
   isSelected,
   onToggleSelection,
+  isVerifiedTab,
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
-  const [grade, setGrade] = useState(null);
-  const [remarks, setRemarks] = useState("");
-  const [hrRemarks, setHrRemarks] = useState("");
+  const [grade, setGrade] = useState(task.grade || null);
+  const [remarks, setRemarks] = useState(task.remarks || "");
+  const [hrRemarks, setHrRemarks] = useState(task.hrRemarks || "");
   const rowRef = useRef(null);
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export function ApprovalRow({
   }, [expanded]);
 
   const handleKeyDown = (e) => {
-    if (!expanded || isSubmitting) return;
+    if (!expanded || isSubmitting || isVerifiedTab) return;
 
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
       return;
@@ -210,7 +211,7 @@ export function ApprovalRow({
                   : "?"}
              </div>
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 md:flex-none md:w-40 lg:w-56 shrink-0">
             <h3 className="font-bold text-foreground text-xs md:text-sm truncate">
               {task.loggedByName}
             </h3>
@@ -219,7 +220,7 @@ export function ApprovalRow({
             </p>
           </div>
 
-          <div className="hidden md:block ml-4 pl-4 border-l border-border">
+          <div className="hidden md:flex flex-1 min-w-0 ml-4 pl-4 border-l border-border items-center">
             <p className="text-sm font-semibold text-muted-foreground line-clamp-1 max-w-md">
               {formatTaskPreview(task.taskDescription)}
             </p>
@@ -364,28 +365,31 @@ export function ApprovalRow({
                       type="text"
                       value={hrRemarks}
                       onChange={(e) => setHrRemarks(e.target.value)}
-                      placeholder="Audit notes..."
+                      placeholder={isVerifiedTab ? "No notes provided" : "Audit notes..."}
                       className="w-full bg-background"
+                      disabled={isVerifiedTab}
                     />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={handleHrReject}
-                      disabled={!hrRemarks || isSubmitting}
-                      className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
-                    >
-                      Not Approve
-                    </Button>
-                    <Button
-                      onClick={handleHrVerify}
-                      disabled={isSubmitting}
-                      className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                    >
-                      Verify & Sign
-                    </Button>
-                  </div>
+                  {!isVerifiedTab && (
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleHrReject}
+                        disabled={!hrRemarks || isSubmitting}
+                        className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
+                      >
+                        Not Approve
+                      </Button>
+                      <Button
+                        onClick={handleHrVerify}
+                        disabled={isSubmitting}
+                        className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        Verify & Sign
+                      </Button>
+                    </div>
+                  )}
                 </>
               ) : (
                 /* --- HEAD UI --- */
@@ -410,8 +414,9 @@ export function ApprovalRow({
                             onClick={() => setGrade(num)}
                             className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${grade === num
                               ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                              : "bg-muted text-muted-foreground/80 border-border hover:border-slate-300 hover:bg-slate-100"
-                              }`}
+                              : "bg-muted text-muted-foreground/80 border-border"
+                              } ${!isVerifiedTab && "hover:border-slate-300 hover:bg-slate-100"}`}
+                            disabled={isVerifiedTab}
                           >
                             {num}
                           </button>
@@ -428,51 +433,56 @@ export function ApprovalRow({
                       type="text"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
-                      placeholder="Add feedback..."
+                      placeholder={isVerifiedTab && !remarks ? "No feedback provided" : "Add feedback..."}
                       className="w-full bg-background mt-1"
+                      disabled={isVerifiedTab}
                     />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={handleHeadReject}
-                      disabled={!remarks || isSubmitting}
-                      className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
-                    >
-                      Not Approve
-                    </Button>
-                    <Button
-                      onClick={handleHeadApprove}
-                      disabled={grade === null || isSubmitting}
-                      className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                    >
-                      Approve Task
-                    </Button>
-                  </div>
+                  {!isVerifiedTab && (
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleHeadReject}
+                        disabled={!remarks || isSubmitting}
+                        className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
+                      >
+                        Not Approve
+                      </Button>
+                      <Button
+                        onClick={handleHeadApprove}
+                        disabled={grade === null || isSubmitting}
+                        className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        Approve Task
+                      </Button>
+                    </div>
+                  )}
                 </>
               )}
             </div>
           </div>
 
           {/* KEYBOARD SHORTCUTS HINT */}
-          <div className="mt-6 pt-3 border-t border-border/50 flex justify-center opacity-70">
-            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase flex items-center gap-2">
-              Shortcuts:
-              {!isHr ? (
-                <>
-                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">1-5</span> Select Grade
-                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">Enter</span> Approve
-                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
-                </>
-              ) : (
-                <>
-                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">V / Enter</span> Verify
-                  <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
-                </>
-              )}
-            </p>
-          </div>
+          {!isVerifiedTab && (
+            <div className="mt-6 pt-3 border-t border-border/50 flex justify-center opacity-70">
+              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase flex items-center gap-2">
+                Shortcuts:
+                {!isHr ? (
+                  <>
+                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">1-5</span> Select Grade
+                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">Enter</span> Approve
+                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
+                  </>
+                ) : (
+                  <>
+                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">V / Enter</span> Verify
+                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
+                  </>
+                )}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

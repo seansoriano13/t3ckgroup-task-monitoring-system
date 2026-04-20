@@ -142,7 +142,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
 
         {isManagement && task.loggedByName && (
           <div className="flex items-center gap-1.5 shrink-0" title={task.loggedByName}>
-            <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200 uppercase">
+            <div className="w-5 h-5 shadow-inner rounded-full bg-primary/10 text-primary font-black border flex-center uppercase ">
               {task.loggedByName.charAt(0)}
             </div>
             <span className="truncate max-w-[80px] font-semibold text-foreground/80">{task.loggedByName}</span>

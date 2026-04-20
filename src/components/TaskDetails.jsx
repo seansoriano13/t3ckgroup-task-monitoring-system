@@ -362,32 +362,45 @@ export default function TaskDetails({
   const handleDelete = async () => {
     toast(
       (t) => (
-        <div className="flex flex-col gap-3">
-          <span className="font-bold text-sm text-foreground">
-            Are you sure you want to delete this task? It will be removed from
-            the active queues.
-          </span>
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-4 min-w-[320px]">
+          <div className="flex items-start gap-4">
+            <div className="bg-red-a3/10 p-2.5 rounded-xl border border-red-a5/20 shrink-0">
+              <AlertTriangle className="text-red-9" size={24} />
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-extrabold text-[15px] text-foreground tracking-tight">
+                Delete Task?
+              </span>
+              <p className="text-xs font-bold text-muted-foreground leading-relaxed">
+                This will permanently remove the task from all active queues and history.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-2 pt-1">
             <button
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm font-bold transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-black text-muted-foreground hover:bg-muted/80 transition-all uppercase tracking-widest"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-red-9 hover:bg-red-10 text-white px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-[0_8px_16px_-4px_rgba(239,68,68,0.3)] uppercase tracking-widest flex items-center gap-2"
               onClick={async () => {
                 toast.dismiss(t.id);
                 setIsSubmitting(true);
+                const loadingToast = toast.loading("Purging task from system...");
                 try {
                   await onDeleteTask({ id: task.id, userId: user.id });
+                  toast.success("Task deleted successfully", { id: loadingToast });
                   onClose();
                 } catch {
+                  toast.error("Failed to delete task", { id: loadingToast });
                   setIsSubmitting(false);
                 }
               }}
             >
-              Confirm Delete
-            </button>
-            <button
-              className="bg-muted/50 hover:bg-slate-200 text-muted-foreground px-4 py-1.5 rounded text-sm font-bold transition-colors border border-border"
-              onClick={() => toast.dismiss(t.id)}
-            >
-              Cancel
+              Confirm Deletion
             </button>
           </div>
         </div>
@@ -395,6 +408,10 @@ export default function TaskDetails({
       {
         duration: Infinity,
         id: "delete-confirm",
+        style: {
+          padding: "20px",
+          maxWidth: "420px",
+        }
       },
     );
   };

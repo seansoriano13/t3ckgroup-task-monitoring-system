@@ -6,30 +6,68 @@ import {
   Building2,
   Calendar as CalendarIcon,
   SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Select, { components } from "react-select";
 import { TASK_STATUS } from "../constants/status";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import PriorityDropdown from "./dropdowns/PriorityDropdown";
+import Dropdown from "./ui/Dropdown";
 
-// Custom Control Component to render the icon natively inside React-Select
-const IconControl = ({ children, ...props }) => {
-  const Icon = props.selectProps.icon;
-  const isActive = props.hasValue && props.getValue()[0]?.value !== "ALL" && props.getValue()[0]?.value !== "NEWEST";
-
+// Shared styled trigger for TaskFilters custom dropdowns
+function FilterTrigger({ label, isActive, isOpen, icon: Icon }) {
   return (
-    <components.Control {...props}>
-      {Icon && (
-        <span className={`pl-2 pr-1 flex items-center shrink-0 ${isActive ? 'text-foreground' : 'text-slate-400'}`}>
-          <Icon size={14} />
+    <div
+      className={`bg-card h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${isOpen
+        ? "border-primary/50 ring-1 ring-primary/20 bg-card"
+        : isActive
+          ? "border-primary/20  font-medium"
+          : "border-border hover:border-border/80"
+        }`}
+    >
+      <div className="flex items-center gap-2 overflow-hidden flex-1">
+        {Icon && (
+          <Icon size={14} className={`shrink-0 ${isActive ? 'text-foreground' : 'text-slate-400'}`} />
+        )}
+        <span className="text-[13px] text-foreground font-[500] truncate block w-full text-left">
+          {label}
         </span>
-      )}
-      {children}
-    </components.Control>
+      </div>
+      <ChevronDown
+        size={14}
+        className={`ml-1 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""
+          }`}
+      />
+    </div>
   );
-};
+}
+
+// Shared popover option list
+function FilterOptionList({ options, value, onChange, close }) {
+  return (
+    <div className="p-1">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onChange(opt.value);
+            close();
+          }}
+          className={`w-full text-left px-3 py-2 rounded-md text-[13px] transition-colors font-medium ${value === opt.value
+            ? "bg-slate-200 text-foreground font-bold"
+            : "text-muted-foreground hover:bg-muted/80"
+            }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function TaskFilters({
   searchTerm,
@@ -60,8 +98,6 @@ export default function TaskFilters({
   const [startDate, endDate] = dateRange || [null, null];
   const [showAdvanced, setShowAdvanced] = useState(employeeFilter);
 
-
-
   const isAnyFilterActive =
     statusFilter !== "ALL" ||
     priorityFilter !== "ALL" ||
@@ -82,41 +118,11 @@ export default function TaskFilters({
     setDateRange([null, null]);
   };
 
-  // Shared react-select styles based on LogTaskModal
-  const getSelectClassNames = (value, defaultVal = "ALL") => {
-    const isActive = value && value !== defaultVal;
-    return {
-      control: (state) =>
-        `min-h-[40px] md:min-h-[46px] w-full border ${state.isFocused
-          ? "border-primary/50 ring-1 ring-primary/20 bg-card"
-          : isActive
-            ? "border-primary/20 bg-muted font-medium"
-            : "border-border bg-card"
-        } hover:border-border/80 rounded-lg px-2 shadow-sm transition-all cursor-pointer flex items-center`,
-      menu: () =>
-        `mt-1 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-[50] min-w-max popover-enter`,
-      menuList: () => `p-1`,
-      option: (state) =>
-        `px-3 py-2 cursor-pointer transition-colors rounded-md text-[13px] ${state.isFocused
-          ? "bg-muted/80 text-foreground"
-          : state.isSelected
-            ? "bg-slate-200 text-foreground font-bold"
-            : "text-muted-foreground bg-transparent"
-        }`,
-      singleValue: () => `text-foreground font-[500] text-[13px]`,
-      placeholder: () => `text-slate-400 text-[13px]`,
-      input: () => `text-foreground text-[13px]`,
-      indicatorSeparator: () => `hidden`,
-      dropdownIndicator: () => `text-slate-400 hover:text-muted-foreground/80 p-1`,
-      valueContainer: () => `gap-1 px-1`,
-    };
-  };
-
   // Option Definitions
   const sortOptions = [
     { value: "NEWEST", label: "Sort: Newest" },
     { value: "OLDEST", label: "Sort: Oldest" },
-    { value: "NAME", label: "Sort: By Name" }
+    { value: "NAME", label: "Sort: By Name" },
   ];
 
   const statusOptions = [
@@ -124,43 +130,38 @@ export default function TaskFilters({
     { value: TASK_STATUS.COMPLETE, label: "Complete" },
     { value: TASK_STATUS.AWAITING_APPROVAL, label: "Awaiting Approval" },
     { value: TASK_STATUS.INCOMPLETE, label: "Incomplete" },
-    { value: TASK_STATUS.NOT_APPROVED, label: "Not Approved" }
-  ];
-
-  const priorityOptions = [
-    { value: "ALL", label: "Priority: All" },
-    { value: "HIGH", label: "High" },
-    { value: "MEDIUM", label: "Medium" },
-    { value: "LOW", label: "Low" }
+    { value: TASK_STATUS.NOT_APPROVED, label: "Not Approved" },
   ];
 
   const deptOptions = [
     { value: "ALL", label: "Dept: All" },
     ...(!uniqueDepts.includes("SALES") ? [{ value: "SALES", label: "Dept: SALES" }] : []),
-    ...uniqueDepts.filter((d) => d !== "ALL").map((d) => ({ value: d, label: `Dept: ${d}` }))
+    ...uniqueDepts.filter((d) => d !== "ALL").map((d) => ({ value: d, label: `Dept: ${d}` })),
   ];
 
   const subDeptOptions = [
     { value: "ALL", label: "Sub-Dept: All" },
-    ...uniqueSubDepts.filter((s) => s !== "ALL").map((s) => ({ value: s, label: `Sub: ${s}` }))
+    ...uniqueSubDepts.filter((s) => s !== "ALL").map((s) => ({ value: s, label: `Sub: ${s}` })),
   ];
 
   const employeeOptions = [
     { value: "ALL", label: "Member: Everyone" },
-    ...uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name }))
+    ...uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name })),
   ];
+
+  const currentSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || sortOptions[0].label;
+  const currentStatusLabel = statusOptions.find((o) => o.value === statusFilter)?.label || statusOptions[0].label;
+  const currentDeptLabel = deptOptions.find((o) => o.value === deptFilter)?.label || deptOptions[0].label;
+  const currentSubDeptLabel = subDeptOptions.find((o) => o.value === subDeptFilter)?.label || subDeptOptions[0].label;
+  const currentEmployeeLabel = employeeOptions.find((o) => o.value === employeeFilter)?.label || employeeOptions[0].label;
 
   return (
     <div className="grid gap-3 md:gap-4">
       {/* Row 1: Search & Permanent Filters */}
       <div className="bg-white border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
-
         {/* Search */}
         <div className="relative flex-1 w-full">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            size={18}
-          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <Input
             type="text"
             placeholder="Search tasks..."
@@ -171,11 +172,15 @@ export default function TaskFilters({
         </div>
 
         {/* Action Group */}
-        <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto justify-between xl:justify-start hide-scrollbar">
-          <div className="flex gap-2 items-center flex-nowrap">
-
+        <div className="flex items-center gap-2 w-full xl:w-auto flex-wrap justify-between xl:justify-start relative z-10">
+          <div className="flex gap-2 items-center flex-wrap">
             {/* DATE PICKER */}
-            <div className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${startDate || endDate ? "bg-muted text-foreground border-primary/20 font-medium" : "bg-card border-border hover:border-border/80 text-foreground"}`}>
+            <div
+              className={`bg-card flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${startDate || endDate
+                ? "text-foreground border-primary/20 font-medium"
+                : "border-border hover:border-border/80 text-foreground"
+                }`}
+            >
               <CalendarIcon size={16} className={`${startDate || endDate ? "text-foreground" : "text-slate-400"} mr-2 shrink-0`} />
               <DatePicker
                 selectsRange={true}
@@ -184,25 +189,35 @@ export default function TaskFilters({
                 onChange={(update) => setDateRange(update)}
                 isClearable={true}
                 placeholderText="Date Range"
-                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${startDate || endDate ? "text-foreground placeholder:text-slate-400 font-medium" : "text-foreground placeholder:text-slate-400"}`}
+                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${startDate || endDate ? "text-foreground placeholder:text-slate-400 font-medium" : "text-foreground placeholder:text-slate-400"
+                  }`}
               />
             </div>
 
             {/* SORTING */}
             {sortBy !== undefined && setSortBy && (
-              <div className="min-w-[150px] shrink-0">
-                <Select
-                  options={sortOptions}
-                  value={sortOptions.find(o => o.value === sortBy) || sortOptions[0]}
-                  onChange={(selected) => setSortBy(selected.value)}
-                  classNames={getSelectClassNames(sortBy, "NEWEST")}
-                  components={{ Control: IconControl }}
-                  icon={SlidersHorizontal}
-                  isSearchable={false}
-                  menuPosition="fixed"
-                  unstyled
-                />
-              </div>
+              <Dropdown
+                usePortal={true}
+                className="min-w-[150px] shrink-0"
+                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={currentSortLabel}
+                    isActive={sortBy !== "NEWEST"}
+                    isOpen={isOpen}
+                    icon={SlidersHorizontal}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={sortOptions}
+                    value={sortBy}
+                    onChange={setSortBy}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             )}
 
             <Button
@@ -227,95 +242,151 @@ export default function TaskFilters({
         </div>
       </div>
 
-      {/* Row 2: Advanced Filters (Hidden by Default) */}
+      {/* Row 2: Advanced Filters */}
       {showAdvanced && (
         <div className="bg-gray-50 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
 
           {/* Status Filter */}
           {showStatusFilter && (
-            <div className="flex-1 min-w-[170px]">
-              <Select
-                options={statusOptions}
-                value={statusOptions.find(o => o.value === statusFilter) || statusOptions[0]}
-                onChange={(selected) => setStatusFilter(selected.value)}
-                classNames={getSelectClassNames(statusFilter, "ALL")}
-                components={{ Control: IconControl }}
-                icon={Filter}
-                isSearchable={false}
-                menuPosition="fixed"
-                unstyled
-              />
-            </div>
+            <Dropdown
+              className="flex-1 min-w-[170px]"
+              popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+              trigger={({ isOpen }) => (
+                <FilterTrigger
+                  label={currentStatusLabel}
+                  isActive={statusFilter !== "ALL"}
+                  isOpen={isOpen}
+                  icon={Filter}
+                />
+              )}
+            >
+              {({ close }) => (
+                <FilterOptionList
+                  options={statusOptions}
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  close={close}
+                />
+              )}
+            </Dropdown>
           )}
 
           {/* Priority */}
-          <div className="flex-1 min-w-[150px]">
-            <Select
-              options={priorityOptions}
-              value={priorityOptions.find(o => o.value === priorityFilter) || priorityOptions[0]}
-              onChange={(selected) => setPriorityFilter(selected.value)}
-              classNames={getSelectClassNames(priorityFilter, "ALL")}
-              isSearchable={false}
-              menuPosition="fixed"
-              unstyled
-            />
-          </div>
+          <PriorityDropdown
+            value={priorityFilter}
+            onChange={(val) => setPriorityFilter(val)}
+            className="flex-1 min-w-[150px]"
+            customTrigger={({ isOpen, currentPriority }) => {
+              const isActive = priorityFilter && priorityFilter !== "ALL";
+              return (
+                <div
+                  className={`h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${isOpen
+                    ? "border-primary/50 ring-1 ring-primary/20 bg-card"
+                    : isActive
+                      ? "border-primary/20 bg-muted font-medium"
+                      : "border-border bg-card hover:border-border/80"
+                    }`}
+                >
+                  <div className="flex items-center gap-2 overflow-hidden flex-1">
+                    {currentPriority.value !== "ALL" && (
+                      <div className={`w-2 h-2 shrink-0 rounded-full ${currentPriority.dot}`} />
+                    )}
+                    <span className="text-[13px] text-foreground font-[500] truncate block w-full text-left">
+                      {currentPriority.value === "ALL" ? "Priority: All" : currentPriority.label}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    className={`ml-1 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""
+                      }`}
+                  />
+                </div>
+              );
+            }}
+          />
 
           {/* Management specific */}
           {isManagement && (!isHr || hrViewMode === "ALL") && (
             <>
               {/* Dept */}
-              <div className="flex-1 min-w-[180px]">
-                <Select
-                  options={deptOptions}
-                  value={deptOptions.find(o => o.value === deptFilter) || deptOptions[0]}
-                  onChange={(selected) => {
-                    setDeptFilter(selected.value);
-                    setSubDeptFilter("ALL");
-                  }}
-                  isDisabled={disableDeptFilter !== undefined ? disableDeptFilter : !isHr}
-                  classNames={getSelectClassNames(deptFilter, "ALL")}
-                  components={{ Control: IconControl }}
-                  icon={Building2}
-                  isSearchable={true}
-                  menuPosition="fixed"
-                  unstyled
-                />
-              </div>
+              <Dropdown
+                disabled={disableDeptFilter !== undefined ? disableDeptFilter : !isHr}
+                className="flex-1 min-w-[180px]"
+                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
+                trigger={({ isOpen, disabled }) => (
+                  <div className={disabled ? 'opacity-50 pointer-events-none' : ''}>
+                    <FilterTrigger
+                      label={currentDeptLabel}
+                      isActive={deptFilter !== "ALL"}
+                      isOpen={isOpen}
+                      icon={Building2}
+                    />
+                  </div>
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={deptOptions}
+                    value={deptFilter}
+                    onChange={(val) => {
+                      setDeptFilter(val);
+                      setSubDeptFilter("ALL");
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
 
               {/* Sub-Dept */}
-              <div className="flex-1 min-w-[180px]">
-                <Select
-                  options={subDeptOptions}
-                  value={subDeptOptions.find(o => o.value === subDeptFilter) || subDeptOptions[0]}
-                  onChange={(selected) => setSubDeptFilter(selected.value)}
-                  isDisabled={deptFilter === "ALL"}
-                  classNames={getSelectClassNames(subDeptFilter, "ALL")}
-                  components={{ Control: IconControl }}
-                  icon={Building2}
-                  isSearchable={true}
-                  menuPosition="fixed"
-                  unstyled
-                />
-              </div>
+              <Dropdown
+                disabled={deptFilter === "ALL"}
+                className="flex-1 min-w-[180px]"
+                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
+                trigger={({ isOpen, disabled }) => (
+                  <div className={disabled ? 'opacity-50 pointer-events-none' : ''}>
+                    <FilterTrigger
+                      label={currentSubDeptLabel}
+                      isActive={subDeptFilter !== "ALL"}
+                      isOpen={isOpen}
+                      icon={Building2}
+                    />
+                  </div>
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={subDeptOptions}
+                    value={subDeptFilter}
+                    onChange={setSubDeptFilter}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
 
               {/* Employees */}
-              <div className="flex-1 min-w-[180px]">
-                <Select
-                  options={employeeOptions}
-                  value={employeeOptions.find(o => o.value === employeeFilter) || employeeOptions[0]}
-                  onChange={(selected) => setEmployeeFilter(selected.value)}
-                  classNames={getSelectClassNames(employeeFilter, "ALL")}
-                  components={{ Control: IconControl }}
-                  icon={Users}
-                  isSearchable={true}
-                  menuPosition="fixed"
-                  unstyled
-                />
-              </div>
+              <Dropdown
+                className="flex-1 min-w-[180px]"
+                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto w-[250px]"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={currentEmployeeLabel}
+                    isActive={employeeFilter !== "ALL"}
+                    isOpen={isOpen}
+                    icon={Users}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={employeeOptions}
+                    value={employeeFilter}
+                    onChange={setEmployeeFilter}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </>
           )}
-
         </div>
       )}
     </div>

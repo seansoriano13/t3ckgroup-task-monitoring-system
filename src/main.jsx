@@ -60,39 +60,46 @@ createRoot(document.getElementById("root")).render(
               position="bottom-center"
               reverseOrder={false}
               gutter={12}
-              containerStyle={{ zIndex: 9999 }}
+              containerStyle={{ zIndex: 100000 }}
               toastOptions={{
                 duration: 3000,
                 style: {
-                  background: "var(--gray-2)",
-                  color: "var(--gray-12)",
-                  borderRadius: "16px",
-                  fontWeight: "700",
-                  padding: "12px 20px",
-                  boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                  background: "var(--card)",
+                  color: "var(--foreground)",
+                  borderRadius: "18px",
+                  fontWeight: "600",
+                  padding: "12px 24px",
+                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
                   fontFamily: "inherit",
-                  border: "1px solid var(--gray-4)",
+                  border: "1px solid var(--border)",
+                  fontSize: "14px",
                 },
                 success: {
-                  duration: 2500,
-                  iconTheme: { primary: "#22c55e", secondary: "#fff" },
+                  duration: 3000,
+                  iconTheme: { primary: "#4F46E5", secondary: "#fff" },
                   style: { 
-                    background: "var(--gray-2)", 
-                    color: "var(--gray-12)",
-                    borderLeft: "4px solid #22c55e"
+                    background: "var(--card)", 
+                    color: "var(--foreground)",
+                    borderLeft: "4px solid #4F46E5",
+                    boxShadow: "0 10px 40px -10px rgba(79,70,229,0.2)",
                   },
                 },
                 error: {
-                  duration: 4000,
-                  iconTheme: { primary: "var(--red-9)", secondary: "#fff" },
+                  duration: 4500,
+                  iconTheme: { primary: "#EF4444", secondary: "#fff" },
                   style: { 
-                    background: "var(--gray-2)", 
-                    color: "var(--gray-12)",
-                    borderLeft: "4px solid var(--red-9)"
+                    background: "var(--card)", 
+                    color: "var(--foreground)",
+                    borderLeft: "4px solid #EF4444",
+                    boxShadow: "0 10px 40px -10px rgba(239,68,68,0.2)",
                   },
                 },
                 loading: {
-                  style: { background: "var(--gray-2)", color: "var(--gray-12)" },
+                  style: { 
+                    background: "var(--card)", 
+                    color: "var(--foreground)",
+                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.1)",
+                  },
                 },
               }}
             />

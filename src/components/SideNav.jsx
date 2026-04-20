@@ -271,8 +271,9 @@ export default function SideNav({ onOpenAddTask }) {
           </button>
         </div>
 
-        {/* 1. Header (React Select Profile Dropdown + Log Task Button) */}
-        <div className="px-3 pt-6 pb-2 flex items-center gap-1.5">
+        {/* 1. Header (Profile Dropdown + Quick Actions) */}
+        <div className="px-3 pt-6 pb-2 flex flex-col gap-2.5">
+          {/* Row 1: Profile Selector */}
           <div className="flex-1 min-w-0">
             <Select
               options={profileOptions}
@@ -286,103 +287,73 @@ export default function SideNav({ onOpenAddTask }) {
               isSearchable={false}
             />
           </div>
-          {/* Broadcast — super admins only */}
-          {user?.isSuperAdmin && (
+
+          {/* Row 2: Action Buttons */}
+          <div className="flex items-center gap-1.5">
+            {/* Broadcast — super admins only */}
+            {user?.isSuperAdmin && (
+              <button
+                onClick={() => {
+                  setIsMobileOpen(false);
+                  setIsBroadcastOpen(true);
+                }}
+                className="flex-1 flex items-center justify-center p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
+                title="Broadcast"
+              >
+                <Megaphone size={15} strokeWidth={2.2} />
+              </button>
+            )}
+
+            {/* Notifications */}
+            <button
+              onClick={() => {
+                setIsNotifOpen(true);
+                setIsMobileOpen(false);
+              }}
+              className={`relative flex-1 flex items-center justify-center p-2 rounded-lg border transition-all ${isNotifOpen ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/30 shadow-sm" : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"}`}
+              title="Notifications"
+            >
+              <Bell size={15} strokeWidth={2.2} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-white shadow-sm ring-2 ring-sidebar">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Chats */}
+            <button
+              onClick={() => {
+                setIsChatsOpen(true);
+                setIsMobileOpen(false);
+              }}
+              className={`relative flex-1 flex items-center justify-center p-2 rounded-lg border transition-all ${isChatsOpen ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/30 shadow-sm" : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"}`}
+              title="Chats"
+            >
+              <MessageCircle size={15} strokeWidth={2.2} />
+              {unreadChatsCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-white shadow-sm ring-2 ring-sidebar">
+                  {unreadChatsCount}
+                </span>
+              )}
+            </button>
+
+            {/* Log Task Button */}
             <button
               onClick={() => {
                 setIsMobileOpen(false);
-                setIsBroadcastOpen(true);
+                setIsLogTaskOpen(true);
               }}
-              className="shrink-0 p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
-              title="Broadcast"
+              className="flex-1 flex items-center justify-center p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-primary/80 hover:text-sidebar-primary hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
+              title="Log new task"
             >
-              <Megaphone size={15} strokeWidth={2.2} />
+              <SquarePen size={15} strokeWidth={2.2} />
             </button>
-          )}
-          <button
-            onClick={() => {
-              setIsMobileOpen(false);
-              setIsLogTaskOpen(true);
-            }}
-            className="shrink-0 p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent text-sidebar-primary transition-all"
-            title="Log new task"
-          >
-            <SquarePen size={15} strokeWidth={2.2} />
-          </button>
+          </div>
         </div>
 
 
 
-        {/* 3. Notification & Chats */}
-        <div className="px-3 flex flex-col gap-1 mb-8">
-          <button
-            onClick={() => {
-              setIsNotifOpen(true);
-              setIsMobileOpen(false);
-            }}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isNotifOpen ? "bg-sidebar-accent text-sidebar-primary shadow-sm" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
-          >
-            <div className="flex items-center gap-3.5">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-colors ${isNotifOpen ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground/80"}`}
-              >
-                <path d="M4 11V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
-                <path d="M4 11h3a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2h3" />
-                <path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-              </svg>
-              <span
-                className={`text-[13.5px] transition-all ${isNotifOpen ? "font-bold text-sidebar-primary" : "font-medium"}`}
-              >
-                Notification
-              </span>
-            </div>
-            {unreadCount > 0 && (
-              <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full transition-colors ${isNotifOpen ? "bg-sidebar-primary text-white" : "text-sidebar-foreground/80 group-hover:text-sidebar-foreground bg-sidebar-accent/50 group-hover:bg-sidebar-accent/80"}`}>
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => {
-              setIsChatsOpen(true);
-              setIsMobileOpen(false);
-            }}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-md transition-colors group ${isChatsOpen ? "bg-sidebar-accent text-sidebar-primary shadow-sm" : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"}`}
-          >
-            <div className="flex items-center gap-3.5">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-colors ${isChatsOpen ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground/80"}`}
-              >
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <path d="M9 12h6" />
-                <path d="M12 9v6" />
-              </svg>
-              <span className={`text-[13.5px] transition-all ${isChatsOpen ? "font-bold text-sidebar-primary" : "font-medium"}`}>Chats</span>
-            </div>
-            {unreadChatsCount > 0 && (
-              <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full transition-colors ${isChatsOpen ? "bg-sidebar-primary text-white" : "text-sidebar-foreground bg-sidebar-accent/80"}`}>
-                {unreadChatsCount}
-              </span>
-            )}
-          </button>
-        </div>
 
         {/* 4. Combined Workspace Menus */}
         <div className="px-3 flex-1 flex flex-col text-sidebar-foreground/80 pb-4">
