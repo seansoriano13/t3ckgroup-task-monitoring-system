@@ -12,6 +12,9 @@ export const salesPlanService = {
       .maybeSingle();
 
     if (error) throw error;
+    if (data && data.sales_activities) {
+      data.sales_activities = data.sales_activities.filter(a => !a.is_deleted);
+    }
     return data; // returns null if doesn't exist
   },
 
@@ -23,6 +26,9 @@ export const salesPlanService = {
       .single();
 
     if (error) throw error;
+    if (data && data.sales_activities) {
+      data.sales_activities = data.sales_activities.filter(a => !a.is_deleted);
+    }
     return data;
   },
 

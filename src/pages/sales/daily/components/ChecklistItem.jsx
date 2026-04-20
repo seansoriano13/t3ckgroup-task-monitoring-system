@@ -16,6 +16,7 @@ import { storageService } from "../../../../services/storageService";
 
 export function ChecklistItem({
   data,
+  index,
   onToggle,
   disabledUI,
   isAdminView,
@@ -149,6 +150,18 @@ export function ChecklistItem({
           />
         )}
       </button>
+
+      {/* Index Numbering */}
+      <div className="mt-1 shrink-0">
+        <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-[10px] font-black border transition-all ${
+          isDone || isPendingApproval
+            ? "bg-muted text-gray-4 border-gray-4"
+            : "bg-indigo-50 text-indigo-600 border-indigo-200"
+        }`}>
+          {index}
+        </span>
+      </div>
+
       <div className="flex-1 min-w-0">
         <div
           onClick={() => onView(data)}

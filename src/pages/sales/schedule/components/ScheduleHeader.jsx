@@ -1,4 +1,6 @@
 import { Calendar as CalendarIcon, Save, Send, Loader2, Trash2, X, HelpCircle, CheckCircle2 } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { getStartOfWeek, formatDateToYMD } from "../utils";
 
 export function ScheduleHeader({
@@ -131,27 +133,52 @@ export function ScheduleHeader({
         </div>
       </div>
 
+      {/* Missing Activities Alert for Approved Plans */}
+      {plan.status === "APPROVED" && (weekSummary.missingAM > 0 || weekSummary.missingPM > 0) && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-100 p-2 rounded-xl">
+              <AlertTriangle size={20} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-amber-900 uppercase tracking-tight">Schedule Incomplete</p>
+              <p className="text-xs font-bold text-amber-700/80">Your plan is approved but has gaps due to wiped activities. Request an amendment to refill your schedule.</p>
+            </div>
+          </div>
+          {!isRequestingAmendment && (
+            <button 
+              onClick={() => setIsRequestingAmendment(true)}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95"
+            >
+              Start Amendment
+            </button>
+          )}
+        </div>
+      )}
+
       {/* UTILITY & METRICS ROW */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
         <div className="flex items-center gap-4 flex-wrap">
           {/* Date Picker */}
           <div className="bg-card border border-border rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-sm hover:border-indigo-300 transition-colors">
             <CalendarIcon size={16} className="text-indigo-500" />
-            <input
-              type="date"
-              value={weekStartDate}
-              onChange={(e) => {
-                const pickedDate = new Date(e.target.value);
-                const startOfWeek = getStartOfWeek(e.target.value);
+            <DatePicker
+              selected={weekStartDate ? new Date(weekStartDate) : null}
+              onChange={(date) => {
+                if (!date) return;
+                const dStr = formatDateToYMD(date);
+                const startOfWeek = getStartOfWeek(dStr);
                 setWeekStartDate(formatDateToYMD(startOfWeek));
-                const dayIndex = pickedDate.getDay() - 1;
+                const dayIndex = date.getDay() - 1;
                 if (dayIndex >= 0 && dayIndex <= 5) {
                   setActiveTab(dayIndex);
-                } else if (pickedDate.getDay() === 0) {
+                } else if (date.getDay() === 0) {
                   setActiveTab((includeSunday || includeSaturday) ? 6 : 0);
                 }
               }}
-              className="bg-transparent text-foreground text-sm font-bold outline-none cursor-pointer"
+              portalId="root"
+              className="bg-transparent text-foreground text-sm font-bold outline-none cursor-pointer w-[120px]"
+              dateFormat="MMM d, yyyy"
             />
           </div>
 

@@ -8,7 +8,7 @@ import GradeSelector from "./GradeSelector";
 import TaskActivityTimeline from "./TaskActivityTimeline";
 import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
 import { isCategoryMetadataRemarks } from "../utils/taskFormatters";
-import { PencilLine, FolderKanban, Receipt } from "lucide-react";
+import { PencilLine, FolderKanban, Receipt, AlertTriangle } from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
 import { TASK_STATUS } from "../constants/status.js";
 import ChecklistTaskInput from "./ChecklistTaskInput";
@@ -416,9 +416,26 @@ export default function TaskDetails({
           isEditing={isEditing}
           isHrVerified={task.hrVerified}
           onClose={onClose}
+          onOpenChat={() => {
+            window.dispatchEvent(new CustomEvent('OPEN_CHAT_MODAL', { 
+              detail: { entityId: task.id, entityType: 'TASK' } 
+            }));
+          }}
         />
 
         <div className="p-8 flex-1 overflow-y-auto space-y-8 custom-scrollbar bg-card">
+          {task.status === "DELETED" && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-700 shadow-sm mt-0 -mb-4">
+              <div className="bg-red-100 p-2 rounded-lg">
+                <AlertTriangle size={20} className="text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-black uppercase tracking-tight">Task Deleted</p>
+                <p className="text-xs font-bold opacity-80">This task has been soft-deleted and is hidden from regular views.</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <ManagementSection
               isEditing={isEditing}

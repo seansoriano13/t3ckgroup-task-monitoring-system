@@ -11,6 +11,7 @@ export function DailyCoverageTabs({
         const todaysTasks = weeklyActivities.filter(
           (a) =>
             a.scheduled_date === wd.dateStr &&
+            !a.is_deleted &&
             (a.activity_type !== "None" ||
               (a.account_name && a.account_name.trim() !== "")),
         );

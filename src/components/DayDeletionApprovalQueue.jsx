@@ -60,7 +60,9 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
         grouped[key].activities.push(act);
       });
 
-      return Object.values(grouped);
+      const actualResults = Object.values(grouped);
+
+      return actualResults;
     },
     enabled: !!user?.id,
   });
@@ -79,28 +81,46 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
 
   if (isLoading || requests.length === 0) return null;
 
+
   return (
-    <div className="mb-8 space-y-4">
-      <div className="flex items-center justify-between mb-4 border-b border-gray-4 pb-2">
-        <div className="flex items-center gap-2">
-          <Trash2 className="text-red-500" size={20} />
-          <h2 className="text-lg font-black text-gray-12 uppercase tracking-tight">
-            Day Deletion Requests
-          </h2>
-        </div>
-        <div className="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full text-[10px] font-black text-red-600 tracking-widest">
-          {requests.length} URGENT
-        </div>
-      </div>
+    <div className="space-y-4">
 
       {requests.map((req) => {
         const isHighlighted = initialHighlightDate === req.date;
         return (
           <div
             key={`${req.employee_id}_${req.date}`}
-            className={`bg-gray-1 border rounded-2xl overflow-hidden shadow-sm hover:border-red-500/40 transition-all group ${isHighlighted ? "border-red-500 ring-2 ring-red-500/20 scale-[1.01] z-10" : "border-red-500/20"}`}
+            className={`bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group ${
+              isHighlighted ? "ring-2 ring-red-500/20 border-red-500/40" : ""
+            }`}
           >
-            <div className="bg-red-500/5 p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Header: Matching EmployeeBlock */}
+            <div className="bg-muted/30 p-4 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-600 font-black flex items-center justify-center border border-red-500/20 shadow-inner">
+                  {req.employeeName?.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground leading-tight">
+                    {req.employeeName}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] font-black text-gray-9 uppercase tracking-widest flex items-center gap-1">
+                      <Calendar size={12} /> {req.date}
+                    </span>
+                    <span className="text-[10px] font-black bg-red-500/10 text-red-600 border border-red-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                      {req.activities.length} Activities
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-[10px] font-black uppercase tracking-widest text-red-600">Pending Wipe</span>
+                <span className="text-[9px] text-gray-5 font-bold uppercase tracking-tighter">Deletion Request</span>
+              </div>
+            </div>
+
+            <div className="p-6 flex flex-col lg:flex-row gap-6">
               <div className="flex items-center gap-4 shrink-0">
                 <div className="w-14 h-14 rounded-full bg-red-500/10 text-red-600 font-black flex items-center justify-center border border-red-500/20 shadow-inner text-xl">
                   {req.employeeName?.charAt(0)}
@@ -120,57 +140,58 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                 </div>
               </div>
 
-              <div className="flex-1 min-w-0 bg-white/50 border border-red-500/10 rounded-xl p-4 shadow-inner">
-                <label className="text-[10px] font-black text-red-600 uppercase tracking-widest block mb-2 flex items-center gap-1.5">
-                  <AlertCircle size={14} /> Reason for Wipe
-                </label>
-                <p className="text-sm text-gray-12 font-medium leading-relaxed italic">
-                  "{req.reason || "No reason provided"}"
-                </p>
-
-                <div className="mt-4 space-y-2 border-t border-red-500/10 pt-3">
-                  <p className="text-[10px] font-black text-gray-9 uppercase tracking-widest">
-                    Activities Included
+              <div className="flex-1 min-w-0 space-y-4">
+                <div className="bg-gray-1 border border-gray-4 rounded-xl p-4 shadow-inner">
+                  <label className="text-[10px] font-black text-red-600 uppercase tracking-widest block mb-2 flex items-center gap-1.5">
+                    <AlertCircle size={14} /> Reason for Wipe
+                  </label>
+                  <p className="text-sm text-gray-12 font-medium leading-relaxed italic">
+                    "{req.reason || "No reason provided"}"
                   </p>
-                  {req.activities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="bg-white border border-gray-4 rounded-lg p-2.5 flex items-start justify-between gap-3"
-                    >
-                      <div className="min-w-0">
-                        <p
-                          className="text-xs font-bold text-gray-12 truncate"
-                          title={activity.account_name || "No Account Specify"}
-                        >
-                          {activity.account_name || "No Account Specify"}
-                        </p>
-                        <p className="text-[10px] text-gray-9 mt-0.5 flex items-center gap-1.5 uppercase tracking-wide">
-                          <Clock size={10} />
-                          {activity.time_of_day || "No time"}
-                          <span className="text-gray-6">•</span>
-                          {activity.activity_type || "No type"}
-                        </p>
-                        <p
-                          className="text-[11px] text-gray-11 mt-1 line-clamp-2"
-                          title={activity.details_daily || "-"}
-                        >
-                          {activity.details_daily || "-"}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="text-gray-8 hover:text-primary transition-colors p-1 rounded-md hover:bg-gray-2 shrink-0"
-                        onClick={() => setViewActivity(activity)}
-                        title="Open Full Details"
+                </div>
+
+                <div className="mt-4 space-y-1.5 border-t border-red-500/10 pt-3">
+                  <p className="text-[10px] font-black text-gray-9 uppercase tracking-widest mb-2">
+                    Activities to be Wiped ({req.activities.length})
+                  </p>
+                  <div className="max-h-[240px] overflow-y-auto pr-2 custom-scrollbar space-y-1.5">
+                    {req.activities.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="bg-white border border-gray-4 rounded-lg p-2 flex items-center justify-between gap-3 hover:border-red-200 transition-colors"
                       >
-                        <Maximize2 size={16} />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full ${activity.activity_type === 'SALES CALL' ? 'bg-emerald-400' : 'bg-blue-400'}`} />
+                            <p className="text-[11px] font-black text-gray-12 truncate" title={activity.account_name}>
+                              {activity.account_name}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 ml-3.5">
+                            <span className="text-[9px] font-bold text-gray-5 uppercase tracking-wide flex items-center gap-1">
+                              <Clock size={8} /> {activity.time_of_day}
+                            </span>
+                            <span className="text-gray-4 text-[9px]">•</span>
+                            <span className="text-[9px] font-bold text-gray-5 uppercase tracking-wide">
+                              {activity.activity_type}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="text-gray-4 hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-red-50 shrink-0"
+                          onClick={() => setViewActivity(activity)}
+                          title="View Details"
+                        >
+                          <Maximize2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0 self-end lg:self-center">
+              <div className="flex flex-row lg:flex-col items-center justify-center gap-3 shrink-0">
                 <button
                   disabled={resolveMutation.isPending}
                   onClick={() =>
@@ -180,9 +201,9 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                       isApproved: false,
                     })
                   }
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-1 hover:bg-gray-2 text-gray-11 font-black uppercase tracking-widest text-[11px] rounded-xl border border-gray-4 transition-all active:scale-95 disabled:opacity-50"
+                  className="w-full lg:w-32 px-4 py-2.5 bg-gray-2 hover:bg-gray-3 text-gray-7 text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-4 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  <XCircle size={16} className="text-gray-8" /> Deny
+                  <XCircle size={14} /> Deny
                 </button>
                 <button
                   disabled={resolveMutation.isPending}
@@ -199,9 +220,9 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                       });
                     }
                   }}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[11px] rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50"
+                  className="w-full lg:w-32 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  <CheckCircle2 size={16} /> Approve Wipe
+                  <CheckCircle2 size={14} /> Approve
                 </button>
               </div>
             </div>

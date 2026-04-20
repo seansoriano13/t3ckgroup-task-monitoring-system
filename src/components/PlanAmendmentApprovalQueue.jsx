@@ -33,6 +33,7 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
 
       const { data, error } = await query;
       if (error) throw error;
+      
       return data;
     },
     enabled: !!user?.id
@@ -113,52 +114,50 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
   };
 
   return (
-    <div className="mb-8 space-y-4">
-      <div className="flex items-center justify-between mb-4 border-b border-gray-4 pb-2">
-         <div className="flex items-center gap-2">
-            <ClipboardList className="text-amber-500" size={20} />
-            <h2 className="text-lg font-black text-gray-12 uppercase tracking-tight">Schedule Amendments</h2>
-         </div>
-         <div className="bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full text-[10px] font-black text-amber-600 tracking-widest">
-            {amendments.length} PENDING
-         </div>
-      </div>
+    <div className="space-y-4">
       
       {amendments.map(plan => {
          const isExpanded = expandedId === plan.id;
          const changes = compareSnapshotToActivities(plan.amendment_snapshot || [], plan.sales_activities || []);
          
          return (
-            <div key={plan.id} className={`bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm transition-all hover:border-gray-6 ${isExpanded ? 'ring-2 ring-amber-500/20 border-amber-500/30' : ''}`}>
-               <div 
-                 onClick={() => setExpandedId(isExpanded ? null : plan.id)}
-                 className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-amber-500/5' : 'bg-gray-2/50 hover:bg-gray-2'}`}
-               >
-                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-black border border-primary/20 flex items-center justify-center uppercase shrink-0 shadow-inner">
-                       {plan.employees?.name?.charAt(0)}
+            <div 
+              key={plan.id} 
+              className={`bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md ${
+                isExpanded ? "ring-2 ring-amber-500/20 border-amber-500/40" : ""
+              }`}
+            >
+              {/* Header: Matching EmployeeBlock */}
+              <div 
+                onClick={() => setExpandedId(isExpanded ? null : plan.id)}
+                className="bg-muted/30 p-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/60 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-black border border-primary/20 shadow-inner flex items-center justify-center uppercase">
+                    {plan.employees?.name?.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground leading-tight">
+                      {plan.employees?.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] font-black text-gray-9 uppercase tracking-widest flex items-center gap-1">
+                        Week: {plan.week_start_date}
+                      </span>
+                      <span className="text-[10px] font-black bg-amber-500/10 text-amber-600 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                        {changes.added.length + changes.removed.length + changes.modified.length} Changes Detected
+                      </span>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-12 leading-tight flex items-center gap-2">
-                         {plan.employees?.name}
-                         <span className="text-[10px] font-normal text-gray-9 bg-gray-2 px-2 py-0.5 rounded border border-gray-4 uppercase tracking-widest">
-                            Week: {plan.week_start_date}
-                         </span>
-                      </h3>
-                      <p className="text-xs text-gray-11 mt-1 flex items-center gap-1.5 line-clamp-1">
-                         <AlertCircle size={14} className="text-amber-600 shrink-0"/> 
-                         <span className="font-semibold text-amber-700">Reason:</span> {plan.amendment_reason || 'No reason provided'}
-                      </p>
-                    </div>
-                 </div>
-                 <div className="flex items-center gap-4">
-                    <div className="hidden sm:flex flex-col items-end mr-2">
-                       <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Review Items</span>
-                       <span className="text-[9px] text-gray-9 font-bold">{changes.added.length + changes.removed.length + changes.modified.length} Changes Detected</span>
-                    </div>
-                    {isExpanded ? <ChevronUp size={20} className="text-gray-12"/> : <ChevronDown size={20} className="text-gray-8"/>}
-                 </div>
-               </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="hidden sm:flex flex-col items-end mr-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Review Items</span>
+                    <span className="text-[9px] text-gray-5 font-bold uppercase tracking-tighter">Plan Amendment</span>
+                  </div>
+                  {isExpanded ? <ChevronUp size={20} className="text-foreground"/> : <ChevronDown size={20} className="text-muted-foreground"/>}
+                </div>
+              </div>
 
                {isExpanded && (
                   <div className="p-6 bg-white border-t border-gray-4 animate-in slide-in-from-top-2">
@@ -211,22 +210,22 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
                         </div>
                      </div>
 
-                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-4">
-                         <button 
-                            disabled={resolveMutation.isPending}
-                            onClick={() => resolveMutation.mutate({ planId: plan.id, isApproved: false })}
-                            className="px-5 py-2.5 bg-gray-1 hover:bg-gray-2 text-gray-11 font-black uppercase tracking-widest text-[11px] rounded-xl border border-gray-4 transition-all active:scale-95 disabled:opacity-50"
-                         >
-                            Reject & Revert
-                         </button>
-                         <button 
-                            disabled={resolveMutation.isPending}
-                            onClick={() => resolveMutation.mutate({ planId: plan.id, isApproved: true })}
-                            className="px-8 py-2.5 bg-gray-12 hover:bg-black text-white font-black uppercase tracking-widest text-[11px] rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
-                         >
-                            {resolveMutation.isPending ? 'Processing...' : 'Approve Amendments'}
-                         </button>
-                     </div>
+                      <div className="flex justify-end gap-3 pt-6 border-t border-gray-3">
+                          <button 
+                             disabled={resolveMutation.isPending}
+                             onClick={() => resolveMutation.mutate({ planId: plan.id, isApproved: false })}
+                             className="px-6 py-2.5 bg-gray-2 hover:bg-gray-3 text-gray-7 text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-4 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                             Reject & Revert
+                          </button>
+                          <button 
+                             disabled={resolveMutation.isPending}
+                             onClick={() => resolveMutation.mutate({ planId: plan.id, isApproved: true })}
+                             className="px-8 py-2.5 bg-gray-12 hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+                          >
+                             {resolveMutation.isPending ? 'Processing...' : 'Approve Amendments'}
+                          </button>
+                      </div>
                   </div>
                )}
             </div>

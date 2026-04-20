@@ -8,6 +8,8 @@ import {
   TrendingUp,
   LayoutGrid,
 } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   getMonthBoundaries,
   getQuarterBoundaries,
@@ -296,10 +298,17 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-0.5">
                     Start Date
                   </label>
-                  <input
-                    type="date"
-                    value={customStart}
-                    onChange={(e) => setCustomStart(e.target.value)}
+                  <DatePicker
+                    selected={customStart ? new Date(customStart) : null}
+                    onChange={(date) => {
+                      if (!date) return;
+                      const y = date.getFullYear();
+                      const m = String(date.getMonth() + 1).padStart(2, "0");
+                      const d = String(date.getDate()).padStart(2, "0");
+                      setCustomStart(`${y}-${m}-${d}`);
+                    }}
+                    dateFormat="MMM d, yyyy"
+                    portalId="root"
                     className="w-full bg-background border border-border rounded-md px-3 py-2 text-[13px] text-foreground font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-[38px] cursor-pointer"
                   />
                 </div>
@@ -307,10 +316,17 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-0.5">
                     End Date
                   </label>
-                  <input
-                    type="date"
-                    value={customEnd}
-                    onChange={(e) => setCustomEnd(e.target.value)}
+                  <DatePicker
+                    selected={customEnd ? new Date(customEnd) : null}
+                    onChange={(date) => {
+                      if (!date) return;
+                      const y = date.getFullYear();
+                      const m = String(date.getMonth() + 1).padStart(2, "0");
+                      const d = String(date.getDate()).padStart(2, "0");
+                      setCustomEnd(`${y}-${m}-${d}`);
+                    }}
+                    dateFormat="MMM d, yyyy"
+                    portalId="root"
                     className="w-full bg-background border border-border rounded-md px-3 py-2 text-[13px] text-foreground font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-[38px] cursor-pointer"
                   />
                 </div>

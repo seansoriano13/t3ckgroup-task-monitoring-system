@@ -270,11 +270,12 @@ export const taskActivityService = {
   /**
    * Subscribe to real-time activity updates for a task
    */
-  subscribeToActivity(taskId, onNewEntry) {
+  subscribeToActivity(taskId, onNewEntry, channelSuffix = "") {
     if (!taskId) return null;
 
+    const channelName = `task-activity-${taskId}${channelSuffix}`;
     return supabase
-      .channel(`task-activity-${taskId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {

@@ -24,12 +24,13 @@ import SalesFilters from "../../../components/SalesFilters.jsx";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 import PlanAmendmentApprovalQueue from "../../../components/PlanAmendmentApprovalQueue.jsx";
 import DayDeletionApprovalQueue from "../../../components/DayDeletionApprovalQueue.jsx";
+import { supabase } from "../../../lib/supabase";
 
 export default function SalesHeadApprovalsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState("PENDING"); // "PENDING" | "VERIFIED"
+  const [activeTab, setActiveTab] = useState("PENDING"); // "PENDING" | "VERIFIED" | "REQUESTS"
   const [searchQuery, setSearchQuery] = useState("");
   const [filterEmp, setFilterEmp] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -97,473 +98,564 @@ export default function SalesHeadApprovalsPage() {
     enabled: !!user?.id,
   });
 
-  const location = useLocation();
-  useEffect(() => {
-    if (location.state?.highlightActivityId && rawPending.length > 0) {
-      const found = rawPending.find(
-        (a) => a.id === location.state.highlightActivityId,
-      );
-      if (found) {
-        queueMicrotask(() => setViewActivity(found));
+  // ── Requests counts (for badges) ──
+  const isSuperAdmin = user?.is_super_admin || user?.isSuperAdmin;
+  const { data: deletionRequests = [] } = useQuery({
+    queryKey: ["dayDeletionRequests", user?.department],
+    queryFn: async () => {
+      let query = supabase
+        .from("sales_activities")
+        .select(`id, employee_id, scheduled_date, employees!sales_activities_employee_id_fkey!inner(department)`)
+        .not("delete_requested_by", "is", null)
+        .neq("is_deleted", true);
+
+      if (!isSuperAdmin && user?.department) {
+        query = query.eq("employees.department", user.department);
       }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Group by Employee + Date to match the badge logic
+      const grouped = new Set();
+      data.forEach((act) => {
+        grouped.add(`${act.employee_id}_${act.scheduled_date}`);
+      });
+      return Array.from(grouped);
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: amendmentRequests = [] } = useQuery({
+    queryKey: ["planAmendments", user?.department],
+    queryFn: async () => {
+      let query = supabase
+        .from('sales_weekly_plans')
+        .select(`id, employees!sales_weekly_plans_employee_id_fkey!inner(department)`)
+        .eq('status', 'SUBMITTED')
+        .not('amendment_snapshot', 'is', null);
+
+      if (!isSuperAdmin && user?.department) {
+        query = query.eq('employees.department', user.department);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+const totalRequestsCount = deletionRequests.length + amendmentRequests.length;
+
+const location = useLocation();
+useEffect(() => {
+  if (location.state?.highlightActivityId && rawPending.length > 0) {
+    const found = rawPending.find(
+      (a) => a.id === location.state.highlightActivityId,
+    );
+    if (found) {
+      queueMicrotask(() => setViewActivity(found));
     }
-  }, [location.state?.highlightActivityId, rawPending]);
+  }
+}, [location.state?.highlightActivityId, rawPending]);
 
-  // ── Unique employees for filters (from whichever tab is active) ──
-  const activeRawData = activeTab === "PENDING" ? rawPending : rawVerified;
+// ── Unique employees for filters (from whichever tab is active) ──
+const activeRawData = activeTab === "PENDING" ? rawPending : rawVerified;
 
-  const uniqueEmployees = useMemo(() => {
-    const map = new Map();
-    activeRawData.forEach((act) => {
-      if (act.employees?.name && !map.has(act.employee_id)) {
-        map.set(act.employee_id, act.employees.name);
+const uniqueEmployees = useMemo(() => {
+  const map = new Map();
+  activeRawData.forEach((act) => {
+    if (act.employees?.name && !map.has(act.employee_id)) {
+      map.set(act.employee_id, act.employees.name);
+    }
+  });
+  return Array.from(map.entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}, [activeRawData]);
+
+// ── Shared filtering logic ──
+const processedActivities = useMemo(() => {
+  let list = [...activeRawData];
+
+  // Head filter: master heads (no sub-department) see everything.
+  // Sub-department heads see only their sub-department's activities.
+  // Department heads with a sub-department see their entire department.
+  if (!user?.is_super_admin && !user?.isSuperAdmin) {
+    const userSubDept = user?.sub_department || user?.subDepartment;
+    const userDept = user?.department;
+    const isMasterHead = !userSubDept; // No sub-department = oversees entire org
+
+    list = list.filter((act) => {
+      if (act.employee_id === user?.id) return false; // Don't verify own activities
+
+      // Master heads see all activities
+      if (isMasterHead) return true;
+
+      const ts = act.employees?.sub_department || "";
+      const td = act.employees?.department || "";
+
+      if (userSubDept) {
+        return ts === userSubDept;
+      } else if (userDept) {
+        return td === userDept;
       }
+      return false;
     });
-    return Array.from(map.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [activeRawData]);
+  }
 
-  // ── Shared filtering logic ──
-  const processedActivities = useMemo(() => {
-    let list = [...activeRawData];
+  // Helper to check if employee has completed the activity
+  const isActDone = (s) => s === "APPROVED" || s === "PENDING";
 
-    // Head filter: master heads (no sub-department) see everything.
-    // Sub-department heads see only their sub-department's activities.
-    // Department heads with a sub-department see their entire department.
-    if (!user?.is_super_admin && !user?.isSuperAdmin) {
-      const userSubDept = user?.sub_department || user?.subDepartment;
-      const userDept = user?.department;
-      const isMasterHead = !userSubDept; // No sub-department = oversees entire org
-
-      list = list.filter((act) => {
-        if (act.employee_id === user?.id) return false; // Don't verify own activities
-
-        // Master heads see all activities
-        if (isMasterHead) return true;
-
-        const ts = act.employees?.sub_department || "";
-        const td = act.employees?.department || "";
-
-        if (userSubDept) {
-          return ts === userSubDept;
-        } else if (userDept) {
-          return td === userDept;
-        }
-        return false;
-      });
-    }
-
-    // Helper to check if employee has completed the activity
-    const isActDone = (s) => s === "APPROVED" || s === "PENDING";
-
-    // Search filter
-    const q = searchQuery.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (a) =>
-          (a.employees?.name || "").toLowerCase().includes(q) ||
-          (a.account_name || "").toLowerCase().includes(q) ||
-          (a.details_daily || "").toLowerCase().includes(q) ||
-          (a.activity_type || "").toLowerCase().includes(q)
-      );
-    }
-
-    if (filterEmp !== "ALL") list = list.filter((a) => a.employee_id === filterEmp);
-
-    // Status filter only applies to the pending tab
-    if (activeTab === "PENDING") {
-      if (filterStatus === "ALL") {
-        // By default, only show tasks that the employee has actually completed.
-        list = list.filter((act) => isActDone(act.status));
-      } else {
-        if (filterStatus === "APPROVED" || filterStatus === "DONE") {
-          list = list.filter((a) => a.status === "APPROVED" || a.status === "DONE");
-        } else if (filterStatus === "PENDING") {
-          list = list.filter((a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL");
-        } else if (filterStatus === "INCOMPLETE") {
-          // Show tasks not yet completed, or explicitly rejected
-          list = list.filter((a) => !isActDone(a.status) || a.status === "REJECTED");
-        } else {
-          list = list.filter((a) => a.status === filterStatus);
-        }
-      }
-    }
-
-    if (filterType !== "ALL") {
-      list = list.filter((a) => {
-        const aType = (a.activity_type || "").replace(/[-_]/g, " ").toUpperCase();
-        const fType = filterType.replace(/[-_]/g, " ").toUpperCase();
-        return aType === fType;
-      });
-    }
-
-    if (selectedDateFilter) {
-      list = list.filter((a) => {
-        if (!a.scheduled_date) return false;
-        if (timeframe === "DAILY") return a.scheduled_date === selectedDateFilter;
-        if (timeframe === "MONTHLY") return a.scheduled_date.startsWith(selectedDateFilter);
-        if (timeframe === "YEARLY") return a.scheduled_date.startsWith(selectedDateFilter);
-        if (timeframe === "WEEKLY") {
-          const selectedD = new Date(selectedDateFilter + "T00:00:00");
-          const day = selectedD.getDay();
-          const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
-          const startOfWeek = new Date(selectedD);
-          startOfWeek.setDate(diff);
-          startOfWeek.setHours(0, 0, 0, 0);
-
-          const endOfWeek = new Date(startOfWeek);
-          endOfWeek.setDate(startOfWeek.getDate() + 6);
-          endOfWeek.setHours(23, 59, 59, 999);
-
-          const actDate = new Date(a.scheduled_date + "T00:00:00");
-          return actDate >= startOfWeek && actDate <= endOfWeek;
-        }
-        return true;
-      });
-    }
-    // Sort
-    if (activeTab === "VERIFIED") {
-      // Default sort for verified: most recently verified first
-      list.sort((a, b) => new Date(b.head_verified_at) - new Date(a.head_verified_at));
-    } else if (sortBy === "NEWEST") {
-      list.sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date));
-    } else if (sortBy === "OLDEST") {
-      list.sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date));
-    } else if (sortBy === "NAME") {
-      list.sort((a, b) => (a.employees?.name || "").localeCompare(b.employees?.name || ""));
-    }
-
-    return list;
-  }, [activeRawData, activeTab, user, searchQuery, filterEmp, filterStatus, filterType, timeframe, selectedDateFilter, sortBy]);
-
-  // Group by Employee -> Date
-  const groupedData = useMemo(() => {
-    const map = new Map();
-    processedActivities.forEach((act) => {
-      const empName = act.employees?.name || "Unknown Employee";
-      if (!map.has(empName)) map.set(empName, new Map());
-
-      const dateMap = map.get(empName);
-      const date = act.scheduled_date || "Unknown Date";
-      if (!dateMap.has(date)) dateMap.set(date, []);
-      dateMap.get(date).push(act);
-    });
-
-    const result = [];
-    for (const [empName, dateMap] of map.entries()) {
-      const dates = [];
-      for (const [dateStr, activities] of dateMap.entries()) {
-        dates.push({ date: dateStr, activities });
-      }
-      // Sort dates newest first
-      dates.sort((a, b) => new Date(b.date) - new Date(a.date));
-      result.push({ employeeName: empName, dates });
-    }
-    // Sort employees by risk first on pending tab, otherwise alphabetical.
-    if (activeTab === "PENDING") {
-      const getRiskScore = (group) => {
-        const allActs = group.dates.flatMap((d) => d.activities);
-        const pendingCount = allActs.filter(
-          (a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL",
-        ).length;
-        const rejectedCount = allActs.filter((a) => a.status === "REJECTED").length;
-        const unplannedCount = allActs.filter((a) => a.is_unplanned).length;
-        const total = allActs.length || 1;
-        const consistencyPenalty = Math.round((unplannedCount / total) * 100);
-        return pendingCount * 3 + rejectedCount * 4 + consistencyPenalty;
-      };
-      result.sort((a, b) => getRiskScore(b) - getRiskScore(a));
-    } else {
-      result.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
-    }
-    return result;
-  }, [processedActivities, activeTab]);
-
-  // ── Mutations ──
-  const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ["salesHeadPending"] });
-    queryClient.invalidateQueries({ queryKey: ["salesHeadVerified"] });
-  };
-
-  const verifyMutation = useMutation({
-    mutationFn: ({ activityId, remarks }) =>
-      salesService.verifyActivity(activityId, remarks, user?.id, user),
-    onSuccess: () => {
-      invalidateAll();
-      toast.success("Activity verified successfully!");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const bulkVerifyMutation = useMutation({
-    mutationFn: ({ activityIds, remarks }) =>
-      salesService.bulkVerifyActivities(activityIds, remarks, user?.id, user),
-    onSuccess: (_, variables) => {
-      invalidateAll();
-      handleDeselectAll();
-      const count = variables.activityIds.length;
-      const ids = variables.activityIds;
-
-      // Persistent toast with undo button (5 seconds)
-      toast(
-        (t) => (
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">
-              Verified {count} {count === 1 ? "activity" : "activities"}
-            </span>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                bulkUnverifyMutation.mutate({ activityIds: ids });
-              }}
-              className="flex items-center gap-1 bg-gray-12 text-white text-xs font-bold px-3 py-1.5 rounded-md hover:bg-black transition-colors active:scale-95"
-            >
-              <Undo2 size={12} /> Undo
-            </button>
-          </div>
-        ),
-        {
-          duration: 5000,
-          icon: <CheckCircle2 size={18} className="text-green-500" />,
-          style: {
-            background: "var(--gray-1, #fff)",
-            border: "1px solid var(--gray-4, #e5e5e5)",
-            color: "var(--gray-12, #171717)",
-          },
-        }
-      );
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const unverifyMutation = useMutation({
-    mutationFn: ({ activityId }) =>
-      salesService.unverifyActivity(activityId),
-    onSuccess: () => {
-      invalidateAll();
-      toast.success("Verification undone — activity moved back to pending.");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const bulkUnverifyMutation = useMutation({
-    mutationFn: ({ activityIds }) =>
-      salesService.bulkUnverifyActivities(activityIds),
-    onSuccess: (_, variables) => {
-      invalidateAll();
-      handleDeselectAll();
-      toast.success(`Undid verification for ${variables.activityIds.length} activities.`);
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const isLoadingCurrent = activeTab === "PENDING" ? isLoading : isLoadingVerified;
-
-  if (isLoadingCurrent) {
-    return (
-      <div className="py-20 text-center text-muted-foreground font-bold">
-        Loading Sales Action Queue...
-      </div>
+  // Search filter
+  const q = searchQuery.trim().toLowerCase();
+  if (q) {
+    list = list.filter(
+      (a) =>
+        (a.employees?.name || "").toLowerCase().includes(q) ||
+        (a.account_name || "").toLowerCase().includes(q) ||
+        (a.details_daily || "").toLowerCase().includes(q) ||
+        (a.activity_type || "").toLowerCase().includes(q)
     );
   }
 
+  if (filterEmp !== "ALL") list = list.filter((a) => a.employee_id === filterEmp);
+
+  // Status filter only applies to the pending tab
+  if (activeTab === "PENDING") {
+    if (filterStatus === "ALL") {
+      // By default, only show tasks that the employee has actually completed.
+      list = list.filter((act) => isActDone(act.status));
+    } else {
+      if (filterStatus === "APPROVED" || filterStatus === "DONE") {
+        list = list.filter((a) => a.status === "APPROVED" || a.status === "DONE");
+      } else if (filterStatus === "PENDING") {
+        list = list.filter((a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL");
+      } else if (filterStatus === "INCOMPLETE") {
+        // Show tasks not yet completed, or explicitly rejected
+        list = list.filter((a) => !isActDone(a.status) || a.status === "REJECTED");
+      } else {
+        list = list.filter((a) => a.status === filterStatus);
+      }
+    }
+  }
+
+  if (filterType !== "ALL") {
+    list = list.filter((a) => {
+      const aType = (a.activity_type || "").replace(/[-_]/g, " ").toUpperCase();
+      const fType = filterType.replace(/[-_]/g, " ").toUpperCase();
+      return aType === fType;
+    });
+  }
+
+  if (selectedDateFilter) {
+    list = list.filter((a) => {
+      if (!a.scheduled_date) return false;
+      if (timeframe === "DAILY") return a.scheduled_date === selectedDateFilter;
+      if (timeframe === "MONTHLY") return a.scheduled_date.startsWith(selectedDateFilter);
+      if (timeframe === "YEARLY") return a.scheduled_date.startsWith(selectedDateFilter);
+      if (timeframe === "WEEKLY") {
+        const selectedD = new Date(selectedDateFilter + "T00:00:00");
+        const day = selectedD.getDay();
+        const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
+        const startOfWeek = new Date(selectedD);
+        startOfWeek.setDate(diff);
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        const actDate = new Date(a.scheduled_date + "T00:00:00");
+        return actDate >= startOfWeek && actDate <= endOfWeek;
+      }
+      return true;
+    });
+  }
+  // Sort
+  if (activeTab === "VERIFIED") {
+    // Default sort for verified: most recently verified first
+    list.sort((a, b) => new Date(b.head_verified_at) - new Date(a.head_verified_at));
+  } else if (sortBy === "NEWEST") {
+    list.sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date));
+  } else if (sortBy === "OLDEST") {
+    list.sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date));
+  } else if (sortBy === "NAME") {
+    list.sort((a, b) => (a.employees?.name || "").localeCompare(b.employees?.name || ""));
+  }
+
+  return list;
+}, [activeRawData, activeTab, user, searchQuery, filterEmp, filterStatus, filterType, timeframe, selectedDateFilter, sortBy]);
+
+// Group by Employee -> Date
+const groupedData = useMemo(() => {
+  const map = new Map();
+  processedActivities.forEach((act) => {
+    const empName = act.employees?.name || "Unknown Employee";
+    if (!map.has(empName)) map.set(empName, new Map());
+
+    const dateMap = map.get(empName);
+    const date = act.scheduled_date || "Unknown Date";
+    if (!dateMap.has(date)) dateMap.set(date, []);
+    dateMap.get(date).push(act);
+  });
+
+  const result = [];
+  for (const [empName, dateMap] of map.entries()) {
+    const dates = [];
+    for (const [dateStr, activities] of dateMap.entries()) {
+      dates.push({ date: dateStr, activities });
+    }
+    // Sort dates newest first
+    dates.sort((a, b) => new Date(b.date) - new Date(a.date));
+    result.push({ employeeName: empName, dates });
+  }
+  // Sort employees by risk first on pending tab, otherwise alphabetical.
+  if (activeTab === "PENDING") {
+    const getRiskScore = (group) => {
+      const allActs = group.dates.flatMap((d) => d.activities);
+      const pendingCount = allActs.filter(
+        (a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL",
+      ).length;
+      const rejectedCount = allActs.filter((a) => a.status === "REJECTED").length;
+      const unplannedCount = allActs.filter((a) => a.is_unplanned).length;
+      const total = allActs.length || 1;
+      const consistencyPenalty = Math.round((unplannedCount / total) * 100);
+      return pendingCount * 3 + rejectedCount * 4 + consistencyPenalty;
+    };
+    result.sort((a, b) => getRiskScore(b) - getRiskScore(a));
+  } else {
+    result.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  }
+  return result;
+}, [processedActivities, activeTab]);
+
+// ── Mutations ──
+const invalidateAll = () => {
+  queryClient.invalidateQueries({ queryKey: ["salesHeadPending"] });
+  queryClient.invalidateQueries({ queryKey: ["salesHeadVerified"] });
+};
+
+const verifyMutation = useMutation({
+  mutationFn: ({ activityId, remarks }) =>
+    salesService.verifyActivity(activityId, remarks, user?.id, user),
+  onSuccess: () => {
+    invalidateAll();
+    toast.success("Activity verified successfully!");
+  },
+  onError: (err) => toast.error(err.message),
+});
+
+const bulkVerifyMutation = useMutation({
+  mutationFn: ({ activityIds, remarks }) =>
+    salesService.bulkVerifyActivities(activityIds, remarks, user?.id, user),
+  onSuccess: (_, variables) => {
+    invalidateAll();
+    handleDeselectAll();
+    const count = variables.activityIds.length;
+    const ids = variables.activityIds;
+
+    // Persistent toast with undo button (5 seconds)
+    toast(
+      (t) => (
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium">
+            Verified {count} {count === 1 ? "activity" : "activities"}
+          </span>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              bulkUnverifyMutation.mutate({ activityIds: ids });
+            }}
+            className="flex items-center gap-1 bg-gray-12 text-white text-xs font-bold px-3 py-1.5 rounded-md hover:bg-black transition-colors active:scale-95"
+          >
+            <Undo2 size={12} /> Undo
+          </button>
+        </div>
+      ),
+      {
+        duration: 5000,
+        icon: <CheckCircle2 size={18} className="text-green-500" />,
+        style: {
+          background: "var(--gray-1, #fff)",
+          border: "1px solid var(--gray-4, #e5e5e5)",
+          color: "var(--gray-12, #171717)",
+        },
+      }
+    );
+  },
+  onError: (err) => toast.error(err.message),
+});
+
+const unverifyMutation = useMutation({
+  mutationFn: ({ activityId }) =>
+    salesService.unverifyActivity(activityId),
+  onSuccess: () => {
+    invalidateAll();
+    toast.success("Verification undone — activity moved back to pending.");
+  },
+  onError: (err) => toast.error(err.message),
+});
+
+const bulkUnverifyMutation = useMutation({
+  mutationFn: ({ activityIds }) =>
+    salesService.bulkUnverifyActivities(activityIds),
+  onSuccess: (_, variables) => {
+    invalidateAll();
+    handleDeselectAll();
+    toast.success(`Undid verification for ${variables.activityIds.length} activities.`);
+  },
+  onError: (err) => toast.error(err.message),
+});
+
+const isLoadingCurrent = activeTab === "PENDING" ? isLoading : isLoadingVerified;
+
+if (isLoadingCurrent) {
   return (
-    <ProtectedRoute requireHead={true}>
-      <div className="max-w-6xl mx-auto space-y-8 pb-12 px-4 sm:px-6">
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border pb-6 gap-4">
-          <div>
-            <h1 className="text-4xl font-extrabold tracking-tight">
-              <span className="text-foreground">Sales Verification</span>{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary pr-1">
-                Queue
-              </span>
-            </h1>
-            <p className="text-muted-foreground mt-2 font-medium">
-              Review and verify actual daily activities logged by your team.
-            </p>
-          </div>
-          <div className="bg-card border border-border px-4 py-2.5 rounded-lg flex items-center gap-2.5 shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)]">
-            <Layers size={16} className="text-primary" />
-            <span className="text-foreground font-bold text-sm tracking-tight">
-              {activeTab === "PENDING"
-                ? `${processedActivities.length} Pending Actions`
-                : `${processedActivities.length} Verified`}
+    <div className="py-20 text-center text-muted-foreground font-bold">
+      Loading Sales Action Queue...
+    </div>
+  );
+}
+
+return (
+  <ProtectedRoute requireHead={true}>
+    <div className="max-w-6xl mx-auto space-y-8 pb-12 px-4 sm:px-6">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border pb-6 gap-4">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight">
+            <span className="text-foreground">Sales Verification</span>{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary pr-1">
+              Queue
             </span>
-          </div>
+          </h1>
+          <p className="text-muted-foreground mt-2 font-medium">
+            Review and verify actual daily activities logged by your team.
+          </p>
         </div>
+        <div className="bg-card border border-border px-4 py-2.5 rounded-lg flex items-center gap-2.5 shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)]">
+          <Layers size={16} className="text-primary" />
+          <span className="text-foreground font-bold text-sm tracking-tight">
+            {activeTab === "PENDING"
+              ? `${processedActivities.length} Pending Actions`
+              : `${processedActivities.length} Verified`}
+          </span>
+        </div>
+      </div>
 
-        {/* TAB TOGGLE & BULK ACTIONS */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
-          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-fit">
-            <button
-              onClick={() => setActiveTab("PENDING")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${activeTab === "PENDING"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted-foreground/10"
-                }`}
-            >
-              <CheckCircle2 size={14} />
-              Pending Verification
-              {rawPending.length > 0 && (
-                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "PENDING"
-                    ? "bg-primary/10 text-primary"
-                    : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}>
-                  {rawPending.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("VERIFIED")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${activeTab === "VERIFIED"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted-foreground/10"
-                }`}
-            >
-              <History size={14} />
-              Recently Verified
-              {rawVerified.length > 0 && (
-                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "VERIFIED"
-                    ? "bg-primary/10 text-primary"
-                    : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}>
-                  {rawVerified.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* BULK ACTION BAR */}
-          {selectedActivities.size > 0 && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 animate-in fade-in slide-in-from-right-2 duration-200">
-              <span className="text-sm font-bold text-foreground bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
-                {selectedActivities.size} Selected
+      {/* TAB TOGGLE & BULK ACTIONS */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
+        <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setActiveTab("PENDING")}
+            className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${activeTab === "PENDING"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-muted-foreground/10"
+              }`}
+          >
+            <CheckCircle2 size={14} />
+            Pending Verification
+            {rawPending.length > 0 && (
+              <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "PENDING"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted-foreground/20 text-muted-foreground"
+                }`}>
+                {rawPending.length}
               </span>
-
-              <button
-                onClick={handleDeselectAll}
-                className="text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-border cursor-pointer"
-              >
-                Deselect All
-              </button>
-
-              {activeTab === "PENDING" && (
-                <div className="relative">
-                  <MessageSquare size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Remarks"
-                    value={bulkRemarks}
-                    onChange={(e) => setBulkRemarks(e.target.value)}
-                    className="w-40 sm:w-56 bg-background text-xs text-foreground border border-input focus-visible:ring-1 focus-visible:ring-ring rounded-lg pl-8 pr-3 py-1.5 outline-none transition-all"
-                  />
-                </div>
-              )}
-
-              <button
-                onClick={handleBulkAction}
-                disabled={activeTab === "PENDING" ? bulkVerifyMutation.isPending : bulkUnverifyMutation.isPending}
-                className={`flex items-center justify-center gap-2 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap cursor-pointer ${activeTab === "PENDING"
-                    ? "bg-emerald-500 hover:bg-emerald-600"
-                    : "bg-destructive/80 hover:bg-destructive text-destructive-foreground border border-destructive/20"
-                  }`}
-              >
-                {activeTab === "PENDING" ? (
-                  <><CheckCircle2 size={16} /> Verify Selected</>
-                ) : (
-                  <><Undo2 size={16} /> Undo Selected</>
-                )}
-              </button>
-            </div>
-          )}
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("VERIFIED")}
+            className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${activeTab === "VERIFIED"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-muted-foreground/10"
+              }`}
+          >
+            <History size={14} />
+            Recently Verified
+            {rawVerified.length > 0 && (
+              <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "VERIFIED"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted-foreground/20 text-muted-foreground"
+                }`}>
+                {rawVerified.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("REQUESTS")}
+            className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all ${activeTab === "REQUESTS"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-muted-foreground/10"
+              }`}
+          >
+            <MessageSquare size={14} />
+            Requests
+            {totalRequestsCount > 0 && (
+              <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "REQUESTS"
+                ? "bg-amber-500 text-white"
+                : "bg-amber-500/20 text-amber-600"
+                }`}>
+                {totalRequestsCount}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* SEARCH & FILTERS */}
-        {activeRawData.length > 0 && (
-          <SalesFilters
-            activeTab="ACTIVITIES"
-            viewMode="BOARD"
-            showDateFilter={true}
-            searchTerm={searchQuery}
-            setSearchTerm={setSearchQuery}
-            timeframe={timeframe}
-            setTimeframe={setTimeframe}
-            selectedDateFilter={selectedDateFilter}
-            setSelectedDateFilter={setSelectedDateFilter}
-            filterEmp={filterEmp}
-            setFilterEmp={setFilterEmp}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            filterType={filterType}
-            setFilterType={setFilterType}
-            canViewAllSales={true}
-            user={user}
-            uniqueEmployees={uniqueEmployees}
-            isVerificationEnforced={false}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-          />
-        )}
+        {/* BULK ACTION BAR */}
+        {selectedActivities.size > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 animate-in fade-in slide-in-from-right-2 duration-200">
+            <span className="text-sm font-bold text-foreground bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
+              {selectedActivities.size} Selected
+            </span>
 
-        {/* APPROVAL QUEUES (only show on pending tab) */}
-        {activeTab === "PENDING" && (
-          <div className="space-y-6">
-            <PlanAmendmentApprovalQueue initialExpandedId={location.state?.highlightPlanId} />
-            <DayDeletionApprovalQueue initialHighlightDate={location.state?.highlightDeletionDate} />
-          </div>
-        )}
+            <button
+              onClick={handleDeselectAll}
+              className="text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-border cursor-pointer"
+            >
+              Deselect All
+            </button>
 
-        {/* EMPTY STATE */}
-        {groupedData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 bg-card border border-border rounded-xl shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)] text-center relative overflow-hidden group">
-            {/* Soft blob decoration inside empty state */}
-            <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
+            {activeTab === "PENDING" && (
+              <div className="relative">
+                <MessageSquare size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Remarks"
+                  value={bulkRemarks}
+                  onChange={(e) => setBulkRemarks(e.target.value)}
+                  className="w-40 sm:w-56 bg-background text-xs text-foreground border border-input focus-visible:ring-1 focus-visible:ring-ring rounded-lg pl-8 pr-3 py-1.5 outline-none transition-all"
+                />
+              </div>
+            )}
 
-            <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${activeTab === "PENDING"
-                ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
-                : "bg-muted text-muted-foreground ring-muted/50"
-              }`}>
-              {activeTab === "PENDING" ? <CheckCircle2 size={32} /> : <History size={32} />}
-            </div>
-            <h3 className="text-foreground font-bold text-2xl tracking-tight relative">
-              {activeTab === "PENDING" ? "Inbox Zero!" : "No Verified Activities"}
-            </h3>
-            <p className="text-muted-foreground mt-2 relative font-medium max-w-sm">
-              {activeTab === "PENDING"
-                ? "All sales activities for your department have been verified. Great job!"
-                : "Activities you've verified will appear here so you can undo if needed."}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {groupedData.map((empGroup) => (
-              <EmployeeBlock
-                key={empGroup.employeeName}
-                empGroup={empGroup}
-                mode={activeTab}
-                verifyMutation={verifyMutation}
-                bulkVerifyMutation={bulkVerifyMutation}
-                unverifyMutation={unverifyMutation}
-                bulkUnverifyMutation={bulkUnverifyMutation}
-                onViewDetails={setViewActivity}
-                selectedActivities={selectedActivities}
-                onToggleSelection={handleToggleSelection}
-                onToggleDaySelection={handleToggleDaySelection}
-              />
-            ))}
+            <button
+              onClick={handleBulkAction}
+              disabled={activeTab === "PENDING" ? bulkVerifyMutation.isPending : bulkUnverifyMutation.isPending}
+              className={`flex items-center justify-center gap-2 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap cursor-pointer ${activeTab === "PENDING"
+                ? "bg-emerald-500 hover:bg-emerald-600"
+                : "bg-destructive/80 hover:bg-destructive text-destructive-foreground border border-destructive/20"
+                }`}
+            >
+              {activeTab === "PENDING" ? (
+                <><CheckCircle2 size={16} /> Verify Selected</>
+              ) : (
+                <><Undo2 size={16} /> Undo Selected</>
+              )}
+            </button>
           </div>
         )}
       </div>
 
-      <SalesTaskDetailsModal
-        isOpen={!!viewActivity}
-        onClose={() => setViewActivity(null)}
-        activity={viewActivity}
-      />
-    </ProtectedRoute>
-  );
+      {/* SEARCH & FILTERS */}
+      {activeTab !== "REQUESTS" && activeRawData.length > 0 && (
+        <SalesFilters
+          activeTab="ACTIVITIES"
+          viewMode="BOARD"
+          showDateFilter={true}
+          searchTerm={searchQuery}
+          setSearchTerm={setSearchQuery}
+          timeframe={timeframe}
+          setTimeframe={setTimeframe}
+          selectedDateFilter={selectedDateFilter}
+          setSelectedDateFilter={setSelectedDateFilter}
+          filterEmp={filterEmp}
+          setFilterEmp={setFilterEmp}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          filterType={filterType}
+          setFilterType={setFilterType}
+          canViewAllSales={true}
+          user={user}
+          uniqueEmployees={uniqueEmployees}
+          isVerificationEnforced={false}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+        />
+      )}
+
+      {/* APPROVAL QUEUES (dedicated Requests tab) */}
+      {activeTab === "REQUESTS" && (
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-8 w-1 bg-amber-500 rounded-full" />
+              <h2 className="text-xl font-black text-foreground tracking-tight uppercase">Schedule Modifications</h2>
+            </div>
+            <PlanAmendmentApprovalQueue initialExpandedId={location.state?.highlightPlanId} />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-8 w-1 bg-red-500 rounded-full" />
+              <h2 className="text-xl font-black text-foreground tracking-tight uppercase">Day Data Management</h2>
+            </div>
+            <DayDeletionApprovalQueue initialHighlightDate={location.state?.highlightDeletionDate} />
+          </div>
+
+          {totalRequestsCount === 0 && (
+            <div className="flex flex-col items-center justify-center py-24 bg-card border border-border border-dashed rounded-2xl text-center">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-4">
+                <MessageSquare size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">No Pending Requests</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xs"> There are no active plan amendments or deletion requests for your department.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* EMPTY STATE (Verification Tabs) */}
+      {activeTab !== "REQUESTS" && groupedData.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 bg-card border border-border rounded-xl shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)] text-center relative overflow-hidden group">
+          {/* Soft blob decoration inside empty state */}
+          <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
+
+          <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${activeTab === "PENDING"
+            ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
+            : "bg-muted text-muted-foreground ring-muted/50"
+            }`}>
+            {activeTab === "PENDING" ? <CheckCircle2 size={32} /> : <History size={32} />}
+          </div>
+          <h3 className="text-foreground font-bold text-2xl tracking-tight relative">
+            {activeTab === "PENDING" ? "Inbox Zero!" : "No Verified Activities"}
+          </h3>
+          <p className="text-muted-foreground mt-2 relative font-medium max-w-sm">
+            {activeTab === "PENDING"
+              ? "All sales activities for your department have been verified. Great job!"
+              : "Activities you've verified will appear here so you can undo if needed."}
+          </p>
+        </div>
+      ) : activeTab !== "REQUESTS" ? (
+        <div className="space-y-8">
+          {groupedData.map((empGroup) => (
+            <EmployeeBlock
+              key={empGroup.employeeName}
+              empGroup={empGroup}
+              mode={activeTab}
+              verifyMutation={verifyMutation}
+              bulkVerifyMutation={bulkVerifyMutation}
+              unverifyMutation={unverifyMutation}
+              bulkUnverifyMutation={bulkUnverifyMutation}
+              onViewDetails={setViewActivity}
+              selectedActivities={selectedActivities}
+              onToggleSelection={handleToggleSelection}
+              onToggleDaySelection={handleToggleDaySelection}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+
+    <SalesTaskDetailsModal
+      isOpen={!!viewActivity}
+      onClose={() => setViewActivity(null)}
+      activity={viewActivity}
+    />
+  </ProtectedRoute>
+);
 }
 
 function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unverifyMutation, bulkUnverifyMutation, onViewDetails, selectedActivities, onToggleSelection, onToggleDaySelection }) {

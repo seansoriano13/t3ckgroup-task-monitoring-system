@@ -31,9 +31,10 @@ export function DailyTaskMatrix({
               No morning tasks scheduled.
             </p>
           )}
-          {plannedAM.map((act) => (
+          {plannedAM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}
@@ -43,9 +44,10 @@ export function DailyTaskMatrix({
               onView={onView}
             />
           ))}
-          {unplannedAM.map((act) => (
+          {unplannedAM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={plannedAM.length + idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}
@@ -81,9 +83,10 @@ export function DailyTaskMatrix({
               No afternoon tasks scheduled.
             </p>
           )}
-          {plannedPM.map((act) => (
+          {plannedPM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}
@@ -93,9 +96,10 @@ export function DailyTaskMatrix({
               onView={onView}
             />
           ))}
-          {unplannedPM.map((act) => (
+          {unplannedPM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={plannedPM.length + idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}

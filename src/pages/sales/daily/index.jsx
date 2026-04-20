@@ -5,9 +5,12 @@ import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { Loader2, Calendar as CalendarIcon, AlertCircle } from "lucide-react";
+import { Loader2, Calendar as CalendarIcon, AlertCircle, Trash2 } from "lucide-react";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
+import DayManagementModal from "../../../components/DayManagementModal.jsx";
 import { REVENUE_STATUS } from "../../../constants/status"; // #11 Constant import
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import { DailyCoverageTabs } from "./components/DailyCoverageTabs";
 import { DailyTaskMatrix } from "./components/DailyTaskMatrix";
@@ -183,27 +186,8 @@ export default function DailyExecutionPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  const [isRequestingDayDelete, setIsRequestingDayDelete] = useState(false);
-  const [dayDeleteReason, setDayDeleteReason] = useState("");
+  const [isDayManagementOpen, setIsDayManagementOpen] = useState(false);
 
-  const requestDayDeleteMutation = useMutation({
-    mutationFn: () =>
-      salesService.requestDayDeletion(
-        user.id,
-        selectedDate,
-        dayDeleteReason,
-        user.id,
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["dailyActivities", user?.id, selectedDate],
-      });
-      toast.success("Day deletion request submitted!");
-      setIsRequestingDayDelete(false);
-      setDayDeleteReason("");
-    },
-    onError: (err) => toast.error(err.message),
-  });
 
   const handleAddUnplanned = (payload) => {
     const hasExpense = Number(payload.expense_amount) > 0;
@@ -247,63 +231,26 @@ export default function DailyExecutionPage() {
           <div className="flex items-center gap-3">
             <div className="bg-card border border-border rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-sm hover:border-indigo-300 transition-colors">
               <CalendarIcon size={16} className="text-indigo-500" />
-              <input
-                type="date"
-                value={formatDateToYMD(currentDateObj)}
-                onChange={(e) => {
-                  const d = new Date(e.target.value);
-                  setCurrentDateObj(d);
-                  setSelectedDate(formatDateToYMD(d));
+              <DatePicker
+                selected={currentDateObj}
+                onChange={(date) => {
+                  if (!date) return;
+                  setCurrentDateObj(date);
+                  setSelectedDate(formatDateToYMD(date));
                 }}
-                className="bg-transparent text-foreground font-bold outline-none cursor-pointer text-sm"
+                dateFormat="MMM d, yyyy"
+                portalId="root"
+                className="bg-transparent text-foreground font-bold outline-none cursor-pointer text-sm w-[120px]"
               />
             </div>
 
-            {activities.length > 0 && !isAdminView && (
-              <div className="relative">
-                {!isRequestingDayDelete ? (
-                  <button
-                    onClick={() => setIsRequestingDayDelete(true)}
-                    className="px-3 py-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl text-xs font-bold transition-all border border-destructive/20"
-                  >
-                    Request Deletion
-                  </button>
-                ) : (
-                  <div className="absolute right-0 top-12 z-50 bg-card border border-destructive/20 rounded-2xl shadow-2xl p-5 w-[300px] animate-in slide-in-from-right-2">
-                    <label className="text-[10px] font-black text-destructive uppercase tracking-widest block mb-2">
-                      Reason for Deleting this day?
-                    </label>
-                    <textarea
-                      autoFocus
-                      value={dayDeleteReason}
-                      onChange={(e) => setDayDeleteReason(e.target.value)}
-                      placeholder="E.g. Public holiday, system error..."
-                      className="w-full bg-muted/40 border border-border rounded-xl p-3 text-sm text-foreground outline-none focus:border-destructive/40 focus:ring-2 focus:ring-destructive/10 mb-4 transition-all"
-                      rows={2}
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => setIsRequestingDayDelete(false)}
-                        className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground font-bold transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => requestDayDeleteMutation.mutate()}
-                        disabled={
-                          !dayDeleteReason.trim() ||
-                          requestDayDeleteMutation.isPending
-                        }
-                        className="px-4 py-1.5 bg-destructive hover:bg-destructive/90 text-white text-xs font-bold rounded-xl shadow-sm shadow-red-100 disabled:opacity-50 transition-all"
-                      >
-                        {requestDayDeleteMutation.isPending
-                          ? "Submitting..."
-                          : "Submit Request"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {weeklyActivities.length > 0 && !isAdminView && (
+              <button
+                onClick={() => setIsDayManagementOpen(true)}
+                className="px-4 py-2.5 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl text-xs font-bold transition-all border border-destructive/20 flex items-center gap-2"
+              >
+                <Trash2 size={14} /> Manage Schedule
+              </button>
             )}
           </div>
         </div>
@@ -361,6 +308,13 @@ export default function DailyExecutionPage() {
         isOpen={!!viewActivity}
         onClose={() => setViewActivity(null)}
         activity={viewActivity}
+      />
+
+      <DayManagementModal
+        isOpen={isDayManagementOpen}
+        onClose={() => setIsDayManagementOpen(false)}
+        weekDates={weekDates}
+        weeklyActivities={weeklyActivities}
       />
     </ProtectedRoute>
   );

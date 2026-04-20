@@ -10,6 +10,7 @@ import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
 import SystemUpdateBanner from "../../components/SystemUpdateBanner.jsx";
 import SystemUpdateManager from "../../components/SystemUpdateManager.jsx";
+import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 
 const EMPTY_ARRAY = [];
 
@@ -136,13 +137,13 @@ export default function SuperAdminDashboard() {
     try {
       const keys = selectedRange.monthKeys?.length > 0 ? selectedRange.monthKeys : [selectedRange.startDate];
       const numMonths = keys.length;
-      
+
       const promises = [];
       changed.forEach(({ employeeId, amount }) => {
         const perMonth = amount / numMonths;
         keys.forEach(monthKey => {
-           // Round to 2 decimals to avoid floating point issues
-           promises.push(salesService.upsertQuota(employeeId, Math.round(perMonth * 100) / 100, monthKey));
+          // Round to 2 decimals to avoid floating point issues
+          promises.push(salesService.upsertQuota(employeeId, Math.round(perMonth * 100) / 100, monthKey));
         });
       });
 
@@ -165,77 +166,82 @@ export default function SuperAdminDashboard() {
         </div>
       ) : (
         <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
-        <SystemUpdateBanner />
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
-          <div>
-            <h1 className="text-4xl font-black text-foreground tracking-tight flex items-center gap-2">
-              Admin Control
-            </h1>
-            <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.15em]">
-              Manage Sales Quotas, configure tracking rules, and review department activities.
-            </p>
-          </div>
-
-          {/* Inline range label — quick overview, FAB for full picker */}
-          <div className="flex items-center gap-2">
-            <FloatingMonthPicker
-              selectedRange={selectedRange}
-              onChange={setSelectedRange}
-            />
-          </div>
-        </div>
-
-        <SystemUpdateManager />
-
-        <ExpenseApprovalQueue isSuperAdmin={true} />
-        <div className="bg-card border border-border p-5 sm:p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
+          <SystemUpdateBanner />
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
             <div>
-              <h2 className="text-lg font-black text-foreground">Set Sales Quotas</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Edit any quotas below, then hit <strong>Save All</strong> to commit changes.
+              <h1 className="text-4xl font-black text-foreground tracking-tight flex items-center gap-2">
+                Admin Control
+              </h1>
+              <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.15em]">
+                Manage Sales Quotas, configure tracking rules, and review department activities.
               </p>
             </div>
-            <button
-              onClick={handleSaveAll}
-              disabled={isSavingAll || !hasPendingChanges}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shrink-0
+
+            {/* Inline range label — quick overview, FAB for full picker */}
+            <div className="flex items-center gap-2">
+              <FloatingMonthPicker
+                selectedRange={selectedRange}
+                onChange={setSelectedRange}
+              />
+            </div>
+          </div>
+
+          <SystemUpdateManager />
+
+          <ExpenseApprovalQueue isSuperAdmin={true} />
+          <div className="bg-card border border-border p-5 sm:p-6 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
+              <div>
+                <h2 className="text-lg font-black text-foreground">Set Sales Quotas</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Edit any quotas below, then hit <strong>Save All</strong> to commit changes.
+                </p>
+              </div>
+              <button
+                onClick={handleSaveAll}
+                disabled={isSavingAll || !hasPendingChanges}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shrink-0
                 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100
                 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none disabled:cursor-not-allowed"
-            >
-              {isSavingAll ? (
-                <><Loader2 size={15} className="animate-spin" /> Saving...</>
-              ) : (
-                <><CheckCheck size={15} /> Save All</>
-              )}
-            </button>
+              >
+                {isSavingAll ? (
+                  <><Loader2 size={15} className="animate-spin" /> Saving...</>
+                ) : (
+                  <><CheckCheck size={15} /> Save All</>
+                )}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {salesEmployees.map((emp) => (
+                <QuotaCard
+                  key={emp.id}
+                  employee={emp}
+                  value={draftQuotas[emp.id] ?? "0"}
+                  serverValue={quotaMap[emp.id] ?? 0}
+                  avatarUrl={resolvedAvatars[emp.id]}
+                  onChange={(val) =>
+                    setDraftQuotas((prev) => ({ ...prev, [emp.id]: val }))
+                  }
+                />
+              ))}
+            </div>
+            {salesEmployees.length === 0 && (
+              <p className="text-muted-foreground italic text-sm">
+                No employees found matching 'Sales' department criteria.
+              </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {salesEmployees.map((emp) => (
-              <QuotaCard
-                key={emp.id}
-                employee={emp}
-                value={draftQuotas[emp.id] ?? "0"}
-                serverValue={quotaMap[emp.id] ?? 0}
-                avatarUrl={resolvedAvatars[emp.id]}
-                onChange={(val) =>
-                  setDraftQuotas((prev) => ({ ...prev, [emp.id]: val }))
-                }
-              />
-            ))}
+          <div className="pt-6">
+            <EmployeePipelineMatrix selectedRange={selectedRange} />
           </div>
-          {salesEmployees.length === 0 && (
-            <p className="text-muted-foreground italic text-sm">
-              No employees found matching 'Sales' department criteria.
-            </p>
-          )}
-        </div>
 
-        <div className="pt-6">
-          <EmployeePipelineMatrix selectedRange={selectedRange} />
+          <SalesPerformanceMetrics
+            selectedMonth={selectedRange.startDate}
+            selectedLabel={selectedRange.label}
+          />
         </div>
-      </div>
       )}
 
 
@@ -262,11 +268,11 @@ function QuotaCard({ employee, value, serverValue, avatarUrl, onChange }) {
 
     // Only allow digits and one decimal point
     const filteredValue = rawValue.replace(/[^0-9.]/g, "");
-    
+
     // Ensure only one decimal point exists
     const parts = filteredValue.split(".");
     const cleanValue = parts[0] + (parts.length > 1 ? "." + parts[1] : "");
-    
+
     onChange(cleanValue);
 
     // Smart caret repositioning
@@ -281,9 +287,8 @@ function QuotaCard({ employee, value, serverValue, avatarUrl, onChange }) {
 
   return (
     <div
-      className={`bg-card border rounded-2xl p-5 flex flex-col justify-between transition-all ${
-        isDirty ? "border-indigo-300 shadow-md shadow-indigo-50" : "border-border hover:border-indigo-100"
-      }`}
+      className={`bg-card border rounded-2xl p-5 flex flex-col justify-between transition-all ${isDirty ? "border-indigo-300 shadow-md shadow-indigo-50" : "border-border hover:border-indigo-100"
+        }`}
     >
       <div className="flex items-start gap-4 mb-4">
         <img
@@ -309,11 +314,10 @@ function QuotaCard({ employee, value, serverValue, avatarUrl, onChange }) {
           placeholder="0"
           value={displayValue}
           onChange={handleChange}
-          className={`w-full bg-muted/40 border text-foreground rounded-xl pl-8 pr-14 py-2.5 text-sm font-bold outline-none transition-all ${
-            isDirty
-              ? "border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-              : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-          }`}
+          className={`w-full bg-muted/40 border text-foreground rounded-xl pl-8 pr-14 py-2.5 text-sm font-bold outline-none transition-all ${isDirty
+            ? "border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            }`}
         />
         {isDirty && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-indigo-500 uppercase tracking-widest pointer-events-none">

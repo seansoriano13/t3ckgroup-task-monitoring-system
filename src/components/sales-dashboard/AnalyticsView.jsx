@@ -1,4 +1,6 @@
 import { Calendar, Download, TrendingUp, TrendingDown, Trophy, Package } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export function AnalyticsView({
   startDate,
@@ -24,22 +26,36 @@ export function AnalyticsView({
               <label className="text-[10px] font-bold text-gray-8 uppercase tracking-wider block mb-1">
                 Start Date
               </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 font-bold outline-none focus:border-blue-500 w-[140px]"
+              <DatePicker
+                selected={startDate ? new Date(startDate) : null}
+                onChange={(date) => {
+                  if (!date) return;
+                  const y = date.getFullYear();
+                  const m = String(date.getMonth() + 1).padStart(2, "0");
+                  const d = String(date.getDate()).padStart(2, "0");
+                  setStartDate(`${y}-${m}-${d}`);
+                }}
+                dateFormat="MMM d, yyyy"
+                portalId="root"
+                className="bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-bold outline-none focus:border-primary/50 w-[140px] transition-all cursor-pointer"
               />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-8 uppercase tracking-wider block mb-1">
                 End Date
               </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 font-bold outline-none focus:border-blue-500 w-[140px]"
+              <DatePicker
+                selected={endDate ? new Date(endDate) : null}
+                onChange={(date) => {
+                  if (!date) return;
+                  const y = date.getFullYear();
+                  const m = String(date.getMonth() + 1).padStart(2, "0");
+                  const d = String(date.getDate()).padStart(2, "0");
+                  setEndDate(`${y}-${m}-${d}`);
+                }}
+                dateFormat="MMM d, yyyy"
+                portalId="root"
+                className="bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-bold outline-none focus:border-primary/50 w-[140px] transition-all cursor-pointer"
               />
             </div>
           </div>

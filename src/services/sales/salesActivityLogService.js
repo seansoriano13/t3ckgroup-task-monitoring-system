@@ -147,11 +147,12 @@ export const salesActivityLogService = {
   /**
    * Subscribe to real-time activity updates for a sales activity
    */
-  subscribeToActivity(salesActivityId, onNewEntry) {
+  subscribeToActivity(salesActivityId, onNewEntry, channelSuffix = "") {
     if (!salesActivityId) return null;
 
+    const channelName = `sales-activity-${salesActivityId}${channelSuffix}`;
     return supabase
-      .channel(`sales-activity-${salesActivityId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {

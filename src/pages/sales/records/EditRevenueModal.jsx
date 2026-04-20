@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   Unlock,
 } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function EditRevenueModal({
   isOpen,
@@ -298,14 +300,23 @@ export default function EditRevenueModal({
                 <label className="text-[10px] font-bold text-gray-9 uppercase mb-1 block">
                   Date
                 </label>
-                <input
-                  type="date"
+                <DatePicker
+                  selected={formData.date ? new Date(formData.date) : null}
+                  onChange={(date) => {
+                    if (!date) {
+                      setFormData({ ...formData, date: "" });
+                      return;
+                    }
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, "0");
+                    const d = String(date.getDate()).padStart(2, "0");
+                    setFormData({ ...formData, date: `${y}-${m}-${d}` });
+                  }}
+                  dateFormat="MMM d, yyyy"
                   required
-                  value={formData.date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
-                  }
-                  className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:focus:border-gray-6 font-bold"
+                  portalId="root"
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground outline-none focus:border-primary/50 font-bold transition-all cursor-pointer"
+                  placeholderText="Select date"
                 />
               </div>
               <div>

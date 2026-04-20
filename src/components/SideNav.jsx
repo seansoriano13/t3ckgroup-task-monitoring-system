@@ -25,8 +25,9 @@ import { useQuery } from "@tanstack/react-query";
 import { notificationService } from "../services/notificationService";
 import { activeChatService } from "../services/tasks/activeChatService";
 import NotificationDrawer from "./NotificationDrawer";
-import ActiveChatsDrawer from "./ActiveChatsDrawer";
+import ComprehensiveChatModal from "./ComprehensiveChatModal";
 import BroadcastDrawer from "./BroadcastDrawer";
+import GlobalDetailManager from "./GlobalDetailManager";
 import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
 import LogTaskModal from "./LogTaskModal";
@@ -72,6 +73,7 @@ export default function SideNav({ onOpenAddTask }) {
       { label: "Tasks", link: "/tasks", icon: ListCheck },
       { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
       { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
+      { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
       { label: "HR Management", link: "/hr/management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
@@ -438,10 +440,11 @@ export default function SideNav({ onOpenAddTask }) {
         isOpen={isNotifOpen}
         onClose={() => setIsNotifOpen(false)}
       />
-      <ActiveChatsDrawer
+      <ComprehensiveChatModal
         isOpen={isChatsOpen}
         onClose={() => setIsChatsOpen(false)}
       />
+      <GlobalDetailManager />
       <BroadcastDrawer
         isOpen={isBroadcastOpen}
         onClose={() => setIsBroadcastOpen(false)}

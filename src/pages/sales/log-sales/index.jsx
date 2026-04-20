@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import { DollarSign, Save, FileText, ShoppingCart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { RECORD_TYPE, REVENUE_STATUS } from "../../../constants/status";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function LogSalesPage() {
   const { user } = useAuth();
@@ -137,14 +139,25 @@ export default function LogSalesPage() {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
                 Date
               </label>
-              <input
+              <DatePicker
+                selected={formData.date ? new Date(formData.date) : null}
+                onChange={(date) => {
+                  if (!date) {
+                    setFormData({ ...formData, date: "" });
+                    return;
+                  }
+                  const y = date.getFullYear();
+                  const m = String(date.getMonth() + 1).padStart(2, "0");
+                  const d = String(date.getDate()).padStart(2, "0");
+                  setFormData({ ...formData, date: `${y}-${m}-${d}` });
+                }}
+                dateFormat="MMM d, yyyy"
                 required
-                type="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-                className="w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 font-bold transition-all"
+                portalId="root"
+                placeholderText="Select date"
+                className={`w-full bg-muted/40 border text-foreground rounded-xl p-3 outline-none font-bold transition-all cursor-pointer ${
+                  isOrder ? "border-border focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
