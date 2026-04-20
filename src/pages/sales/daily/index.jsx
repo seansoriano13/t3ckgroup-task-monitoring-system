@@ -237,7 +237,7 @@ export default function DailyExecutionPage() {
         {/* HEADER & DATE PICKER */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-3xl font-black text-foreground flex items-center gap-3 tracking-tight">
+            <h1 className="text-4xl font-black text-foreground tracking-tight">
               Daily Checklist
             </h1>
             <p className="text-muted-foreground mt-1 font-medium text-sm">

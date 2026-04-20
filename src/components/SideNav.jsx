@@ -18,6 +18,7 @@ import {
   PanelLeft,
   PanelRight,
   SquarePen,
+  Megaphone,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ import { notificationService } from "../services/notificationService";
 import { activeChatService } from "../services/tasks/activeChatService";
 import NotificationDrawer from "./NotificationDrawer";
 import ActiveChatsDrawer from "./ActiveChatsDrawer";
+import BroadcastDrawer from "./BroadcastDrawer";
 import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
 import LogTaskModal from "./LogTaskModal";
@@ -37,6 +39,7 @@ export default function SideNav({ onOpenAddTask }) {
   // Mobile Toggle State
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLogTaskOpen, setIsLogTaskOpen] = useState(false);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
 
   // Notification State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -281,6 +284,19 @@ export default function SideNav({ onOpenAddTask }) {
               isSearchable={false}
             />
           </div>
+          {/* Broadcast — super admins only */}
+          {user?.isSuperAdmin && (
+            <button
+              onClick={() => {
+                setIsMobileOpen(false);
+                setIsBroadcastOpen(true);
+              }}
+              className="shrink-0 p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
+              title="Broadcast"
+            >
+              <Megaphone size={15} strokeWidth={2.2} />
+            </button>
+          )}
           <button
             onClick={() => {
               setIsMobileOpen(false);
@@ -425,6 +441,10 @@ export default function SideNav({ onOpenAddTask }) {
       <ActiveChatsDrawer
         isOpen={isChatsOpen}
         onClose={() => setIsChatsOpen(false)}
+      />
+      <BroadcastDrawer
+        isOpen={isBroadcastOpen}
+        onClose={() => setIsBroadcastOpen(false)}
       />
       <LogTaskModal
         isOpen={isLogTaskOpen}

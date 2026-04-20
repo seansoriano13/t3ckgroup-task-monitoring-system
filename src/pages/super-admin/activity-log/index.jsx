@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../../../services/tasks/taskActivityService";
 import { taskService } from "../../../services/taskService";
 import { employeeService } from "../../../services/employeeService";
 import TaskDetails from "../../../components/TaskDetails.jsx";
+import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
 import toast from "react-hot-toast";
 import {
   ShieldCheck,
@@ -14,6 +18,11 @@ import {
   ChevronRight,
   Filter,
   X,
+  Search,
+  Calendar,
+  Activity,
+  Clock,
+  ChevronDown,
 } from "lucide-react";
 
 const PAGE_SIZE = 50;
@@ -37,6 +46,82 @@ function formatWhen(iso) {
   });
 }
 
+function getInitials(name) {
+  if (!name || name === "System") return "SY";
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+}
+
+// ── Local react-select styles — same as LOG_TASK_SELECT_STYLES but xs font ──
+const FILTER_SELECT_STYLES = {
+  control: (state) =>
+    `min-h-[36px] w-full bg-gray-1 border ${state.isFocused ? "border-gray-6 ring-1 ring-gray-6" : "border-gray-4"
+    } hover:border-gray-5 rounded-lg px-2 shadow-sm transition-all cursor-pointer`,
+  menu: () =>
+    `mt-1 bg-gray-1 border border-gray-4 rounded-lg shadow-xl overflow-hidden popover-enter`,
+  menuList: () => `p-1`,
+  option: (state) =>
+    `px-3 py-1.5 cursor-pointer transition-colors rounded-md !text-sm ${state.isFocused
+      ? "bg-gray-3 text-gray-12 font-bold"
+      : state.isSelected
+        ? "bg-gray-4 text-gray-12 font-bold"
+        : "text-gray-11 bg-transparent"
+    }`,
+
+  singleValue: () => `text-gray-12 font-semibold text-xs`,
+  placeholder: () => `text-gray-7 text-xs`,
+  input: () => `text-gray-12 text-xs`,
+  indicatorSeparator: () => `hidden`,
+  dropdownIndicator: () => `text-gray-8 hover:text-gray-10 p-1`,
+  valueContainer: () => `gap-1 py-0`,
+};
+
+const PORTAL_STYLES = { menuPortal: (base) => ({ ...base, zIndex: 9999, }) };
+
+// ── FieldBox — mirrors LogTaskAssignmentBar's label+container pattern ────────
+function FieldBox({ label, children }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="bg-card border border-border rounded-xl p-4 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-muted shrink-0" />
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="h-2.5 w-16 bg-muted rounded-full" />
+            <div className="h-2.5 w-28 bg-muted rounded-full" />
+          </div>
+          <div className="h-4 w-3/4 bg-muted rounded-full" />
+          <div className="h-3 w-full bg-muted rounded-full" />
+          <div className="h-3 w-2/3 bg-muted rounded-full" />
+          <div className="flex items-center gap-2 pt-1">
+            <div className="h-5 w-5 bg-muted rounded-full" />
+            <div className="h-3 w-20 bg-muted rounded-full" />
+            <div className="h-5 w-16 bg-muted rounded-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  PAGE COMPONENT
+// ═════════════════════════════════════════════════════════════════════════════
 export default function SuperAdminActivityLogPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
@@ -49,26 +134,18 @@ export default function SuperAdminActivityLogPage() {
     taskStatus: "ALL",
     dept: "ALL",
     subDept: "ALL",
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: null,
+    dateTo: null,
     search: "",
   });
 
   const offset = useMemo(() => page * PAGE_SIZE, [page]);
 
-  // Reset pagination when filters change
   useEffect(() => {
     setPage(0);
   }, [
-    filters.type,
-    filters.authorId,
-    filters.employeeId,
-    filters.taskStatus,
-    filters.dept,
-    filters.subDept,
-    filters.dateFrom,
-    filters.dateTo,
-    filters.search,
+    filters.type, filters.authorId, filters.employeeId, filters.taskStatus,
+    filters.dept, filters.subDept, filters.dateFrom, filters.dateTo, filters.search,
   ]);
 
   const { data: employees = [] } = useQuery({
@@ -95,36 +172,22 @@ export default function SuperAdminActivityLogPage() {
 
   const filteredEntries = useMemo(() => {
     return entries.filter((e) => {
-      if (filters.dept !== "ALL" && (e.taskCreatorDept || "") !== filters.dept)
-        return false;
-      if (
-        filters.subDept !== "ALL" &&
-        (e.taskCreatorSubDept || "") !== filters.subDept
-      )
-        return false;
+      if (filters.dept !== "ALL" && (e.taskCreatorDept || "") !== filters.dept) return false;
+      if (filters.subDept !== "ALL" && (e.taskCreatorSubDept || "") !== filters.subDept) return false;
       return true;
     });
   }, [entries, filters.dept, filters.subDept]);
 
   const uniqueDepts = useMemo(() => {
     const s = new Set(["ALL"]);
-    employees.forEach((e) => {
-      const d = e.department;
-      if (typeof d === "string" && d.trim()) s.add(d);
-    });
+    employees.forEach((e) => { if (typeof e.department === "string" && e.department.trim()) s.add(e.department); });
     return Array.from(s).sort();
   }, [employees]);
 
   const uniqueSubDepts = useMemo(() => {
     const s = new Set(["ALL"]);
-    const pool =
-      filters.dept === "ALL"
-        ? employees
-        : employees.filter((e) => e.department === filters.dept);
-    pool.forEach((e) => {
-      const sd = e.subDepartment;
-      if (typeof sd === "string" && sd.trim()) s.add(sd);
-    });
+    const pool = filters.dept === "ALL" ? employees : employees.filter((e) => e.department === filters.dept);
+    pool.forEach((e) => { if (typeof e.subDepartment === "string" && e.subDepartment.trim()) s.add(e.subDepartment); });
     return Array.from(s).sort();
   }, [employees, filters.dept]);
 
@@ -154,235 +217,360 @@ export default function SuperAdminActivityLogPage() {
     onError: (err) => toast.error(err?.message || "Failed to delete task."),
   });
 
+  const hasActiveFilters =
+    filters.type !== "ALL" || filters.authorId !== "ALL" || filters.employeeId !== "ALL" ||
+    filters.taskStatus !== "ALL" || filters.dept !== "ALL" || filters.subDept !== "ALL" ||
+    filters.dateFrom !== null || filters.dateTo !== null || filters.search !== "";
+
+  const clearFilters = () =>
+    setFilters({
+      type: "ALL", authorId: "ALL", employeeId: "ALL", taskStatus: "ALL",
+      dept: "ALL", subDept: "ALL", dateFrom: null, dateTo: null, search: ""
+    });
+
+  // Date input style — matches LogTaskModal inner fields
+  const dateCls =
+    "w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:border-gray-6 transition-colors hover:border-gray-5 cursor-pointer";
+
   return (
     <ProtectedRoute requireSuperAdmin={true}>
-      <div className="max-w-6xl mx-auto space-y-5 px-2">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-gray-4 pb-4">
+      <div className="max-w-6xl mx-auto space-y-5 px-2 pb-10">
+
+        {/* ── Header — same eyebrow pattern as LogTaskHeader ─────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-3/40 pb-5">
           <div>
-            <p className="text-[10px] font-black text-purple-500 uppercase tracking-[0.2em] mb-1">
-              Super Admin
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-12">
+
+
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground">
               Activity Log
             </h1>
-            <p className="text-gray-9 mt-1 font-medium text-sm">
+            <p className="text-muted-foreground mt-1 font-medium text-sm">
               Recent task timeline events across the system.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Pagination — styled like LogTaskFooter action buttons */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-3 py-2 rounded-lg bg-gray-2 border border-gray-4 text-gray-11 font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-3 transition-colors flex items-center gap-1.5"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
             >
-              <ChevronLeft size={16} /> Newer
+              <ChevronLeft size={14} /> Newer
             </button>
+            {page > 0 && (
+              <span className="text-[11px] font-bold text-muted-foreground px-1">
+                Page {page + 1}
+              </span>
+            )}
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={entries.length < PAGE_SIZE}
-              className="px-3 py-2 rounded-lg bg-gray-2 border border-gray-4 text-gray-11 font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-3 transition-colors flex items-center gap-1.5"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
             >
-              Older <ChevronRight size={16} />
+              Older <ChevronRight size={14} />
             </button>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-gray-1 border border-gray-4 rounded-xl p-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Filter size={16} className="text-gray-9" />
-              <span className="text-xs font-black text-gray-9 uppercase tracking-widest">
-                Filters
-              </span>
+        {/* ── Filter Panel — mirrors LogTaskPropertyBar container ─────── */}
+        <div className="bg-card border border-border rounded-2xl shadow-sm">
+          {/* Panel top bar — matches LogTaskHeader strip */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-3/40 bg-muted/30">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-muted border border-border shrink-0">
+                <Filter size={10} className="text-muted-foreground" />
+              </div>
+              <ChevronDown size={11} className="text-gray-6 -rotate-90" />
+              <span className="font-medium text-muted-foreground/80">Filters</span>
+              {hasActiveFilters && (
+                <span className="ml-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                  Active
+                </span>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                setFilters({
-                  type: "ALL",
-                  authorId: "ALL",
-                  employeeId: "ALL",
-                  taskStatus: "ALL",
-                  dept: "ALL",
-                  subDept: "ALL",
-                  dateFrom: "",
-                  dateTo: "",
-                  search: "",
-                })
-              }
-              className="px-3 py-2 rounded-lg bg-gray-2 border border-gray-4 text-gray-11 font-bold text-xs hover:bg-gray-3 transition-colors flex items-center gap-1.5"
-            >
-              <X size={14} /> Clear
-            </button>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-foreground transition-colors"
+              >
+                <X size={12} /> Clear
+              </button>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-            <input
-              value={filters.search}
-              onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
-              placeholder="Search content or task description…"
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-            />
+          {/* Filter fields — react-select matching LogTaskAssignmentBar exactly */}
+          <div className="px-4 py-3.5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-4">
 
-            <select
-              value={filters.type}
-              onChange={(e) => setFilters((p) => ({ ...p, type: e.target.value }))}
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-            >
-              <option value="ALL">All Types</option>
-              <option value="SYSTEM">SYSTEM</option>
-              <option value="COMMENT">COMMENT</option>
-              <option value="APPROVAL">APPROVAL</option>
-              <option value="HR_NOTE">HR_NOTE</option>
-            </select>
+            {/* Search — spans 2 cols */}
+            <div className="lg:col-span-2">
+              <FieldBox label="Search">
+                <div className="relative flex items-center">
+                  <Search size={13} className="absolute left-3 text-gray-7 pointer-events-none shrink-0" />
+                  <input
+                    value={filters.search}
+                    onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+                    placeholder="Search content or task description…"
+                    className="w-full bg-gray-1 border border-gray-4 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-12 outline-none focus:border-gray-6 hover:border-gray-5 transition-colors placeholder:text-gray-7"
+                  />
+                </div>
+              </FieldBox>
+            </div>
 
-            <select
-              value={filters.taskStatus}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, taskStatus: e.target.value }))
-              }
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-            >
-              <option value="ALL">All Task Status</option>
-              <option value="INCOMPLETE">INCOMPLETE</option>
-              <option value="AWAITING APPROVAL">AWAITING APPROVAL</option>
-              <option value="COMPLETE">COMPLETE</option>
-              <option value="NOT APPROVED">NOT APPROVED</option>
-              <option value="DELETED">DELETED</option>
-            </select>
+            <FieldBox label="Type">
+              <Select
+                options={[
+                  { value: "ALL", label: "All Types" },
+                  { value: "SYSTEM", label: "SYSTEM" },
+                  { value: "COMMENT", label: "COMMENT" },
+                  { value: "APPROVAL", label: "APPROVAL" },
+                  { value: "HR_NOTE", label: "HR_NOTE" },
+                ]}
+                value={filters.type === "ALL"
+                  ? { value: "ALL", label: "All Types" }
+                  : { value: filters.type, label: filters.type }}
+                onChange={(opt) => setFilters((p) => ({ ...p, type: opt?.value || "ALL" }))}
+                placeholder="All Types"
+                classNamePrefix="react-select"
+                classNames={FILTER_SELECT_STYLES}
+                styles={PORTAL_STYLES}
+                unstyled
+                isClearable={filters.type !== "ALL"}
+                menuPortalTarget={document.body}
+                menuShouldBlockScroll={false}
+              />
+            </FieldBox>
 
-            <select
-              value={filters.authorId}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, authorId: e.target.value }))
-              }
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-            >
-              <option value="ALL">All Actors (Author)</option>
-              <option value="SYSTEM">System</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name}
-                </option>
-              ))}
-            </select>
+            <FieldBox label="Task Status">
+              <Select
+                options={[
+                  { value: "ALL", label: "All Statuses" },
+                  { value: "INCOMPLETE", label: "INCOMPLETE" },
+                  { value: "AWAITING APPROVAL", label: "AWAITING APPROVAL" },
+                  { value: "COMPLETE", label: "COMPLETE" },
+                  { value: "NOT APPROVED", label: "NOT APPROVED" },
+                  { value: "DELETED", label: "DELETED" },
+                ]}
+                value={filters.taskStatus === "ALL"
+                  ? { value: "ALL", label: "All Statuses" }
+                  : { value: filters.taskStatus, label: filters.taskStatus }}
+                onChange={(opt) => setFilters((p) => ({ ...p, taskStatus: opt?.value || "ALL" }))}
+                placeholder="All Statuses"
+                classNamePrefix="react-select"
+                classNames={FILTER_SELECT_STYLES}
+                styles={PORTAL_STYLES}
+                unstyled
+                isClearable={filters.taskStatus !== "ALL"}
+                menuPortalTarget={document.body}
+                menuShouldBlockScroll={false}
+              />
+            </FieldBox>
 
-            <select
-              value={filters.employeeId}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, employeeId: e.target.value }))
-              }
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-            >
-              <option value="ALL">All Employees (Task Owner)</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name}
-                </option>
-              ))}
-            </select>
+            <FieldBox label="Author (Actor)">
+              <Select
+                options={[
+                  { value: "ALL", label: "All Actors" },
+                  { value: "SYSTEM", label: "System" },
+                  ...employees.map((emp) => ({ value: emp.id, label: emp.name })),
+                ]}
+                value={filters.authorId === "ALL"
+                  ? { value: "ALL", label: "All Actors" }
+                  : employees.find((e) => e.id === filters.authorId)
+                    ? { value: filters.authorId, label: employees.find((e) => e.id === filters.authorId)?.name }
+                    : { value: "SYSTEM", label: "System" }}
+                onChange={(opt) => setFilters((p) => ({ ...p, authorId: opt?.value || "ALL" }))}
+                placeholder="All Actors"
+                classNamePrefix="react-select"
+                classNames={FILTER_SELECT_STYLES}
+                styles={PORTAL_STYLES}
+                unstyled
+                isClearable={filters.authorId !== "ALL"}
+                isSearchable
+                menuPortalTarget={document.body}
+                menuShouldBlockScroll={false}
+              />
+            </FieldBox>
 
-            <select
-              value={filters.dept}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, dept: e.target.value, subDept: "ALL" }))
-              }
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-            >
-              {uniqueDepts.map((d) => (
-                <option key={d} value={d}>
-                  {d === "ALL" ? "All Departments" : d}
-                </option>
-              ))}
-            </select>
+            <FieldBox label="Task Owner">
+              <Select
+                options={[
+                  { value: "ALL", label: "All Employees" },
+                  ...employees.map((emp) => ({ value: emp.id, label: emp.name })),
+                ]}
+                value={filters.employeeId === "ALL"
+                  ? { value: "ALL", label: "All Employees" }
+                  : { value: filters.employeeId, label: employees.find((e) => e.id === filters.employeeId)?.name || filters.employeeId }}
+                onChange={(opt) => setFilters((p) => ({ ...p, employeeId: opt?.value || "ALL" }))}
+                placeholder="All Employees"
+                classNamePrefix="react-select"
+                classNames={FILTER_SELECT_STYLES}
+                styles={PORTAL_STYLES}
+                unstyled
+                isClearable={filters.employeeId !== "ALL"}
+                isSearchable
+                menuPortalTarget={document.body}
+                menuShouldBlockScroll={false}
+              />
+            </FieldBox>
 
-            <select
-              value={filters.subDept}
-              onChange={(e) => setFilters((p) => ({ ...p, subDept: e.target.value }))}
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-            >
-              {uniqueSubDepts.map((s) => (
-                <option key={s} value={s}>
-                  {s === "ALL" ? "All Sub-Departments" : s}
-                </option>
-              ))}
-            </select>
+            <FieldBox label="Department">
+              <Select
+                options={uniqueDepts.map((d) => ({ value: d, label: d === "ALL" ? "All Departments" : d }))}
+                value={{ value: filters.dept, label: filters.dept === "ALL" ? "All Departments" : filters.dept }}
+                onChange={(opt) => setFilters((p) => ({ ...p, dept: opt?.value || "ALL", subDept: "ALL" }))}
+                placeholder="All Departments"
+                classNamePrefix="react-select"
+                classNames={FILTER_SELECT_STYLES}
+                styles={PORTAL_STYLES}
+                unstyled
+                isClearable={filters.dept !== "ALL"}
+                menuPortalTarget={document.body}
+                menuShouldBlockScroll={false}
+              />
+            </FieldBox>
 
-            <input
-              type="date"
-              value={filters.dateFrom}
-              onChange={(e) => setFilters((p) => ({ ...p, dateFrom: e.target.value }))}
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-              title="From date"
-            />
+            <FieldBox label="Sub-Department">
+              <Select
+                options={uniqueSubDepts.map((s) => ({ value: s, label: s === "ALL" ? "All Sub-Depts" : s }))}
+                value={{ value: filters.subDept, label: filters.subDept === "ALL" ? "All Sub-Depts" : filters.subDept }}
+                onChange={(opt) => setFilters((p) => ({ ...p, subDept: opt?.value || "ALL" }))}
+                placeholder="All Sub-Depts"
+                classNamePrefix="react-select"
+                classNames={FILTER_SELECT_STYLES}
+                styles={PORTAL_STYLES}
+                unstyled
+                isClearable={filters.subDept !== "ALL"}
+                isDisabled={filters.dept === "ALL"}
+                menuPortalTarget={document.body}
+                menuShouldBlockScroll={false}
+              />
+            </FieldBox>
 
-            <input
-              type="date"
-              value={filters.dateTo}
-              onChange={(e) => setFilters((p) => ({ ...p, dateTo: e.target.value }))}
-              className="w-full bg-gray-2 border border-gray-4 rounded-lg px-3 py-2.5 text-sm text-gray-12 outline-none focus:border-primary/50"
-              title="To date"
-            />
+            <FieldBox label="Date From">
+              <DatePicker
+                selected={filters.dateFrom}
+                onChange={(date) => setFilters((p) => ({ ...p, dateFrom: date }))}
+                placeholderText="Select start date"
+                className={dateCls}
+                isClearable
+                dateFormat="MMM d, yyyy"
+              />
+            </FieldBox>
+
+            <FieldBox label="Date To">
+              <DatePicker
+                selected={filters.dateTo}
+                onChange={(date) => setFilters((p) => ({ ...p, dateTo: date }))}
+                placeholderText="Select end date"
+                className={dateCls}
+                isClearable
+                dateFormat="MMM d, yyyy"
+                minDate={filters.dateFrom}
+              />
+            </FieldBox>
+
           </div>
         </div>
 
+        {/* ── Entry count ───────────────────────────────────────────── */}
+        {!isLoading && !isError && filteredEntries.length > 0 && (
+          <p className="text-[11px] font-semibold text-muted-foreground/70 px-0.5">
+            {filteredEntries.length} entr{filteredEntries.length === 1 ? "y" : "ies"}
+            {hasActiveFilters && " (filtered)"}
+          </p>
+        )}
+
+        {/* ── States ────────────────────────────────────────────────── */}
         {isLoading ? (
-          <div className="py-16 text-center text-gray-9 font-bold">
-            Loading activity…
+          <div className="space-y-2">
+            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
+
         ) : isError ? (
-          <div className="py-10 px-6 rounded-xl border border-red-a5 bg-red-a2">
-            <p className="text-red-11 font-black">Failed to load activity.</p>
-            <p className="text-red-11/80 text-sm mt-1">
-              {error?.message || "Unknown error"}
-            </p>
+          <div className="py-8 px-5 rounded-2xl border border-red-a5 bg-red-a2 flex items-start gap-4">
+            <div className="w-8 h-8 rounded-lg bg-red-a3 border border-red-a5 flex items-center justify-center shrink-0">
+              <X size={15} className="text-red-11" />
+            </div>
+            <div>
+              <p className="text-red-11 font-black text-sm">Failed to load activity log</p>
+              <p className="text-red-11/70 text-xs mt-1 font-medium">{error?.message || "Unknown error"}</p>
+            </div>
           </div>
+
         ) : filteredEntries.length === 0 ? (
-          <div className="py-16 text-center text-gray-9">
-            No activity found.
+          <div className="py-20 flex flex-col items-center justify-center text-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center mb-1">
+              <Activity size={20} className="text-muted-foreground/40" />
+            </div>
+            <p className="text-sm font-black text-foreground">No activity found</p>
+            <p className="text-xs text-muted-foreground/70 font-medium max-w-[220px]">
+              {hasActiveFilters ? "Try adjusting your filters." : "No log entries yet."}
+            </p>
+            {hasActiveFilters && (
+              <button onClick={clearFilters} className="text-xs font-semibold text-primary hover:underline mt-1">
+                Clear filters
+              </button>
+            )}
           </div>
+
         ) : (
-          <div className="space-y-3">
+          /* ── Log entry list — same card DNA as LogTaskModal DialogContent ── */
+          <div className="space-y-2">
             {filteredEntries.map((e) => {
               const Icon = typeIcon(e.type);
+              const initials = getInitials(e.authorName);
+
               return (
                 <button
                   key={e.id}
                   type="button"
                   onClick={() => setSelectedTaskId(e.taskId)}
-                  className="w-full text-left bg-gray-1 border border-gray-4 rounded-xl p-4 hover:border-gray-6 hover:bg-gray-2/40 transition-colors"
+                  className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-gray-6 hover:bg-muted/40 transition-all duration-150 animate-content-in group"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gray-2 border border-gray-4 flex items-center justify-center shrink-0">
-                      <Icon size={16} className="text-gray-10" />
+                    {/* Icon bubble — matches LogTaskHeader dept badge style */}
+                    <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
+                      <Icon size={14} className="text-muted-foreground" />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-black text-gray-9 uppercase tracking-widest truncate">
+                      {/* Row 1: type eyebrow + timestamp */}
+                      <div className="flex items-center justify-between gap-3 mb-1">
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                           {e.type || "SYSTEM"}
                         </p>
-                        <p className="text-[11px] text-gray-8 font-bold shrink-0">
-                          {formatWhen(e.createdAt)}
-                        </p>
+                        <div className="flex items-center gap-1 shrink-0 text-muted-foreground/60">
+                          <Clock size={10} />
+                          <span className="text-[11px] font-bold">{formatWhen(e.createdAt)}</span>
+                        </div>
                       </div>
 
-                      <p className="text-sm text-gray-12 font-bold mt-1 line-clamp-1">
+                      {/* Task title */}
+                      <p className="text-sm font-bold text-foreground line-clamp-1">
                         {e.taskDescription || `Task ${e.taskId}`}
                       </p>
 
-                      <p className="text-sm text-gray-11 mt-1 line-clamp-2">
+                      {/* Content — matches LogTaskDetailsSection's description textarea */}
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
                         {e.content || "(no message)"}
                       </p>
 
-                      <div className="flex items-center gap-2 mt-2 text-[11px] font-bold text-gray-8 uppercase tracking-wider">
-                        <span>
-                          By: {e.authorName || "System"}
-                        </span>
+                      {/* Footer: author avatar + status pill — matches property-pill style */}
+                      <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                        {/* Author — matches LogTaskHeader dept initial badge */}
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-[16px] h-[16px] rounded flex items-center justify-center bg-primary text-white font-bold text-[8px] shrink-0">
+                            {initials.charAt(0)}
+                          </div>
+                          <span className="text-[11px] font-semibold text-slate-400">
+                            {e.authorName || "System"}
+                          </span>
+                        </div>
+
+                        {/* Status — matches .property-pill */}
                         {e.taskStatus && (
-                          <span className="px-2 py-0.5 rounded-full bg-gray-2 border border-gray-4 text-gray-9">
+                          <span className="property-pill !py-0.5 !px-2 !text-[9px] !rounded-full pointer-events-none">
                             {e.taskStatus}
                           </span>
                         )}
@@ -394,19 +582,37 @@ export default function SuperAdminActivityLogPage() {
             })}
           </div>
         )}
+
+        {/* ── Bottom pagination ─────────────────────────────────────── */}
+        {filteredEntries.length > 0 && (
+          <div className="flex items-center justify-center gap-3 pt-3 border-t border-gray-3/40">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <ChevronLeft size={14} /> Newer
+            </button>
+            <span className="text-[11px] font-bold text-muted-foreground">Page {page + 1}</span>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={entries.length < PAGE_SIZE}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
+            >
+              Older <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Task modal in-place */}
+      {/* Task detail modal */}
       <TaskDetails
         isOpen={!!selectedTaskId}
         onClose={() => setSelectedTaskId(null)}
         task={selectedTask}
         onUpdateTask={(payload) => updateTaskMutation.mutate(payload)}
-        onDeleteTask={(taskId, userId) =>
-          deleteTaskMutation.mutate({ taskId, userId })
-        }
+        onDeleteTask={(taskId, userId) => deleteTaskMutation.mutate({ taskId, userId })}
       />
     </ProtectedRoute>
   );
 }
-

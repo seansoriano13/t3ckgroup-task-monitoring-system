@@ -1,4 +1,5 @@
 import { Tag, Clock, ChevronDown, Search, Check } from "lucide-react";
+import DatePicker from "react-datepicker";
 import { PRIORITY_OPTIONS } from "../../constants/task";
 import { formatTaskDateTime } from "../../utils/formatDate";
 
@@ -141,12 +142,14 @@ export default function LogTaskPropertyBar({
             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
               End Date & Time
             </label>
-            <input
-              type="datetime-local"
-              name="endAt"
-              value={formData.endAt}
-              onChange={(e) => setFormData((p) => ({ ...p, endAt: e.target.value }))}
-              className="w-full bg-card border border-border rounded-lg px-2 py-1.5 text-xs text-foreground outline-none focus:border-gray-7 transition-colors mb-2"
+            <DatePicker
+              selected={formData.endAt ? new Date(formData.endAt) : null}
+              onChange={(date) => setFormData((p) => ({ ...p, endAt: date ? date.toISOString() : "" }))}
+              showTimeSelect
+              dateFormat="Pp"
+              placeholderText="Select end date & time"
+              className="w-full bg-card border border-border rounded-lg px-2 py-1.5 text-xs text-foreground outline-none focus:border-gray-7 transition-colors mb-2 cursor-pointer"
+              isClearable
             />
             <div className="flex justify-end">
               <button

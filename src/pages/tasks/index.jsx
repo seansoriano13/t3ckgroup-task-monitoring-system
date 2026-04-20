@@ -217,7 +217,7 @@ export default function TasksPage() {
   if (isLoading) {
     return (
       <div className="py-20 flex flex-col items-center justify-center text-muted-foreground h-[60vh]">
-        <div className="w-8 h-8 border-4 border-border border-t-red-9 rounded-full animate-spin mb-4"></div>
+        <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4"></div>
         <p className="font-bold animate-pulse tracking-wider uppercase text-sm">
           Fetching Directory...
         </p>
