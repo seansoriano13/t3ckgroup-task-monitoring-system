@@ -123,9 +123,14 @@ export const systemUpdateService = {
    * @param {boolean} isActive
    */
   async toggleUpdateStatus(updateId, isActive) {
+    const updateData = { is_active: isActive };
+    if (isActive) {
+      updateData.expires_at = getDefaultExpiryIso();
+    }
+
     const { data, error } = await supabase
       .from("system_updates")
-      .update({ is_active: isActive })
+      .update(updateData)
       .eq("id", updateId)
       .select()
       .single();

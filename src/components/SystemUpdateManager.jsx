@@ -100,10 +100,12 @@ export default function SystemUpdateManager() {
   const toggleMutation = useMutation({
     mutationFn: ({ id, isActive }) =>
       systemUpdateService.toggleUpdateStatus(id, isActive),
-    onSuccess: () => {
+    onSuccess: (_, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
       queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      toast.success(isActive ? "Banner activated!" : "Banner deactivated.");
     },
+    onError: (err) => toast.error(err.message),
   });
 
   const deleteMutation = useMutation({
