@@ -96,33 +96,20 @@ export const salesAdminService = {
    * Returns per-employee: quota (summed), revenue won/lost (amounts + counts), win rate.
    */
   async getLeaderboardData(startDate, endDate, quotaMonthKeys = []) {
-    // 1. Get Quotas — sum across all month keys in the range
-    let quotas = [];
-    if (quotaMonthKeys.length > 0) {
-      const { data: qData, error: qErr } = await supabase
-        .from("sales_quotas")
-        .select("*, employees(name, sub_department, department)")
-        .in("month_year", quotaMonthKeys);
-      if (qErr) throw qErr;
-      quotas = qData || [];
-    }
+    if (!quotaMonthKeys || quotaMonthKeys.length === 0) return [];
 
-    // 2. Get all revenues for the range
-    const { data: revenues, error: rErr } = await supabase
-      .from("sales_revenue_logs")
-      .select(
-        "*, employees!sales_revenue_logs_employee_id_fkey(name, sub_department, department)",
-      )
-      .eq("record_type", "SALES_ORDER")
-      .gte("date", startDate)
-      .lt("date", endDate)
-      .neq("is_deleted", true);
-    if (rErr) throw rErr;
+    // Query sales_quotas which now has all the pre-calculated metrics via triggers
+    const { data: quotas, error } = await supabase
+      .from("sales_quotas")
+      .select("*, employees(name, sub_department, department)")
+      .in("month_year", quotaMonthKeys);
 
-    // 3. Combine — sum quotas per employee across months
+    if (error) throw error;
+
+    // Aggregate by employee (in case of multiple months)
     const agg = {};
 
-    quotas.forEach((q) => {
+    (quotas || []).forEach((q) => {
       if (!agg[q.employee_id]) {
         agg[q.employee_id] = {
           employee_id: q.employee_id,
@@ -137,44 +124,36 @@ export const salesAdminService = {
           dealsPending: 0,
         };
       }
-      agg[q.employee_id].quota += Number(q.amount_target) || 0;
+      agg[q.employee_id].quota += q.status === "PUBLISHED" ? Number(q.amount_target) || 0 : 0;
+      agg[q.employee_id].revenueWon += Number(q.current_actual) || 0;
+      agg[q.employee_id].revenueLost += Number(q.revenue_lost) || 0;
+      agg[q.employee_id].dealsWon += Number(q.deals_won) || 0;
+      agg[q.employee_id].dealsLost += Number(q.deals_lost) || 0;
+      agg[q.employee_id].dealsPending += Number(q.deals_pending) || 0;
     });
 
-    revenues.forEach((r) => {
-      if (!agg[r.employee_id]) {
-        agg[r.employee_id] = {
-          employee_id: r.employee_id,
-          name: r.employees?.name || "Sales Rep",
-          sub_department: r.employees?.sub_department || "",
-          department: r.employees?.department || "Sales",
-          quota: 0,
-          revenueWon: 0,
-          revenueLost: 0,
-          dealsWon: 0,
-          dealsLost: 0,
-          dealsPending: 0,
-        };
-      }
-      if (
-        r.status === REVENUE_STATUS.COMPLETED ||
-        r.status === REVENUE_STATUS.APPROVED
-      ) {
-        agg[r.employee_id].revenueWon += Number(r.revenue_amount);
-        agg[r.employee_id].dealsWon++;
-      } else if (r.status === REVENUE_STATUS.LOST) {
-        agg[r.employee_id].revenueLost += Number(r.revenue_amount);
-        agg[r.employee_id].dealsLost++;
-      } else {
-        agg[r.employee_id].dealsPending++;
-      }
-    });
+    // Compute derived metrics, aggregate totals, and sort
+    let totalWon = 0;
+    let totalLost = 0;
+    let totalQuota = 0;
+    let totalDealsWon = 0;
+    let totalDealsLost = 0;
 
-    // 4. Compute derived metrics and sort
-    return Object.values(agg)
+    const rankings = Object.values(agg)
       .map((emp) => {
         const totalDeals = emp.dealsWon + emp.dealsLost;
-        const winRate = totalDeals > 0 ? Math.round((emp.dealsWon / totalDeals) * 100) : null;
-        const quotaPct = emp.quota > 0 ? Math.round((emp.revenueWon / emp.quota) * 100) : 0;
+        const winRate =
+          totalDeals > 0 ? Math.round((emp.dealsWon / totalDeals) * 100) : null;
+        const quotaPct =
+          emp.quota > 0 ? Math.round((emp.revenueWon / emp.quota) * 100) : 0;
+
+        // Accumulate totals for summary
+        totalWon += emp.revenueWon;
+        totalLost += emp.revenueLost;
+        totalQuota += emp.quota;
+        totalDealsWon += emp.dealsWon;
+        totalDealsLost += emp.dealsLost;
+
         return { ...emp, winRate, quotaPct };
       })
       .sort((a, b) => {
@@ -182,5 +161,26 @@ export const salesAdminService = {
         const pctA = a.quota > 0 ? a.revenueWon / a.quota : 0;
         return pctB - pctA;
       });
+
+    const teamWinRate =
+      totalDealsWon + totalDealsLost > 0
+        ? Math.round((totalDealsWon / (totalDealsWon + totalDealsLost)) * 100)
+        : null;
+
+    const companyPct =
+      totalQuota > 0 ? Math.round((totalWon / totalQuota) * 100) : 0;
+
+    return {
+      rankings,
+      summary: {
+        totalWon,
+        totalLost,
+        totalQuota,
+        companyPct,
+        teamWinRate,
+        totalDealsWon,
+        totalDealsLost,
+      },
+    };
   },
 };

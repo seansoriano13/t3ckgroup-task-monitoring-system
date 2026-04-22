@@ -32,13 +32,21 @@ export default function SalesDashboard({ globalRange }) {
   const rangeMode = globalRange?.mode || "MONTHLY";
   const monthKeys = globalRange?.monthKeys || [];
   const isMonthly = rangeMode === "MONTHLY";
-  const { data: leaderboard = [], isLoading: isLdrLoading } = useQuery({
+  const { data: leaderboardData, isLoading: isLdrLoading } = useQuery({
     queryKey: ["salesLeaderboard", startDate, endDate, monthKeys],
     queryFn: () =>
       salesService.getLeaderboardData(startDate, endDate, monthKeys),
     enabled: !!startDate && !!endDate,
     refetchInterval: 15000,
   });
+
+  const leaderboard = leaderboardData?.rankings || [];
+  const summary = leaderboardData?.summary || {
+    totalWon: 0,
+    totalLost: 0,
+    companyPct: 0,
+    teamWinRate: null,
+  };
 
   const { data: appSettings } = useQuery({
     queryKey: ["appSettings"],
@@ -72,19 +80,7 @@ export default function SalesDashboard({ globalRange }) {
   // });
 
   // === COMPUTED AGGREGATES ===
-  const totalWon = leaderboard.reduce((acc, l) => acc + l.revenueWon, 0);
-  const totalLost = leaderboard.reduce((acc, l) => acc + l.revenueLost, 0);
-  const totalQuota = leaderboard.reduce((acc, l) => acc + Number(l.quota), 0);
-  const companyPct =
-    totalQuota > 0 ? Math.round((totalWon / totalQuota) * 100) : 0;
-
-  // Team win rate
-  const totalDealsWon = leaderboard.reduce((s, e) => s + e.dealsWon, 0);
-  const totalDealsLost = leaderboard.reduce((s, e) => s + e.dealsLost, 0);
-  const teamWinRate =
-    totalDealsWon + totalDealsLost > 0
-      ? Math.round((totalDealsWon / (totalDealsWon + totalDealsLost)) * 100)
-      : null;
+  const { totalWon, totalLost, companyPct, teamWinRate } = summary;
 
   // Product breakdown
   const productData = useMemo(() => {

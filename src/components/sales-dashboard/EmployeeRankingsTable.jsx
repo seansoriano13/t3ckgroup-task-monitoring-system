@@ -16,7 +16,7 @@ export function EmployeeRankingsTable({
     const set = new Set();
     leaderboard.forEach((e) => {
       const team = e.sub_department || e.department;
-      if (team) set.add(team);
+      if (team && team !== "ALL") set.add(team);
     });
     return ["ALL", ...Array.from(set).sort()];
   }, [leaderboard]);
