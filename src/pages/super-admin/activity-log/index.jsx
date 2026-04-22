@@ -10,7 +10,10 @@ import { employeeService } from "../../../services/employeeService";
 import TaskDetails from "../../../components/TaskDetails.jsx";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
 import toast from "react-hot-toast";
-import { activityLogClassNames, portalStyles } from "../../../styles/selectStyles";
+import {
+  activityLogClassNames,
+  portalStyles,
+} from "../../../styles/selectStyles";
 import {
   ShieldCheck,
   MessageCircle,
@@ -56,7 +59,6 @@ function getInitials(name) {
     .join("")
     .toUpperCase();
 }
-
 
 // ── FieldBox — mirrors LogTaskAssignmentBar's label+container pattern ────────
 function FieldBox({ label, children }) {
@@ -118,10 +120,17 @@ export default function SuperAdminActivityLogPage() {
   const offset = useMemo(() => page * PAGE_SIZE, [page]);
 
   useEffect(() => {
-    setPage(0);
+    queueMicrotask(() => setPage(0));
   }, [
-    filters.type, filters.authorId, filters.employeeId, filters.taskStatus,
-    filters.dept, filters.subDept, filters.dateFrom, filters.dateTo, filters.search,
+    filters.type,
+    filters.authorId,
+    filters.employeeId,
+    filters.taskStatus,
+    filters.dept,
+    filters.subDept,
+    filters.dateFrom,
+    filters.dateTo,
+    filters.search,
   ]);
 
   const { data: employees = [] } = useQuery({
@@ -129,7 +138,12 @@ export default function SuperAdminActivityLogPage() {
     queryFn: () => employeeService.getAllEmployees(),
   });
 
-  const { data: entries = [], isLoading, isError, error } = useQuery({
+  const {
+    data: entries = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["superAdminActivityLog", offset, filters],
     queryFn: () =>
       taskActivityService.getRecentTaskActivity({
@@ -139,7 +153,9 @@ export default function SuperAdminActivityLogPage() {
         authorId: filters.authorId,
         employeeId: filters.employeeId,
         taskStatus: filters.taskStatus,
-        dateFrom: filters.dateFrom ? new Date(filters.dateFrom).toISOString() : null,
+        dateFrom: filters.dateFrom
+          ? new Date(filters.dateFrom).toISOString()
+          : null,
         dateTo: filters.dateTo ? new Date(filters.dateTo).toISOString() : null,
         search: filters.search,
       }),
@@ -148,22 +164,36 @@ export default function SuperAdminActivityLogPage() {
 
   const filteredEntries = useMemo(() => {
     return entries.filter((e) => {
-      if (filters.dept !== "ALL" && (e.taskCreatorDept || "") !== filters.dept) return false;
-      if (filters.subDept !== "ALL" && (e.taskCreatorSubDept || "") !== filters.subDept) return false;
+      if (filters.dept !== "ALL" && (e.taskCreatorDept || "") !== filters.dept)
+        return false;
+      if (
+        filters.subDept !== "ALL" &&
+        (e.taskCreatorSubDept || "") !== filters.subDept
+      )
+        return false;
       return true;
     });
   }, [entries, filters.dept, filters.subDept]);
 
   const uniqueDepts = useMemo(() => {
     const s = new Set(["ALL"]);
-    employees.forEach((e) => { if (typeof e.department === "string" && e.department.trim()) s.add(e.department); });
+    employees.forEach((e) => {
+      if (typeof e.department === "string" && e.department.trim())
+        s.add(e.department);
+    });
     return Array.from(s).sort();
   }, [employees]);
 
   const uniqueSubDepts = useMemo(() => {
     const s = new Set(["ALL"]);
-    const pool = filters.dept === "ALL" ? employees : employees.filter((e) => e.department === filters.dept);
-    pool.forEach((e) => { if (typeof e.subDepartment === "string" && e.subDepartment.trim()) s.add(e.subDepartment); });
+    const pool =
+      filters.dept === "ALL"
+        ? employees
+        : employees.filter((e) => e.department === filters.dept);
+    pool.forEach((e) => {
+      if (typeof e.subDepartment === "string" && e.subDepartment.trim())
+        s.add(e.subDepartment);
+    });
     return Array.from(s).sort();
   }, [employees, filters.dept]);
 
@@ -194,14 +224,27 @@ export default function SuperAdminActivityLogPage() {
   });
 
   const hasActiveFilters =
-    filters.type !== "ALL" || filters.authorId !== "ALL" || filters.employeeId !== "ALL" ||
-    filters.taskStatus !== "ALL" || filters.dept !== "ALL" || filters.subDept !== "ALL" ||
-    filters.dateFrom !== null || filters.dateTo !== null || filters.search !== "";
+    filters.type !== "ALL" ||
+    filters.authorId !== "ALL" ||
+    filters.employeeId !== "ALL" ||
+    filters.taskStatus !== "ALL" ||
+    filters.dept !== "ALL" ||
+    filters.subDept !== "ALL" ||
+    filters.dateFrom !== null ||
+    filters.dateTo !== null ||
+    filters.search !== "";
 
   const clearFilters = () =>
     setFilters({
-      type: "ALL", authorId: "ALL", employeeId: "ALL", taskStatus: "ALL",
-      dept: "ALL", subDept: "ALL", dateFrom: null, dateTo: null, search: ""
+      type: "ALL",
+      authorId: "ALL",
+      employeeId: "ALL",
+      taskStatus: "ALL",
+      dept: "ALL",
+      subDept: "ALL",
+      dateFrom: null,
+      dateTo: null,
+      search: "",
     });
 
   // Date input style — matches LogTaskModal inner fields
@@ -211,12 +254,9 @@ export default function SuperAdminActivityLogPage() {
   return (
     <ProtectedRoute requireSuperAdmin={true}>
       <div className="max-w-6xl mx-auto space-y-5 px-2 pb-10">
-
         {/* ── Header — same eyebrow pattern as LogTaskHeader ─────────── */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-3/40 pb-5">
           <div>
-
-
             <h1 className="text-2xl sm:text-3xl font-black text-foreground">
               Activity Log
             </h1>
@@ -258,7 +298,9 @@ export default function SuperAdminActivityLogPage() {
                 <Filter size={10} className="text-muted-foreground" />
               </div>
               <ChevronDown size={11} className="text-gray-6 -rotate-90" />
-              <span className="font-medium text-muted-foreground/80">Filters</span>
+              <span className="font-medium text-muted-foreground/80">
+                Filters
+              </span>
               {hasActiveFilters && (
                 <span className="ml-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
                   Active
@@ -278,15 +320,19 @@ export default function SuperAdminActivityLogPage() {
 
           {/* Filter fields — react-select matching LogTaskAssignmentBar exactly */}
           <div className="px-4 py-3.5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-4">
-
             {/* Search — spans 2 cols */}
             <div className="lg:col-span-2">
               <FieldBox label="Search">
                 <div className="relative flex items-center">
-                  <Search size={13} className="absolute left-3 text-gray-7 pointer-events-none shrink-0" />
+                  <Search
+                    size={13}
+                    className="absolute left-3 text-gray-7 pointer-events-none shrink-0"
+                  />
                   <input
                     value={filters.search}
-                    onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+                    onChange={(e) =>
+                      setFilters((p) => ({ ...p, search: e.target.value }))
+                    }
                     placeholder="Search content or task description…"
                     className="w-full bg-gray-1 border border-gray-4 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-12 outline-none focus:border-gray-6 hover:border-gray-5 transition-colors placeholder:text-gray-7"
                   />
@@ -303,10 +349,14 @@ export default function SuperAdminActivityLogPage() {
                   { value: "APPROVAL", label: "APPROVAL" },
                   { value: "HR_NOTE", label: "HR_NOTE" },
                 ]}
-                value={filters.type === "ALL"
-                  ? { value: "ALL", label: "All Types" }
-                  : { value: filters.type, label: filters.type }}
-                onChange={(opt) => setFilters((p) => ({ ...p, type: opt?.value || "ALL" }))}
+                value={
+                  filters.type === "ALL"
+                    ? { value: "ALL", label: "All Types" }
+                    : { value: filters.type, label: filters.type }
+                }
+                onChange={(opt) =>
+                  setFilters((p) => ({ ...p, type: opt?.value || "ALL" }))
+                }
                 placeholder="All Types"
                 classNamePrefix="react-select"
                 classNames={activityLogClassNames}
@@ -328,10 +378,14 @@ export default function SuperAdminActivityLogPage() {
                   { value: "NOT APPROVED", label: "NOT APPROVED" },
                   { value: "DELETED", label: "DELETED" },
                 ]}
-                value={filters.taskStatus === "ALL"
-                  ? { value: "ALL", label: "All Statuses" }
-                  : { value: filters.taskStatus, label: filters.taskStatus }}
-                onChange={(opt) => setFilters((p) => ({ ...p, taskStatus: opt?.value || "ALL" }))}
+                value={
+                  filters.taskStatus === "ALL"
+                    ? { value: "ALL", label: "All Statuses" }
+                    : { value: filters.taskStatus, label: filters.taskStatus }
+                }
+                onChange={(opt) =>
+                  setFilters((p) => ({ ...p, taskStatus: opt?.value || "ALL" }))
+                }
                 placeholder="All Statuses"
                 classNamePrefix="react-select"
                 classNames={activityLogClassNames}
@@ -348,14 +402,26 @@ export default function SuperAdminActivityLogPage() {
                 options={[
                   { value: "ALL", label: "All Actors" },
                   { value: "SYSTEM", label: "System" },
-                  ...employees.map((emp) => ({ value: emp.id, label: emp.name })),
+                  ...employees.map((emp) => ({
+                    value: emp.id,
+                    label: emp.name,
+                  })),
                 ]}
-                value={filters.authorId === "ALL"
-                  ? { value: "ALL", label: "All Actors" }
-                  : employees.find((e) => e.id === filters.authorId)
-                    ? { value: filters.authorId, label: employees.find((e) => e.id === filters.authorId)?.name }
-                    : { value: "SYSTEM", label: "System" }}
-                onChange={(opt) => setFilters((p) => ({ ...p, authorId: opt?.value || "ALL" }))}
+                value={
+                  filters.authorId === "ALL"
+                    ? { value: "ALL", label: "All Actors" }
+                    : employees.find((e) => e.id === filters.authorId)
+                      ? {
+                          value: filters.authorId,
+                          label: employees.find(
+                            (e) => e.id === filters.authorId,
+                          )?.name,
+                        }
+                      : { value: "SYSTEM", label: "System" }
+                }
+                onChange={(opt) =>
+                  setFilters((p) => ({ ...p, authorId: opt?.value || "ALL" }))
+                }
                 placeholder="All Actors"
                 classNamePrefix="react-select"
                 classNames={activityLogClassNames}
@@ -372,12 +438,24 @@ export default function SuperAdminActivityLogPage() {
               <Select
                 options={[
                   { value: "ALL", label: "All Employees" },
-                  ...employees.map((emp) => ({ value: emp.id, label: emp.name })),
+                  ...employees.map((emp) => ({
+                    value: emp.id,
+                    label: emp.name,
+                  })),
                 ]}
-                value={filters.employeeId === "ALL"
-                  ? { value: "ALL", label: "All Employees" }
-                  : { value: filters.employeeId, label: employees.find((e) => e.id === filters.employeeId)?.name || filters.employeeId }}
-                onChange={(opt) => setFilters((p) => ({ ...p, employeeId: opt?.value || "ALL" }))}
+                value={
+                  filters.employeeId === "ALL"
+                    ? { value: "ALL", label: "All Employees" }
+                    : {
+                        value: filters.employeeId,
+                        label:
+                          employees.find((e) => e.id === filters.employeeId)
+                            ?.name || filters.employeeId,
+                      }
+                }
+                onChange={(opt) =>
+                  setFilters((p) => ({ ...p, employeeId: opt?.value || "ALL" }))
+                }
                 placeholder="All Employees"
                 classNamePrefix="react-select"
                 classNames={activityLogClassNames}
@@ -392,9 +470,22 @@ export default function SuperAdminActivityLogPage() {
 
             <FieldBox label="Department">
               <Select
-                options={uniqueDepts.map((d) => ({ value: d, label: d === "ALL" ? "All Departments" : d }))}
-                value={{ value: filters.dept, label: filters.dept === "ALL" ? "All Departments" : filters.dept }}
-                onChange={(opt) => setFilters((p) => ({ ...p, dept: opt?.value || "ALL", subDept: "ALL" }))}
+                options={uniqueDepts.map((d) => ({
+                  value: d,
+                  label: d === "ALL" ? "All Departments" : d,
+                }))}
+                value={{
+                  value: filters.dept,
+                  label:
+                    filters.dept === "ALL" ? "All Departments" : filters.dept,
+                }}
+                onChange={(opt) =>
+                  setFilters((p) => ({
+                    ...p,
+                    dept: opt?.value || "ALL",
+                    subDept: "ALL",
+                  }))
+                }
                 placeholder="All Departments"
                 classNamePrefix="react-select"
                 classNames={activityLogClassNames}
@@ -408,9 +499,20 @@ export default function SuperAdminActivityLogPage() {
 
             <FieldBox label="Sub-Department">
               <Select
-                options={uniqueSubDepts.map((s) => ({ value: s, label: s === "ALL" ? "All Sub-Depts" : s }))}
-                value={{ value: filters.subDept, label: filters.subDept === "ALL" ? "All Sub-Depts" : filters.subDept }}
-                onChange={(opt) => setFilters((p) => ({ ...p, subDept: opt?.value || "ALL" }))}
+                options={uniqueSubDepts.map((s) => ({
+                  value: s,
+                  label: s === "ALL" ? "All Sub-Depts" : s,
+                }))}
+                value={{
+                  value: filters.subDept,
+                  label:
+                    filters.subDept === "ALL"
+                      ? "All Sub-Depts"
+                      : filters.subDept,
+                }}
+                onChange={(opt) =>
+                  setFilters((p) => ({ ...p, subDept: opt?.value || "ALL" }))
+                }
                 placeholder="All Sub-Depts"
                 classNamePrefix="react-select"
                 classNames={activityLogClassNames}
@@ -426,7 +528,9 @@ export default function SuperAdminActivityLogPage() {
             <FieldBox label="Date From">
               <DatePicker
                 selected={filters.dateFrom}
-                onChange={(date) => setFilters((p) => ({ ...p, dateFrom: date }))}
+                onChange={(date) =>
+                  setFilters((p) => ({ ...p, dateFrom: date }))
+                }
                 placeholderText="Select start date"
                 className={dateCls}
                 isClearable
@@ -445,14 +549,14 @@ export default function SuperAdminActivityLogPage() {
                 minDate={filters.dateFrom}
               />
             </FieldBox>
-
           </div>
         </div>
 
         {/* ── Entry count ───────────────────────────────────────────── */}
         {!isLoading && !isError && filteredEntries.length > 0 && (
           <p className="text-[11px] font-semibold text-muted-foreground/70 px-0.5">
-            {filteredEntries.length} entr{filteredEntries.length === 1 ? "y" : "ies"}
+            {filteredEntries.length} entr
+            {filteredEntries.length === 1 ? "y" : "ies"}
             {hasActiveFilters && " (filtered)"}
           </p>
         )}
@@ -460,36 +564,46 @@ export default function SuperAdminActivityLogPage() {
         {/* ── States ────────────────────────────────────────────────── */}
         {isLoading ? (
           <div className="space-y-2">
-            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
-
         ) : isError ? (
           <div className="py-8 px-5 rounded-2xl border border-red-a5 bg-red-a2 flex items-start gap-4">
             <div className="w-8 h-8 rounded-lg bg-red-a3 border border-red-a5 flex items-center justify-center shrink-0">
               <X size={15} className="text-red-11" />
             </div>
             <div>
-              <p className="text-red-11 font-black text-sm">Failed to load activity log</p>
-              <p className="text-red-11/70 text-xs mt-1 font-medium">{error?.message || "Unknown error"}</p>
+              <p className="text-red-11 font-black text-sm">
+                Failed to load activity log
+              </p>
+              <p className="text-red-11/70 text-xs mt-1 font-medium">
+                {error?.message || "Unknown error"}
+              </p>
             </div>
           </div>
-
         ) : filteredEntries.length === 0 ? (
           <div className="py-20 flex flex-col items-center justify-center text-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center mb-1">
               <Activity size={20} className="text-muted-foreground/40" />
             </div>
-            <p className="text-sm font-black text-foreground">No activity found</p>
+            <p className="text-sm font-black text-foreground">
+              No activity found
+            </p>
             <p className="text-xs text-muted-foreground/70 font-medium max-w-[220px]">
-              {hasActiveFilters ? "Try adjusting your filters." : "No log entries yet."}
+              {hasActiveFilters
+                ? "Try adjusting your filters."
+                : "No log entries yet."}
             </p>
             {hasActiveFilters && (
-              <button onClick={clearFilters} className="text-xs font-semibold text-primary hover:underline mt-1">
+              <button
+                onClick={clearFilters}
+                className="text-xs font-semibold text-primary hover:underline mt-1"
+              >
                 Clear filters
               </button>
             )}
           </div>
-
         ) : (
           /* ── Log entry list — same card DNA as LogTaskModal DialogContent ── */
           <div className="space-y-2">
@@ -518,7 +632,9 @@ export default function SuperAdminActivityLogPage() {
                         </p>
                         <div className="flex items-center gap-1 shrink-0 text-muted-foreground/60">
                           <Clock size={10} />
-                          <span className="text-[11px] font-bold">{formatWhen(e.createdAt)}</span>
+                          <span className="text-[11px] font-bold">
+                            {formatWhen(e.createdAt)}
+                          </span>
                         </div>
                       </div>
 
@@ -569,7 +685,9 @@ export default function SuperAdminActivityLogPage() {
             >
               <ChevronLeft size={14} /> Newer
             </button>
-            <span className="text-[11px] font-bold text-muted-foreground">Page {page + 1}</span>
+            <span className="text-[11px] font-bold text-muted-foreground">
+              Page {page + 1}
+            </span>
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={entries.length < PAGE_SIZE}
@@ -587,7 +705,9 @@ export default function SuperAdminActivityLogPage() {
         onClose={() => setSelectedTaskId(null)}
         task={selectedTask}
         onUpdateTask={(payload) => updateTaskMutation.mutate(payload)}
-        onDeleteTask={(taskId, userId) => deleteTaskMutation.mutate({ taskId, userId })}
+        onDeleteTask={(taskId, userId) =>
+          deleteTaskMutation.mutate({ taskId, userId })
+        }
       />
     </ProtectedRoute>
   );

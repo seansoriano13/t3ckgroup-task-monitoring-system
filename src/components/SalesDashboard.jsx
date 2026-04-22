@@ -174,8 +174,7 @@ export default function SalesDashboard({ globalRange }) {
       {/* DETAILED PERFORMANCE METRICS (Execution rates, pipelines, financial ROI) */}
       <div className="mt-8 border-t border-gray-4 pt-8">
         <SalesPerformanceMetrics
-          selectedMonth={startDate}
-          selectedLabel={rangeLabel}
+          globalRange={globalRange}
         />
       </div>
     </div>

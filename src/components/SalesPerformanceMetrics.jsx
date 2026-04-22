@@ -19,7 +19,9 @@ import {
   Users,
 } from "lucide-react";
 
-export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }) {
+export default function SalesPerformanceMetrics({ globalRange }) {
+  const { startDate, endDate, label: selectedLabel } = globalRange || {};
+  const selectedMonth = startDate;
   const { user } = useAuth();
   const isAdminView =
     user?.isSuperAdmin ||
@@ -85,8 +87,12 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
     const stats = {};
 
     allActivities.forEach((act) => {
-      // Filter activities strictly for the selected month
-      if (monthFilter && !act.scheduled_date.startsWith(monthFilter)) return;
+      // Filter activities strictly for the selected range
+      if (startDate && endDate) {
+        if (act.scheduled_date < startDate || act.scheduled_date >= endDate) return;
+      } else if (monthFilter && !act.scheduled_date.startsWith(monthFilter)) {
+        return;
+      }
 
       const empId = act.employee_id;
       if (!stats[empId]) {
@@ -179,7 +185,13 @@ export default function SalesPerformanceMetrics({ selectedMonth, selectedLabel }
     const empMap = {};
 
     allActivities.forEach((act) => {
-      if (monthFilter && !act.scheduled_date.startsWith(monthFilter)) return;
+      // Filter activities strictly for the selected range
+      if (startDate && endDate) {
+        if (act.scheduled_date < startDate || act.scheduled_date >= endDate) return;
+      } else if (monthFilter && !act.scheduled_date.startsWith(monthFilter)) {
+        return;
+      }
+
       // Exclude rejected expenses — denied budget shouldn't count
       if (act.status === REVENUE_STATUS.REJECTED) return;
 

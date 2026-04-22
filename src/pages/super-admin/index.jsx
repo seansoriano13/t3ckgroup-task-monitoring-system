@@ -1,17 +1,9 @@
-import { useState, useMemo, useEffect, useRef } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
-import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
-import {
-  Loader2,
-  CheckCheck,
-  PhilippinePeso,
-  ChevronLeft,
-  ChevronRight,
-  User,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { storageService } from "../../services/storageService";
 import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
@@ -25,7 +17,7 @@ const EMPTY_ARRAY = [];
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   const currentDate = new Date();
   const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;

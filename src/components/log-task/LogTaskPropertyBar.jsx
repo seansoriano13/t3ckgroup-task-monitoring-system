@@ -50,7 +50,7 @@ export default function LogTaskPropertyBar({
       <div className="relative z-[100]" ref={endTimeRef}>
         <Dropdown
           className="z-[100]"
-          popoverClassName="absolute top-full right-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-3 w-[clamp(280px,90vw,400px)] popover-enter"
+          popoverClassName="absolute top-full right-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-3 w-[clamp(280px,90vw,420px)] popover-enter"
           trigger={({ isOpen }) => (
             <button
               type="button"

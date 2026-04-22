@@ -17,6 +17,7 @@ import {
   getYearBoundaries,
   getQuarterFromMonth,
   getMonthKeysInRange,
+  formatDateToYMD,
 } from "../utils/dateUtils";
 
 const MODES = ["MONTHLY", "QUARTERLY", "YEARLY", "CUSTOM"];
@@ -36,9 +37,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const [open, setOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
   const panelRef = useRef(null);
+  const isInternalChange = useRef(false);
   const now = new Date();
 
-  // Internal state for selection (mirrors TimeRangeSelector logic)
+  // Internal state for selection
   const [mode, setMode] = useState(selectedRange?.mode || "MONTHLY");
   const [month, setMonth] = useState(
     selectedRange?.mode === "MONTHLY"
@@ -63,12 +65,17 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const [customEnd, setCustomEnd] = useState(
     selectedRange?.mode === "CUSTOM"
       ? selectedRange.endDate
-      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
-          now.getDate(),
-        ).padStart(2, "0")}`,
+      : formatDateToYMD(now),
   );
 
-  // Compute boundaries based on internal state
+  // Helper to parse YYYY-MM-DD as local date (prevents timezone shifts)
+  const parseYMD = (s) => {
+    if (!s) return null;
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+   // Compute boundaries based on internal state
   const rangeData = useMemo(() => {
     let startDate, endDate, label;
 
@@ -93,7 +100,10 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
       label = String(year);
     } else {
       startDate = customStart;
-      endDate = customEnd;
+      // Make custom endDate exclusive (next day) to match Monthly/Quarterly/Yearly conventions
+      const nextDay = new Date(parseYMD(customEnd));
+      nextDay.setDate(nextDay.getDate() + 1);
+      endDate = formatDateToYMD(nextDay);
       label = `Custom Range`; // Simplified for the FAB label
     }
 
@@ -113,11 +123,52 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
     }
   }, [rangeData, onChange, selectedRange]);
 
+  // Sync internal state with external prop changes
+  useEffect(() => {
+    if (!selectedRange) return;
+
+    // Use functional state updates to avoid adding internal state to the dependency array.
+    // This ensures the effect ONLY runs when the parent's prop actually changes,
+    // preventing it from prematurely reverting user actions.
+    setMode((prev) => (prev !== selectedRange.mode ? selectedRange.mode : prev));
+
+    if (selectedRange.mode === "MONTHLY") {
+      const m = selectedRange.startDate.slice(0, 7);
+      setMonth((prev) => (prev !== m ? m : prev));
+    } else if (selectedRange.mode === "QUARTERLY") {
+      const y = new Date(selectedRange.startDate).getFullYear();
+      const q = getQuarterFromMonth(selectedRange.startDate);
+      setYear((prev) => (prev !== y ? y : prev));
+      setQuarter((prev) => (prev !== q ? q : prev));
+    } else if (selectedRange.mode === "YEARLY") {
+      const y = new Date(selectedRange.startDate).getFullYear();
+      setYear((prev) => (prev !== y ? y : prev));
+    } else if (selectedRange.mode === "CUSTOM") {
+      setCustomStart((prev) =>
+        prev !== selectedRange.startDate ? selectedRange.startDate : prev
+      );
+      const d = parseYMD(selectedRange.endDate);
+      if (d) {
+        d.setDate(d.getDate() - 1);
+        const inclusiveEnd = formatDateToYMD(d);
+        setCustomEnd((prev) =>
+          prev !== inclusiveEnd ? inclusiveEnd : prev
+        );
+      }
+    }
+  }, [selectedRange]);
+
+ 
+
   // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(e.target) &&
+        !e.target.closest(".react-datepicker-popper")
+      ) {
         setOpen(false);
       }
     };
@@ -235,7 +286,9 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
           {open && (
             <div
               className={`absolute left-1/2 -translate-x-1/2 pointer-events-auto modal-enter ${
-                dropUp ? "bottom-full mb-3 origin-bottom" : "top-full mt-3 origin-top"
+                dropUp
+                  ? "bottom-full mb-3 origin-bottom"
+                  : "top-full mt-3 origin-top"
               } bg-popover/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-4 w-[340px] flex flex-col gap-4`}
             >
               {/* Header */}
@@ -374,7 +427,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                         Start Date
                       </label>
                       <DatePicker
-                        selected={customStart ? new Date(customStart) : null}
+                        selected={parseYMD(customStart)}
                         onChange={(date) => {
                           if (!date) return;
                           const y = date.getFullYear();
@@ -395,7 +448,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                         End Date
                       </label>
                       <DatePicker
-                        selected={customEnd ? new Date(customEnd) : null}
+                        selected={parseYMD(customEnd)}
                         onChange={(date) => {
                           if (!date) return;
                           const y = date.getFullYear();

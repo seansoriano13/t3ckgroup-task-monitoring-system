@@ -36,7 +36,7 @@ export default function DashboardStats({ selectedRange }) {
   const stats = useMemo(() => {
     // 1. Filter tasks for ONLY this date range, EXCLUDING Super Admin
     const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
-    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T23:59:59.999`) : new Date();
+    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T00:00:00`) : new Date();
 
     const thisMonthTasks = rawTasks.filter((t) => {
       const taskDate = new Date(t.createdAt);
@@ -52,7 +52,7 @@ export default function DashboardStats({ selectedRange }) {
         return false;
       }
 
-      return taskDate >= rangeStart && taskDate <= rangeEnd;
+      return taskDate >= rangeStart && taskDate < rangeEnd;
     });
 
     // 2. Calculate Personal Stats
