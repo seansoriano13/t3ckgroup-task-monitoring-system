@@ -9,7 +9,7 @@ import {
   X,
   List,
   LayoutGrid,
-  Rows3
+  Rows3,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
@@ -205,19 +205,24 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
       </div>
 
       {/* DYNAMIC PIPELINE GRID */}
-      <div className={`
+      <div
+        className={`
         ${layoutMode === "row" ? "flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
         ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
         ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4" : ""}
-      `}>
+      `}
+      >
         {filteredStats.map((emp) => (
           <div
             key={emp.id}
             onClick={() =>
               navigate("/tasks", { state: { filterEmployeeId: emp.id } })
             }
-            className={`cursor-pointer flex flex-col transition-colors hover:bg-slate-50 hover:border-slate-300 ${layoutMode === "grid" ? "w-full" : "min-w-[260px] sm:min-w-[290px] snap-start"
-              }`}
+            className={`cursor-pointer flex flex-col transition-colors hover:bg-slate-50 hover:border-slate-300 ${
+              layoutMode === "grid"
+                ? "w-full"
+                : "min-w-[260px] sm:min-w-[290px] snap-start"
+            }`}
             style={{
               border: "1px solid #E5E7EB",
               borderRadius: "8px",
@@ -303,7 +308,6 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                 <span style={{ color: "#374151" }}>{emp.total} Total</span>
               </div>
 
-
               <div
                 className="w-full overflow-hidden flex"
                 style={{
@@ -316,7 +320,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                   <div
                     style={{
                       width: `${(emp.draft / emp.total) * 100}%`,
-                      background: "#3B82F6",
+                      background: "#F59E0B",
                     }}
                     title={`${emp.draft} Incomplete`}
                   />
@@ -334,7 +338,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                   <div
                     style={{
                       width: `${(emp.pendingHr / emp.total) * 100}%`,
-                      background: "#F59E0B",
+                      background: "#3B82F6",
                     }}
                     title={`${emp.pendingHr} Pending HR`}
                   />
@@ -364,7 +368,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                       width: "6px",
                       height: "6px",
                       borderRadius: "50%",
-                      background: "#3B82F6",
+                      background: "#F59E0B",
                       display: "inline-block",
                     }}
                   />
@@ -398,7 +402,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                       width: "6px",
                       height: "6px",
                       borderRadius: "50%",
-                      background: "#F59E0B",
+                      background: "#3B82F6",
                       display: "inline-block",
                     }}
                   />
