@@ -16,58 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Dropdown from "./ui/Dropdown";
 
-// Shared styled trigger for custom dropdowns
-function FilterTrigger({ label, isActive, isOpen, icon: Icon }) {
-  return (
-    <div
-      className={`h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${isOpen
-        ? "border-primary/50 ring-1 ring-primary/20 bg-card"
-        : isActive
-          ? "border-primary/20 font-medium"
-          : "border-border hover:border-border/80"
-        }`}
-    >
-      <div className="flex items-center gap-2 overflow-hidden flex-1">
-        {Icon && (
-          <Icon size={14} className={`shrink-0 ${isActive ? 'text-foreground' : 'text-slate-400'}`} />
-        )}
-        <span className="text-[13px] text-foreground font-[500] truncate block w-full text-left">
-          {label}
-        </span>
-      </div>
-      <ChevronDown
-        size={14}
-        className={`ml-1 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""
-          }`}
-      />
-    </div>
-  );
-}
-
-// Shared popover option list
-function FilterOptionList({ options, value, onChange, close }) {
-  return (
-    <div className="p-1">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onChange(opt.value);
-            close();
-          }}
-          className={`w-full text-left px-3 py-2 rounded-md text-[13px] transition-colors font-medium ${value === opt.value
-            ? "bg-slate-200 text-foreground font-bold"
-            : "text-muted-foreground hover:bg-muted/80"
-            }`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import { FilterTrigger, FilterOptionList } from "./ui/FilterDropdown";
 
 export default function SalesFilters({
   activeTab = "ACTIVITIES",

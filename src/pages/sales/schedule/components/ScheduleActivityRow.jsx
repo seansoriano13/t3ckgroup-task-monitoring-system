@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Trash2, ChevronDown, Wand2, MoreVertical } from "lucide-react";
 import Select from "react-select";
+import { inlineSelectStyles } from "../../../../styles/selectStyles";
 
 export function ScheduleActivityRow({
   data,
@@ -27,70 +28,6 @@ export function ScheduleActivityRow({
   const isFilled = data.activity_type !== "None" || !!data.account_name;
 
   // react-select styling
-  const selectStyles = {
-    control: (base, state) => ({
-      ...base,
-      backgroundColor: "transparent",
-      border: "none",
-      boxShadow: "none",
-      minHeight: "32px",
-      fontSize: "14px",
-      fontWeight: isFilled ? "700" : "400",
-      color: isFilled ? "#111827" : "#9CA3AF",
-      cursor: "pointer",
-      "&:hover": { borderColor: "transparent" },
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      padding: "0",
-    }),
-    input: (base) => ({
-      ...base,
-      color: "inherit",
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "#9CA3AF",
-      fontWeight: "400",
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "inherit",
-    }),
-    indicatorsContainer: (base) => ({
-      ...base,
-      display: "none", // We'll use our own arrow or none to stay tight
-    }),
-    menu: (base) => ({
-      ...base,
-      borderRadius: "12px",
-      border: "1px solid #E5E7EB",
-      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-      marginTop: "4px",
-      overflow: "hidden",
-      zIndex: 50,
-    }),
-    groupHeading: (base) => ({
-      ...base,
-      fontSize: "10px",
-      fontWeight: "800",
-      textTransform: "uppercase",
-      color: "#9CA3AF",
-      backgroundColor: "#F9FAFB",
-      padding: "8px 12px",
-      margin: "0",
-    }),
-    option: (base, state) => ({
-      ...base,
-      fontSize: "13px",
-      fontWeight: "600",
-      padding: "8px 12px",
-      backgroundColor: state.isFocused ? "#F3F4F6" : state.isSelected ? "#F9FAFB" : "white",
-      color: state.isSelected ? "#111827" : "#374151",
-      cursor: "pointer",
-      "&:active": { backgroundColor: "#E5E7EB" },
-    }),
-  };
 
   const options = useMemo(() => {
     const opts = [];
@@ -186,7 +123,7 @@ export function ScheduleActivityRow({
               onChange={handleSelectChange}
               isDisabled={disabled}
               placeholder="Select activity..."
-              styles={selectStyles}
+              styles={inlineSelectStyles(isFilled)}
               onMenuOpen={() => !disabled && setIsExpanded(true)} // Keep open when selecting
               classNamePrefix="rs"
               isSearchable={true}

@@ -32,6 +32,7 @@ import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
 import LogTaskModal from "./LogTaskModal";
 import Select, { components } from "react-select";
+import { sidebarSelectStyles } from "../styles/selectStyles";
 
 export default function SideNav({ onOpenAddTask }) {
   const { user } = useAuth();
@@ -157,7 +158,7 @@ export default function SideNav({ onOpenAddTask }) {
 
   const CustomPlaceholder = (props) => (
     <components.Placeholder {...props}>
-      <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer hover:opacity-80 transition-opacity">
+      <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer transition-opacity">
         {user?.picture ? (
           <img
             src={user.picture}
@@ -183,53 +184,6 @@ export default function SideNav({ onOpenAddTask }) {
     </components.DropdownIndicator>
   );
 
-  const selectStyles = {
-    control: (base) => ({
-      ...base,
-      backgroundColor: "transparent",
-      border: "none",
-      boxShadow: "none",
-      cursor: "pointer",
-      minHeight: "auto",
-      padding: "4px",
-      borderRadius: "6px",
-      "&:hover": {
-        backgroundColor: "var(--color-red-a1, rgba(255,0,0,0.05))",
-      },
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      padding: "0px 8px",
-    }),
-    indicatorSeparator: () => ({ display: "none" }),
-    menu: (base) => ({
-      ...base,
-      backgroundColor: "var(--sidebar)",
-      border: "1px solid var(--sidebar-border)",
-      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-      borderRadius: "6px",
-      overflow: "hidden",
-      zIndex: 100,
-      marginTop: "4px",
-      animation: "popover-in 0.15s ease-out forwards",
-      transformOrigin: "top",
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isFocused
-        ? "var(--sidebar-accent)"
-        : "transparent",
-      color: "var(--sidebar-foreground)",
-      cursor: "pointer",
-      padding: "8px 12px",
-      fontSize: "13px",
-      fontWeight: 500,
-    }),
-    dropdownIndicator: (base) => ({
-      ...base,
-      padding: "0px 8px 0px 0px",
-    }),
-  };
 
   return (
     <>
@@ -283,7 +237,7 @@ export default function SideNav({ onOpenAddTask }) {
                 Placeholder: CustomPlaceholder,
                 DropdownIndicator: CustomDropdownIndicator,
               }}
-              styles={selectStyles}
+              styles={sidebarSelectStyles}
               isSearchable={false}
             />
           </div>
@@ -352,9 +306,6 @@ export default function SideNav({ onOpenAddTask }) {
           </div>
         </div>
 
-
-
-
         {/* 4. Combined Workspace Menus */}
         <div className="px-3 flex-1 flex flex-col text-sidebar-foreground/80 pb-4">
           <div className="px-3 mt-2 mb-3 flex items-center justify-between text-sidebar-foreground/60 group/header cursor-pointer">
@@ -381,20 +332,23 @@ export default function SideNav({ onOpenAddTask }) {
                   }
                   onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${isActive
-                      ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
-                      : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
+                    `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
+                        : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      <Icon 
-                        size={15} 
-                        strokeWidth={2.2} 
-                        className={`transition-colors ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`} 
+                      <Icon
+                        size={15}
+                        strokeWidth={2.2}
+                        className={`transition-colors ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`}
                       />
-                      <span className={`truncate text-[13.5px] mt-[1px] transition-all ${isActive ? "font-bold text-sidebar-primary" : "font-medium"}`}>
+                      <span
+                        className={`truncate text-[13.5px] mt-[1px] transition-all ${isActive ? "font-bold text-sidebar-primary" : "font-medium"}`}
+                      >
                         {navLink.label}
                       </span>
                     </>

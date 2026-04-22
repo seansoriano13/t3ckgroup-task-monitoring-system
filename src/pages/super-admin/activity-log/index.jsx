@@ -10,6 +10,7 @@ import { employeeService } from "../../../services/employeeService";
 import TaskDetails from "../../../components/TaskDetails.jsx";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
 import toast from "react-hot-toast";
+import { activityLogClassNames, portalStyles } from "../../../styles/selectStyles";
 import {
   ShieldCheck,
   MessageCircle,
@@ -56,31 +57,6 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-// ── Local react-select styles — same as LOG_TASK_SELECT_STYLES but xs font ──
-const FILTER_SELECT_STYLES = {
-  control: (state) =>
-    `min-h-[36px] w-full bg-gray-1 border ${state.isFocused ? "border-gray-6 ring-1 ring-gray-6" : "border-gray-4"
-    } hover:border-gray-5 rounded-lg px-2 shadow-sm transition-all cursor-pointer`,
-  menu: () =>
-    `mt-1 bg-gray-1 border border-gray-4 rounded-lg shadow-xl overflow-hidden popover-enter`,
-  menuList: () => `p-1`,
-  option: (state) =>
-    `px-3 py-1.5 cursor-pointer transition-colors rounded-md !text-sm ${state.isFocused
-      ? "bg-gray-3 text-gray-12 font-bold"
-      : state.isSelected
-        ? "bg-gray-4 text-gray-12 font-bold"
-        : "text-gray-11 bg-transparent"
-    }`,
-
-  singleValue: () => `text-gray-12 font-semibold text-xs`,
-  placeholder: () => `text-gray-7 text-xs`,
-  input: () => `text-gray-12 text-xs`,
-  indicatorSeparator: () => `hidden`,
-  dropdownIndicator: () => `text-gray-8 hover:text-gray-10 p-1`,
-  valueContainer: () => `gap-1 py-0`,
-};
-
-const PORTAL_STYLES = { menuPortal: (base) => ({ ...base, zIndex: 9999, }) };
 
 // ── FieldBox — mirrors LogTaskAssignmentBar's label+container pattern ────────
 function FieldBox({ label, children }) {
@@ -333,8 +309,8 @@ export default function SuperAdminActivityLogPage() {
                 onChange={(opt) => setFilters((p) => ({ ...p, type: opt?.value || "ALL" }))}
                 placeholder="All Types"
                 classNamePrefix="react-select"
-                classNames={FILTER_SELECT_STYLES}
-                styles={PORTAL_STYLES}
+                classNames={activityLogClassNames}
+                styles={portalStyles}
                 unstyled
                 isClearable={filters.type !== "ALL"}
                 menuPortalTarget={document.body}
@@ -358,8 +334,8 @@ export default function SuperAdminActivityLogPage() {
                 onChange={(opt) => setFilters((p) => ({ ...p, taskStatus: opt?.value || "ALL" }))}
                 placeholder="All Statuses"
                 classNamePrefix="react-select"
-                classNames={FILTER_SELECT_STYLES}
-                styles={PORTAL_STYLES}
+                classNames={activityLogClassNames}
+                styles={portalStyles}
                 unstyled
                 isClearable={filters.taskStatus !== "ALL"}
                 menuPortalTarget={document.body}
@@ -382,8 +358,8 @@ export default function SuperAdminActivityLogPage() {
                 onChange={(opt) => setFilters((p) => ({ ...p, authorId: opt?.value || "ALL" }))}
                 placeholder="All Actors"
                 classNamePrefix="react-select"
-                classNames={FILTER_SELECT_STYLES}
-                styles={PORTAL_STYLES}
+                classNames={activityLogClassNames}
+                styles={portalStyles}
                 unstyled
                 isClearable={filters.authorId !== "ALL"}
                 isSearchable
@@ -404,8 +380,8 @@ export default function SuperAdminActivityLogPage() {
                 onChange={(opt) => setFilters((p) => ({ ...p, employeeId: opt?.value || "ALL" }))}
                 placeholder="All Employees"
                 classNamePrefix="react-select"
-                classNames={FILTER_SELECT_STYLES}
-                styles={PORTAL_STYLES}
+                classNames={activityLogClassNames}
+                styles={portalStyles}
                 unstyled
                 isClearable={filters.employeeId !== "ALL"}
                 isSearchable
@@ -421,8 +397,8 @@ export default function SuperAdminActivityLogPage() {
                 onChange={(opt) => setFilters((p) => ({ ...p, dept: opt?.value || "ALL", subDept: "ALL" }))}
                 placeholder="All Departments"
                 classNamePrefix="react-select"
-                classNames={FILTER_SELECT_STYLES}
-                styles={PORTAL_STYLES}
+                classNames={activityLogClassNames}
+                styles={portalStyles}
                 unstyled
                 isClearable={filters.dept !== "ALL"}
                 menuPortalTarget={document.body}
@@ -437,8 +413,8 @@ export default function SuperAdminActivityLogPage() {
                 onChange={(opt) => setFilters((p) => ({ ...p, subDept: opt?.value || "ALL" }))}
                 placeholder="All Sub-Depts"
                 classNamePrefix="react-select"
-                classNames={FILTER_SELECT_STYLES}
-                styles={PORTAL_STYLES}
+                classNames={activityLogClassNames}
+                styles={portalStyles}
                 unstyled
                 isClearable={filters.subDept !== "ALL"}
                 isDisabled={filters.dept === "ALL"}

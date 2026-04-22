@@ -5,72 +5,9 @@ import { employeeService } from "../services/employeeService";
 import { FlaskConical, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Select from "react-select";
+import { defaultSelectStyles } from "../styles/selectStyles";
 
 const TEST_EMAIL = "arkadatax03@gmail.com";
-
-// ── React-Select theme (matched to Log Task page) ───────────
-const selectStyles = {
-  control: (base, state) => ({
-    ...base,
-    minHeight: "36px",
-    backgroundColor: "#F9FAFB",
-    borderColor: state.isFocused ? "#111827" : "#E5E7EB",
-    borderRadius: "8px",
-    boxShadow: state.isFocused ? "0 0 0 1px #111827" : "none",
-    "&:hover": {
-      borderColor: "#D1D5DB",
-    },
-    cursor: "pointer",
-  }),
-  menu: (base) => ({
-    ...base,
-    backgroundColor: "#FFFFFF",
-    border: "1px solid #E5E7EB",
-    borderRadius: "8px",
-    boxShadow:
-      "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-    zIndex: 1000000,
-  }),
-  menuPortal: (base) => ({ ...base, zIndex: 1000000 }),
-  option: (base, state) => ({
-    ...base,
-    fontSize: "13px",
-    padding: "8px 12px",
-    backgroundColor: state.isFocused
-      ? "#F3F4F6"
-      : state.isSelected
-        ? "#E5E7EB"
-        : "transparent",
-    color: "#111827",
-    cursor: "pointer",
-    "&:active": {
-      backgroundColor: "#E5E7EB",
-    },
-  }),
-  singleValue: (base) => ({
-    ...base,
-    color: "#111827",
-    fontWeight: "600",
-    fontSize: "13px",
-  }),
-  placeholder: (base) => ({
-    ...base,
-    color: "#9CA3AF",
-    fontSize: "13px",
-  }),
-  input: (base) => ({
-    ...base,
-    color: "#111827",
-    fontSize: "13px",
-  }),
-  indicatorSeparator: () => ({ display: "none" }),
-  dropdownIndicator: (base) => ({
-    ...base,
-    color: "#9CA3AF",
-    "&:hover": { color: "#4B5563" },
-    padding: "4px",
-  }),
-};
 
 // Custom sleek toggle switch
 const Toggle = ({ checked, onChange }) => (
@@ -246,7 +183,7 @@ export default function RoleSwitcher() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 md:left-[264px] z-[99999]">
+    <div className="fixed bottom-6 left-6 md:left-6 z-[99999]">
       {isOpen && (
         <div className="mb-4 bg-white border border-gray-200 rounded-xl shadow-2xl w-80 animate-in fade-in slide-in-from-bottom-3 duration-300 overflow-visible">
           {/* Header */}
@@ -288,7 +225,7 @@ export default function RoleSwitcher() {
                         sub_department: "ALL",
                       });
                     }}
-                    styles={selectStyles}
+                    styles={defaultSelectStyles}
                     isSearchable={false}
                     menuPlacement="auto"
                     isLoading={loadingData}
@@ -311,7 +248,7 @@ export default function RoleSwitcher() {
                     onChange={(opt) =>
                       setFormState({ ...formState, sub_department: opt.value })
                     }
-                    styles={selectStyles}
+                    styles={defaultSelectStyles}
                     isSearchable={true}
                     menuPlacement="auto"
                     placeholder="Select Sub-Dept"

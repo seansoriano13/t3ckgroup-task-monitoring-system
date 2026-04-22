@@ -14,7 +14,16 @@ import {
   Shield,
   Loader2,
   XSquare,
+  Building2,
+  Briefcase,
+  ChevronDown,
+  Info,
 } from "lucide-react";
+import Dropdown from "../../../components/ui/Dropdown";
+import PropertyPill from "../../../components/ui/PropertyPill";
+import { FilterOptionList } from "../../../components/ui/FilterDropdown";
+import { Dialog, DialogContent } from "../../../components/ui/dialog";
+import { Users } from "lucide-react";
 
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
@@ -60,7 +69,8 @@ export default function EmployeeManagement() {
 
       if (supabasePaths.length > 0) {
         try {
-          const signedResults = await storageService.getSignedUrls(supabasePaths);
+          const signedResults =
+            await storageService.getSignedUrls(supabasePaths);
           signedResults.forEach((res) => {
             const emp = employees.find((e) => e.avatarPath === res.path);
             if (emp) {
@@ -124,19 +134,21 @@ export default function EmployeeManagement() {
         <div className="flex items-center gap-1 p-1 bg-card border border-border rounded-xl w-fit shadow-sm">
           <button
             onClick={() => setActiveTab("employees")}
-            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${activeTab === "employees"
-              ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
+            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
+              activeTab === "employees"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
           >
             Employees
           </button>
           <button
             onClick={() => setActiveTab("categories")}
-            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${activeTab === "categories"
-              ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
+            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
+              activeTab === "categories"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
           >
             Categories Config
           </button>
@@ -182,32 +194,55 @@ export default function EmployeeManagement() {
                 <tbody className="divide-y divide-border">
                   {isLoading ? (
                     <tr>
-                      <td colSpan="6" className="p-10 text-center text-muted-foreground font-bold">
-                        <Loader2 size={24} className="animate-spin mx-auto mb-2 text-indigo-500" />
+                      <td
+                        colSpan="6"
+                        className="p-10 text-center text-muted-foreground font-bold"
+                      >
+                        <Loader2
+                          size={24}
+                          className="animate-spin mx-auto mb-2 text-indigo-500"
+                        />
                         Loading employees...
                       </td>
                     </tr>
                   ) : filteredEmployees.length > 0 ? (
                     filteredEmployees.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-muted/30 transition-colors">
+                      <tr
+                        key={emp.id}
+                        className="hover:bg-muted/30 transition-colors"
+                      >
                         <td className="p-4 text-sm font-bold text-foreground flex items-center gap-3">
                           <img
-                            src={resolvedAvatars[emp.id] || "/default-avatar.png"}
+                            src={
+                              resolvedAvatars[emp.id] || "/default-avatar.png"
+                            }
                             alt={emp.name}
                             className="w-9 h-9 rounded-xl border border-border object-cover shadow-sm shrink-0"
-                            onError={(e) => { e.target.src = "/default-avatar.png"; }}
+                            onError={(e) => {
+                              e.target.src = "/default-avatar.png";
+                            }}
                           />
                           <div className="truncate">
-                            <p className="font-black text-foreground">{emp.name}</p>
+                            <p className="font-black text-foreground">
+                              {emp.name}
+                            </p>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                               {emp.id?.slice(0, 8)}...
                             </p>
                           </div>
                         </td>
-                        <td className="p-4 text-sm text-muted-foreground">{emp.email}</td>
-                        <td className="p-4 text-sm text-muted-foreground">{emp.department || "-"}</td>
-                        <td className="p-4 text-sm text-muted-foreground">{emp.subDepartment || "-"}</td>
-                        <td className="p-4 text-sm text-foreground font-semibold">{emp.role || "-"}</td>
+                        <td className="p-4 text-sm text-muted-foreground">
+                          {emp.email}
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground">
+                          {emp.department || "-"}
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground">
+                          {emp.subDepartment || "-"}
+                        </td>
+                        <td className="p-4 text-sm text-foreground font-semibold">
+                          {emp.role || "-"}
+                        </td>
                         <td className="p-4 text-xs flex gap-1">
                           {emp.isSuperAdmin && (
                             <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
@@ -250,7 +285,10 @@ export default function EmployeeManagement() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="p-10 text-center text-muted-foreground font-bold italic text-sm">
+                      <td
+                        colSpan="6"
+                        className="p-10 text-center text-muted-foreground font-bold italic text-sm"
+                      >
                         No employees found.
                       </td>
                     </tr>
@@ -265,12 +303,11 @@ export default function EmployeeManagement() {
           </div>
         )}
 
-        {isModalOpen && (
-          <EmployeeFormModal
-            employee={editingEmployee}
-            onClose={() => setIsModalOpen(false)}
-          />
-        )}
+        <EmployeeFormModal
+          isOpen={isModalOpen}
+          employee={editingEmployee}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </ProtectedRoute>
   );
@@ -281,7 +318,7 @@ export default function EmployeeManagement() {
 const SALES_DEPT = "SALES";
 const SALES_SUB_DEPTS = ["GOV", "NGO", "SALES"];
 
-function EmployeeFormModal({ employee, onClose }) {
+function EmployeeFormModal({ isOpen, employee, onClose }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const isEditing = !!employee;
@@ -325,7 +362,6 @@ function EmployeeFormModal({ employee, onClose }) {
     const fromCategories = [
       ...new Set(rawCategories.map((c) => c.department).filter(Boolean)),
     ].sort();
-    // Append SALES if not already present
     if (!fromCategories.includes(SALES_DEPT)) {
       fromCategories.push(SALES_DEPT);
     }
@@ -334,7 +370,6 @@ function EmployeeFormModal({ employee, onClose }) {
 
   const uniqueSubDepts = useMemo(() => {
     if (!department) return [];
-
     let subDepts = [
       ...new Set(
         rawCategories
@@ -343,19 +378,14 @@ function EmployeeFormModal({ employee, onClose }) {
           .filter(Boolean),
       ),
     ];
-
-    // Inject Hardcoded options
     if (department === SALES_DEPT) {
-      // Add hardcoded SALES sub-depts if they aren't in categories
       SALES_SUB_DEPTS.forEach((s) => {
         if (!subDepts.includes(s)) subDepts.push(s);
       });
     }
-
     if (department === "OPERATIONS") {
       if (!subDepts.includes("MARKETING")) subDepts.push("MARKETING");
     }
-
     return subDepts.sort();
   }, [rawCategories, department]);
 
@@ -363,7 +393,10 @@ function EmployeeFormModal({ employee, onClose }) {
     mutationFn: (data) =>
       isEditing
         ? employeeService.updateEmployee(employee.id, data, user?.id || null)
-        : employeeService.createEmployee({ ...data, updatedBy: user?.id || null }),
+        : employeeService.createEmployee({
+            ...data,
+            updatedBy: user?.id || null,
+          }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allEmployees"] });
       toast.success(isEditing ? "Employee updated!" : "Employee added!");
@@ -380,224 +413,390 @@ function EmployeeFormModal({ employee, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-black text-foreground flex items-center gap-2">
-            {isEditing ? <Edit size={18} /> : <UserPlus size={18} />}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <DialogContent
+      showCloseButton={false}
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl max-h-[90vh] overflow-hidden"
+    >
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-border shrink-0 flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-black text-foreground flex items-center gap-2">
+            {isEditing ? (
+              <Edit size={20} className="text-indigo-500" />
+            ) : (
+              <UserPlus size={20} className="text-indigo-500" />
+            )}
             {isEditing ? "Edit Employee" : "Add Employee"}
           </h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
-            <XSquare size={20} />
-          </button>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
+            {isEditing
+              ? `Employee ID: ${employee.id?.slice(0, 8)}...`
+              : "Define system access & roles"}
+          </p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-gray-9 uppercase">
-              Full Name
-            </label>
-            <input
-              required
-              type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full bg-muted/40 border border-border rounded-xl p-2.5 mt-1 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-foreground"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-gray-9 uppercase">
-              Google Auth Email
-            </label>
-            <input
-              required
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full bg-muted/40 border border-border rounded-xl p-2.5 mt-1 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-foreground"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-gray-9 uppercase">
-                  Department
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsNewDept((v) => !v);
-                    setFormData((p) => ({ ...p, department: "", subDepartment: "" }));
-                    setIsNewSubDept(false);
-                  }}
-                  className="text-[11px] font-bold text-primary hover:text-primary-hover transition-colors"
-                >
-                  {isNewDept ? "← Select Existing" : "+ Add New"}
-                </button>
-              </div>
-              {isNewDept ? (
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-muted rounded-xl transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <XSquare size={20} />
+        </button>
+      </div>
+
+      {/* Scrollable Body */}
+      <div className="flex-1 overflow-y-auto p-6 min-h-0">
+        <form id="employee-form" onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-4">
+            <div className="group">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block ml-1">
+                Full Name
+              </label>
+              <div className="relative">
                 <input
                   required
                   type="text"
-                  placeholder="e.g. LOGISTICS"
-                  value={formData.department}
-                  onChange={(e) => {
-                    const val = e.target.value.toUpperCase();
-                    setFormData((p) => ({ ...p, department: val, subDepartment: "" }));
-                  }}
-                  className="w-full bg-gray-2 border border-primary/40 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 ring-1 ring-primary/20"
+                  placeholder="e.g. John Doe"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
                 />
-              ) : (
-                <select
-                  required
-                  value={formData.department}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      department: e.target.value,
-                      subDepartment: "",
-                    });
-                    setIsNewSubDept(false);
-                  }}
-                  className="w-full bg-muted/40 border border-border rounded-xl p-2.5 mt-1 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-foreground"
-                >
-                  <option value="" disabled>
-                    Select Dept
-                  </option>
-                  {uniqueDepts.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-gray-9 uppercase">
-                  Sub-Dept
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsNewSubDept((v) => !v);
-                    setFormData((p) => ({ ...p, subDepartment: "" }));
-                  }}
-                  disabled={!formData.department}
-                  className="text-[11px] font-bold text-primary hover:text-primary-hover transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                >
-                  {isNewSubDept ? "← Select Existing" : "+ Add New"}
-                </button>
               </div>
-              {isNewSubDept ? (
-                <input
-                  type="text"
-                  placeholder="e.g. WAREHOUSE"
-                  value={formData.subDepartment}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, subDepartment: e.target.value.toUpperCase() }))
-                  }
-                  disabled={!formData.department}
-                  className="w-full bg-gray-2 border border-primary/40 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 ring-1 ring-primary/20 disabled:opacity-50"
-                />
-              ) : (
-                <select
-                  value={formData.subDepartment}
-                  onChange={(e) =>
-                    setFormData({ ...formData, subDepartment: e.target.value })
-                  }
-                  disabled={!formData.department}
-                  className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 disabled:opacity-50"
-                >
-                  <option value="" disabled>
-                    Select Sub-Dept
-                  </option>
-                  <option value="">None</option>
-                  {uniqueSubDepts.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              )}
             </div>
 
-            <div className="col-span-2">
-              <label className="text-xs font-bold text-gray-9 uppercase">
+            <div className="group">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block ml-1">
+                Google Auth Email
+              </label>
+              <div className="relative">
+                <input
+                  required
+                  type="email"
+                  placeholder="e.g. john@t3ckgroup.com"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="group">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block ml-1">
                 Job Role / Title
               </label>
-              <input
-                type="text"
-                value={formData.role}
-                onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value })
-                }
-                placeholder="e.g. MARKETING ASSISTANT"
-                className="w-full bg-muted/40 border border-border rounded-xl p-2.5 mt-1 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-foreground"
-              />
+              <div className="relative">
+                <Briefcase
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
+                  placeholder="e.g. MARKETING ASSISTANT"
+                  className="w-full bg-muted/40 border border-border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-gray-4 space-y-2">
-            <label className="text-xs font-bold text-gray-9 uppercase block mb-2">
-              Role Assignments
-            </label>
-            <label className="flex items-center gap-2 text-sm text-gray-12 font-medium cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isHead}
-                onChange={(e) =>
-                  setFormData({ ...formData, isHead: e.target.checked })
-                }
-                className="rounded text-primary focus:ring-primary h-4 w-4 bg-gray-2 border-gray-4"
-              />
-              Department Head
-            </label>
-            <label className="flex items-center gap-2 text-sm text-gray-12 font-medium cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isHr}
-                onChange={(e) =>
-                  setFormData({ ...formData, isHr: e.target.checked })
-                }
-                className="rounded text-primary focus:ring-primary h-4 w-4 bg-gray-2 border-gray-4"
-              />
-              HR Administrator
-            </label>
-            <label className="flex items-center gap-2 text-sm text-gray-12 font-medium cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isSuperAdmin}
-                onChange={(e) =>
-                  setFormData({ ...formData, isSuperAdmin: e.target.checked })
-                }
-                className="rounded text-primary focus:ring-primary h-4 w-4 bg-gray-2 border-gray-4"
-              />
-              Super Admin
-            </label>
+          <div className="flex flex-wrap items-center gap-2 py-4 border-t border-b border-border/50">
+            {/* Department Selection */}
+            <Dropdown
+              popoverClassName="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+              trigger={({ isOpen }) => (
+                <PropertyPill
+                  isActive={!!formData.department || isOpen}
+                  icon={Building2}
+                >
+                  <span>{formData.department || "Set Department"}</span>
+                  <ChevronDown
+                    size={12}
+                    className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </PropertyPill>
+              )}
+            >
+              {({ close }) => (
+                <div className="p-1">
+                  <div className="px-3 py-2 border-b border-border mb-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Select Department
+                    </p>
+                  </div>
+                  <FilterOptionList
+                    options={uniqueDepts.map((d) => ({ label: d, value: d }))}
+                    value={formData.department}
+                    onChange={(val) => {
+                      setFormData({
+                        ...formData,
+                        department: val,
+                        subDepartment: "",
+                      });
+                      setIsNewDept(false);
+                    }}
+                    close={close}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNewDept(true);
+                      setFormData({
+                        ...formData,
+                        department: "",
+                        subDepartment: "",
+                      });
+                      close();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                  >
+                    + Add New Department
+                  </button>
+                </div>
+              )}
+            </Dropdown>
+
+            {/* Sub-Department Selection */}
+            <Dropdown
+              disabled={!formData.department}
+              popoverClassName="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+              trigger={({ isOpen, disabled }) => (
+                <PropertyPill
+                  isActive={(!!formData.subDepartment || isOpen) && !disabled}
+                  disabled={disabled}
+                  icon={Building2}
+                >
+                  <span>{formData.subDepartment || "Set Sub-Dept"}</span>
+                  {!disabled && (
+                    <ChevronDown
+                      size={12}
+                      className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    />
+                  )}
+                </PropertyPill>
+              )}
+            >
+              {({ close }) => (
+                <div className="p-1">
+                  <div className="px-3 py-2 border-b border-border mb-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Select Sub-Dept
+                    </p>
+                  </div>
+                  <FilterOptionList
+                    options={[
+                      { label: "None", value: "" },
+                      ...uniqueSubDepts.map((s) => ({ label: s, value: s })),
+                    ]}
+                    value={formData.subDepartment}
+                    onChange={(val) => {
+                      setFormData({ ...formData, subDepartment: val });
+                      setIsNewSubDept(false);
+                    }}
+                    close={close}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNewSubDept(true);
+                      setFormData({ ...formData, subDepartment: "" });
+                      close();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                  >
+                    + Add New Sub-Dept
+                  </button>
+                </div>
+              )}
+            </Dropdown>
           </div>
 
-          <div className="pt-4 flex gap-3 border-t border-gray-4 mt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2.5 bg-muted hover:bg-muted/70 text-foreground font-black rounded-xl transition-colors text-[11px] uppercase tracking-widest"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 text-[11px] uppercase tracking-widest"
-            >
-              {mutation.isPending ? "Saving..." : "Save Details"}
-            </button>
+          {/* Managed Mode Inputs (Fallback) */}
+          {(isNewDept || isNewSubDept) && (
+            <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Info size={14} className="text-indigo-600" />
+                <p className="text-[11px] font-black text-indigo-900 uppercase tracking-widest">
+                  Manual Entry Mode
+                </p>
+              </div>
+              {isNewDept && (
+                <div>
+                  <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                    New Department
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    autoFocus
+                    placeholder="e.g. LOGISTICS"
+                    value={formData.department}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        department: e.target.value.toUpperCase(),
+                      })
+                    }
+                    className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                  />
+                </div>
+              )}
+              {isNewSubDept && (
+                <div>
+                  <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                    New Sub-Department
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    autoFocus
+                    placeholder="e.g. WAREHOUSE"
+                    value={formData.subDepartment}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        subDepartment: e.target.value.toUpperCase(),
+                      })
+                    }
+                    className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                  />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsNewDept(false);
+                  setIsNewSubDept(false);
+                  setFormData({
+                    ...formData,
+                    department: "",
+                    subDepartment: "",
+                  });
+                }}
+                className="text-[10px] font-bold text-indigo-600 hover:underline"
+              >
+                Cancel manual entry
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-2 pt-2">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block ml-1">
+              System Access Rights
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHead ? "bg-amber-100 text-amber-600" : "bg-muted text-slate-400 group-hover:bg-amber-50"}`}
+                  >
+                    <Shield size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">
+                      Department Head
+                    </p>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      Grant approval rights for this dept
+                    </p>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={formData.isHead}
+                  onChange={(e) =>
+                    setFormData({ ...formData, isHead: e.target.checked })
+                  }
+                  className="rounded-full text-indigo-600 focus:ring-transparent h-5 w-5 bg-card border-border border-2"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHr ? "bg-blue-100 text-blue-600" : "bg-muted text-slate-400 group-hover:bg-blue-50"}`}
+                  >
+                    <Users size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">
+                      HR Admin
+                    </p>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      Access to employee & category management
+                    </p>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={formData.isHr}
+                  onChange={(e) =>
+                    setFormData({ ...formData, isHr: e.target.checked })
+                  }
+                  className="rounded-full text-indigo-600 focus:ring-transparent h-5 w-5 bg-card border-border border-2"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isSuperAdmin ? "bg-indigo-100 text-indigo-600" : "bg-muted text-slate-400 group-hover:bg-indigo-50"}`}
+                  >
+                    <Shield size={18} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">
+                      Super Admin
+                    </p>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      Full global system control
+                    </p>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={formData.isSuperAdmin}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      isSuperAdmin: e.target.checked,
+                    })
+                  }
+                  className="rounded-full text-indigo-600 focus:ring-transparent h-5 w-5 bg-card border-border border-2"
+                />
+              </label>
+            </div>
           </div>
         </form>
       </div>
-    </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-border bg-muted/30 flex justify-end gap-3 shrink-0">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-6 py-3.5 bg-muted hover:bg-muted/70 text-foreground font-black rounded-2xl transition-all text-[11px] uppercase tracking-widest active:scale-95"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="employee-form"
+          disabled={mutation.isPending}
+          className="px-10 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-indigo-200 disabled:opacity-50 text-[11px] uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2"
+        >
+          {mutation.isPending ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : null}
+          {mutation.isPending ? "Saving..." : "Save Employee"}
+        </button>
+      </div>
+    </DialogContent>
+    </Dialog>
   );
 }
