@@ -2,6 +2,7 @@ import { Calendar as CalendarIcon, Save, Send, Loader2, Trash2, X, HelpCircle, C
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getStartOfWeek, formatDateToYMD } from "../utils";
+import { confirmDeleteToast } from "../../../../components/ui/CustomToast";
 
 export function ScheduleHeader({
   isLocked,
@@ -59,7 +60,8 @@ export function ScheduleHeader({
                     const msg = plan.status === 'REVISION' 
                       ? "Discard all current changes and revert to previously approved state?" 
                       : "Are you sure you want to completely delete this Draft plan?";
-                    if (window.confirm(msg)) deletePlanMutation.mutate();
+                    const title = plan.status === 'REVISION' ? "Discard Amendment?" : "Delete Draft Plan?";
+                    confirmDeleteToast(title, msg, () => deletePlanMutation.mutate());
                   }}
                   disabled={deletePlanMutation.isPending || submitMutation.isPending || saveMutation.isPending}
                   className="p-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-transparent hover:border-destructive/20"

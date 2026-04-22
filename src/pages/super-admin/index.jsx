@@ -118,7 +118,6 @@ export default function SuperAdminDashboard() {
         </div>
       ) : (
         <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
-          <SystemUpdateBanner />
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
             <div>
               <h1 className="text-4xl font-black text-foreground tracking-tight flex items-center gap-2">
@@ -138,6 +137,8 @@ export default function SuperAdminDashboard() {
               />
             </div>
           </div>
+
+          <SystemUpdateBanner />
 
           <SystemUpdateManager />
 

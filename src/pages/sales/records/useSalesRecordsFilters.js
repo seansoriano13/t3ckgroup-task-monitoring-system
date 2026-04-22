@@ -30,6 +30,7 @@ export function useSalesRecordsFilters(user) {
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
   const [sortBy, setSortBy] = useState("NEWEST");
   const [activePreset, setActivePreset] = useState("custom");
+  const [activeRevPreset, setActiveRevPreset] = useState("custom");
 
   // ── Filters (Revenue — independent) ─────────────────────────────────
   const [revSearchTerm, setRevSearchTerm] = useState("");
@@ -378,7 +379,9 @@ export function useSalesRecordsFilters(user) {
           (a) => a.status === "LOST" || a.status === "REJECTED",
         );
       } else if (revFilterStatus === "UNVERIFIED") {
-        filtered = filtered.filter((a) => a.is_verified === false);
+        filtered = filtered.filter((a) => !a.is_verified);
+      } else if (revFilterStatus === "LOST_REJECTED") {
+        filtered = filtered.filter((a) => a.status === "LOST" || a.status === "REJECTED");
       }
     }
     if (revSelectedDateFilter) {
@@ -557,6 +560,60 @@ export function useSalesRecordsFilters(user) {
     [],
   );
 
+  const revPresetOptions = useMemo(
+    () => [
+      { id: "custom", label: "All Records" },
+      { id: "unverified", label: "Unverified" },
+      { id: "salesOrders", label: "Sales Orders" },
+      { id: "quotations", label: "Quotations" },
+      { id: "lostRejected", label: "Lost / Rejected" },
+    ],
+    [],
+  );
+
+  const applyRevPreset = useCallback(
+    (presetId) => {
+      setActiveRevPreset(presetId);
+      // Reset to clean state first
+      setRevFilterRecordType("ALL");
+      setRevFilterStatus("ALL");
+      setRevFilterEmp("ALL");
+      setRevSearchTerm("");
+
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+
+      if (presetId === "custom") {
+        // Reset to current month view
+        setRevTimeframe("MONTHLY");
+        setRevSelectedDateFilter(`${y}-${m}`);
+        return;
+      }
+      if (presetId === "unverified") {
+        setRevFilterStatus("UNVERIFIED");
+        setRevTimeframe("MONTHLY");
+        setRevSelectedDateFilter(`${y}-${m}`);
+      }
+      if (presetId === "salesOrders") {
+        setRevFilterRecordType("SALES_ORDER");
+        setRevTimeframe("MONTHLY");
+        setRevSelectedDateFilter(`${y}-${m}`);
+      }
+      if (presetId === "quotations") {
+        setRevFilterRecordType("SALES_QUOTATION");
+        setRevTimeframe("MONTHLY");
+        setRevSelectedDateFilter(`${y}-${m}`);
+      }
+      if (presetId === "lostRejected") {
+        setRevFilterStatus("LOST_REJECTED");
+        setRevTimeframe("MONTHLY");
+        setRevSelectedDateFilter(`${y}-${m}`);
+      }
+    },
+    [],
+  );
+
   const applyPreset = useCallback(
     (presetId) => {
       setActivePreset(presetId);
@@ -636,6 +693,9 @@ export function useSalesRecordsFilters(user) {
     activePreset,
     presetOptions,
     applyPreset,
+    activeRevPreset,
+    revPresetOptions,
+    applyRevPreset,
     // filters (revenue — independent)
     revSearchTerm,
     setRevSearchTerm: wrapRevFilter(setRevSearchTerm),

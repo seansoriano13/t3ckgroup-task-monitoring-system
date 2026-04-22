@@ -52,10 +52,10 @@ export default function PriorityDropdown({
                 if (onChange) onChange(opt.value);
                 close();
               }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
                 value === opt.value
-                  ? "bg-slate-200 text-foreground font-bold"
-                  : "text-muted-foreground hover:bg-muted/80"
+                  ? "bg-muted/80 text-foreground font-bold"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${opt.dot}`} />

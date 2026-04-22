@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
+import { confirmDeleteToast } from "./ui/CustomToast.jsx";
 
 const MAX_CONTENT_LENGTH = 2000;
 const HISTORY_PAGE_SIZE_OPTIONS = [10, 20, 30];
@@ -28,6 +29,9 @@ export default function SystemUpdateManager() {
   const [content, setContent] = useState("");
   const [type, setType] = useState("feature");
   const [editingId, setEditingId] = useState(null);
+  const [inlineEditId, setInlineEditId] = useState(null);
+  const [inlineEditContent, setInlineEditContent] = useState("");
+  const [inlineEditType, setInlineEditType] = useState("feature");
   const [isGenerating, setIsGenerating] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyPageSize, setHistoryPageSize] = useState(10);
@@ -341,21 +345,30 @@ export default function SystemUpdateManager() {
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => {
-                            setContent(update.content);
-                            setType(update.type);
-                            setEditingId(update.id);
-                            window.scrollTo({ top: 0, behavior: "smooth" });
+                            if (inlineEditId === update.id) {
+                              setInlineEditId(null);
+                            } else {
+                              setInlineEditId(update.id);
+                              setInlineEditContent(update.content);
+                              setInlineEditType(update.type);
+                            }
                           }}
-                          className="text-gray-8 hover:text-blue-500 transition-colors"
+                          className={`transition-colors ${
+                            inlineEditId === update.id
+                              ? "text-blue-600"
+                              : "text-gray-8 hover:text-blue-500"
+                          }`}
                           title="Edit Update"
                         >
                           <Edit3 size={14} />
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm("Delete this update record?")) {
-                              deleteMutation.mutate(update.id);
-                            }
+                            confirmDeleteToast(
+                              "Delete Update?",
+                              "This will permanently remove the update record.",
+                              () => deleteMutation.mutate(update.id)
+                            );
                           }}
                           className="text-gray-8 hover:text-red-500 transition-colors"
                           title="Delete Update"
@@ -369,25 +382,66 @@ export default function SystemUpdateManager() {
                         Expires: {new Date(update.expires_at).toLocaleString()}
                       </p>
                     )}
-                    <div className="text-sm mt-2 max-h-28 overflow-hidden relative">
-                      <ReactMarkdown
-                        components={{
-                          p: ({ ...props }) => (
-                            <p className="mb-1 last:mb-0 opacity-90" {...props} />
-                          ),
-                          ul: ({ ...props }) => (
-                            <ul className="list-disc pl-5 mb-1 opacity-90" {...props} />
-                          ),
-                          li: ({ ...props }) => <li className="mb-0.5" {...props} />,
-                          strong: ({ ...props }) => (
-                            <strong className="font-bold opacity-100" {...props} />
-                          ),
-                        }}
-                      >
-                        {update.content}
-                      </ReactMarkdown>
-                      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-1 to-transparent" />
-                    </div>
+                    {inlineEditId === update.id ? (
+                      <div className="mt-3 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1">
+                        <textarea
+                          className="w-full bg-white border border-gray-4 rounded-lg p-2.5 text-sm text-gray-12 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 min-h-[80px] outline-none"
+                          value={inlineEditContent}
+                          onChange={(e) => setInlineEditContent(e.target.value)}
+                        />
+                        <div className="flex items-center justify-between">
+                          <select
+                            value={inlineEditType}
+                            onChange={(e) => setInlineEditType(e.target.value)}
+                            className="bg-white border border-gray-4 rounded-lg px-2 py-1.5 text-xs font-medium outline-none"
+                          >
+                            <option value="feature">New Feature</option>
+                            <option value="fix">System Fix</option>
+                            <option value="announcement">Announcement</option>
+                          </select>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setInlineEditId(null)}
+                              className="text-xs font-medium text-gray-9 hover:text-gray-12 transition-colors px-2 py-1"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              disabled={!inlineEditContent.trim() || editMutation.isPending}
+                              onClick={() => {
+                                editMutation.mutate(
+                                  { id: update.id, data: { content: inlineEditContent.trim(), type: inlineEditType } },
+                                  { onSuccess: () => setInlineEditId(null) }
+                                );
+                              }}
+                              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50"
+                            >
+                              {editMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : "Save"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm mt-2 max-h-28 overflow-hidden relative">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ ...props }) => (
+                              <p className="mb-1 last:mb-0 opacity-90" {...props} />
+                            ),
+                            ul: ({ ...props }) => (
+                              <ul className="list-disc pl-5 mb-1 opacity-90" {...props} />
+                            ),
+                            li: ({ ...props }) => <li className="mb-0.5" {...props} />,
+                            strong: ({ ...props }) => (
+                              <strong className="font-bold opacity-100" {...props} />
+                            ),
+                          }}
+                        >
+                          {update.content}
+                        </ReactMarkdown>
+                        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-1 to-transparent" />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

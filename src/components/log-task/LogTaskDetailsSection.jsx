@@ -43,7 +43,7 @@ export default function LogTaskDetailsSection({
       )}
 
       {/* 2. DESCRIPTION / CHECKLIST */}
-      <div className="mb-4 flex-1 min-h-0 animate-content-in stagger-2">
+      <div className="mb-4 animate-content-in stagger-2">
         {/* Toggle tabs */}
         <div className="flex gap-0.5 mb-2 bg-muted rounded-lg border border-gray-3 p-0.5 w-fit">
           <button

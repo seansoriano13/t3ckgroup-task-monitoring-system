@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { CheckCircle2, DollarSign, XCircle, MapPin, Loader2, Clock, CheckSquare, Square, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { confirmDeleteToast } from "./ui/CustomToast";
 
 export default function ExpenseApprovalQueue({ isSuperAdmin }) {
   const { user } = useAuth();
@@ -179,9 +180,11 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
             <>
               <Button
                 onClick={() => {
-                  if (window.confirm(`Approve all ${selected.size} selected expense${selected.size > 1 ? "s" : ""}?`)) {
-                    bulkApproveMutation.mutate(selected);
-                  }
+                  confirmDeleteToast(
+                    `Approve ${selected.size} Expense${selected.size > 1 ? "s" : ""}?`,
+                    `This will mark ${selected.size} selected expense${selected.size > 1 ? "s" : ""} as approved.`,
+                    () => bulkApproveMutation.mutate(selected)
+                  );
                 }}
                 disabled={isPending}
                 size="sm"
@@ -305,9 +308,11 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
                   size="icon"
                   className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 h-8 w-8"
                   onClick={() => {
-                    if (window.confirm("Reject this expense? The activity will be marked as REJECTED.")) {
-                      approveMutation.mutate({ id: task.id, isApproved: false });
-                    }
+                    confirmDeleteToast(
+                      "Reject Expense?",
+                      "The activity will be marked as REJECTED and cannot be easily undone.",
+                      () => approveMutation.mutate({ id: task.id, isApproved: false })
+                    );
                   }}
                   disabled={isPending}
                   title="Reject"

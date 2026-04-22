@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { Plus, Edit, Trash2, Loader2, XSquare } from "lucide-react";
 import { employeeService } from "../services/employeeService";
 import { useAuth } from "../context/AuthContext";
+import { confirmDeleteToast } from "./ui/CustomToast";
 
 export default function HRCategoriesConfig() {
   const queryClient = useQueryClient();
@@ -248,12 +249,13 @@ export default function HRCategoriesConfig() {
                         >
                           <Edit size={16} />
                         </button>
-                        <button
+                         <button
                           onClick={() => {
-                            const ok = window.confirm(
-                              `Delete category "${cat.categoryId}"?`,
+                            confirmDeleteToast(
+                              `Delete Category?`,
+                              `"${cat.categoryId}" will be permanently removed. This cannot be undone.`,
+                              () => deleteMutation.mutate(cat)
                             );
-                            if (ok) deleteMutation.mutate(cat);
                           }}
                           className="p-2 bg-red-900/20 hover:bg-red-900/40 text-red-500 rounded-lg transition-colors inline-block"
                           title="Delete Category"

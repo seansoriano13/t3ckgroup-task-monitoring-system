@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Pagination from "./Pagination";
 import { REVENUE_STATUS, SALES_PLAN_STATUS } from "../../../constants/status";
+import { confirmDeleteToast } from "../../../components/ui/CustomToast";
 
 /**
  * Full Revenue tab: record-type sub-filter tabs + table + pagination.
@@ -156,13 +157,11 @@ export default function RevenueTable({
                             disabled={deleteRevenueMutation.isPending}
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (
-                                window.confirm(
-                                  `Delete this ${log.record_type === "SALES_QUOTATION" ? "quotation" : "sales order"} (₱${Number(log.revenue_amount).toLocaleString()} – ${log.account})? This is a soft-delete and can be recovered from the database if needed.`,
-                                )
-                              ) {
-                                deleteRevenueMutation.mutate(log.id);
-                              }
+                              confirmDeleteToast(
+                                `Delete ${log.record_type === "SALES_QUOTATION" ? "Quotation" : "Sales Order"}?`,
+                                `₱${Number(log.revenue_amount).toLocaleString()} – ${log.account}. This is a soft-delete and can be recovered from the database.`,
+                                () => deleteRevenueMutation.mutate(log.id)
+                              );
                             }}
                             className="p-1.5 rounded-lg transition-colors text-gray-8 hover:text-red-500 hover:bg-red-500/10"
                           >

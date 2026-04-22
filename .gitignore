@@ -30,7 +30,6 @@ dist-ssr
 # TestSprite
 .testsprite/
 testsprite_tests/
-TEST-SCENARIOS.md
 MEETING.MD
 
 supabase/.temp
@@ -44,3 +43,4 @@ supabase/.cache
 /cleanup_*
 /update_*
 
+evaluation.md

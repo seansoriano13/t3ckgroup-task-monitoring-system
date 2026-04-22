@@ -41,6 +41,9 @@ export default function SalesRecordsPage() {
     activePreset,
     presetOptions,
     applyPreset,
+    activeRevPreset,
+    revPresetOptions,
+    applyRevPreset,
     // revenue filters (independent)
     revSearchTerm,
     setRevSearchTerm,
@@ -94,24 +97,39 @@ export default function SalesRecordsPage() {
           recordCount={activeTab === "ACTIVITIES" ? filteredActivities.length : filteredRevenue.length}
         />
 
-        {/* SHARED FILTERS */}
+        {/* QUICK VIEWS — tab-aware */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
             Quick Views
           </span>
-          {presetOptions.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => applyPreset(preset.id)}
-              className={`text-[10px] font-black px-3 py-1.5 rounded-xl border transition-all ${
-                activePreset === preset.id
-                  ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              {preset.label}
-            </button>
-          ))}
+          {activeTab === "ACTIVITIES"
+            ? presetOptions.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => applyPreset(preset.id)}
+                  className={`text-[10px] font-black px-3 py-1.5 rounded-xl border transition-all ${
+                    activePreset === preset.id
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100"
+                      : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))
+            : revPresetOptions.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => applyRevPreset(preset.id)}
+                  className={`text-[10px] font-black px-3 py-1.5 rounded-xl border transition-all ${
+                    activeRevPreset === preset.id
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100"
+                      : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))
+          }
         </div>
 
         <div className="sticky top-2 z-10 bg-card/95 backdrop-blur border border-border rounded-2xl px-5 py-3 flex flex-wrap gap-2 shadow-sm">

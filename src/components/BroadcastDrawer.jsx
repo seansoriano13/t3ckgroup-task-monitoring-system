@@ -22,9 +22,11 @@ import {
   ChevronRight,
   X,
   Radio,
+  Check,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
+import { confirmDeleteToast } from "./ui/CustomToast";
 
 const MAX_CONTENT_LENGTH = 2000;
 const HISTORY_PAGE_SIZE = 5;
@@ -76,6 +78,10 @@ export default function BroadcastModal({ isOpen, onClose }) {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyFilter, setHistoryFilter] = useState("all");
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
+  // Inline edit state
+  const [inlineEditId, setInlineEditId] = useState(null);
+  const [inlineEditContent, setInlineEditContent] = useState("");
+  const [inlineEditType, setInlineEditType] = useState("announcement");
 
   // Reset form when modal opens
   useEffect(() => {
@@ -391,20 +397,30 @@ export default function BroadcastModal({ isOpen, onClose }) {
                             <div className="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
                               <button
                                 onClick={() => {
-                                  setContent(update.content);
-                                  setType(update.type);
-                                  setEditingId(update.id);
+                                  if (inlineEditId === update.id) {
+                                    setInlineEditId(null);
+                                  } else {
+                                    setInlineEditId(update.id);
+                                    setInlineEditContent(update.content);
+                                    setInlineEditType(update.type);
+                                  }
                                 }}
-                                className="text-muted-foreground hover:text-indigo-500 transition-colors"
-                                title="Edit"
+                                className={`transition-colors ${
+                                  inlineEditId === update.id
+                                    ? "text-indigo-500"
+                                    : "text-muted-foreground hover:text-indigo-500"
+                                }`}
+                                title={inlineEditId === update.id ? "Cancel Edit" : "Edit"}
                               >
                                 <Edit3 size={13} />
                               </button>
                               <button
                                 onClick={() => {
-                                  if (confirm("Delete this broadcast?")) {
-                                    deleteMutation.mutate(update.id);
-                                  }
+                                  confirmDeleteToast(
+                                    "Delete Broadcast?",
+                                    "This will permanently remove the broadcast from the history.",
+                                    () => deleteMutation.mutate(update.id)
+                                  );
                                 }}
                                 className="text-muted-foreground hover:text-red-500 transition-colors"
                                 title="Delete"
@@ -413,6 +429,58 @@ export default function BroadcastModal({ isOpen, onClose }) {
                               </button>
                             </div>
                           </div>
+                          {/* Inline edit form */}
+                          {inlineEditId === update.id ? (
+                            <div className="mt-2 flex flex-col gap-2 animate-slide-down">
+                              <textarea
+                                className="w-full bg-background border border-border rounded-lg p-2.5 text-xs text-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/10 min-h-[72px] resize-none transition-all"
+                                value={inlineEditContent}
+                                onChange={(e) => setInlineEditContent(e.target.value)}
+                                maxLength={2000}
+                              />
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {TYPE_OPTIONS.map((opt) => {
+                                  const Icon = opt.icon;
+                                  return (
+                                    <button
+                                      key={opt.value}
+                                      type="button"
+                                      onClick={() => setInlineEditType(opt.value)}
+                                      className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all ${
+                                        inlineEditType === opt.value
+                                          ? `${opt.bg} border-current`
+                                          : "bg-muted/20 border-border text-muted-foreground hover:bg-muted/40"
+                                      }`}
+                                    >
+                                      <Icon size={10} className={inlineEditType === opt.value ? opt.color : ""} />
+                                      {opt.label}
+                                    </button>
+                                  );
+                                })}
+                                <div className="ml-auto flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => setInlineEditId(null)}
+                                    className="px-3 py-1 rounded-lg text-[10px] font-bold text-muted-foreground hover:bg-muted/80 transition-all"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    disabled={!inlineEditContent.trim() || editMutation.isPending}
+                                    onClick={() => {
+                                      editMutation.mutate(
+                                        { id: update.id, data: { content: inlineEditContent.trim(), type: inlineEditType } },
+                                        { onSuccess: () => setInlineEditId(null) }
+                                      );
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg text-[10px] font-black bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-1 disabled:opacity-50"
+                                  >
+                                    {editMutation.isPending ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
                           <div className="text-xs text-foreground/80 leading-relaxed line-clamp-2">
                             <ReactMarkdown
                               components={{
@@ -425,6 +493,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
                               {update.content}
                             </ReactMarkdown>
                           </div>
+                          )}
                         </div>
                       </div>
                     );

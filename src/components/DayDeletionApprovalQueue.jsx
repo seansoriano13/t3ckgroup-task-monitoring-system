@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
+import { confirmDeleteToast } from "./ui/CustomToast";
 import toast from "react-hot-toast";
 import {
   Trash2,
@@ -208,17 +209,15 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                 <button
                   disabled={resolveMutation.isPending}
                   onClick={() => {
-                    if (
-                      window.confirm(
-                        `Are you sure you want to PERMANENTLY delete all ${req.activities.length} activities for ${req.employeeName} on ${req.date}?`,
-                      )
-                    ) {
-                      resolveMutation.mutate({
+                    confirmDeleteToast(
+                      "Approve Day Deletion?",
+                      `This will PERMANENTLY delete all ${req.activities.length} activities for ${req.employeeName} on ${req.date}. This cannot be undone.`,
+                      () => resolveMutation.mutate({
                         employeeId: req.employee_id,
                         date: req.date,
                         isApproved: true,
-                      });
-                    }
+                      })
+                    );
                   }}
                   className="w-full lg:w-32 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >

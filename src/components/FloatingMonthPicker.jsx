@@ -164,11 +164,34 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const content = (
     <div
       ref={panelRef}
-      className={`fixed bottom-16 right-16 flex flex-col items-end gap-3 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}
+      className={`fixed top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}
     >
-      {/* EXPANDED PANEL */}
+      {/* FAB TRIGGER BUTTON — top-docked horizontal pill */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`pointer-events-auto flex items-center gap-2.5 px-4 py-2 rounded-2xl shadow-lg transition-all duration-300 active:scale-95 border text-sm ${open
+          ? "bg-card text-foreground border-border ring-2 ring-primary/10 shadow-xl"
+          : "bg-card text-foreground border-border hover:border-border/80 hover:bg-accent/50"
+          }`}
+      >
+        <div className={`p-1.5 rounded-lg transition-colors ${open ? "bg-primary/10" : "bg-muted"}`}>
+          <Calendar size={14} className={open ? "text-primary" : "text-muted-foreground"} />
+        </div>
+        <div className="flex items-center gap-2 leading-none">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            {mode === "MONTHLY" ? "Month" : mode === "QUARTERLY" ? "Quarter" : mode === "YEARLY" ? "Year" : "Range"}
+          </span>
+          <span className="w-px h-3 bg-border" />
+          <span className="text-[13px] font-bold text-foreground">
+            {rangeData.label}
+          </span>
+        </div>
+        <LayoutGrid size={13} className={`ml-1 transition-colors ${open ? "text-primary" : "text-muted-foreground/50"}`} />
+      </button>
+
+      {/* EXPANDED PANEL — opens downward */}
       {open && (
-        <div className="pointer-events-auto modal-enter origin-bottom-right mb-2 bg-popover/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-4 w-[340px] flex flex-col gap-4">
+        <div className="pointer-events-auto modal-enter origin-top mt-2 bg-popover/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-4 w-[340px] flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/50 pb-3">
             <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
@@ -342,31 +365,6 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
           </div>
         </div>
       )}
-
-      {/* FAB TRIGGER BUTTON */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg transition-all duration-300 active:scale-95 border ${open
-          ? "bg-accent text-accent-foreground border-border ring-2 ring-primary/10 shadow-xl"
-          : "bg-card text-foreground border-border hover:border-border/80 hover:bg-accent/50"
-          }`}
-      >
-        <div className={`p-2 rounded-lg transition-colors ${open ? "bg-background shadow-sm" : "bg-muted"}`}>
-          <Calendar size={18} className={open ? "text-primary" : "text-muted-foreground"} />
-        </div>
-        <div className="flex flex-col items-start leading-[1.25]">
-          <span className="uppercase tracking-widest text-[9.5px] text-muted-foreground font-bold mb-0.5">
-            {mode === "MONTHLY"
-              ? "Month"
-              : mode === "QUARTERLY"
-                ? "Quarter"
-                : "Range"}
-          </span>
-          <span className="text-[13px] font-bold text-foreground">
-            {rangeData.label}
-          </span>
-        </div>
-      </button>
     </div>
   );
 
