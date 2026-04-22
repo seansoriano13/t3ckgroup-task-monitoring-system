@@ -75,7 +75,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
     return new Date(y, m - 1, d);
   };
 
-   // Compute boundaries based on internal state
+  // Compute boundaries based on internal state
   const rangeData = useMemo(() => {
     let startDate, endDate, label;
 
@@ -127,10 +127,9 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   useEffect(() => {
     if (!selectedRange) return;
 
-    // Use functional state updates to avoid adding internal state to the dependency array.
-    // This ensures the effect ONLY runs when the parent's prop actually changes,
-    // preventing it from prematurely reverting user actions.
-    setMode((prev) => (prev !== selectedRange.mode ? selectedRange.mode : prev));
+    setMode((prev) =>
+      prev !== selectedRange.mode ? selectedRange.mode : prev,
+    );
 
     if (selectedRange.mode === "MONTHLY") {
       const m = selectedRange.startDate.slice(0, 7);
@@ -145,20 +144,16 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
       setYear((prev) => (prev !== y ? y : prev));
     } else if (selectedRange.mode === "CUSTOM") {
       setCustomStart((prev) =>
-        prev !== selectedRange.startDate ? selectedRange.startDate : prev
+        prev !== selectedRange.startDate ? selectedRange.startDate : prev,
       );
       const d = parseYMD(selectedRange.endDate);
       if (d) {
         d.setDate(d.getDate() - 1);
         const inclusiveEnd = formatDateToYMD(d);
-        setCustomEnd((prev) =>
-          prev !== inclusiveEnd ? inclusiveEnd : prev
-        );
+        setCustomEnd((prev) => (prev !== inclusiveEnd ? inclusiveEnd : prev));
       }
     }
   }, [selectedRange]);
-
- 
 
   // Close on outside click
   useEffect(() => {
