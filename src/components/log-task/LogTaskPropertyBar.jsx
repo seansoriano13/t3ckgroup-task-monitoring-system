@@ -50,7 +50,7 @@ export default function LogTaskPropertyBar({
       <div className="relative z-[100]" ref={endTimeRef}>
         <Dropdown
           className="z-[100]"
-          popoverClassName="absolute top-full right-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-3 w-[220px] popover-enter"
+          popoverClassName="absolute top-full right-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-3 w-[clamp(280px,90vw,400px)] popover-enter"
           trigger={({ isOpen }) => (
             <button
               type="button"
@@ -75,28 +75,31 @@ export default function LogTaskPropertyBar({
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                 End Date & Time
               </label>
-              <DatePicker
-                selected={formData.endAt ? new Date(formData.endAt) : null}
-                onChange={(date) =>
-                  setFormData((p) => ({
-                    ...p,
-                    endAt: date ? date.toISOString() : "",
-                  }))
-                }
-                showTimeSelect
-                dateFormat="Pp"
-                placeholderText="Select end date & time"
-                className="w-full bg-card border border-border rounded-lg px-2 py-1.5 text-xs text-foreground outline-none focus:border-gray-7 transition-colors mb-2 cursor-pointer"
-                isClearable
-              />
-              <div className="flex justify-end">
+              <div className="w-full py-1">
+                <DatePicker
+                  selected={formData.endAt ? new Date(formData.endAt) : null}
+                  onChange={(date) =>
+                    setFormData((p) => ({
+                      ...p,
+                      endAt: date ? date.toISOString() : "",
+                    }))
+                  }
+                  inline
+                  showTimeSelect
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="Pp"
+                />
+              </div>
+              <div className="flex justify-end mt-3 pt-2 border-t border-border">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     close();
                   }}
-                  className="text-[11px] font-semibold text-primary hover:underline"
+                  style={{ backgroundColor: "var(--primary)" }}
+                  className="px-4 py-1.5 text-white rounded-lg text-[11px] font-bold hover:opacity-90 transition-all shadow-sm"
                 >
                   Done
                 </button>
