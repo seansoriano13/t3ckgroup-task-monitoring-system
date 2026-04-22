@@ -27,6 +27,7 @@
         "react": "^19.2.5",
         "react-datepicker": "^9.1.0",
         "react-dom": "^19.2.5",
+        "react-draggable": "^4.5.0",
         "react-error-boundary": "^6.1.1",
         "react-hot-toast": "^2.6.0",
         "react-markdown": "^10.1.0",
