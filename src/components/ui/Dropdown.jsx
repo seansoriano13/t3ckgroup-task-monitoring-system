@@ -41,8 +41,10 @@ const Dropdown = forwardRef(({
       setCoords({
         left: rect.left + window.scrollX,
         top: rect.bottom + window.scrollY,
+        rectTop: rect.top + window.scrollY,
         width: rect.width,
-        right: window.innerWidth - rect.right - window.scrollX
+        right: window.innerWidth - rect.right - window.scrollX,
+        windowHeight: document.documentElement.scrollHeight
       });
     }
   };
@@ -124,9 +126,10 @@ const Dropdown = forwardRef(({
             className={`${popoverClassName}`} 
             style={{ 
               position: 'absolute', 
-              top: coords?.top ? coords.top + 6 : 0, // 6px mt 
+              top: placement.startsWith("top") ? undefined : (coords?.top ? coords.top + 6 : 0), 
+              bottom: placement.startsWith("top") ? (coords ? coords.windowHeight - coords.rectTop + 6 : 0) : undefined,
               // Respect placement
-              ...(placement === "bottom-end" ? { right: coords?.right } : { left: coords?.left }),
+              ...(placement.endsWith("end") ? { right: coords?.right } : { left: coords?.left }),
               minWidth: coords?.width 
             }}
           >

@@ -1,10 +1,14 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Edit, Trash2, Loader2, XSquare } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, XSquare, Building2, Info, ChevronDown } from "lucide-react";
 import { employeeService } from "../services/employeeService";
 import { useAuth } from "../context/AuthContext";
 import { confirmDeleteToast } from "./ui/CustomToast";
+import { Dialog, DialogContent } from "./ui/dialog";
+import Dropdown from "./ui/Dropdown";
+import PropertyPill from "./ui/PropertyPill";
+import { FilterOptionList } from "./ui/FilterDropdown";
 
 export default function HRCategoriesConfig() {
   const queryClient = useQueryClient();
@@ -281,187 +285,280 @@ export default function HRCategoriesConfig() {
         )}
       </div>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={(e) => {
-            if (e.currentTarget === e.target) setIsModalOpen(false);
-          }}
+      <Dialog open={isModalOpen} onOpenChange={(open) => !open && setIsModalOpen(false)}>
+        <DialogContent
+          showCloseButton={false}
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl max-h-[90vh] overflow-hidden"
         >
-          <div className="bg-gray-1 border border-gray-4 rounded-xl w-full max-w-md shadow-2xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-12 flex items-center gap-2">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-border shrink-0 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-black text-foreground flex items-center gap-2">
+                {editingId ? (
+                  <Edit size={20} className="text-indigo-500" />
+                ) : (
+                  <Plus size={20} className="text-indigo-500" />
+                )}
                 {editingId ? "Edit Category" : "Add Category"}
               </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-8 hover:text-gray-12"
-              >
-                <XSquare size={20} />
-              </button>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                {editingId
+                  ? `Category ID: ${formData.categoryId}`
+                  : "Define task categories"}
+              </p>
             </div>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="p-2 hover:bg-muted rounded-xl transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <XSquare size={20} />
+            </button>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-9 uppercase">
-                  Category ID
-                </label>
-                <input
-                  required
-                  type="text"
-                  value={formData.categoryId}
-                  disabled={!!editingId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, categoryId: e.target.value })
-                  }
-                  className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 disabled:opacity-60 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-9 uppercase">
-                  Description
-                </label>
-                <input
-                  required
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-9 uppercase">
-                    Department
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-6 min-h-0">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-4">
+                <div className="group">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block ml-1">
+                    Category ID
                   </label>
+                  <div className="relative">
+                    <input
+                      required
+                      type="text"
+                      value={formData.categoryId}
+                      disabled={!!editingId}
+                      onChange={(e) =>
+                        setFormData({ ...formData, categoryId: e.target.value })
+                      }
+                      className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                <div className="group">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block ml-1">
+                    Description
+                  </label>
+                  <div className="relative">
+                    <input
+                      required
+                      type="text"
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description: e.target.value })
+                      }
+                      className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 py-4 border-t border-b border-border/50">
+                {/* Department Selection */}
+                <Dropdown
+                  usePortal={true}
+                  placement="top-start"
+                  popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+                  trigger={({ isOpen }) => (
+                    <PropertyPill
+                      isActive={!!formData.department || isOpen}
+                      icon={Building2}
+                    >
+                      <span>{formData.department || "Set Department"}</span>
+                      <ChevronDown
+                        size={12}
+                        className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      />
+                    </PropertyPill>
+                  )}
+                >
+                  {({ close }) => (
+                    <div className="p-1">
+                      <div className="px-3 py-2 border-b border-border mb-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          Select Department
+                        </p>
+                      </div>
+                      <FilterOptionList
+                        options={uniqueDepts.map((d) => ({ label: d, value: d }))}
+                        value={formData.department}
+                        onChange={(val) => {
+                          setFormData({
+                            ...formData,
+                            department: val,
+                            subDepartment: "",
+                          });
+                          setIsNewDept(false);
+                        }}
+                        close={close}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsNewDept(true);
+                          setFormData({
+                            ...formData,
+                            department: "",
+                            subDepartment: "",
+                          });
+                          close();
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                      >
+                        + Add New Department
+                      </button>
+                    </div>
+                  )}
+                </Dropdown>
+
+                {/* Sub-Department Selection */}
+                <Dropdown
+                  disabled={!formData.department}
+                  usePortal={true}
+                  placement="top-start"
+                  popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+                  trigger={({ isOpen, disabled }) => (
+                    <PropertyPill
+                      isActive={(!!formData.subDepartment || isOpen) && !disabled}
+                      disabled={disabled}
+                      icon={Building2}
+                    >
+                      <span>{formData.subDepartment || "Set Sub-Dept"}</span>
+                      {!disabled && (
+                        <ChevronDown
+                          size={12}
+                          className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        />
+                      )}
+                    </PropertyPill>
+                  )}
+                >
+                  {({ close }) => (
+                    <div className="p-1">
+                      <div className="px-3 py-2 border-b border-border mb-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          Select Sub-Dept
+                        </p>
+                      </div>
+                      <FilterOptionList
+                        options={[
+                          { label: "None", value: "" },
+                          ...uniqueSubDepts.map((s) => ({ label: s, value: s })),
+                        ]}
+                        value={formData.subDepartment}
+                        onChange={(val) => {
+                          setFormData({ ...formData, subDepartment: val });
+                          setIsNewSubDept(false);
+                        }}
+                        close={close}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsNewSubDept(true);
+                          setFormData({ ...formData, subDepartment: "" });
+                          close();
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                      >
+                        + Add New Sub-Dept
+                      </button>
+                    </div>
+                  )}
+                </Dropdown>
+              </div>
+
+              {/* Managed Mode Inputs (Fallback) */}
+              {(isNewDept || isNewSubDept) && (
+                <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Info size={14} className="text-indigo-600" />
+                    <p className="text-[11px] font-black text-indigo-900 uppercase tracking-widest">
+                      Manual Entry Mode
+                    </p>
+                  </div>
+                  {isNewDept && (
+                    <div>
+                      <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                        New Department
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        autoFocus
+                        placeholder="e.g. LOGISTICS"
+                        value={formData.department}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            department: e.target.value.toUpperCase(),
+                          })
+                        }
+                        className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                      />
+                    </div>
+                  )}
+                  {isNewSubDept && (
+                    <div>
+                      <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                        New Sub-Department
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        autoFocus
+                        placeholder="e.g. WAREHOUSE"
+                        value={formData.subDepartment}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            subDepartment: e.target.value.toUpperCase(),
+                          })
+                        }
+                        className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                      />
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
-                      setIsNewDept((v) => !v);
-                      setFormData((p) => ({ ...p, department: "", subDepartment: "" }));
+                      setIsNewDept(false);
                       setIsNewSubDept(false);
-                    }}
-                    className="text-[11px] font-bold text-primary hover:text-primary-hover transition-colors"
-                  >
-                    {isNewDept ? "← Select Existing" : "+ Add New"}
-                  </button>
-                </div>
-                {isNewDept ? (
-                  <input
-                    required
-                    type="text"
-                    placeholder="e.g. LOGISTICS"
-                    value={formData.department}
-                    onChange={(e) => {
-                      const val = e.target.value.toUpperCase();
-                      setFormData((p) => ({ ...p, department: val, subDepartment: "" }));
-                    }}
-                    className="w-full bg-gray-2 border border-primary/40 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 ring-1 ring-primary/20"
-                  />
-                ) : (
-                  <select
-                    required
-                    value={formData.department}
-                    onChange={(e) => {
-                      const nextDept = e.target.value;
-                      setFormData((p) => ({
-                        ...p,
-                        department: nextDept,
+                      setFormData({
+                        ...formData,
+                        department: "",
                         subDepartment: "",
-                      }));
-                      setIsNewSubDept(false);
+                      });
                     }}
-                    className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12"
+                    className="text-[10px] font-bold text-indigo-600 hover:underline"
                   >
-                    <option value="" disabled className="text-gray-8">
-                      Select Department...
-                    </option>
-                    {uniqueDepts.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-9 uppercase">
-                    Sub-Department
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNewSubDept((v) => !v);
-                      setFormData((p) => ({ ...p, subDepartment: "" }));
-                    }}
-                    disabled={!formData.department}
-                    className="text-[11px] font-bold text-primary hover:text-primary-hover transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    {isNewSubDept ? "← Select Existing" : "+ Add New"}
+                    Cancel manual entry
                   </button>
                 </div>
-                {isNewSubDept ? (
-                  <input
-                    required
-                    type="text"
-                    placeholder="e.g. WAREHOUSE"
-                    value={formData.subDepartment}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, subDepartment: e.target.value.toUpperCase() }))
-                    }
-                    disabled={!formData.department}
-                    className="w-full bg-gray-2 border border-primary/40 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 ring-1 ring-primary/20 disabled:opacity-50"
-                  />
-                ) : (
-                  <select
-                    required
-                    value={formData.subDepartment}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, subDepartment: e.target.value }))
-                    }
-                    disabled={!formData.department}
-                    className="w-full bg-gray-2 border border-gray-4 rounded-lg p-2.5 mt-1 text-sm outline-none focus:border-primary text-gray-12 disabled:opacity-50"
-                  >
-                    <option value="" disabled className="text-gray-8">
-                      {formData.department
-                        ? "Select Sub-Department..."
-                        : "Select Department First"}
-                    </option>
-                    {uniqueSubDepts.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
+              )}
 
-              <div className="pt-4 flex gap-3 border-t border-gray-4 mt-2">
+              <div className="pt-4 flex justify-end gap-3 border-t border-border mt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2.5 bg-gray-3 hover:bg-gray-4 text-gray-12 font-bold rounded-lg transition-colors"
+                  className="px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={upsertMutation.isPending}
-                  className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-lg transition-colors shadow-lg shadow-red-a3 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50"
                 >
                   {upsertMutation.isPending ? "Saving..." : "Save Category"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

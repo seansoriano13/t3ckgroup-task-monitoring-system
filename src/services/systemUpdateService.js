@@ -52,6 +52,26 @@ export const systemUpdateService = {
   },
 
   /**
+   * Fetch all active non-expired updates for banner display.
+   */
+  async getActiveUpdates() {
+    await this.deactivateExpiredUpdates();
+    const nowIso = getNowIso();
+    const { data, error } = await supabase
+      .from("system_updates")
+      .select("*, author:employees(name)")
+      .eq("is_active", true)
+      .gt("expires_at", nowIso)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching active system updates:", error);
+      throw error;
+    }
+    return data || [];
+  },
+
+  /**
    * Fetch paginated updates for management panel.
    */
   async getUpdatesPage({ page = 1, pageSize = 10, filter = "all" } = {}) {

@@ -124,7 +124,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
     mutationFn: (data) => systemUpdateService.createUpdate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
       setContent("");
       setEditingId(null);
       toast.success("Broadcast sent!");
@@ -136,7 +136,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
     mutationFn: ({ id, data }) => systemUpdateService.editUpdate(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
       setContent("");
       setEditingId(null);
       toast.success("Update saved.");
@@ -149,7 +149,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
       systemUpdateService.toggleUpdateStatus(id, isActive),
     onSuccess: (_, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
       toast.success(isActive ? "Broadcast activated!" : "Broadcast deactivated.");
     },
     onError: (err) => toast.error(err.message),
@@ -159,7 +159,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
     mutationFn: (id) => systemUpdateService.deleteUpdate(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
       toast.success("Update removed.");
     },
   });

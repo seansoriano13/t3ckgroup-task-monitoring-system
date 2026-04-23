@@ -82,7 +82,7 @@ export default function SystemUpdateManager() {
     mutationFn: (data) => systemUpdateService.createUpdate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
       setContent("");
       toast.success("Update broadcasted successfully!");
     },
@@ -93,7 +93,7 @@ export default function SystemUpdateManager() {
     mutationFn: ({ id, data }) => systemUpdateService.editUpdate(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
       setContent("");
       setEditingId(null);
       toast.success("Update edited successfully!");
@@ -106,7 +106,7 @@ export default function SystemUpdateManager() {
       systemUpdateService.toggleUpdateStatus(id, isActive),
     onSuccess: (_, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
       toast.success(isActive ? "Banner activated!" : "Banner deactivated.");
     },
     onError: (err) => toast.error(err.message),
@@ -116,7 +116,7 @@ export default function SystemUpdateManager() {
     mutationFn: (id) => systemUpdateService.deleteUpdate(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allSystemUpdates"] });
-      queryClient.invalidateQueries({ queryKey: ["latestActiveSystemUpdate"] });
+      queryClient.invalidateQueries({ queryKey: ["activeSystemUpdates"] });
     },
   });
 

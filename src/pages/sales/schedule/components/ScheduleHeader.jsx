@@ -91,7 +91,7 @@ export function ScheduleHeader({
                 </button>
                 <div 
                   className="px-2 text-slate-400 hover:text-muted-foreground cursor-help transition-colors" 
-                  title="Remember to submit your schedule by Friday End of Day for the following week! Note: Mon-Sat require at least 5 AM/PM tasks each to unlock submission. Sunday is optional."
+                  title="Remember to submit your schedule by Friday End of Day for the following week! Note: Mon-Sat require at least 1 activity each to unlock submission. Sunday is optional."
                 >
                   <HelpCircle size={16} />
                 </div>
@@ -136,7 +136,7 @@ export function ScheduleHeader({
       </div>
 
       {/* Missing Activities Alert for Approved Plans */}
-      {plan.status === "APPROVED" && (weekSummary.missingAM > 0 || weekSummary.missingPM > 0) && (
+      {plan.status === "APPROVED" && (weekSummary.missingDays > 0) && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
           <div className="flex items-center gap-3">
             <div className="bg-amber-100 p-2 rounded-xl">
@@ -221,7 +221,7 @@ export function ScheduleHeader({
         <div className="flex items-center gap-3">
           <span 
             className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 cursor-help select-none" 
-            title={`Missing AM: ${weekSummary.missingAM} | Missing PM: ${weekSummary.missingPM} | Unplanned Ratio: ${unplannedRatio}%`}
+            title={`Missing Days: ${weekSummary.missingDays} | Unplanned Ratio: ${unplannedRatio}%`}
           >
             <CheckCircle2 size={16} className={weekSummary.daysReady >= totalDaysRequired ? "text-emerald-500" : "text-slate-300"} />
             Readiness: <span className="text-foreground font-black">{weekSummary.daysReady}/{totalDaysRequired}</span>

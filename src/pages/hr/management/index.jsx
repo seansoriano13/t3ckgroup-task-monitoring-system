@@ -548,7 +548,9 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
             <div className="flex flex-wrap items-center gap-2 py-4 border-t border-b border-border/50">
               {/* Department Selection */}
               <Dropdown
-                popoverClassName="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+                usePortal={true}
+                placement="top-start"
+                popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
                 trigger={({ isOpen }) => (
                   <PropertyPill
                     isActive={!!formData.department || isOpen}
@@ -604,7 +606,9 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
               {/* Sub-Department Selection */}
               <Dropdown
                 disabled={!formData.department}
-                popoverClassName="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+                usePortal={true}
+                placement="top-start"
+                popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
                 trigger={({ isOpen, disabled }) => (
                   <PropertyPill
                     isActive={(!!formData.subDepartment || isOpen) && !disabled}

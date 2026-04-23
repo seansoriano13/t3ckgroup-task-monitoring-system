@@ -11,32 +11,36 @@ import {
 import ReactMarkdown from "react-markdown";
 
 export default function SystemUpdateBanner() {
-  const [isMinimized, setIsMinimized] = useState(false);
-
-  const { data: latestUpdate = null, isLoading } = useQuery({
-    queryKey: ["latestActiveSystemUpdate"],
-    queryFn: () => systemUpdateService.getLatestActiveUpdate(),
+  const { data: updates = [], isLoading } = useQuery({
+    queryKey: ["activeSystemUpdates"],
+    queryFn: () => systemUpdateService.getActiveUpdates(),
   });
 
-  useEffect(() => {
-    if (latestUpdate) {
-      const savedState = localStorage.getItem(
-        `banner_collapsed_${latestUpdate.id}`,
-      );
-      if (savedState === "true") {
-        setIsMinimized(true);
-      } else {
-        setIsMinimized(false);
-      }
-    }
-  }, [latestUpdate]);
+  if (isLoading || updates.length === 0) return null;
 
-  if (isLoading || !latestUpdate) return null;
+  return (
+    <div className="space-y-4 mb-6">
+      {updates.map((update) => (
+        <BannerItem key={update.id} update={update} />
+      ))}
+    </div>
+  );
+}
+
+function BannerItem({ update }) {
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  useEffect(() => {
+    const savedState = localStorage.getItem(`banner_collapsed_${update.id}`);
+    if (savedState === "true") {
+      setIsMinimized(true);
+    }
+  }, [update.id]);
 
   const handleToggle = () => {
     const newVal = !isMinimized;
     setIsMinimized(newVal);
-    localStorage.setItem(`banner_collapsed_${latestUpdate.id}`, String(newVal));
+    localStorage.setItem(`banner_collapsed_${update.id}`, String(newVal));
   };
 
   const getIcon = (type) => {
@@ -52,16 +56,12 @@ export default function SystemUpdateBanner() {
     }
   };
 
-  const getStyles = () => {
-    return "bg-white border-[#E5E7EB] text-[#111827]";
-  };
-
   return (
     <div
-      className={`mb-6 p-4 rounded-xl border flex items-start gap-4 transition-all duration-300 ${getStyles()} animate-in fade-in slide-in-from-top-4`}
+      className={`p-4 rounded-xl border flex items-start gap-4 transition-all duration-300 bg-white border-[#E5E7EB] text-[#111827] animate-in fade-in slide-in-from-top-4`}
     >
       <div className="p-2 bg-[#F9FAFB] rounded-full shrink-0 border border-[#E5E7EB]">
-        {getIcon(latestUpdate.type)}
+        {getIcon(update.type)}
       </div>
       <div className="flex-1 min-w-0">
         <div
@@ -73,9 +73,9 @@ export default function SystemUpdateBanner() {
               className="font-medium uppercase tracking-wider text-[#6B7280]"
               style={{ fontSize: "12px" }}
             >
-              {latestUpdate.type === "feature"
+              {update.type === "feature"
                 ? "New Features"
-                : latestUpdate.type === "fix"
+                : update.type === "fix"
                   ? "System Fixes"
                   : "Announcement"}
             </h3>
@@ -83,7 +83,7 @@ export default function SystemUpdateBanner() {
               className="font-medium text-[#6B7280]"
               style={{ fontSize: "12px" }}
             >
-              {new Date(latestUpdate.created_at).toLocaleDateString()}
+              {new Date(update.created_at).toLocaleDateString()}
             </span>
           </div>
           <button className="text-[#6B7280] group-hover:text-[#111827] transition-colors p-1 rounded-full hover:bg-[#F9FAFB]">
@@ -113,7 +113,7 @@ export default function SystemUpdateBanner() {
               ),
             }}
           >
-            {latestUpdate.content}
+            {update.content}
           </ReactMarkdown>
         </div>
       </div>

@@ -43,7 +43,7 @@ export function FilterTrigger({ label, isActive, isOpen, icon: Icon, disabled })
  */
 export function FilterOptionList({ options, value, onChange, close }) {
   return (
-    <div className="p-1">
+    <div className="p-1 max-h-60 overflow-y-auto">
       {options.map((opt) => (
         <button
           key={opt.value}
