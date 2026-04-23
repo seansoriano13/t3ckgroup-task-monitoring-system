@@ -40,7 +40,6 @@ export default function CommitteeTasksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("ALL"); // ALL, ACTIVE, COMPLETED
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isRateOpen, setIsRateOpen] = useState(false);
 
@@ -61,15 +60,6 @@ export default function CommitteeTasksPage() {
   });
 
   // --- Mutations ---
-  const createMutation = useMutation({
-    mutationFn: (payload) => committeeTaskService.createCommitteeTask(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
-      toast.success("Committee Task created!");
-      setIsCreateOpen(false);
-    },
-    onError: (err) => toast.error(err.message),
-  });
 
   const markDoneMutation = useMutation({
     mutationFn: (memberId) =>
@@ -226,15 +216,6 @@ export default function CommitteeTasksPage() {
           </p>
         </div>
 
-        {canManage && (
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors whitespace-nowrap"
-          >
-            <Plus size={18} />
-            Create Committee Task
-          </button>
-        )}
       </div>
 
       {/* TOOLBAR */}
@@ -300,16 +281,6 @@ export default function CommitteeTasksPage() {
       )}
 
       {/* MODALS */}
-      {canManage && (
-        <CreateCommitteeTaskModal
-          isOpen={isCreateOpen}
-          onClose={() => setIsCreateOpen(false)}
-          user={user}
-          employees={employees}
-          onSubmit={(payload) => createMutation.mutateAsync(payload)}
-          isSubmitting={createMutation.isPending}
-        />
-      )}
 
       <CommitteeTaskDetailModal
         isOpen={!!selectedTask}

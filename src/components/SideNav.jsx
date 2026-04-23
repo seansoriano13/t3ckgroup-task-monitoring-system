@@ -32,8 +32,14 @@ import GlobalDetailManager from "./GlobalDetailManager";
 import { NavLink, useNavigate } from "react-router";
 import { useState } from "react";
 import LogTaskModal from "./LogTaskModal";
+import CreateCommitteeTaskModal from "../pages/committee/components/CreateCommitteeTaskModal";
+import Dropdown from "./ui/Dropdown";
 import Select, { components } from "react-select";
 import { sidebarSelectStyles } from "../styles/selectStyles";
+import { committeeTaskService } from "../services/committeeTaskService";
+import { employeeService } from "../services/employeeService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 export default function SideNav({ onOpenAddTask }) {
   const { user } = useAuth();
@@ -42,6 +48,7 @@ export default function SideNav({ onOpenAddTask }) {
   // Mobile Toggle State
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLogTaskOpen, setIsLogTaskOpen] = useState(false);
+  const [isCreateCommitteeOpen, setIsCreateCommitteeOpen] = useState(false);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
 
   // Notification State
@@ -61,6 +68,29 @@ export default function SideNav({ onOpenAddTask }) {
     enabled: !!user?.id,
   });
   const unreadChatsCount = activeChats.filter((c) => c.is_unread).length;
+
+  const queryClient = useQueryClient();
+
+  const isSuperAdmin =
+    user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isHead = user?.is_head === true || user?.isHead === true;
+  const canManage = isHead || isSuperAdmin;
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ["employees"],
+    queryFn: () => employeeService.getAllEmployees(),
+    enabled: !!user?.id && canManage,
+  });
+
+  const createCommitteeMutation = useMutation({
+    mutationFn: (payload) => committeeTaskService.createCommitteeTask(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
+      toast.success("Committee Task created!");
+      setIsCreateCommitteeOpen(false);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const hasSales = user?.has_sales_flow;
   const hasTask = user?.has_task_flow;
@@ -91,7 +121,7 @@ export default function SideNav({ onOpenAddTask }) {
     if (hasTask) {
       navLinks.push(
         { label: "Tasks", link: "/tasks", icon: ListCheck },
-        { label: "Committee Tasks", link: "/committee", icon: UsersRound }
+        { label: "Committee Tasks", link: "/committee", icon: UsersRound },
       );
     }
 
@@ -299,17 +329,67 @@ export default function SideNav({ onOpenAddTask }) {
               )}
             </button>
 
-            {/* Log Task Button */}
-            <button
-              onClick={() => {
-                setIsMobileOpen(false);
-                setIsLogTaskOpen(true);
-              }}
-              className="flex-1 flex items-center justify-center p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-primary/80 hover:text-sidebar-primary hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
-              title="Log new task"
-            >
-              <SquarePen size={15} strokeWidth={2.2} />
-            </button>
+            {/* Merged Action Button */}
+            {canManage ? (
+              <Dropdown
+                placement="bottom-end"
+                className="flex-1"
+                usePortal={true}
+                trigger={({ isOpen }) => (
+                  <button
+                    className={`relative flex-1 flex items-center justify-center py-2 px-3 rounded-lg border transition-all ${
+                      isOpen
+                        ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/30 shadow-sm"
+                        : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"
+                    }`}
+                    title="Create new..."
+                  >
+                    <Plus size={15} strokeWidth={2.5} />
+                  </button>
+                )}
+              >
+                {({ close }) => (
+                  <div className="p-1.5 min-w-[180px] flex flex-col gap-0.5 bg-sidebar border border-sidebar-border rounded-xl shadow-2xl">
+                    <button
+                      onClick={() => {
+                        close();
+                        setIsMobileOpen(false);
+                        setIsLogTaskOpen(true);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
+                    >
+                      <SquarePen
+                        size={14}
+                        className="text-sidebar-primary/70"
+                      />
+                      <span>Log Regular Task</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        close();
+                        setIsMobileOpen(false);
+                        setIsCreateCommitteeOpen(true);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
+                    >
+                      <UsersRound size={14} className="text-sidebar-primary" />
+                      <span>Committee Task</span>
+                    </button>
+                  </div>
+                )}
+              </Dropdown>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsMobileOpen(false);
+                  setIsLogTaskOpen(true);
+                }}
+                className="flex-1 flex items-center justify-center p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-primary/80 hover:text-sidebar-primary hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
+                title="Log new task"
+              >
+                <SquarePen size={15} strokeWidth={2.2} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -385,6 +465,16 @@ export default function SideNav({ onOpenAddTask }) {
         isOpen={isLogTaskOpen}
         onClose={() => setIsLogTaskOpen(false)}
       />
+      {canManage && (
+        <CreateCommitteeTaskModal
+          isOpen={isCreateCommitteeOpen}
+          onClose={() => setIsCreateCommitteeOpen(false)}
+          user={user}
+          employees={employees}
+          onSubmit={(payload) => createCommitteeMutation.mutateAsync(payload)}
+          isSubmitting={createCommitteeMutation.isPending}
+        />
+      )}
     </>
   );
 }
