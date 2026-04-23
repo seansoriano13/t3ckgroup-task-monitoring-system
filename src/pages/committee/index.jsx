@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { committeeTaskService } from "../../services/committeeTaskService";
+import PageHeader from "../../components/ui/PageHeader";
+import PageContainer from "../../components/ui/PageContainer";
 import { employeeService } from "../../services/employeeService";
 import toast from "react-hot-toast";
 import { Users, Plus, Search } from "lucide-react";
@@ -202,21 +204,15 @@ export default function CommitteeTasksPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20 md:pb-10">
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight flex items-center gap-2">
-            Committee Tasks
-          </h1>
-          <p className="text-sm md:text-base text-muted-foreground mt-1">
-            {canManage
-              ? "Create and manage group committee assignments."
-              : "View your committee assignments and update progress."}
-          </p>
-        </div>
-
-      </div>
+    <PageContainer maxWidth="7xl" className="pt-4">
+      <PageHeader
+        title="Committee Tasks"
+        description={
+          canManage
+            ? "Create and manage group committee assignments."
+            : "View your committee assignments and update progress."
+        }
+      />
 
       {/* TOOLBAR */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card p-3 rounded-2xl border border-border">
@@ -329,6 +325,6 @@ export default function CommitteeTasksPage() {
           isSubmitting={rateMutation.isPending}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

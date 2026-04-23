@@ -5,6 +5,7 @@ import {
   Table2,
   Columns,
 } from "lucide-react";
+import PageHeader from "../../../components/ui/PageHeader";
 
 /**
  * Page header with tab toggles (Activities / Revenue),
@@ -18,17 +19,12 @@ export default function RecordsHeader({
   recordCount,
 }) {
   return (
-    <div className="border-b border-border pb-5">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-4xl font-black text-foreground tracking-tight">
-            Sales Records
-          </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-sm">
-            Comprehensive filtering view for Sales Activities and Logged Revenue.
-          </p>
-        </div>
-        <div className="text-right flex items-center gap-3 flex-wrap justify-end">
+    <PageHeader
+      title="Sales Records"
+      description="Comprehensive filtering view for Sales Activities and Logged Revenue."
+    >
+      <div className="flex flex-col items-end gap-2">
+        <div className="flex items-center gap-3">
           {activeTab === "ACTIVITIES" && (
             <div className="flex bg-card border border-border rounded-xl p-1 shadow-sm">
               <button
@@ -60,11 +56,10 @@ export default function RecordsHeader({
             </button>
           </div>
         </div>
+        <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+          <FileText size={14} /> {recordCount} Records Found
+        </div>
       </div>
-
-      <div className="flex items-center gap-2 text-[11px] font-black text-muted-foreground uppercase tracking-widest w-full justify-end mt-1">
-        <FileText size={14} /> {recordCount} Records Found
-      </div>
-    </div>
+    </PageHeader>
   );
 }

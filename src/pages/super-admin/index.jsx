@@ -12,6 +12,8 @@ import SystemUpdateBanner from "../../components/SystemUpdateBanner.jsx";
 import SystemUpdateManager from "../../components/SystemUpdateManager.jsx";
 import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import QuotaManagementModule from "../../components/quota-management/QuotaManagementModule.jsx";
+import PageHeader from "../../components/ui/PageHeader";
+import PageContainer from "../../components/ui/PageContainer";
 
 const EMPTY_ARRAY = [];
 
@@ -109,26 +111,16 @@ export default function SuperAdminDashboard() {
           </p>
         </div>
       ) : (
-        <div className="max-w-7xl mx-auto space-y-6 pb-10 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
-            <div>
-              <h1 className="text-4xl font-black text-foreground tracking-tight flex items-center gap-2">
-                Admin Control
-              </h1>
-              <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.15em]">
-                Manage Sales Quotas, configure tracking rules, and review
-                department activities.
-              </p>
-            </div>
-
-            {/* Inline range label — quick overview, FAB for full picker */}
-            <div className="flex items-center gap-2">
-              <FloatingMonthPicker
-                selectedRange={selectedRange}
-                onChange={setSelectedRange}
-              />
-            </div>
-          </div>
+        <PageContainer className="pt-4">
+          <PageHeader
+            title="Admin Control"
+            description="Manage Sales Quotas, configure tracking rules, and review department activities."
+          >
+            <FloatingMonthPicker
+              selectedRange={selectedRange}
+              onChange={setSelectedRange}
+            />
+          </PageHeader>
 
           <SystemUpdateBanner />
 
@@ -154,7 +146,7 @@ export default function SuperAdminDashboard() {
             selectedMonth={selectedRange.startDate}
             selectedLabel={selectedRange.label}
           />
-        </div>
+        </PageContainer>
       )}
     </ProtectedRoute>
   );

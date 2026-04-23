@@ -5,6 +5,8 @@ import { useTheme } from "../../hooks/useTheme";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import toast from "react-hot-toast";
+import PageHeader from "../../components/ui/PageHeader";
+import PageContainer from "../../components/ui/PageContainer";
 
 function SettingToggle({ label, description, icon: Icon, checked, onToggle, isPending, isLoading }) {
   return (
@@ -61,12 +63,11 @@ export default function SettingsPage() {
     !mutation.isPending && mutation.mutate({ [key]: !appSettings?.[key] });
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 pb-20">
-      {/* HEADER */}
-      <div className="border-b border-border pb-6">
-        <h1 className="text-4xl font-black text-foreground tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.2em]">Configure your portal experience.</p>
-      </div>
+    <PageContainer maxWidth="4xl" className="pt-4">
+      <PageHeader
+        title="Settings"
+        description="Configure your portal experience."
+      />
 
       <div className="space-y-6">
         {/* PREFERENCES SECTION */}
@@ -222,6 +223,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

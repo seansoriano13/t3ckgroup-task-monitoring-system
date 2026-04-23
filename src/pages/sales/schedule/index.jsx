@@ -7,6 +7,7 @@ import { useNavigate, useLocation } from "react-router";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { uxMetricsService } from "../../../services/uxMetricsService";
+import PageContainer from "../../../components/ui/PageContainer";
 
 import { ScheduleHeader } from "./components/ScheduleHeader";
 import { ScheduleTabs } from "./components/ScheduleTabs";
@@ -772,7 +773,7 @@ export default function SalesSchedulePage() {
 
   return (
     <ProtectedRoute excludeSuperAdmin={true}>
-      <div className="max-w-[1600px] mx-auto space-y-6 pb-10 px-2 sm:px-4">
+      <PageContainer maxWidth="full" className="pt-4">
         
         <ScheduleHeader
           compactMode={compactMode}
@@ -849,7 +850,7 @@ export default function SalesSchedulePage() {
           isDeletingId={deleteTemplateMutation.isPending ? deleteTemplateMutation.variables : null}
         />
 
-      </div>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

@@ -26,6 +26,8 @@ import { FilterOptionList } from "../../../components/ui/FilterDropdown";
 import { Dialog, DialogContent } from "../../../components/ui/dialog";
 import { Users } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import PageHeader from "../../../components/ui/PageHeader";
+import PageContainer from "../../../components/ui/PageContainer";
 
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
@@ -122,15 +124,11 @@ export default function EmployeeManagement() {
 
   return (
     <ProtectedRoute requireHr={true}>
-      <div className="max-w-7xl mx-auto space-y-6 pb-10 px-2 sm:px-0">
-        <div className="flex flex-col border-b border-border pb-6">
-          <h1 className="text-4xl font-black text-foreground tracking-tight">
-            HR Management
-          </h1>
-          <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.15em]">
-            Manage system access, roles, departments, and task categories.
-          </p>
-        </div>
+      <PageContainer className="pt-4">
+        <PageHeader
+          title="HR Management"
+          description="Manage system access, roles, departments, and task categories."
+        />
 
         {/* Tabs */}
         <div className="flex items-center gap-1 p-1 bg-card border border-border rounded-xl w-fit shadow-sm">
@@ -310,7 +308,7 @@ export default function EmployeeManagement() {
           employee={editingEmployee}
           onClose={() => setIsModalOpen(false)}
         />
-      </div>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

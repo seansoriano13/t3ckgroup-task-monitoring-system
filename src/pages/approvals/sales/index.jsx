@@ -25,6 +25,8 @@ import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx
 import PlanAmendmentApprovalQueue from "../../../components/PlanAmendmentApprovalQueue.jsx";
 import DayDeletionApprovalQueue from "../../../components/DayDeletionApprovalQueue.jsx";
 import { supabase } from "../../../lib/supabase";
+import PageContainer from "@/components/ui/PageContainer";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function SalesHeadApprovalsPage() {
   const { user } = useAuth();
@@ -38,7 +40,13 @@ export default function SalesHeadApprovalsPage() {
   const [timeframe, setTimeframe] = useState("DAILY");
   const [selectedDateFilter, setSelectedDateFilter] = useState(() => {
     const today = new Date();
-    return today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+    return (
+      today.getFullYear() +
+      "-" +
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0")
+    );
   });
   const [viewActivity, setViewActivity] = useState(null);
   const [sortBy, setSortBy] = useState("NEWEST");
@@ -57,7 +65,7 @@ export default function SalesHeadApprovalsPage() {
   const handleToggleDaySelection = (activityIds, isSelected) => {
     setSelectedActivities((prev) => {
       const next = new Set(prev);
-      activityIds.forEach(id => {
+      activityIds.forEach((id) => {
         if (isSelected) next.add(id);
         else next.delete(id);
       });
@@ -105,7 +113,9 @@ export default function SalesHeadApprovalsPage() {
     queryFn: async () => {
       let query = supabase
         .from("sales_activities")
-        .select(`id, employee_id, scheduled_date, employees!sales_activities_employee_id_fkey!inner(department)`)
+        .select(
+          `id, employee_id, scheduled_date, employees!sales_activities_employee_id_fkey!inner(department)`,
+        )
         .not("delete_requested_by", "is", null)
         .neq("is_deleted", true);
 
@@ -130,13 +140,15 @@ export default function SalesHeadApprovalsPage() {
     queryKey: ["planAmendments", user?.department],
     queryFn: async () => {
       let query = supabase
-        .from('sales_weekly_plans')
-        .select(`id, employees!sales_weekly_plans_employee_id_fkey!inner(department)`)
-        .eq('status', 'SUBMITTED')
-        .not('amendment_snapshot', 'is', null);
+        .from("sales_weekly_plans")
+        .select(
+          `id, employees!sales_weekly_plans_employee_id_fkey!inner(department)`,
+        )
+        .eq("status", "SUBMITTED")
+        .not("amendment_snapshot", "is", null);
 
       if (!isSuperAdmin && user?.department) {
-        query = query.eq('employees.department', user.department);
+        query = query.eq("employees.department", user.department);
       }
 
       const { data, error } = await query;
@@ -216,11 +228,12 @@ export default function SalesHeadApprovalsPage() {
           (a.employees?.name || "").toLowerCase().includes(q) ||
           (a.account_name || "").toLowerCase().includes(q) ||
           (a.details_daily || "").toLowerCase().includes(q) ||
-          (a.activity_type || "").toLowerCase().includes(q)
+          (a.activity_type || "").toLowerCase().includes(q),
       );
     }
 
-    if (filterEmp !== "ALL") list = list.filter((a) => a.employee_id === filterEmp);
+    if (filterEmp !== "ALL")
+      list = list.filter((a) => a.employee_id === filterEmp);
 
     // Status filter only applies to the pending tab
     if (activeTab === "PENDING") {
@@ -229,12 +242,18 @@ export default function SalesHeadApprovalsPage() {
         list = list.filter((act) => isActDone(act.status));
       } else {
         if (filterStatus === "APPROVED" || filterStatus === "DONE") {
-          list = list.filter((a) => a.status === "APPROVED" || a.status === "DONE");
+          list = list.filter(
+            (a) => a.status === "APPROVED" || a.status === "DONE",
+          );
         } else if (filterStatus === "PENDING") {
-          list = list.filter((a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL");
+          list = list.filter(
+            (a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL",
+          );
         } else if (filterStatus === "INCOMPLETE") {
           // Show tasks not yet completed, or explicitly rejected
-          list = list.filter((a) => !isActDone(a.status) || a.status === "REJECTED");
+          list = list.filter(
+            (a) => !isActDone(a.status) || a.status === "REJECTED",
+          );
         } else {
           list = list.filter((a) => a.status === filterStatus);
         }
@@ -243,7 +262,9 @@ export default function SalesHeadApprovalsPage() {
 
     if (filterType !== "ALL") {
       list = list.filter((a) => {
-        const aType = (a.activity_type || "").replace(/[-_]/g, " ").toUpperCase();
+        const aType = (a.activity_type || "")
+          .replace(/[-_]/g, " ")
+          .toUpperCase();
         const fType = filterType.replace(/[-_]/g, " ").toUpperCase();
         return aType === fType;
       });
@@ -252,9 +273,12 @@ export default function SalesHeadApprovalsPage() {
     if (selectedDateFilter) {
       list = list.filter((a) => {
         if (!a.scheduled_date) return false;
-        if (timeframe === "DAILY") return a.scheduled_date === selectedDateFilter;
-        if (timeframe === "MONTHLY") return a.scheduled_date.startsWith(selectedDateFilter);
-        if (timeframe === "YEARLY") return a.scheduled_date.startsWith(selectedDateFilter);
+        if (timeframe === "DAILY")
+          return a.scheduled_date === selectedDateFilter;
+        if (timeframe === "MONTHLY")
+          return a.scheduled_date.startsWith(selectedDateFilter);
+        if (timeframe === "YEARLY")
+          return a.scheduled_date.startsWith(selectedDateFilter);
         if (timeframe === "WEEKLY") {
           const selectedD = new Date(selectedDateFilter + "T00:00:00");
           const day = selectedD.getDay();
@@ -276,17 +300,36 @@ export default function SalesHeadApprovalsPage() {
     // Sort
     if (activeTab === "VERIFIED") {
       // Default sort for verified: most recently verified first
-      list.sort((a, b) => new Date(b.head_verified_at) - new Date(a.head_verified_at));
+      list.sort(
+        (a, b) => new Date(b.head_verified_at) - new Date(a.head_verified_at),
+      );
     } else if (sortBy === "NEWEST") {
-      list.sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date));
+      list.sort(
+        (a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date),
+      );
     } else if (sortBy === "OLDEST") {
-      list.sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date));
+      list.sort(
+        (a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date),
+      );
     } else if (sortBy === "NAME") {
-      list.sort((a, b) => (a.employees?.name || "").localeCompare(b.employees?.name || ""));
+      list.sort((a, b) =>
+        (a.employees?.name || "").localeCompare(b.employees?.name || ""),
+      );
     }
 
     return list;
-  }, [activeRawData, activeTab, user, searchQuery, filterEmp, filterStatus, filterType, timeframe, selectedDateFilter, sortBy]);
+  }, [
+    activeRawData,
+    activeTab,
+    user,
+    searchQuery,
+    filterEmp,
+    filterStatus,
+    filterType,
+    timeframe,
+    selectedDateFilter,
+    sortBy,
+  ]);
 
   // Group by Employee -> Date
   const groupedData = useMemo(() => {
@@ -318,7 +361,9 @@ export default function SalesHeadApprovalsPage() {
         const pendingCount = allActs.filter(
           (a) => a.status === "PENDING" || a.status === "AWAITING APPROVAL",
         ).length;
-        const rejectedCount = allActs.filter((a) => a.status === "REJECTED").length;
+        const rejectedCount = allActs.filter(
+          (a) => a.status === "REJECTED",
+        ).length;
         const unplannedCount = allActs.filter((a) => a.is_unplanned).length;
         const total = allActs.length || 1;
         const consistencyPenalty = Math.round((unplannedCount / total) * 100);
@@ -382,15 +427,14 @@ export default function SalesHeadApprovalsPage() {
             border: "1px solid var(--gray-4, #e5e5e5)",
             color: "var(--gray-12, #171717)",
           },
-        }
+        },
       );
     },
     onError: (err) => toast.error(err.message),
   });
 
   const unverifyMutation = useMutation({
-    mutationFn: ({ activityId }) =>
-      salesService.unverifyActivity(activityId),
+    mutationFn: ({ activityId }) => salesService.unverifyActivity(activityId),
     onSuccess: () => {
       invalidateAll();
       toast.success("Verification undone — activity moved back to pending.");
@@ -404,12 +448,15 @@ export default function SalesHeadApprovalsPage() {
     onSuccess: (_, variables) => {
       invalidateAll();
       handleDeselectAll();
-      toast.success(`Undid verification for ${variables.activityIds.length} activities.`);
+      toast.success(
+        `Undid verification for ${variables.activityIds.length} activities.`,
+      );
     },
     onError: (err) => toast.error(err.message),
   });
 
-  const isLoadingCurrent = activeTab === "PENDING" ? isLoading : isLoadingVerified;
+  const isLoadingCurrent =
+    activeTab === "PENDING" ? isLoading : isLoadingVerified;
 
   if (isLoadingCurrent) {
     return (
@@ -421,20 +468,15 @@ export default function SalesHeadApprovalsPage() {
 
   return (
     <ProtectedRoute requireHead={true}>
-      <div className="max-w-6xl mx-auto space-y-8 pb-12 px-4 sm:px-6">
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border pb-6 gap-4">
-          <div>
-            <h1 className="text-4xl font-extrabold tracking-tight">
-              <span className="text-foreground">Sales Verification</span>{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary pr-1">
-                Queue
-              </span>
-            </h1>
-            <p className="text-muted-foreground mt-2 font-medium">
-              Review and verify actual daily activities logged by your team.
-            </p>
-          </div>
+      <PageContainer maxWidth="7xl" className="pt-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6 ">
+          <PageHeader
+            title={"Sales Verification"}
+            description={
+              "Review and verify actual daily activities logged by your team."
+            }
+          />
+
           <div className="bg-card border border-border px-4 py-2.5 rounded-lg flex items-center gap-2.5 shadow-[0_4px_20px_-2px_rgba(79,70,229,0.1)]">
             <Layers size={16} className="text-primary" />
             <span className="text-foreground font-bold text-sm tracking-tight">
@@ -450,54 +492,66 @@ export default function SalesHeadApprovalsPage() {
           <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
             <button
               onClick={() => setActiveTab("PENDING")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${activeTab === "PENDING"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted-foreground/10"
-                }`}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
+                activeTab === "PENDING"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted-foreground/10"
+              }`}
             >
               <CheckCircle2 size={14} />
               Pending Verification
               {rawPending.length > 0 && (
-                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "PENDING"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}>
+                <span
+                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                    activeTab === "PENDING"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}
+                >
                   {rawPending.length}
                 </span>
               )}
             </button>
             <button
               onClick={() => setActiveTab("VERIFIED")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${activeTab === "VERIFIED"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted-foreground/10"
-                }`}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
+                activeTab === "VERIFIED"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted-foreground/10"
+              }`}
             >
               <History size={14} />
               Recently Verified
               {rawVerified.length > 0 && (
-                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "VERIFIED"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}>
+                <span
+                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                    activeTab === "VERIFIED"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted-foreground/20 text-muted-foreground"
+                  }`}
+                >
                   {rawVerified.length}
                 </span>
               )}
             </button>
             <button
               onClick={() => setActiveTab("REQUESTS")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${activeTab === "REQUESTS"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted-foreground/10"
-                }`}
+              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
+                activeTab === "REQUESTS"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted-foreground/10"
+              }`}
             >
               <MessageSquare size={14} />
               Requests
               {totalRequestsCount > 0 && (
-                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === "REQUESTS"
-                  ? "bg-amber-500 text-white"
-                  : "bg-amber-500/20 text-amber-600"
-                  }`}>
+                <span
+                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                    activeTab === "REQUESTS"
+                      ? "bg-amber-500 text-white"
+                      : "bg-amber-500/20 text-amber-600"
+                  }`}
+                >
                   {totalRequestsCount}
                 </span>
               )}
@@ -520,7 +574,10 @@ export default function SalesHeadApprovalsPage() {
 
               {activeTab === "PENDING" && (
                 <div className="relative w-full sm:w-auto">
-                  <MessageSquare size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <MessageSquare
+                    size={14}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
                   <input
                     type="text"
                     placeholder="Remarks"
@@ -533,16 +590,25 @@ export default function SalesHeadApprovalsPage() {
 
               <button
                 onClick={handleBulkAction}
-                disabled={activeTab === "PENDING" ? bulkVerifyMutation.isPending : bulkUnverifyMutation.isPending}
-                className={`flex items-center justify-center gap-2 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap cursor-pointer w-full sm:w-auto ${activeTab === "PENDING"
-                  ? "bg-emerald-500 hover:bg-emerald-600"
-                  : "bg-destructive/80 hover:bg-destructive text-destructive-foreground border border-destructive/20"
-                  }`}
+                disabled={
+                  activeTab === "PENDING"
+                    ? bulkVerifyMutation.isPending
+                    : bulkUnverifyMutation.isPending
+                }
+                className={`flex items-center justify-center gap-2 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap cursor-pointer w-full sm:w-auto ${
+                  activeTab === "PENDING"
+                    ? "bg-emerald-500 hover:bg-emerald-600"
+                    : "bg-destructive/80 hover:bg-destructive text-destructive-foreground border border-destructive/20"
+                }`}
               >
                 {activeTab === "PENDING" ? (
-                  <><CheckCircle2 size={16} /> Verify Selected</>
+                  <>
+                    <CheckCircle2 size={16} /> Verify Selected
+                  </>
                 ) : (
-                  <><Undo2 size={16} /> Undo Selected</>
+                  <>
+                    <Undo2 size={16} /> Undo Selected
+                  </>
                 )}
               </button>
             </div>
@@ -582,17 +648,25 @@ export default function SalesHeadApprovalsPage() {
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-8 w-1 bg-amber-500 rounded-full" />
-                <h2 className="text-xl font-black text-foreground tracking-tight uppercase">Schedule Modifications</h2>
+                <h2 className="text-xl font-black text-foreground tracking-tight uppercase">
+                  Schedule Modifications
+                </h2>
               </div>
-              <PlanAmendmentApprovalQueue initialExpandedId={location.state?.highlightPlanId} />
+              <PlanAmendmentApprovalQueue
+                initialExpandedId={location.state?.highlightPlanId}
+              />
             </div>
 
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-8 w-1 bg-red-500 rounded-full" />
-                <h2 className="text-xl font-black text-foreground tracking-tight uppercase">Day Data Management</h2>
+                <h2 className="text-xl font-black text-foreground tracking-tight uppercase">
+                  Day Data Management
+                </h2>
               </div>
-              <DayDeletionApprovalQueue initialHighlightDate={location.state?.highlightDeletionDate} />
+              <DayDeletionApprovalQueue
+                initialHighlightDate={location.state?.highlightDeletionDate}
+              />
             </div>
 
             {totalRequestsCount === 0 && (
@@ -600,8 +674,14 @@ export default function SalesHeadApprovalsPage() {
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-4">
                   <MessageSquare size={32} />
                 </div>
-                <h3 className="text-lg font-bold text-foreground">No Pending Requests</h3>
-                <p className="text-sm text-muted-foreground mt-1 max-w-xs"> There are no active plan amendments or deletion requests for your department.</p>
+                <h3 className="text-lg font-bold text-foreground">
+                  No Pending Requests
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                  {" "}
+                  There are no active plan amendments or deletion requests for
+                  your department.
+                </p>
               </div>
             )}
           </div>
@@ -613,14 +693,23 @@ export default function SalesHeadApprovalsPage() {
             {/* Soft blob decoration inside empty state */}
             <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-[3000ms]"></div>
 
-            <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${activeTab === "PENDING"
-              ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
-              : "bg-muted text-muted-foreground ring-muted/50"
-              }`}>
-              {activeTab === "PENDING" ? <CheckCircle2 size={32} /> : <History size={32} />}
+            <div
+              className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${
+                activeTab === "PENDING"
+                  ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
+                  : "bg-muted text-muted-foreground ring-muted/50"
+              }`}
+            >
+              {activeTab === "PENDING" ? (
+                <CheckCircle2 size={32} />
+              ) : (
+                <History size={32} />
+              )}
             </div>
             <h3 className="text-foreground font-bold text-2xl tracking-tight relative">
-              {activeTab === "PENDING" ? "Inbox Zero!" : "No Verified Activities"}
+              {activeTab === "PENDING"
+                ? "Inbox Zero!"
+                : "No Verified Activities"}
             </h3>
             <p className="text-muted-foreground mt-2 relative font-medium max-w-sm">
               {activeTab === "PENDING"
@@ -647,7 +736,7 @@ export default function SalesHeadApprovalsPage() {
             ))}
           </div>
         ) : null}
-      </div>
+      </PageContainer>
 
       <SalesTaskDetailsModal
         isOpen={!!viewActivity}
@@ -658,7 +747,18 @@ export default function SalesHeadApprovalsPage() {
   );
 }
 
-function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unverifyMutation, bulkUnverifyMutation, onViewDetails, selectedActivities, onToggleSelection, onToggleDaySelection }) {
+function EmployeeBlock({
+  empGroup,
+  mode,
+  verifyMutation,
+  bulkVerifyMutation,
+  unverifyMutation,
+  bulkUnverifyMutation,
+  onViewDetails,
+  selectedActivities,
+  onToggleSelection,
+  onToggleDaySelection,
+}) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -709,10 +809,24 @@ function EmployeeBlock({ empGroup, mode, verifyMutation, bulkVerifyMutation, unv
   );
 }
 
-function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, unverifyMutation, bulkUnverifyMutation, onViewDetails, selectedActivities, onToggleSelection, onToggleDaySelection }) {
+function DateGroupBlock({
+  dateGroup,
+  mode,
+  verifyMutation,
+  bulkVerifyMutation,
+  unverifyMutation,
+  bulkUnverifyMutation,
+  onViewDetails,
+  selectedActivities,
+  onToggleSelection,
+  onToggleDaySelection,
+}) {
   const allIds = dateGroup.activities.map((a) => a.id);
-  const isAllSelected = dateGroup.activities.length > 0 && allIds.every((id) => selectedActivities.has(id));
-  const isSomeSelected = !isAllSelected && allIds.some((id) => selectedActivities.has(id));
+  const isAllSelected =
+    dateGroup.activities.length > 0 &&
+    allIds.every((id) => selectedActivities.has(id));
+  const isSomeSelected =
+    !isAllSelected && allIds.some((id) => selectedActivities.has(id));
 
   const handleDaySelectAll = () => {
     onToggleDaySelection(allIds, !isAllSelected);
@@ -722,14 +836,21 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
     <div className="p-4 sm:p-6 bg-card">
       <div className="flex items-center gap-4 mb-6">
         <div className="flex items-center gap-2 text-foreground font-black text-sm">
-          <div className="shrink-0 flex items-center pr-2 border-r border-border" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="shrink-0 flex items-center pr-2 border-r border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
             <input
               type="checkbox"
               checked={isAllSelected}
-              ref={(input) => { if (input) input.indeterminate = isSomeSelected; }}
+              ref={(input) => {
+                if (input) input.indeterminate = isSomeSelected;
+              }}
               onChange={handleDaySelectAll}
               className="w-4 h-4 rounded border-input text-primary transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
-              title={isAllSelected ? "Deselect all for date" : "Select all for date"}
+              title={
+                isAllSelected ? "Deselect all for date" : "Select all for date"
+              }
             />
           </div>
           <CalendarDays size={18} className="text-primary ml-1" />
@@ -741,8 +862,12 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
       </div>
 
       {(() => {
-        const amActivities = dateGroup.activities.filter((a) => (a.time_of_day || "").toUpperCase() === "AM");
-        const pmActivities = dateGroup.activities.filter((a) => (a.time_of_day || "").toUpperCase() === "PM");
+        const amActivities = dateGroup.activities.filter(
+          (a) => (a.time_of_day || "").toUpperCase() === "AM",
+        );
+        const pmActivities = dateGroup.activities.filter(
+          (a) => (a.time_of_day || "").toUpperCase() === "PM",
+        );
         const otherActivities = dateGroup.activities.filter((a) => {
           const t = (a.time_of_day || "").toUpperCase();
           return t !== "AM" && t !== "PM";
@@ -750,9 +875,21 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
 
         const renderCard = (act) =>
           mode === "PENDING" ? (
-            <ActivityCard key={act.id} activity={act} onViewDetails={onViewDetails} isSelected={selectedActivities.has(act.id)} onToggleSelection={() => onToggleSelection(act.id)} />
+            <ActivityCard
+              key={act.id}
+              activity={act}
+              onViewDetails={onViewDetails}
+              isSelected={selectedActivities.has(act.id)}
+              onToggleSelection={() => onToggleSelection(act.id)}
+            />
           ) : (
-            <VerifiedActivityCard key={act.id} activity={act} onViewDetails={onViewDetails} isSelected={selectedActivities.has(act.id)} onToggleSelection={() => onToggleSelection(act.id)} />
+            <VerifiedActivityCard
+              key={act.id}
+              activity={act}
+              onViewDetails={onViewDetails}
+              isSelected={selectedActivities.has(act.id)}
+              onToggleSelection={() => onToggleSelection(act.id)}
+            />
           );
 
         return (
@@ -761,7 +898,8 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-[0.15em] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                  <Clock size={11} /> AM — {amActivities.length} {amActivities.length === 1 ? "Log" : "Logs"}
+                  <Clock size={11} /> AM — {amActivities.length}{" "}
+                  {amActivities.length === 1 ? "Log" : "Logs"}
                 </span>
               </div>
               {amActivities.length > 0 ? (
@@ -777,7 +915,8 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-[0.15em] text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                  <Clock size={11} /> PM — {pmActivities.length} {pmActivities.length === 1 ? "Log" : "Logs"}
+                  <Clock size={11} /> PM — {pmActivities.length}{" "}
+                  {pmActivities.length === 1 ? "Log" : "Logs"}
                 </span>
               </div>
               {pmActivities.length > 0 ? (
@@ -794,7 +933,8 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
               <div className="lg:col-span-2 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                    <Clock size={11} /> Unspecified — {otherActivities.length} {otherActivities.length === 1 ? "Log" : "Logs"}
+                    <Clock size={11} /> Unspecified — {otherActivities.length}{" "}
+                    {otherActivities.length === 1 ? "Log" : "Logs"}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -809,10 +949,20 @@ function DateGroupBlock({ dateGroup, mode, verifyMutation, bulkVerifyMutation, u
   );
 }
 
-function ActivityCard({ activity, onViewDetails, isSelected, onToggleSelection }) {
+function ActivityCard({
+  activity,
+  onViewDetails,
+  isSelected,
+  onToggleSelection,
+}) {
   return (
-    <div className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${isSelected ? "border-primary shadow-sm bg-primary/5" : "border-border hover:border-primary/50"
-      }`}>
+    <div
+      className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${
+        isSelected
+          ? "border-primary shadow-sm bg-primary/5"
+          : "border-border hover:border-primary/50"
+      }`}
+    >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-start gap-3">
           <div className="shrink-0 mt-0.5" onClick={(e) => e.stopPropagation()}>
@@ -824,7 +974,10 @@ function ActivityCard({ activity, onViewDetails, isSelected, onToggleSelection }
             />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
+            <h4
+              className="text-sm font-bold text-foreground line-clamp-1"
+              title={activity.account_name}
+            >
               {activity.account_name || "No Account Specify"}
             </h4>
             <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
@@ -843,7 +996,10 @@ function ActivityCard({ activity, onViewDetails, isSelected, onToggleSelection }
           )}
           <button
             className="text-muted-foreground hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
-            onClick={(e) => { e.stopPropagation(); onViewDetails(activity); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(activity);
+            }}
             title="Open Full Details"
           >
             <Maximize2 size={16} />
@@ -851,28 +1007,41 @@ function ActivityCard({ activity, onViewDetails, isSelected, onToggleSelection }
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground flex-1 leading-relaxed line-clamp-3" title={activity.details_daily}>
-        <span className="font-bold text-foreground">Details:</span> {activity.details_daily || "-"}
+      <p
+        className="text-xs text-muted-foreground flex-1 leading-relaxed line-clamp-3"
+        title={activity.details_daily}
+      >
+        <span className="font-bold text-foreground">Details:</span>{" "}
+        {activity.details_daily || "-"}
       </p>
     </div>
   );
 }
 
-function VerifiedActivityCard({ activity, onViewDetails, isSelected, onToggleSelection }) {
-
+function VerifiedActivityCard({
+  activity,
+  onViewDetails,
+  isSelected,
+  onToggleSelection,
+}) {
   const verifiedAtFormatted = activity.head_verified_at
     ? new Date(activity.head_verified_at).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
     : "—";
 
   return (
-    <div className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${isSelected ? "border-primary shadow-sm bg-primary/5" : "border-border hover:border-primary/50"
-      }`}>
+    <div
+      className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${
+        isSelected
+          ? "border-primary shadow-sm bg-primary/5"
+          : "border-border hover:border-primary/50"
+      }`}
+    >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-start gap-3">
           <div className="shrink-0 mt-0.5" onClick={(e) => e.stopPropagation()}>
@@ -884,7 +1053,10 @@ function VerifiedActivityCard({ activity, onViewDetails, isSelected, onToggleSel
             />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-foreground line-clamp-1" title={activity.account_name}>
+            <h4
+              className="text-sm font-bold text-foreground line-clamp-1"
+              title={activity.account_name}
+            >
               {activity.account_name || "No Account Specify"}
             </h4>
             <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
@@ -903,7 +1075,10 @@ function VerifiedActivityCard({ activity, onViewDetails, isSelected, onToggleSel
           )}
           <button
             className="text-muted-foreground hover:text-primary transition-colors p-1 ml-1 cursor-pointer"
-            onClick={(e) => { e.stopPropagation(); onViewDetails(activity); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(activity);
+            }}
             title="Open Full Details"
           >
             <Maximize2 size={16} />
@@ -911,20 +1086,30 @@ function VerifiedActivityCard({ activity, onViewDetails, isSelected, onToggleSel
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground flex-1 leading-relaxed mb-2 line-clamp-3" title={activity.details_daily}>
-        <span className="font-bold text-foreground">Details:</span> {activity.details_daily || "-"}
+      <p
+        className="text-xs text-muted-foreground flex-1 leading-relaxed mb-2 line-clamp-3"
+        title={activity.details_daily}
+      >
+        <span className="font-bold text-foreground">Details:</span>{" "}
+        {activity.details_daily || "-"}
       </p>
 
       {/* Verification metadata */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[10px]">
         <span className="text-muted-foreground flex items-center gap-1">
           <CheckCircle2 size={10} className="text-emerald-500" />
-          Verified: <span className="text-foreground font-semibold">{verifiedAtFormatted}</span>
+          Verified:{" "}
+          <span className="text-foreground font-semibold">
+            {verifiedAtFormatted}
+          </span>
         </span>
         {activity.head_remarks && (
           <span className="text-muted-foreground flex items-center gap-1">
             <MessageSquare size={10} />
-            Remarks: <span className="text-foreground font-semibold italic">"{activity.head_remarks}"</span>
+            Remarks:{" "}
+            <span className="text-foreground font-semibold italic">
+              "{activity.head_remarks}"
+            </span>
           </span>
         )}
       </div>

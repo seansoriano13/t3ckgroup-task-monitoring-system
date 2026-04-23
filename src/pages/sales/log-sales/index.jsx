@@ -9,6 +9,8 @@ import { useLocation, useNavigate } from "react-router";
 import { RECORD_TYPE, REVENUE_STATUS } from "../../../constants/status";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import PageHeader from "../../../components/ui/PageHeader";
+import PageContainer from "../../../components/ui/PageContainer";
 
 export default function LogSalesPage() {
   const { user } = useAuth();
@@ -86,21 +88,29 @@ export default function LogSalesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-3xl mx-auto space-y-6 pb-10 px-2 sm:px-4">
-        <div className="border-b border-border pb-6">
-          <h1 className="text-4xl font-black text-foreground flex items-center gap-3 tracking-tight">
-            {isOrder ? (
-              <><ShoppingCart size={28} className="text-emerald-500" /> Sales Order</>
-            ) : (
-              <><FileText size={28} className="text-indigo-500" /> Sales Quotation</>
-            )}
-          </h1>
-          <p className="text-muted-foreground mt-1.5 font-medium text-sm">
-            {isOrder
+      <PageContainer maxWidth="7xl" className="pt-4">
+        <PageHeader
+          title={isOrder ? "Sales Order" : "Sales Quotation"}
+          description={
+            isOrder
               ? "Record Completed Sale operations to contribute to your monthly Quota Rankings."
-              : "Record Quotations sent to clients. These do not count toward your Quota until converted to Sales Orders."}
-          </p>
-        </div>
+              : "Record Quotations sent to clients. These do not count toward your Quota until converted to Sales Orders."
+          }
+        >
+          <div className="flex items-center gap-2">
+            {isOrder ? (
+              <ShoppingCart
+                size={32}
+                className="text-emerald-500 bg-emerald-50 p-1.5 rounded-xl border border-emerald-100"
+              />
+            ) : (
+              <FileText
+                size={32}
+                className="text-indigo-500 bg-indigo-50 p-1.5 rounded-xl border border-indigo-100"
+              />
+            )}
+          </div>
+        </PageHeader>
 
         <form
           onSubmit={handleSubmit}
@@ -112,7 +122,12 @@ export default function LogSalesPage() {
           <div className="flex bg-muted p-1 rounded-xl border border-border shadow-inner mb-6">
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, record_type: RECORD_TYPE.SALES_ORDER })}
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  record_type: RECORD_TYPE.SALES_ORDER,
+                })
+              }
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
                 isOrder
                   ? "bg-emerald-600 text-white shadow-md scale-[1.02]"
@@ -123,7 +138,12 @@ export default function LogSalesPage() {
             </button>
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, record_type: RECORD_TYPE.SALES_QUOTATION })}
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  record_type: RECORD_TYPE.SALES_QUOTATION,
+                })
+              }
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
                 !isOrder
                   ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
@@ -156,7 +176,9 @@ export default function LogSalesPage() {
                 portalId="root"
                 placeholderText="Select date"
                 className={`w-full bg-muted/40 border text-foreground rounded-xl p-3 outline-none font-bold transition-all cursor-pointer ${
-                  isOrder ? "border-border focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  isOrder
+                    ? "border-border focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
@@ -169,11 +191,16 @@ export default function LogSalesPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setFormData({ ...formData, status: REVENUE_STATUS.COMPLETED })
+                    setFormData({
+                      ...formData,
+                      status: REVENUE_STATUS.COMPLETED,
+                    })
                   }
                   className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${
                     formData.status === REVENUE_STATUS.COMPLETED
-                      ? isOrder ? "bg-emerald-600 text-white shadow-md" : "bg-indigo-600 text-white shadow-md"
+                      ? isOrder
+                        ? "bg-emerald-600 text-white shadow-md"
+                        : "bg-indigo-600 text-white shadow-md"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -208,7 +235,9 @@ export default function LogSalesPage() {
                   setFormData({ ...formData, account: e.target.value })
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
-                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  isOrder
+                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
@@ -229,7 +258,9 @@ export default function LogSalesPage() {
                   })
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
-                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  isOrder
+                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
@@ -256,7 +287,9 @@ export default function LogSalesPage() {
                   }
                 }}
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
-                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  isOrder
+                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
@@ -280,7 +313,10 @@ export default function LogSalesPage() {
                   placeholder="72800.00"
                   value={formData.revenue_amount}
                   onChange={(e) =>
-                    setFormData({ ...formData, revenue_amount: e.target.value })
+                    setFormData({
+                      ...formData,
+                      revenue_amount: e.target.value,
+                    })
                   }
                   className={`w-full bg-muted/40 border font-black text-2xl rounded-xl pl-10 pr-4 py-3 outline-none shadow-inner transition-all ${
                     isOrder
@@ -300,10 +336,15 @@ export default function LogSalesPage() {
                 placeholder="Optional"
                 value={formData.reference_number}
                 onChange={(e) =>
-                  setFormData({ ...formData, reference_number: e.target.value })
+                  setFormData({
+                    ...formData,
+                    reference_number: e.target.value,
+                  })
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
-                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  isOrder
+                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
@@ -319,7 +360,9 @@ export default function LogSalesPage() {
                   setFormData({ ...formData, remarks: e.target.value })
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none resize-none h-24 transition-all ${
-                  isOrder ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  isOrder
+                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
@@ -344,7 +387,7 @@ export default function LogSalesPage() {
             </button>
           </div>
         </form>
-      </div>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

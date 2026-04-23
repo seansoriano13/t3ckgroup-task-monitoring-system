@@ -17,7 +17,13 @@ import toast from "react-hot-toast";
 import { storageService } from "../../services/storageService";
 import { employeeService } from "../../services/employeeService";
 import { aiService } from "../../services/aiService";
-import { TASK_STATUS, REVENUE_STATUS, SALES_PLAN_STATUS } from "../../constants/status";
+import {
+  TASK_STATUS,
+  REVENUE_STATUS,
+  SALES_PLAN_STATUS,
+} from "../../constants/status";
+import PageHeader from "../../components/ui/PageHeader";
+import PageContainer from "../../components/ui/PageContainer";
 
 const UNSPLASH_BANNER_POOL = [
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80",
@@ -49,7 +55,9 @@ export default function ProfilePage() {
   }, [user?.dashboardQuote]);
 
   useEffect(() => {
-    setBannerUrlInput(isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "");
+    setBannerUrlInput(
+      isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "",
+    );
   }, [user?.dashboardBannerPath]);
 
   useEffect(() => {
@@ -128,7 +136,10 @@ export default function ProfilePage() {
           const { count: pendingPlans } = await supabase
             .from("sales_weekly_plans")
             .select("*", { count: "exact", head: true })
-            .in("status", [SALES_PLAN_STATUS.SUBMITTED, SALES_PLAN_STATUS.REVISION]);
+            .in("status", [
+              SALES_PLAN_STATUS.SUBMITTED,
+              SALES_PLAN_STATUS.REVISION,
+            ]);
 
           const { count: totalVerifiedSales } = await supabase
             .from("sales_activities")
@@ -214,7 +225,9 @@ export default function ProfilePage() {
 
   const generateQuoteMutation = useMutation({
     mutationFn: async () => {
-      return aiService.getRandomMotivationalQuote(user?.name?.split(" ")?.[0] || "Team");
+      return aiService.getRandomMotivationalQuote(
+        user?.name?.split(" ")?.[0] || "Team",
+      );
     },
     onSuccess: (quote) => {
       setCustomQuote(quote);
@@ -231,13 +244,23 @@ export default function ProfilePage() {
       if (!user?.id) throw new Error("Missing user session.");
 
       let avatarPath = removeAvatar ? null : user?.avatarPath || null;
-      let dashboardBannerPath = removeBanner ? null : user?.dashboardBannerPath || null;
+      let dashboardBannerPath = removeBanner
+        ? null
+        : user?.dashboardBannerPath || null;
 
       if (avatarFile) {
-        avatarPath = await storageService.uploadProfileImage(user.id, "avatar", avatarFile);
+        avatarPath = await storageService.uploadProfileImage(
+          user.id,
+          "avatar",
+          avatarFile,
+        );
       }
       if (bannerFile) {
-        dashboardBannerPath = await storageService.uploadProfileImage(user.id, "banner", bannerFile);
+        dashboardBannerPath = await storageService.uploadProfileImage(
+          user.id,
+          "banner",
+          bannerFile,
+        );
       } else if ((bannerUrlInput || "").trim()) {
         dashboardBannerPath = bannerUrlInput.trim();
       }
@@ -252,14 +275,14 @@ export default function ProfilePage() {
 
       const [picture, dashboardBannerUrl] = await Promise.all([
         updated.avatar_path
-          ? (isHttpUrl(updated.avatar_path)
+          ? isHttpUrl(updated.avatar_path)
             ? updated.avatar_path
-            : storageService.getSignedUrl(updated.avatar_path))
+            : storageService.getSignedUrl(updated.avatar_path)
           : null,
         updated.dashboard_banner_path
-          ? (isHttpUrl(updated.dashboard_banner_path)
+          ? isHttpUrl(updated.dashboard_banner_path)
             ? updated.dashboard_banner_path
-            : storageService.getSignedUrl(updated.dashboard_banner_path))
+            : storageService.getSignedUrl(updated.dashboard_banner_path)
           : null,
       ]);
 
@@ -279,7 +302,9 @@ export default function ProfilePage() {
       setRemoveBanner(false);
       setRemoveQuote(false);
       setBannerUrlInput(
-        isHttpUrl(nextUserValues.dashboardBannerPath) ? nextUserValues.dashboardBannerPath : "",
+        isHttpUrl(nextUserValues.dashboardBannerPath)
+          ? nextUserValues.dashboardBannerPath
+          : "",
       );
       toast.success("Dashboard preferences saved.");
     },
@@ -291,19 +316,19 @@ export default function ProfilePage() {
   const isSaving = savePreferencesMutation.isPending;
   const quoteLength = customQuote.trim().length;
   const hasBannerUrl = (bannerUrlInput || "").trim().length > 0;
-  const isUsingDefaultBanner = removeBanner || (!bannerFile && !hasBannerUrl && !user?.dashboardBannerPath);
-  const isUsingDefaultAvatar = removeAvatar || (!avatarFile && !user?.avatarPath);
+  const isUsingDefaultBanner =
+    removeBanner ||
+    (!bannerFile && !hasBannerUrl && !user?.dashboardBannerPath);
+  const isUsingDefaultAvatar =
+    removeAvatar || (!avatarFile && !user?.avatarPath);
   const isUsingDefaultQuote = removeQuote || quoteLength === 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
-      {/* HEADER */}
-      <div className="border-b border-border pb-6">
-        <h1 className="text-4xl font-black text-foreground tracking-tight">My Profile</h1>
-        <p className="text-muted-foreground mt-1.5 font-medium text-sm uppercase tracking-[0.15em]">
-          Manage your employee information and access levels.
-        </p>
-      </div>
+    <PageContainer maxWidth="4xl" className="pt-4">
+      <PageHeader
+        title="My Profile"
+        description="Manage your employee information and access levels."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN: The ID Card */}
@@ -334,23 +359,23 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-black text-foreground">{user?.name || "Employee Name"}</h2>
+              <h2 className="text-xl font-black text-foreground">
+                {user?.name || "Employee Name"}
+              </h2>
               <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 justify-center">
                 <Mail size={13} /> {user?.email || "email@t3ckgroup.com"}
               </p>
             </div>
           </div>
-
-        
         </div>
 
         {/* RIGHT COLUMN: Details & Stats */}
         <div className="lg:col-span-2 space-y-6">
           {/* Department Info */}
-            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5 border-b border-border pb-3">
-                Organizational Details
-              </h3>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5 border-b border-border pb-3">
+              Organizational Details
+            </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex gap-4 items-start">
@@ -389,7 +414,7 @@ export default function ProfilePage() {
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
                     System ID
                   </p>
-                <p className="text-muted-foreground font-mono text-xs mt-1 break-all select-all">
+                  <p className="text-muted-foreground font-mono text-xs mt-1 break-all select-all">
                     {user?.id || "UUID_PENDING"}
                   </p>
                 </div>
@@ -439,193 +464,212 @@ export default function ProfilePage() {
         </div>
 
         <div className="lg:col-span-3 bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm space-y-5">
-            <div className="flex items-start justify-between gap-3 border-b border-border pb-4">
-              <div>
-                <h3 className="text-base font-black text-foreground">Dashboard Personalization</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Banner, quote, and avatar apply across all dashboard views.
-                </p>
-              </div>
+          <div className="flex items-start justify-between gap-3 border-b border-border pb-4">
+            <div>
+              <h3 className="text-base font-black text-foreground">
+                Dashboard Personalization
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Banner, quote, and avatar apply across all dashboard views.
+              </p>
             </div>
+          </div>
 
-            <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Preview</p>
-              <div className="relative rounded-lg overflow-hidden h-24">
-                <img
-                  src={bannerPreviewUrl || "/leaf-background.jpg"}
-                  alt="Banner preview"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/35" />
-                <div className="absolute left-3 right-3 bottom-2 flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-white/90 font-semibold">Dashboard banner preview</p>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-white/90 border border-white/20">
-                    {isUsingDefaultBanner ? "Default" : "Custom"}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <img
-                  src={avatarPreviewUrl || "/default-avatar.png"}
-                  alt="Avatar preview"
-                  className="w-10 h-10 rounded-xl object-cover border border-border"
-                />
-                <span className="text-xs text-muted-foreground font-medium">
-                  Profile photo preview ({isUsingDefaultAvatar ? "Default" : "Custom"})
+          <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Live Preview
+            </p>
+            <div className="relative rounded-lg overflow-hidden h-24">
+              <img
+                src={bannerPreviewUrl || "/leaf-background.jpg"}
+                alt="Banner preview"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="absolute left-3 right-3 bottom-2 flex items-center justify-between gap-2">
+                <p className="text-[11px] text-white/90 font-semibold">
+                  Dashboard banner preview
+                </p>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-white/90 border border-white/20">
+                  {isUsingDefaultBanner ? "Default" : "Custom"}
                 </span>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <img
+                src={avatarPreviewUrl || "/default-avatar.png"}
+                alt="Avatar preview"
+                className="w-10 h-10 rounded-xl object-cover border border-border"
+              />
+              <span className="text-xs text-muted-foreground font-medium">
+                Profile photo preview (
+                {isUsingDefaultAvatar ? "Default" : "Custom"})
+              </span>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Profile photo</p>
-                <button
-                  type="button"
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-sm font-black transition border border-border uppercase tracking-widest text-[10px]"
-                >
-                  <UploadCloud size={16} /> {avatarFile ? avatarFile.name : "Upload avatar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAvatarFile(null);
-                    setRemoveAvatar(true);
-                  }}
-                  disabled={isUsingDefaultAvatar}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
-                >
-                  Reset to default
-                </button>
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    setAvatarFile(e.target.files?.[0] || null);
-                    setRemoveAvatar(false);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dashboard banner</p>
-                <button
-                  type="button"
-                  onClick={() => bannerInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
-                >
-                  <UploadCloud size={16} /> {bannerFile ? bannerFile.name : "Upload banner"}
-                </button>
-                <input
-                  ref={bannerInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    setBannerFile(e.target.files?.[0] || null);
-                    setBannerUrlInput("");
-                    setRemoveBanner(false);
-                  }}
-                />
-                <input
-                  type="url"
-                  value={bannerUrlInput}
-                  onChange={(e) => {
-                    setBannerUrlInput(e.target.value);
-                    setBannerFile(null);
-                    setRemoveBanner(false);
-                  }}
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all"
-                  placeholder="Paste Unsplash image URL"
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const randomBanner =
-                        UNSPLASH_BANNER_POOL[
-                          Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
-                        ];
-                      setBannerUrlInput(randomBanner);
-                      setBannerFile(null);
-                      setRemoveBanner(false);
-                    }}
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
-                  >
-                    Random Unsplash
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBannerFile(null);
-                      setBannerUrlInput("");
-                      setRemoveBanner(true);
-                    }}
-                    disabled={isUsingDefaultBanner}
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
-                  >
-                    Reset banner
-                  </button>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Profile photo
+              </p>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-sm font-black transition border border-border uppercase tracking-widest text-[10px]"
+              >
+                <UploadCloud size={16} />{" "}
+                {avatarFile ? avatarFile.name : "Upload avatar"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAvatarFile(null);
+                  setRemoveAvatar(true);
+                }}
+                disabled={isUsingDefaultAvatar}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
+              >
+                Reset to default
+              </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  setAvatarFile(e.target.files?.[0] || null);
+                  setRemoveAvatar(false);
+                }}
+              />
             </div>
 
             <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Motivational Quote</p>
-                <span className="text-[11px] text-gray-8">{quoteLength}/72</span>
-              </div>
-              <textarea
-                value={customQuote}
-                maxLength={72}
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Dashboard banner
+              </p>
+              <button
+                type="button"
+                onClick={() => bannerInputRef.current?.click()}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
+              >
+                <UploadCloud size={16} />{" "}
+                {bannerFile ? bannerFile.name : "Upload banner"}
+              </button>
+              <input
+                ref={bannerInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
                 onChange={(e) => {
-                  setCustomQuote(e.target.value);
-                  setRemoveQuote(false);
+                  setBannerFile(e.target.files?.[0] || null);
+                  setBannerUrlInput("");
+                  setRemoveBanner(false);
                 }}
-                className="w-full min-h-[70px] rounded-xl border border-border bg-muted/40 p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all resize-none"
-                placeholder="Write your 7-word motivational quote (all users)..."
+              />
+              <input
+                type="url"
+                value={bannerUrlInput}
+                onChange={(e) => {
+                  setBannerUrlInput(e.target.value);
+                  setBannerFile(null);
+                  setRemoveBanner(false);
+                }}
+                className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all"
+                placeholder="Paste Unsplash image URL"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => generateQuoteMutation.mutate()}
-                  disabled={generateQuoteMutation.isPending}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest transition disabled:opacity-70 shadow-lg shadow-indigo-100"
+                  onClick={() => {
+                    const randomBanner =
+                      UNSPLASH_BANNER_POOL[
+                        Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
+                      ];
+                    setBannerUrlInput(randomBanner);
+                    setBannerFile(null);
+                    setRemoveBanner(false);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
                 >
-                  {generateQuoteMutation.isPending ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={16} />
-                  )}
-                  Random 7-word quote
+                  Random Unsplash
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setCustomQuote("");
-                    setRemoveQuote(true);
+                    setBannerFile(null);
+                    setBannerUrlInput("");
+                    setRemoveBanner(true);
                   }}
-                  disabled={isUsingDefaultQuote}
+                  disabled={isUsingDefaultBanner}
                   className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
                 >
-                  Reset quote
+                  Reset banner
                 </button>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => savePreferencesMutation.mutate()}
-              disabled={isSaving}
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 transition disabled:opacity-70"
-            >
-              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              Save dashboard settings
-            </button>
           </div>
+
+          <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Motivational Quote
+              </p>
+              <span className="text-[11px] text-gray-8">{quoteLength}/72</span>
+            </div>
+            <textarea
+              value={customQuote}
+              maxLength={72}
+              onChange={(e) => {
+                setCustomQuote(e.target.value);
+                setRemoveQuote(false);
+              }}
+              className="w-full min-h-[70px] rounded-xl border border-border bg-muted/40 p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all resize-none"
+              placeholder="Write your 7-word motivational quote (all users)..."
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => generateQuoteMutation.mutate()}
+                disabled={generateQuoteMutation.isPending}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest transition disabled:opacity-70 shadow-lg shadow-indigo-100"
+              >
+                {generateQuoteMutation.isPending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Sparkles size={16} />
+                )}
+                Random 7-word quote
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomQuote("");
+                  setRemoveQuote(true);
+                }}
+                disabled={isUsingDefaultQuote}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
+              >
+                Reset quote
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => savePreferencesMutation.mutate()}
+            disabled={isSaving}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 transition disabled:opacity-70"
+          >
+            {isSaving ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Save size={16} />
+            )}
+            Save dashboard settings
+          </button>
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

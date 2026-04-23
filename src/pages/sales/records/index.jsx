@@ -13,6 +13,7 @@ import ActivitiesTable from "./ActivitiesTable";
 import ActivitiesBoard from "./ActivitiesBoard";
 import RevenueTable from "./RevenueTable";
 import EditRevenueModal from "./EditRevenueModal";
+import PageContainer from "../../../components/ui/PageContainer";
 
 export default function SalesRecordsPage() {
   const { user } = useAuth();
@@ -86,7 +87,7 @@ export default function SalesRecordsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-[1600px] mx-auto space-y-6 pb-10 px-2 sm:px-4">
+      <PageContainer maxWidth="full" className="pt-4">
         
         {/* HEADER & TABS */}
         <RecordsHeader
@@ -250,7 +251,7 @@ export default function SalesRecordsPage() {
             </div>
           </div>
         )}
-      </div>
+      </PageContainer>
 
       {/* MODALS */}
       <SalesTaskDetailsModal

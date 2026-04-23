@@ -11,6 +11,8 @@ import DayManagementModal from "../../../components/DayManagementModal.jsx";
 import { REVENUE_STATUS } from "../../../constants/status"; // #11 Constant import
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import PageHeader from "../../../components/ui/PageHeader";
+import PageContainer from "../../../components/ui/PageContainer";
 
 import { DailyCoverageTabs } from "./components/DailyCoverageTabs";
 import { DailyTaskMatrix } from "./components/DailyTaskMatrix";
@@ -217,43 +219,36 @@ export default function DailyExecutionPage() {
 
   return (
     <ProtectedRoute excludeSuperAdmin={true}>
-      <div className="max-w-6xl mx-auto space-y-6 pb-10 px-2 sm:px-4">
+      <PageContainer maxWidth="6xl" className="pt-4">
         {/* HEADER & DATE PICKER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
-          <div>
-            <h1 className="text-4xl font-black text-foreground tracking-tight">
-              Daily Checklist
-            </h1>
-            <p className="text-muted-foreground mt-1 font-medium text-sm">
-              Tap the circles to cross off your planned calls and execution targets.
-            </p>
+        <PageHeader
+          title="Daily Checklist"
+          description="Tap the circles to cross off your planned calls and execution targets."
+        >
+          <div className="bg-card border border-border rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-sm hover:border-indigo-300 transition-colors">
+            <CalendarIcon size={16} className="text-indigo-500" />
+            <DatePicker
+              selected={currentDateObj}
+              onChange={(date) => {
+                if (!date) return;
+                setCurrentDateObj(date);
+                setSelectedDate(formatDateToYMD(date));
+              }}
+              dateFormat="MMM d, yyyy"
+              portalId="root"
+              className="bg-transparent text-foreground font-bold outline-none cursor-pointer text-sm w-[120px]"
+            />
           </div>
-          <div className="flex items-center gap-3">
-            <div className="bg-card border border-border rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-sm hover:border-indigo-300 transition-colors">
-              <CalendarIcon size={16} className="text-indigo-500" />
-              <DatePicker
-                selected={currentDateObj}
-                onChange={(date) => {
-                  if (!date) return;
-                  setCurrentDateObj(date);
-                  setSelectedDate(formatDateToYMD(date));
-                }}
-                dateFormat="MMM d, yyyy"
-                portalId="root"
-                className="bg-transparent text-foreground font-bold outline-none cursor-pointer text-sm w-[120px]"
-              />
-            </div>
 
-            {weeklyActivities.length > 0 && !isAdminView && (
-              <button
-                onClick={() => setIsDayManagementOpen(true)}
-                className="px-4 py-2.5 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl text-xs font-bold transition-all border border-destructive/20 flex items-center gap-2"
-              >
-                <Trash2 size={14} /> Manage Schedule
-              </button>
-            )}
-          </div>
-        </div>
+          {weeklyActivities.length > 0 && !isAdminView && (
+            <button
+              onClick={() => setIsDayManagementOpen(true)}
+              className="px-4 py-2.5 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl text-xs font-bold transition-all border border-destructive/20 flex items-center gap-2"
+            >
+              <Trash2 size={14} /> Manage Schedule
+            </button>
+          )}
+        </PageHeader>
 
         {/* WEEK VIEW TABS (Mon-Sat) */}
         <DailyCoverageTabs
@@ -302,7 +297,7 @@ export default function DailyExecutionPage() {
           categories={categories}
           onView={setViewActivity}
         />
-      </div>
+      </PageContainer>
 
       <SalesTaskDetailsModal
         isOpen={!!viewActivity}
