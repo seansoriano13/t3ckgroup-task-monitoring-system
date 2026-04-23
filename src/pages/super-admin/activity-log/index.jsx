@@ -75,6 +75,7 @@ function tryParseChecklist(str) {
     if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object" && "text" in parsed[0]) {
       return parsed;
     }
+  // eslint-disable-next-line no-empty, no-unused-vars
   } catch (e) {}
   return null;
 }

@@ -8,6 +8,7 @@ export type Path =
   | `/approvals`
   | `/approvals/components/ApprovalHeader`
   | `/approvals/components/ApprovalRow`
+  | `/approvals/components/BulkDeclineModal`
   | `/approvals/components/BulkGradeModal`
   | `/approvals/sales`
   | `/hr-master-log`

@@ -15,6 +15,7 @@ import TaskFilters from "../../components/TaskFilters.jsx";
 import { ApprovalHeader } from "./components/ApprovalHeader";
 import { ApprovalRow } from "./components/ApprovalRow";
 import BulkGradeModal from "./components/BulkGradeModal";
+import BulkDeclineModal from "./components/BulkDeclineModal";
 import { Button } from "@/components/ui/button";
 
 export default function ApprovalsPage() {
@@ -77,6 +78,7 @@ export default function ApprovalsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
   const [isBulkGradeModalOpen, setIsBulkGradeModalOpen] = useState(false);
+  const [isBulkDeclineModalOpen, setIsBulkDeclineModalOpen] = useState(false);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -390,13 +392,13 @@ export default function ApprovalsPage() {
     },
   });
 
-  const delayedTasks = useMemo(() => {
-    return filteredTasks.filter((t) => {
-      if (!t.createdAt) return false;
-      const hrs = (new Date() - new Date(t.createdAt)) / (1000 * 60 * 60);
-      return hrs >= 48;
-    });
-  }, [filteredTasks]);
+  // const delayedTasks = useMemo(() => {
+  //   return filteredTasks.filter((t) => {
+  //     if (!t.createdAt) return false;
+  //     const hrs = (new Date() - new Date(t.createdAt)) / (1000 * 60 * 60);
+  //     return hrs >= 48;
+  //   });
+  // }, [filteredTasks]);
 
   const handleSelectAllPending = () => {
     const ids = filteredTasks.map(t => t.id);
@@ -461,6 +463,28 @@ export default function ApprovalsPage() {
     }
   };
 
+  const handleBulkDecline = async ({ remarks }) => {
+    if (!selectedTaskIds.length) return;
+    setIsBulkDeclineModalOpen(false);
+
+    try {
+      const idsToUndo = [...selectedTaskIds];
+      await taskService.bulkDeclineTasks(selectedTaskIds, user.id, remarks);
+      queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      setSelectedTaskIds([]);
+      toast.success(`Success! ${idsToUndo.length} tasks declined.`, {
+        action: {
+          label: "Undo",
+          onClick: () => handleUndoBulk(idsToUndo)
+        },
+        duration: 6000,
+      });
+    } catch (err) {
+      toast.error(err.message || "Bulk decline failed.");
+    }
+  };
+
   const paginatedTasks = useMemo(() => {
     return filteredTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   }, [filteredTasks, currentPage, itemsPerPage]);
@@ -487,6 +511,7 @@ export default function ApprovalsPage() {
           onSelectAllPending={handleSelectAllPending}
           onDeselectAll={handleDeselectAll}
           handleBulkApprove={() => setIsBulkGradeModalOpen(true)}
+          handleBulkDecline={() => setIsBulkDeclineModalOpen(true)}
           handleUndoBulk={handleUndoBulkDirect}
           isVerifiedTab={activeTab === "VERIFIED"}
         />
@@ -683,6 +708,14 @@ export default function ApprovalsPage() {
         onClose={() => setIsBulkGradeModalOpen(false)}
         selectedCount={selectedTaskIds.length}
         onConfirm={handleBulkApprove}
+        isSubmitting={editTaskMutation.isPending}
+      />
+
+      <BulkDeclineModal
+        isOpen={isBulkDeclineModalOpen}
+        onClose={() => setIsBulkDeclineModalOpen(false)}
+        selectedCount={selectedTaskIds.length}
+        onConfirm={handleBulkDecline}
         isSubmitting={editTaskMutation.isPending}
       />
 

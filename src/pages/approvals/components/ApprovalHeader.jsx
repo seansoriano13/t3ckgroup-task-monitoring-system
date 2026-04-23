@@ -11,6 +11,7 @@ export function ApprovalHeader({
   onSelectAllPending,
   onDeselectAll,
   handleBulkApprove,
+  handleBulkDecline,
   handleUndoBulk,
   isVerifiedTab,
 }) {
@@ -51,6 +52,15 @@ export function ApprovalHeader({
                 >
                   <XSquare className="mr-2 h-4 w-4" /> Deselect All
                 </Button>
+                {!isVerifiedTab && (
+                  <Button
+                    onClick={handleBulkDecline}
+                    size="sm"
+                    className="font-semibold shadow-sm text-white bg-red-500 hover:bg-red-600"
+                  >
+                    <XSquare className="mr-2 h-4 w-4" /> Decline {selectedCount} Selected
+                  </Button>
+                )}
                 <Button
                   onClick={isVerifiedTab ? handleUndoBulk : handleBulkApprove}
                   size="sm"

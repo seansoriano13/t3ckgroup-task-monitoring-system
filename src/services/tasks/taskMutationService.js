@@ -721,6 +721,72 @@ export const taskMutationService = {
     return data;
   },
 
+  async bulkDeclineTasks(taskIds, adminId, remarks = "Bulk rejected by admin") {
+    if (!taskIds || taskIds.length === 0) return;
+
+    const { data: admin } = await supabase
+      .from("employees")
+      .select("is_super_admin, is_head, name")
+      .eq("id", adminId)
+      .single();
+
+    if (!admin?.is_super_admin && !admin?.is_head) {
+      throw new Error("Unauthorized: Only Admins/Heads can bulk reject tasks.");
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        status: TASK_STATUS.NOT_APPROVED,
+        grade: 0,
+        remarks: remarks,
+        evaluated_by: adminId,
+        evaluated_at: new Date().toISOString(),
+        edited_by: adminId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", taskIds)
+      .select("*, creator:employees!tasks_logged_by_fk(name, department, sub_department)");
+
+    if (error) throw error;
+
+    // Log activity for each bulk-rejected task
+    for (const task of data) {
+      taskActivityService.addApprovalEntry(
+        task.id,
+        adminId,
+        remarks,
+        { event: "REJECTED", grade: 0, bulk: true },
+      );
+      taskActivityService.addSystemEvent(
+        task.id,
+        `Task bulk-rejected by ${admin?.name || "Admin"}.`,
+        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.NOT_APPROVED, grade: 0 },
+      );
+    }
+
+    // Notify each affected employee that their task was rejected
+    const byEmployee = {};
+    data.forEach((t) => {
+      if (!byEmployee[t.logged_by]) byEmployee[t.logged_by] = [];
+      byEmployee[t.logged_by].push(t.task_description?.substring(0, 30) || "a task");
+    });
+
+    await Promise.allSettled(
+      Object.entries(byEmployee).map(([empId, descriptions]) =>
+        notificationService.createNotification({
+          recipient_id: empId,
+          sender_id: adminId,
+          type: "TASK_REJECTED",
+          title: "Tasks Rejected",
+          message: `${descriptions.length} task(s) bulk-rejected: ${descriptions.slice(0, 3).join(", ")}${descriptions.length > 3 ? "…" : ""}. Check remarks.`,
+        })
+      )
+    );
+
+    return data;
+  },
+
   async undoBulkApproval(taskIds, adminId) {
     if (!taskIds || taskIds.length === 0) return;
 
