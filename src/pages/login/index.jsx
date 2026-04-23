@@ -31,7 +31,32 @@ export default function Login() {
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
-    toast.error("Test login is disabled.");
+    if (!allowTestLogin) {
+      toast.error("Test login is disabled.");
+      return;
+    }
+
+    if (!email || !password) {
+      toast.error("Please enter email and password.");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      const isAuthorized = await handleLogin(data.user.email);
+      if (isAuthorized) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Manual login failed:", error);
+      toast.error(error.message || "Manual login failed");
+    }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {

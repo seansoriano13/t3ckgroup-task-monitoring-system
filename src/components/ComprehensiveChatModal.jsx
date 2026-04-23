@@ -2,8 +2,10 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { activeChatService } from "../services/tasks/activeChatService";
 import { taskActivityService } from "../services/tasks/taskActivityService";
+import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
 import { salesActivityLogService } from "../services/sales/salesActivityLogService";
 import { taskService } from "../services/taskService";
+import { committeeTaskService } from "../services/committeeTaskService";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -15,6 +17,7 @@ import {
   ExternalLink,
   Target,
   ListCheck,
+  Users,
   Zap,
   Star,
   ShieldCheck,
@@ -177,7 +180,7 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
           setSelectedChat({
             entity_id: entityId,
             entity_type: entityType,
-            title: entityType === 'TASK' ? 'New Task Thread' : 'New Sales Thread',
+            title: entityType === 'TASK' ? 'New Task Thread' : entityType === 'COMMITTEE_TASK' ? 'New Committee Thread' : 'New Sales Thread',
             is_placeholder: true
           });
         }
@@ -197,7 +200,9 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     queryFn: () =>
       selectedChat?.entity_type === "TASK"
         ? taskActivityService.getActivityForTask(selectedChat.entity_id)
-        : salesActivityLogService.getActivityForSalesActivity(selectedChat.entity_id),
+        : selectedChat?.entity_type === "COMMITTEE_TASK"
+          ? committeeTaskActivityService.getActivityForTask(selectedChat.entity_id)
+          : salesActivityLogService.getActivityForSalesActivity(selectedChat.entity_id),
     enabled: !!selectedChat && internalOpen,
   });
 
@@ -207,6 +212,8 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     queryFn: async () => {
       if (selectedChat?.entity_type === "TASK") {
         return await taskService.getTaskById(selectedChat.entity_id);
+      } else if (selectedChat?.entity_type === "COMMITTEE_TASK") {
+        return await committeeTaskService.getCommitteeTaskById(selectedChat.entity_id);
       } else if (selectedChat?.entity_type === "SALES") {
         return await salesService.getSalesActivityById(selectedChat.entity_id);
       }
@@ -216,7 +223,7 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     staleTime: 0,
   });
 
-  const isEntityDeleted = selectedEntityData?.status === "DELETED" || selectedEntityData?.is_deleted;
+  const isEntityDeleted = selectedEntityData?.status === "DELETED" || selectedEntityData?.status === "CANCELLED" || selectedEntityData?.is_deleted;
   const isEntityPendingWipe = selectedEntityData?.delete_requested_by && !isEntityDeleted;
 
   // ── Mutations ─────────────────────────────────────────────
@@ -256,7 +263,9 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     mutationFn: ({ entityType, entityId, content }) =>
       entityType === "TASK"
         ? taskActivityService.addComment(entityId, user.id, content)
-        : salesActivityLogService.addComment(entityId, user.id, content),
+        : entityType === "COMMITTEE_TASK"
+          ? committeeTaskActivityService.addComment(entityId, user.id, content)
+          : salesActivityLogService.addComment(entityId, user.id, content),
     onSuccess: () => {
       setMessageContent("");
       queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat?.entity_type, selectedChat?.entity_id] });
@@ -285,6 +294,9 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "task_activity", filter: "type=eq.COMMENT" }, () => {
         queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
       })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "committee_task_activity", filter: "type=eq.COMMENT" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
+      })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "sales_activity_logs", filter: "type=eq.COMMENT" }, () => {
         queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
       })
@@ -303,12 +315,17 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
       ? taskActivityService.subscribeToActivity(selectedChat.entity_id, () => {
         queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat.entity_type, selectedChat.entity_id] });
       }, "-modal")
-      : salesActivityLogService.subscribeToActivity(selectedChat.entity_id, () => {
-        queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat.entity_type, selectedChat.entity_id] });
-      }, "-modal");
+      : selectedChat.entity_type === "COMMITTEE_TASK"
+        ? committeeTaskActivityService.subscribeToActivity(selectedChat.entity_id, () => {
+          queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat.entity_type, selectedChat.entity_id] });
+        }, "-modal")
+        : salesActivityLogService.subscribeToActivity(selectedChat.entity_id, () => {
+          queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat.entity_type, selectedChat.entity_id] });
+        }, "-modal");
 
     return () => {
       if (selectedChat.entity_type === "TASK") taskActivityService.unsubscribeFromActivity(channel);
+      else if (selectedChat.entity_type === "COMMITTEE_TASK") committeeTaskActivityService.unsubscribeFromActivity(channel);
       else salesActivityLogService.unsubscribeFromActivity(channel);
     };
   }, [selectedChat, internalOpen]);
@@ -503,18 +520,18 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
                       "p-2 rounded-lg shrink-0 flex items-center justify-center",
                       chat.is_unread ? "bg-indigo-600 text-white" : "bg-muted text-muted-foreground"
                     )}>
-                      {chat.entity_type === "TASK" ? <ListCheck size={16} /> : <Target size={16} />}
+                      {chat.entity_type === "TASK" ? <ListCheck size={16} /> : chat.entity_type === "COMMITTEE_TASK" ? <Users size={16} /> : <Target size={16} />}
                     </div>
                     <div className="flex-1 min-w-0 pr-2">
                       <div className="flex justify-between items-center mb-0.5">
                         <div className="flex items-center gap-1.5">
                           <span className={cn(
                             "text-[10px] font-black uppercase tracking-tighter opacity-70",
-                            chat.entity_type === "TASK" ? "text-indigo-600" : "text-emerald-600"
+                            chat.entity_type === "TASK" ? "text-indigo-600" : chat.entity_type === "COMMITTEE_TASK" ? "text-violet-600" : "text-emerald-600"
                           )}>
-                            {chat.entity_type}
+                            {chat.entity_type === "COMMITTEE_TASK" ? "COMMITTEE" : chat.entity_type}
                           </span>
-                          {chat.is_deleted && (
+                          {chat.is_deleted && chat.entity_type !== 'COMMITTEE_TASK' && (
                             <span className="text-[8px] bg-red-100 text-red-600 px-1 py-0.5 rounded-sm font-black uppercase tracking-widest flex items-center gap-0.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500 block"></span> Deleted
                             </span>
@@ -568,8 +585,12 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
                       window.dispatchEvent(new CustomEvent('OPEN_ENTITY_DETAILS', {
                         detail: { id: selectedChat.entity_id, type: selectedChat.entity_type }
                       }));
-                      // Fallback in case event is missed or modal fails to load (e.g. error)
-                      setTimeout(() => setIsDetailsLoading(false), 5000);
+                      // Close the chat modal so the detail modal appears on top without z-index conflicts
+                      setTimeout(() => {
+                        setIsDetailsLoading(false);
+                        setInternalOpen(false);
+                        onClose();
+                      }, 300);
                     }}
                   >
                     {isDetailsLoading ? (

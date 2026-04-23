@@ -120,8 +120,7 @@ export default function ChecklistTaskInput({
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 space-y-4 shadow-sm">
-
+    <>
       <div className="space-y-2">
         {items.map((item, index) => (
           <div
@@ -152,7 +151,9 @@ export default function ChecklistTaskInput({
                   emitChange(newItems);
                   // Focus the newly created input on next render
                   setTimeout(() => {
-                    const inputs = e.target.closest(".space-y-2")?.querySelectorAll('input[type="text"]');
+                    const inputs = e.target
+                      .closest(".space-y-2")
+                      ?.querySelectorAll('input[type="text"]');
                     inputs?.[index + 1]?.focus();
                   }, 0);
                 }
@@ -185,6 +186,6 @@ export default function ChecklistTaskInput({
           </span>
         </div>
       </div>
-    </div>
+    </>
   );
 }

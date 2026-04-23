@@ -6,11 +6,12 @@ import { taskService } from "../../services/taskService.js";
 import { supabase } from "../../lib/supabase.js";
 import { TASK_STATUS } from "../../constants/status.js";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
-import { Search, CheckCircle2, History } from "lucide-react";
+import { Search, CheckCircle2, History, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import TaskDetails from "../../components/TaskDetails.jsx";
 import TaskFilters from "../../components/TaskFilters.jsx";
+import CommitteeApprovalSection from "./components/CommitteeApprovalSection.jsx";
 
 import { ApprovalHeader } from "./components/ApprovalHeader";
 import { ApprovalRow } from "./components/ApprovalRow";
@@ -47,7 +48,7 @@ export default function ApprovalsPage() {
   const navigate = useNavigate();
   const [autoOpenId, setAutoOpenId] = useState(null);
   const [viewTask, setViewTask] = useState(null); // Full Modal State
-  const [activeTab, setActiveTab] = useState("PENDING"); // "PENDING" | "VERIFIED"
+  const [activeTab, setActiveTab] = useState("PENDING"); // "PENDING" | "VERIFIED" | "COMMITTEE"
 
   // Filter state (Head-only UX)
   const [searchQuery, setSearchQuery] = useState("");
@@ -555,6 +556,18 @@ export default function ApprovalsPage() {
                 </span>
               )}
             </button>
+            {isHr && (
+              <button
+                onClick={() => setActiveTab("COMMITTEE")}
+                className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${activeTab === "COMMITTEE"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted-foreground/10"
+                  }`}
+              >
+                <Users size={14} />
+                Committee Tasks
+              </button>
+            )}
           </div>
         </div>
 
@@ -587,9 +600,12 @@ export default function ApprovalsPage() {
           />
         )}
 
-        {!isHr && activeTab === "PENDING" && <ExpenseApprovalQueue isSuperAdmin={false} />}
-
-        {filteredTasks.length > 0 ? (
+        {activeTab === "COMMITTEE" && isHr ? (
+          <CommitteeApprovalSection />
+        ) : (
+          <>
+            {!isHr && activeTab === "PENDING" && <ExpenseApprovalQueue isSuperAdmin={false} />}
+            {filteredTasks.length > 0 ? (
           <div className="flex flex-col gap-4">
             {(searchQuery || priorityFilter !== "ALL") && (
               <p className="text-xs font-bold text-muted-foreground px-1">
@@ -690,6 +706,8 @@ export default function ApprovalsPage() {
                 : "Tasks you've verified will appear here."}
             </p>
           </div>
+        )}
+        </>
         )}
       </div>
 

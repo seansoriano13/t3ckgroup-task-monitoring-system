@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
-import { Bell, X, CheckCheck, ShieldAlert, CheckCircle2, Clock, XCircle, FileText, Briefcase, TrendingUp, Trophy, Trash2 } from 'lucide-react';
+import { Bell, X, CheckCheck, ShieldAlert, CheckCircle2, Clock, XCircle, FileText, Briefcase, TrendingUp, Trophy, Trash2, MessageCircle, Target } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { supabase } from '../lib/supabase';
 
@@ -69,13 +69,18 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         case 'UNPLANNED_ACTIVITY': return <FileText size={18} className="text-primary" />;
         case 'DAY_DELETE_REQUESTED': return <XCircle size={18} className="text-red-600" />;
         case 'DAY_DELETE_RESULT': return <Trash2 size={18} className="text-foreground" />;
+        case 'COMMITTEE_ASSIGNED': return <Briefcase size={18} className="text-indigo-500" />;
+        case 'COMMITTEE_TASK_COMMENT': return <MessageCircle size={18} className="text-indigo-500" />;
+        case 'COMMITTEE_TASK_READY_FOR_HR': return <CheckCircle2 size={18} className="text-indigo-600" />;
+        case 'SALES_QUOTA_PUBLISHED': return <Target size={18} className="text-emerald-500" />;
+        case 'PLAN_AMENDMENT_REQUESTED': return <Clock size={18} className="text-amber-500" />;
         default: return <Bell size={18} className="text-gray-9" />;
      }
   };
 
   const filteredNotifs = useMemo(() => {
      if (activeTab === 'ALL') return notifications;
-     if (activeTab === 'TASKS') return notifications.filter(n => n.type.includes('TASK'));
+     if (activeTab === 'TASKS') return notifications.filter(n => n.type.includes('TASK') || n.type.includes('COMMITTEE'));
      if (activeTab === 'SALES') return notifications.filter(n => n.type.includes('SALES') || n.type.includes('REVENUE') || n.type.includes('ACTIVITY'));
      if (activeTab === 'UNREAD') return notifications.filter(n => !n.is_read);
      return notifications;
@@ -89,7 +94,19 @@ export default function NotificationDrawer({ isOpen, onClose }) {
      if (!notif.reference_id && !notif.type.includes('CONQUERED')) return; // No deep link unless there is a fallback
 
       // Deep Routing Logic
-      if (notif.type.includes('TASK')) {
+      if (notif.type === 'COMMITTEE_TASK_COMMENT') {
+         // Comment notifications should open the chat, not the detail modal
+         navigate('/committee');
+         window.dispatchEvent(new CustomEvent('OPEN_CHAT_MODAL', {
+            detail: { entityId: notif.reference_id, entityType: 'COMMITTEE_TASK' }
+         }));
+      } else if (notif.type === 'COMMITTEE_ASSIGNED' || notif.type === 'COMMITTEE_TASK_READY_FOR_HR') {
+         // Navigate to /committee and open the detail modal
+         navigate('/committee');
+         window.dispatchEvent(new CustomEvent('OPEN_ENTITY_DETAILS', {
+            detail: { id: notif.reference_id, type: 'COMMITTEE_TASK' }
+         }));
+      } else if (notif.type.includes('TASK')) {
          // Route to Approvals or Tasks depending on role
          if ((user?.isHead || user?.isHr) && !user?.isSuperAdmin) {
             navigate('/approvals', { state: { openTaskId: notif.reference_id } });
@@ -106,7 +123,13 @@ export default function NotificationDrawer({ isOpen, onClose }) {
             // Employee: Go to their schedule
             navigate('/sales/schedule');
          }
-      } else if (notif.type === 'PLAN_AMENDMENT_RESULT') {
+      } else if (notif.type === 'PLAN_AMENDMENT_REQUESTED') {
+          // Manager/Head: Go to sales approvals page
+          navigate('/approvals/sales', { state: { highlightPlanId: notif.reference_id } });
+       } else if (notif.type === 'SALES_QUOTA_PUBLISHED') {
+          // Go to Dashboard to see performance/quota
+          navigate('/');
+       } else if (notif.type === 'PLAN_AMENDMENT_RESULT') {
          // Sales Rep: Go to their schedule to see approved/rejected result
          navigate('/sales/schedule', { state: { highlightPlanId: notif.reference_id } });
       } else if (notif.type === 'UNPLANNED_ACTIVITY') {

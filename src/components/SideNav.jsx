@@ -19,6 +19,7 @@ import {
   PanelRight,
   SquarePen,
   Megaphone,
+  UsersRound,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -72,6 +73,7 @@ export default function SideNav({ onOpenAddTask }) {
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
       { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
+      { label: "Committee Tasks", link: "/committee", icon: UsersRound },
       { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
       { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
@@ -87,7 +89,10 @@ export default function SideNav({ onOpenAddTask }) {
     navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
 
     if (hasTask) {
-      navLinks.push({ label: "Tasks", link: "/tasks", icon: ListCheck });
+      navLinks.push(
+        { label: "Tasks", link: "/tasks", icon: ListCheck },
+        { label: "Committee Tasks", link: "/committee", icon: UsersRound }
+      );
     }
 
     if (hasSales) {
@@ -186,7 +191,6 @@ export default function SideNav({ onOpenAddTask }) {
       <ChevronDown size={14} className="text-sidebar-foreground/60" />
     </components.DropdownIndicator>
   );
-
 
   return (
     <>

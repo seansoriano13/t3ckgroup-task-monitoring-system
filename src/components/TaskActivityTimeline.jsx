@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../services/tasks/taskActivityService";
+import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
 import { useAuth } from "../context/AuthContext";
 import {
   Send,
@@ -255,6 +256,7 @@ function LegacyEntries({ remarks, hrRemarks, evaluatedByName, grade }) {
  */
 export default function TaskActivityTimeline({
   taskId,
+  entityType = "TASK",
   legacyRemarks,
   legacyHrRemarks,
   evaluatedByName,
@@ -268,10 +270,16 @@ export default function TaskActivityTimeline({
   const inputRef = useRef(null);
   const [message, setMessage] = useState("");
 
+  // Unique suffix per instance to avoid Supabase channel name collisions
+  // when multiple TaskActivityTimeline components target the same task
+  const instanceId = useRef(`-timeline-${Math.random().toString(36).substring(2, 9)}`);
+
   // Fetch activity
   const { data: activity = [], isLoading } = useQuery({
-    queryKey: ["taskActivity", taskId],
-    queryFn: () => taskActivityService.getActivityForTask(taskId),
+    queryKey: ["taskActivity", taskId, entityType],
+    queryFn: () => entityType === "COMMITTEE_TASK" 
+      ? committeeTaskActivityService.getActivityForTask(taskId)
+      : taskActivityService.getActivityForTask(taskId),
     enabled: !!taskId,
     staleTime: 30_000,
   });
@@ -279,9 +287,11 @@ export default function TaskActivityTimeline({
   // Post comment mutation
   const postCommentMutation = useMutation({
     mutationFn: ({ taskId, authorId, content }) =>
-      taskActivityService.addComment(taskId, authorId, content),
+      entityType === "COMMITTEE_TASK"
+        ? committeeTaskActivityService.addComment(taskId, authorId, content)
+        : taskActivityService.addComment(taskId, authorId, content),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
       setMessage("");
     },
   });
@@ -290,15 +300,23 @@ export default function TaskActivityTimeline({
   useEffect(() => {
     if (!taskId) return;
 
-    const channel = taskActivityService.subscribeToActivity(taskId, () => {
-      // Re-fetch on new activity
-      queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId] });
-    });
+    const suffix = instanceId.current;
+    const channel = entityType === "COMMITTEE_TASK"
+      ? committeeTaskActivityService.subscribeToActivity(taskId, () => {
+          queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
+        }, suffix)
+      : taskActivityService.subscribeToActivity(taskId, () => {
+          queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
+        }, suffix);
 
     return () => {
-      taskActivityService.unsubscribeFromActivity(channel);
+      if (entityType === "COMMITTEE_TASK") {
+        committeeTaskActivityService.unsubscribeFromActivity(channel);
+      } else {
+        taskActivityService.unsubscribeFromActivity(channel);
+      }
     };
-  }, [taskId, queryClient]);
+  }, [taskId, entityType, queryClient]);
 
   // Auto-scroll on new entries
   useEffect(() => {

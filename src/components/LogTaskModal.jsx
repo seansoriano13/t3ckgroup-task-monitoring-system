@@ -27,13 +27,8 @@ export default function LogTaskModal({ isOpen, onClose }) {
   const assignmentRef = useRef(null);
 
   // ── Data Hook ─────────────────────────────────────────────
-  const {
-    categories,
-    employees,
-    availableHeads,
-    isLoadingData,
-    roles
-  } = useLogTaskData(isOpen, user);
+  const { categories, employees, availableHeads, isLoadingData, roles } =
+    useLogTaskData(isOpen, user);
 
   // ── Handlers & Form Hook ──────────────────────────────────
   const {
@@ -62,8 +57,16 @@ export default function LogTaskModal({ isOpen, onClose }) {
     hrSubDeptFilter,
     setHrSubDeptFilter,
     isExpanded,
-    setIsExpanded
-  } = useLogTaskHandlers({ isOpen, onClose, user, categories, employees, availableHeads, roles });
+    setIsExpanded,
+  } = useLogTaskHandlers({
+    isOpen,
+    onClose,
+    user,
+    categories,
+    employees,
+    availableHeads,
+    roles,
+  });
 
   // ── Auto-scroll Helper ────────────────────────────────────
   const scrollToElement = (ref, isSelect = false) => {
@@ -119,8 +122,12 @@ export default function LogTaskModal({ isOpen, onClose }) {
   }, [isOpen, openPopover, onClose, setOpenPopover]);
 
   // ── Derived / Computed ────────────────────────────────────
-  const selectedCategoryObj = categories.find((c) => c.category_id === formData.categoryId);
-  const isCommittee = selectedCategoryObj?.description?.toUpperCase().includes("COMMITTEE");
+  const selectedCategoryObj = categories.find(
+    (c) => c.category_id === formData.categoryId,
+  );
+  const isCommittee = selectedCategoryObj?.description
+    ?.toUpperCase()
+    .includes("COMMITTEE");
   const isOthersGlobal =
     selectedCategoryObj?.category_id?.toUpperCase().includes("OTHERS") ||
     selectedCategoryObj?.description?.toUpperCase().includes("OTHERS");
@@ -128,23 +135,25 @@ export default function LogTaskModal({ isOpen, onClose }) {
   const { isHr, isHead, isSuperAdmin } = roles;
 
   const uniqueDepts = [
-    ...new Set([
-      ...categories.map((c) => c.department),
-      ...employees.map((e) => e.department),
-    ].filter(Boolean)),
+    ...new Set(
+      [
+        ...categories.map((c) => c.department),
+        ...employees.map((e) => e.department),
+      ].filter(Boolean),
+    ),
   ].sort();
 
-
-
   const uniqueSubDepts = [
-    ...new Set([
-      ...categories
-        .filter((c) => !hrDeptFilter || c.department === hrDeptFilter)
-        .map((c) => c.sub_department),
-      ...employees
-        .filter((e) => !hrDeptFilter || e.department === hrDeptFilter)
-        .map((e) => e.sub_department),
-    ].filter(Boolean)),
+    ...new Set(
+      [
+        ...categories
+          .filter((c) => !hrDeptFilter || c.department === hrDeptFilter)
+          .map((c) => c.sub_department),
+        ...employees
+          .filter((e) => !hrDeptFilter || e.department === hrDeptFilter)
+          .map((e) => e.sub_department),
+      ].filter(Boolean),
+    ),
   ].sort();
 
   const filteredEmployees = employees
@@ -201,12 +210,12 @@ export default function LogTaskModal({ isOpen, onClose }) {
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className={`p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl ${isExpanded
+        className={`p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl ${
+          isExpanded
             ? "top-4 bottom-4 !translate-y-0 h-[calc(100vh-2rem)] max-h-none overflow-hidden"
             : "max-h-[90vh] overflow-hidden"
-          }`}
+        }`}
       >
-
         <LogTaskHeader
           user={user}
           isExpanded={isExpanded}
@@ -242,6 +251,62 @@ export default function LogTaskModal({ isOpen, onClose }) {
             setOthersRemarks={setOthersRemarks}
           />
 
+          {/* Committee / Others details */}
+          {(isCommittee || isOthersGlobal) && (
+            <div className="py-3 animate-slide-down">
+              {!isCommittee && (
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  Others Details
+                </label>
+              )}
+
+              {isCommittee && (
+                <div className="bg-slate-100/80 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/50 mb-3">
+                  <label className="block text-[10px] font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-widest mb-3">
+                    SELECT COMMITTEE ROLE
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"].map(
+                      (role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCommitteeRole(role);
+                          }}
+                          className={`px-4 py-2 rounded-full text-[11px] font-bold tracking-wider transition-all duration-200 border ${
+                            committeeRole === role
+                              ? "bg-primary text-white border-primary dark:bg-primary dark:text-white dark:border-primary shadow-md"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 shadow-sm"
+                          }`}
+                        >
+                          {role}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {(isOthersGlobal || committeeRole === "OTHERS") && (
+                <div className="animate-slide-down">
+                  {isCommittee && committeeRole === "OTHERS" && (
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      Others Details
+                    </label>
+                  )}
+                  <textarea
+                    placeholder="Specify details..."
+                    value={othersRemarks}
+                    onChange={(e) => setOthersRemarks(e.target.value)}
+                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none h-20 resize-none transition-colors focus:border-primary/50"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           <LogTaskAssignmentBar
             formData={formData}
             setFormData={setFormData}
@@ -261,36 +326,6 @@ export default function LogTaskModal({ isOpen, onClose }) {
             onScroll={scrollToElement}
             user={user}
           />
-
-          {/* Committee / Others details */}
-          {(isCommittee || isOthersGlobal) && (
-            <div className="py-3 animate-slide-down">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                {isCommittee ? "Committee Details" : "Others Details"}
-              </label>
-              {isCommittee && (
-                <select
-                  value={committeeRole}
-                  onChange={(e) => setCommitteeRole(e.target.value)}
-                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none mb-2"
-                >
-                  <option value="">Select Committee Role...</option>
-                  <option value="CHAIRPERSON">CHAIRPERSON</option>
-                  <option value="SECRETARY">SECRETARY</option>
-                  <option value="MEMBER">MEMBER</option>
-                  <option value="OTHERS">OTHERS</option>
-                </select>
-              )}
-              {(isOthersGlobal || committeeRole === "OTHERS") && (
-                <textarea
-                  placeholder="Specify details..."
-                  value={othersRemarks}
-                  onChange={(e) => setOthersRemarks(e.target.value)}
-                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none h-20 resize-none"
-                />
-              )}
-            </div>
-          )}
         </form>
 
         <LogTaskFooter

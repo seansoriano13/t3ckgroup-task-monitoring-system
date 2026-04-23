@@ -10,6 +10,7 @@ import PersonalPipelineRadar from "../components/PersonalPipelineRadar.jsx";
 import FloatingMonthPicker from "../components/FloatingMonthPicker.jsx";
 import SystemUpdateBanner from "../components/SystemUpdateBanner.jsx";
 import PersonalizedHeroBanner from "../components/PersonalizedHeroBanner.jsx";
+import CommitteeTasksList from "../components/CommitteeTasksList.jsx";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -63,6 +64,7 @@ export default function Dashboard() {
               <DashboardStats selectedRange={globalRange} />
               <EmployeePipelineMatrix selectedRange={globalRange} />
               <TasksList selectedRange={globalRange} />
+              <CommitteeTasksList />
             </div>
           </div>
 
@@ -138,6 +140,8 @@ export default function Dashboard() {
           )}
 
           <TasksList selectedRange={globalRange} />
+          
+          <CommitteeTasksList />
 
           {(user?.is_head || user?.isHead) && (
             <div className="mt-4">

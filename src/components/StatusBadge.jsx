@@ -16,6 +16,8 @@ export default function StatusBadge({ status }) {
     SUBMITTED: "bg-white text-blue-600 border-blue-400",
     APPROVED: "bg-white text-green-600 border-green-400",
     DONE: "bg-white text-green-600 border-green-400",
+    ACTIVE: "bg-white text-blue-600 border-blue-400",
+    CANCELLED: "bg-white text-red-600 border-red-400",
     DEFAULT: "bg-white text-gray-500 border-gray-300",
   };
 

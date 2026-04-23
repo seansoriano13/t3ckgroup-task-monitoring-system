@@ -10,7 +10,13 @@ export type Path =
   | `/approvals/components/ApprovalRow`
   | `/approvals/components/BulkDeclineModal`
   | `/approvals/components/BulkGradeModal`
+  | `/approvals/components/CommitteeApprovalSection`
   | `/approvals/sales`
+  | `/committee`
+  | `/committee/components/CommitteeTaskCard`
+  | `/committee/components/CommitteeTaskDetailModal`
+  | `/committee/components/CreateCommitteeTaskModal`
+  | `/committee/components/RateEmployeesModal`
   | `/hr-master-log`
   | `/hr/management`
   | `/login`
