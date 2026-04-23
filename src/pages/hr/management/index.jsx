@@ -354,6 +354,36 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
     };
   });
 
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        name: employee.name || "",
+        email: employee.email || "",
+        department: employee.department || "",
+        subDepartment: employee.subDepartment || "",
+        role: employee.role || "",
+        isHead: employee.isHead || false,
+        isHr: employee.isHr || false,
+        isSuperAdmin: employee.isSuperAdmin || false,
+        has_sales_flow: employee.has_sales_flow || false,
+        has_task_flow: employee.has_task_flow || false,
+      });
+    } else {
+      setFormData({
+        name: "",
+        email: "",
+        department: "",
+        subDepartment: "",
+        role: "",
+        isHead: false,
+        isHr: false,
+        isSuperAdmin: false,
+        has_sales_flow: false,
+        has_task_flow: true,
+      });
+    }
+  }, [employee]);
+
   const [isNewDept, setIsNewDept] = useState(false);
   const [isNewSubDept, setIsNewSubDept] = useState(false);
 

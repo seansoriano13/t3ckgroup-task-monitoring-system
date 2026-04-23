@@ -12,6 +12,32 @@ import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import { useAuth } from "../context/AuthContext";
 import { TASK_STATUS } from "../constants/status";
 
+const getRelativeTime = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return "just now";
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays}d ago`;
+  
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
+  
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+};
+
 const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -98,11 +124,25 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
     >
       {/* Row 1: The Eyebrow (Context) */}
       <div className="flex justify-between items-start gap-3 mb-3">
-        <div
-          className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold truncate mr-2"
-          title={task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"}
-        >
-          {task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"}
+        <div className="flex items-center gap-2 truncate mr-2">
+          <div
+            className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold truncate"
+            title={task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"}
+          >
+            {task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"}
+          </div>
+          {task.createdAt && (
+            <>
+              <span className="text-gray-300 text-[10px]">•</span>
+              <div 
+                className="text-[10px] text-gray-400 font-medium tracking-wider whitespace-nowrap flex items-center gap-1"
+                title={new Date(task.createdAt).toLocaleString()}
+              >
+                <Clock size={10} className="shrink-0" />
+                {getRelativeTime(task.createdAt)}
+              </div>
+            </>
+          )}
         </div>
         <div className="shrink-0">
           <StatusBadge status={task.status} />
