@@ -787,6 +787,9 @@ export default function CommitteeTaskDetailModal({
                   } else if (log.action === "HR_REJECTED") {
                     Icon = X;
                     colorClass = "bg-red-100 text-red-600 border-red-200";
+                  } else if (log.action === "RATED") {
+                    Icon = Star;
+                    colorClass = "bg-amber-100 text-amber-600 border-amber-200";
                   }
 
                   return (
@@ -918,27 +921,40 @@ export default function CommitteeTaskDetailModal({
                               </div>
                             )}
 
-                            {log.details.ratings && Array.isArray(log.details.ratings) && (
-                               <div className="mt-1">
-                                 <strong className="text-foreground block mb-1.5">Evaluations:</strong>
-                                 <div className="flex flex-col gap-1.5 pl-3 border-l-2 border-primary/20">
-                                   {log.details.ratings.map((r, idx) => {
-                                     const member = task.members?.find(m => m.id === r.memberId);
-                                     const empName = resolveEmployeeName(member?.employee_id);
-                                     return (
-                                       <div key={idx} className="flex items-center justify-between gap-3 bg-card px-2.5 py-1.5 rounded-md border border-border/50">
-                                         <span className="truncate text-slate-700 dark:text-slate-300 font-medium" title={empName}>
-                                           {empName}
-                                         </span>
-                                         <span className="font-bold text-primary shrink-0 bg-primary/10 px-2 py-0.5 rounded text-xs">
-                                           {r.grade} <span className="text-[10px] text-primary/70">/ 5</span>
-                                         </span>
-                                       </div>
-                                     );
-                                   })}
-                                 </div>
-                               </div>
-                            )}
+                            {(() => {
+                              if (!log.details.ratings || !Array.isArray(log.details.ratings)) return null;
+
+                              // Only creator, super admin, or the member themselves can see their rating
+                              const visibleRatings = log.details.ratings.filter(r => {
+                                if (isCreator || isSuperAdmin) return true;
+                                const member = task.members?.find(m => m.id === r.memberId);
+                                return member?.employee_id === currentUserId;
+                              });
+
+                              if (visibleRatings.length === 0) return null;
+
+                              return (
+                                <div className="mt-1 animate-in fade-in">
+                                  <strong className="text-foreground block mb-1.5">Evaluations:</strong>
+                                  <div className="flex flex-col gap-1.5 pl-3 border-l-2 border-primary/20">
+                                    {visibleRatings.map((r, idx) => {
+                                      const member = task.members?.find(m => m.id === r.memberId);
+                                      const empName = resolveEmployeeName(member?.employee_id);
+                                      return (
+                                        <div key={idx} className="flex items-center justify-between gap-3 bg-card px-2.5 py-1.5 rounded-md border border-border/50">
+                                          <span className="truncate text-slate-700 dark:text-slate-300 font-medium" title={empName}>
+                                            {empName}
+                                          </span>
+                                          <span className="font-bold text-primary shrink-0 bg-primary/10 px-2 py-0.5 rounded text-xs">
+                                            {r.grade} <span className="text-[10px] text-primary/70">/ 5</span>
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
                         )}
                       </div>

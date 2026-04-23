@@ -36,7 +36,7 @@ export default function CommitteeTaskCard({ task, onView, currentUserId, isSuper
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
+      <p className="text-[11px] font-bold text-muted-foreground line-clamp-2 mb-4 flex-1 uppercase tracking-wider opacity-60">
         {task.description || "No description provided."}
       </p>
 
@@ -58,19 +58,19 @@ export default function CommitteeTaskCard({ task, onView, currentUserId, isSuper
 
       {/* My Assigned Task (Visible to Members) */}
       {myMember && !isCreator && !isSuperAdmin && (
-        <div className="mb-4 bg-muted/50 p-3 rounded-lg border border-border/50">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">My Task</div>
-          <p className="text-sm font-medium text-foreground line-clamp-2 whitespace-pre-wrap">{formatChecklistToString(myMember.task_description)}</p>
-          <div className="mt-2 flex items-center justify-between">
-             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+        <div className="mb-4 bg-muted/30 p-3.5 rounded-xl border border-border/40 hover:border-border/80 transition-colors">
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-1">My Task</div>
+          <p className="text-sm font-bold text-foreground line-clamp-2 mb-3 leading-tight">
+            {formatChecklistToString(myMember.task_description)}
+          </p>
+          <div className="flex items-center justify-between mt-2">
+             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                myMember.status === "DONE" ? "bg-green-500/10 text-green-600" : "bg-amber-500/10 text-amber-600"
              }`}>
                {myMember.status}
              </span>
              {myMember.grade > 0 && (
-               <div className="scale-75 origin-right">
-                 <GradeSelector grade={myMember.grade} finalized />
-               </div>
+               <GradeSelector grade={myMember.grade} finalized compact />
              )}
           </div>
         </div>
