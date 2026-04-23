@@ -116,7 +116,8 @@ export default function CommitteeTasksPage() {
   });
 
   const addMemberMutation = useMutation({
-    mutationFn: (payload) => committeeTaskService.addMemberToTask(selectedTask.id, payload, user.id),
+    mutationFn: (payload) =>
+      committeeTaskService.addMemberToTask(selectedTask.id, payload, user.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Member added successfully!");
@@ -125,7 +126,13 @@ export default function CommitteeTasksPage() {
   });
 
   const updateMemberMutation = useMutation({
-    mutationFn: ({ memberId, payload }) => committeeTaskService.updateMemberAssignment(memberId, selectedTask.id, payload, user.id),
+    mutationFn: ({ memberId, payload }) =>
+      committeeTaskService.updateMemberAssignment(
+        memberId,
+        selectedTask.id,
+        payload,
+        user.id,
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Member task updated!");
@@ -134,7 +141,12 @@ export default function CommitteeTasksPage() {
   });
 
   const removeMemberMutation = useMutation({
-    mutationFn: (memberId) => committeeTaskService.removeMemberFromTask(memberId, selectedTask.id, user.id),
+    mutationFn: (memberId) =>
+      committeeTaskService.removeMemberFromTask(
+        memberId,
+        selectedTask.id,
+        user.id,
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Member removed from task.");
@@ -148,7 +160,7 @@ export default function CommitteeTasksPage() {
         memberId,
         description,
         selectedTask?.id,
-        user?.id
+        user?.id,
       ),
     onSuccess: (_, variables) => {
       setSelectedTask((prev) => {
@@ -158,7 +170,7 @@ export default function CommitteeTasksPage() {
           members: prev.members.map((m) =>
             m.id === variables.memberId
               ? { ...m, task_description: variables.description }
-              : m
+              : m,
           ),
         };
       });
@@ -167,7 +179,8 @@ export default function CommitteeTasksPage() {
   });
 
   const verifyMutation = useMutation({
-    mutationFn: ({ id, remarks }) => committeeTaskService.verifyCommitteeTask(id, user.id, remarks),
+    mutationFn: ({ id, remarks }) =>
+      committeeTaskService.verifyCommitteeTask(id, user.id, remarks),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Committee Task verified!");
@@ -177,7 +190,8 @@ export default function CommitteeTasksPage() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: ({ id, remarks }) => committeeTaskService.rejectCommitteeTask(id, user.id, remarks),
+    mutationFn: ({ id, remarks }) =>
+      committeeTaskService.rejectCommitteeTask(id, user.id, remarks),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Committee Task rejected and sent back.");
@@ -218,7 +232,7 @@ export default function CommitteeTasksPage() {
             className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
             <Plus size={18} />
-            Create Group Task
+            Create Committee Task
           </button>
         )}
       </div>
@@ -310,11 +324,21 @@ export default function CommitteeTasksPage() {
         onOpenRateModal={() => setIsRateOpen(true)}
         onDelete={() => deleteMutation.mutate(selectedTask.id)}
         onAddMember={(payload) => addMemberMutation.mutateAsync(payload)}
-        onUpdateMember={(memberId, payload) => updateMemberMutation.mutateAsync({ memberId, payload })}
-        onRemoveMember={(memberId) => removeMemberMutation.mutateAsync(memberId)}
-        onInlineCheck={(memberId, description) => updateMemberTaskDescMutation.mutate({ memberId, description })}
-        onVerify={() => verifyMutation.mutate({ id: selectedTask.id, remarks: "" })}
-        onReject={(remarks) => rejectMutation.mutate({ id: selectedTask.id, remarks })}
+        onUpdateMember={(memberId, payload) =>
+          updateMemberMutation.mutateAsync({ memberId, payload })
+        }
+        onRemoveMember={(memberId) =>
+          removeMemberMutation.mutateAsync(memberId)
+        }
+        onInlineCheck={(memberId, description) =>
+          updateMemberTaskDescMutation.mutate({ memberId, description })
+        }
+        onVerify={() =>
+          verifyMutation.mutate({ id: selectedTask.id, remarks: "" })
+        }
+        onReject={(remarks) =>
+          rejectMutation.mutate({ id: selectedTask.id, remarks })
+        }
         isMarkingDone={markDoneMutation.isPending}
         isReverting={revertDoneMutation.isPending}
         isDeleting={deleteMutation.isPending}
