@@ -14,9 +14,10 @@ import PersonalizedHeroBanner from "../components/PersonalizedHeroBanner.jsx";
 export default function Dashboard() {
   const { user } = useAuth();
 
-  const isSales =
-    user?.department?.toLowerCase().includes("sales") ||
-    user?.subDepartment?.toLowerCase().includes("sales");
+  const hasSales = user?.has_sales_flow;
+  const hasTask = user?.has_task_flow;
+  
+  const isOmni = user?.is_hr || user?.isHr || user?.isSuperAdmin || (hasTask && hasSales);
 
   // --- GLOBAL RANGE SELECTION ---
   const currentDate = new Date();
@@ -28,8 +29,8 @@ export default function Dashboard() {
     label: currentDate.toLocaleString("default", { month: "short", year: "numeric" })
   });
 
-  // Omni Dashboard exclusively for HR and Super Admins
-  if (user?.is_hr || user?.isHr || user?.isSuperAdmin) {
+  // Omni Dashboard exclusively for HR, Super Admins, and Hybrid users
+  if (isOmni) {
     return (
       <ProtectedRoute>
         <div className="space-y-16 pb-20 max-w-7xl mx-auto px-4 md:px-8">
@@ -76,7 +77,7 @@ export default function Dashboard() {
   }
 
   // Pure Sales Dashboard for dedicated Sales personnel
-  if (isSales) {
+  if (hasSales && !hasTask) {
     return (
       <ProtectedRoute>
         <div className="pb-20 max-w-7xl mx-auto px-4 md:px-8 pt-8">

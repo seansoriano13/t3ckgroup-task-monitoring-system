@@ -82,10 +82,12 @@ export default function ChecklistTaskRenderer({
   }
 
   return (
-    <div className="bg-muted/30 p-5 rounded-2xl border border-border text-foreground text-[14px] leading-relaxed whitespace-pre-wrap space-y-4 shadow-sm">
+    <>
       {title && (
         <div className="pb-3 border-b border-border/50 mb-3">
-          <h4 className="font-extrabold text-foreground uppercase tracking-wider text-[11px]">{title}</h4>
+          <h4 className="font-extrabold text-foreground uppercase tracking-wider text-[11px]">
+            {title}
+          </h4>
         </div>
       )}
       <div className="space-y-2">
@@ -104,7 +106,7 @@ export default function ChecklistTaskRenderer({
             >
               {item.checked ? (
                 <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-200">
-                   <CheckCircle2 size={12} className="text-white" />
+                  <CheckCircle2 size={12} className="text-white" />
                 </div>
               ) : (
                 <div className="w-5 h-5 rounded-full border-2 border-slate-200 bg-card hover:border-indigo-400 hover:scale-110 transition-all" />
@@ -118,6 +120,6 @@ export default function ChecklistTaskRenderer({
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

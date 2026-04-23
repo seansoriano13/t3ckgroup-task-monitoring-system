@@ -27,6 +27,8 @@ import {
   Activity,
   Clock,
   ChevronDown,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 
 const PAGE_SIZE = 50;
@@ -58,6 +60,61 @@ function getInitials(name) {
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+}
+
+// ── Checklist Parser ──────────────────────────────────────────────────────────
+function tryParseChecklist(str) {
+  if (!str) return null;
+  try {
+    const trimmed = str.trim();
+    if (!trimmed.startsWith("[")) return null;
+    let parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed) && Array.isArray(parsed[0])) {
+      parsed = parsed[0];
+    }
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object" && "text" in parsed[0]) {
+      return parsed;
+    }
+  } catch (e) {}
+  return null;
+}
+
+// ── ContentDisplay ────────────────────────────────────────────────────────────
+function ContentDisplay({ content }) {
+  if (!content) return <span className="italic opacity-70">(no message)</span>;
+  
+  const parsedChecklist = tryParseChecklist(content);
+
+
+
+  if (parsedChecklist) {
+    const displayItems = parsedChecklist.slice(0, 4);
+    const remaining = parsedChecklist.length - 4;
+    
+    return (
+      <div className="space-y-1.5 mt-2 flex flex-col">
+        {displayItems.map((item, idx) => (
+          <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
+            {item.checked ? (
+              <CheckSquare size={13} className="shrink-0 text-primary mt-[2px]" />
+            ) : (
+              <Square size={13} className="shrink-0 text-muted-foreground/40 mt-[2px]" />
+            )}
+            <span className={`${item.checked ? "line-through opacity-60" : ""} break-words leading-snug line-clamp-2`}>
+              {item.text}
+            </span>
+          </div>
+        ))}
+        {remaining > 0 && (
+          <div className="text-[10px] font-bold text-muted-foreground/60 pl-[22px] pt-0.5 uppercase tracking-wider">
+            + {remaining} more item{remaining !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return <span className="line-clamp-2 leading-relaxed">{content}</span>;
 }
 
 // ── FieldBox — mirrors LogTaskAssignmentBar's label+container pattern ────────
@@ -639,14 +696,44 @@ export default function SuperAdminActivityLogPage() {
                       </div>
 
                       {/* Task title */}
-                      <p className="text-sm font-bold text-foreground line-clamp-1">
-                        {e.taskDescription || `Task ${e.taskId}`}
-                      </p>
+                      {(() => {
+                        const checklist = tryParseChecklist(e.taskDescription);
+                        if (checklist) {
+                          const displayItems = checklist.slice(0, 2);
+                          const remaining = checklist.length - 2;
+                          return (
+                            <div className="mb-1.5 space-y-1">
+                              {displayItems.map((item, idx) => (
+                                <div key={idx} className="flex items-start gap-1.5 text-xs font-bold text-foreground">
+                                  {item.checked ? (
+                                    <CheckSquare size={13} className="shrink-0 text-primary mt-[1px]" />
+                                  ) : (
+                                    <Square size={13} className="shrink-0 text-muted-foreground/50 mt-[1px]" />
+                                  )}
+                                  <span className={`${item.checked ? "line-through opacity-60" : ""} line-clamp-1`}>
+                                    {item.text}
+                                  </span>
+                                </div>
+                              ))}
+                              {remaining > 0 && (
+                                <div className="text-[10px] font-bold text-muted-foreground/60 pl-5 uppercase tracking-wider">
+                                  + {remaining} more checklist item{remaining !== 1 ? 's' : ''}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                        return (
+                          <p className="text-sm font-bold text-foreground line-clamp-1">
+                            {e.taskDescription || `Task ${e.taskId}`}
+                          </p>
+                        );
+                      })()}
 
-                      {/* Content — matches LogTaskDetailsSection's description textarea */}
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                        {e.content || "(no message)"}
-                      </p>
+                      {/* Content — parses checklist JSON if applicable */}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        <ContentDisplay content={e.content} />
+                      </div>
 
                       {/* Footer: author avatar + status pill — matches property-pill style */}
                       <div className="flex items-center gap-2 mt-2.5 flex-wrap">

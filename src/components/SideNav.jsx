@@ -61,9 +61,8 @@ export default function SideNav({ onOpenAddTask }) {
   });
   const unreadChatsCount = activeChats.filter((c) => c.is_unread).length;
 
-  const isSales =
-    user?.department?.toLowerCase().includes("sales") ||
-    user?.subDepartment?.toLowerCase().includes("sales");
+  const hasSales = user?.has_sales_flow;
+  const hasTask = user?.has_task_flow;
 
   // Nav mapping logic mapped similarly to original implementation
   let navLinks = [];
@@ -87,11 +86,12 @@ export default function SideNav({ onOpenAddTask }) {
   } else {
     navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
 
-    if (!isSales) {
+    if (hasTask) {
       navLinks.push({ label: "Tasks", link: "/tasks", icon: ListCheck });
-    } else {
+    }
+
+    if (hasSales) {
       navLinks.push(
-        { label: "Tasks", link: "/tasks", icon: ListCheck },
         { label: "Sales Planner", link: "/sales/schedule", icon: CalendarDays },
         { label: "Daily Execution", link: "/sales/daily", icon: CheckSquare },
         { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
@@ -112,18 +112,21 @@ export default function SideNav({ onOpenAddTask }) {
             icon: ShieldCheck,
           },
         );
-      } else if (isSales) {
-        navLinks.push({
-          label: "Sales Approval",
-          link: "/approvals/sales",
-          icon: ShieldCheck,
-        });
       } else {
-        navLinks.push({
-          label: "Task Approval",
-          link: "/approvals",
-          icon: ShieldCheck,
-        });
+        if (hasTask) {
+          navLinks.push({
+            label: "Task Approval",
+            link: "/approvals",
+            icon: ShieldCheck,
+          });
+        }
+        if (hasSales) {
+          navLinks.push({
+            label: "Sales Approval",
+            link: "/approvals/sales",
+            icon: ShieldCheck,
+          });
+        }
       }
     }
 
@@ -133,7 +136,7 @@ export default function SideNav({ onOpenAddTask }) {
         link: "/hr/management",
         icon: Users,
       });
-      if (!isSales) {
+      if (!hasSales) {
         navLinks.push({
           label: "Sales Records",
           link: "/sales/records",

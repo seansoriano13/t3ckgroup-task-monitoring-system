@@ -179,10 +179,12 @@ export default function NotificationDrawer({ isOpen, onClose }) {
          {/* Tabs */}
          <div className="flex px-6 pt-2 gap-6 border-b border-border shrink-0 overflow-x-auto custom-scrollbar">
              {['ALL', 'UNREAD', 'TASKS', 'SALES'].map(tab => {
-               const isSalesStaff = user?.department?.toLowerCase().includes("sales") || user?.subDepartment?.toLowerCase().includes("sales");
+               const hasSales = user?.has_sales_flow;
+               const hasTask = user?.has_task_flow;
                const isManagement = user?.isHr || user?.isSuperAdmin;
-               if (tab === 'SALES' && !isSalesStaff && !isManagement) return null;
-               if (tab === 'TASKS' && isSalesStaff && !isManagement) return null;
+               
+               if (tab === 'SALES' && !hasSales && !isManagement) return null;
+               if (tab === 'TASKS' && !hasTask && !isManagement) return null;
 
                return (
                <button 

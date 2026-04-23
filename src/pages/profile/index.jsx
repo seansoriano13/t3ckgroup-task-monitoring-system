@@ -95,7 +95,7 @@ export default function ProfilePage() {
       if (user?.isSuperAdmin) return null;
 
       const userDept = user?.department || "";
-      const isSales = userDept.toLowerCase().includes("sales");
+      const isSales = user?.has_sales_flow;
 
       if (user?.isHr || user?.is_hr) {
         // HR Access
