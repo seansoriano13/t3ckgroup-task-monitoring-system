@@ -87,7 +87,7 @@ export function ScheduleHeader({
                 </button>
                 <div 
                   className="px-2 text-gray-6 hover:text-gray-9 cursor-help transition-colors" 
-                  title="Remember to submit your schedule by Friday End of Day for the following week! Note: Mon-Sat require at least 5 AM/PM tasks each to unlock submission. Sunday is optional."
+                  title="Remember to submit your schedule! Note: Mon-Sat require at least 1 task each to unlock submission. Sunday is optional."
                 >
                   <HelpCircle size={16} />
                 </div>
@@ -192,7 +192,7 @@ export function ScheduleHeader({
         <div className="flex items-center gap-3">
           <span 
             className="text-sm font-bold text-gray-10 flex items-center gap-1.5 cursor-help select-none" 
-            title={`Missing AM: ${weekSummary.missingAM} | Missing PM: ${weekSummary.missingPM} | Unplanned Ratio: ${unplannedRatio}%`}
+            title={`Missing Days: ${weekSummary.missingDays} | Unplanned Ratio: ${unplannedRatio}%`}
           >
             <CheckCircle2 size={18} className={weekSummary.daysReady >= totalDaysRequired ? "text-green-500" : "text-gray-5"} />
             Readiness: <span className="text-gray-12">{weekSummary.daysReady} of {totalDaysRequired} Days</span>

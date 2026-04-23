@@ -74,7 +74,7 @@ export function ScheduleDayView({
             </h3>
           </div>
           {Array.from({
-            length: slotCounts[`${currentDateObj.dateStr}-AM`] || 5,
+            length: slotCounts[`${currentDateObj.dateStr}-AM`] || 0,
           }).map((_, slotIdx) => {
             const currentData = getSlotData(
               currentDateObj.dateStr,
@@ -112,7 +112,7 @@ export function ScheduleDayView({
                 compactMode={compactMode}
                 scheduleTemplates={scheduleTemplates}
                 customTemplates={customTemplates}
-                canDelete={slotIdx >= 5}
+                canDelete={true}
                 disabled={isLocked}
                 slotNum={slotIdx + 1}
                 availableCategories={categories}
@@ -122,6 +122,14 @@ export function ScheduleDayView({
               />
             );
           })}
+          {!isLocked && (
+            <button
+              onClick={() => handleAddSlot(currentDateObj.dateStr, "AM")}
+              className="w-full py-2 border-2 border-dashed border-gray-4 rounded-xl text-gray-8 font-bold flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition-colors mt-2"
+            >
+              <Plus size={16} /> Add AM Activity
+            </button>
+          )}
         </div>
 
         {/* PM COLUMN */}
@@ -132,7 +140,7 @@ export function ScheduleDayView({
             </h3>
           </div>
           {Array.from({
-            length: slotCounts[`${currentDateObj.dateStr}-PM`] || 5,
+            length: slotCounts[`${currentDateObj.dateStr}-PM`] || 0,
           }).map((_, slotIdx) => {
             const currentData = getSlotData(
               currentDateObj.dateStr,
@@ -170,7 +178,7 @@ export function ScheduleDayView({
                 compactMode={compactMode}
                 scheduleTemplates={scheduleTemplates}
                 customTemplates={customTemplates}
-                canDelete={slotIdx >= 5}
+                canDelete={true}
                 disabled={isLocked}
                 slotNum={slotIdx + 1}
                 availableCategories={categories}
@@ -180,6 +188,14 @@ export function ScheduleDayView({
               />
             );
           })}
+          {!isLocked && (
+            <button
+              onClick={() => handleAddSlot(currentDateObj.dateStr, "PM")}
+              className="w-full py-2 border-2 border-dashed border-gray-4 rounded-xl text-gray-8 font-bold flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition-colors mt-2"
+            >
+              <Plus size={16} /> Add PM Activity
+            </button>
+          )}
         </div>
       </div>
     </>

@@ -86,7 +86,7 @@ export default function SalesSchedulePage() {
 
       const newCounts = {};
       Object.entries(bucketCounts).forEach(([k, count]) => {
-        newCounts[k] = Math.max(5, count);
+        newCounts[k] = Math.max(0, count);
       });
 
       // Avoid synchronous setState in effect warning
@@ -179,7 +179,7 @@ export default function SalesSchedulePage() {
   const handleAddSlot = (dateStr, timeOfDay) => {
     setSlotCounts((prev) => {
       const key = `${dateStr}-${timeOfDay}`;
-      const currentCount = prev[key] || 5;
+      const currentCount = prev[key] || 0;
       if (currentCount >= 8) {
         toast.error("Maximum of 8 activities allowed per block.");
         return prev;
@@ -339,8 +339,8 @@ export default function SalesSchedulePage() {
 
     setSlotCounts((prev) => {
       const key = `${dateStr}-${timeOfDay}`;
-      const currentCount = prev[key] || 5;
-      if (currentCount > 5) {
+      const currentCount = prev[key] || 0;
+      if (currentCount > 0) {
         return { ...prev, [key]: currentCount - 1 };
       }
       return prev;
@@ -353,7 +353,7 @@ export default function SalesSchedulePage() {
         (a) => !(a.scheduled_date === dateStr && a.time_of_day === timeOfDay),
       ),
     );
-    setSlotCounts((prev) => ({ ...prev, [`${dateStr}-${timeOfDay}`]: 5 }));
+    setSlotCounts((prev) => ({ ...prev, [`${dateStr}-${timeOfDay}`]: 0 }));
   };
 
   const handleClearSlot = (dateStr, timeOfDay, slotIndex) => {
@@ -383,7 +383,7 @@ export default function SalesSchedulePage() {
 
     setSlotCounts((prev) => {
       const key = `${dateStr}-${timeOfDay}`;
-      const count = prev[key] || 5;
+      const count = prev[key] || 0;
       if (count >= 8) {
         toast.error("Maximum 8 activities allowed per block.");
         return prev;
@@ -419,8 +419,8 @@ export default function SalesSchedulePage() {
     );
     setSlotCounts((prev) => ({
       ...prev,
-      [`${dateStr}-AM`]: 5,
-      [`${dateStr}-PM`]: 5,
+      [`${dateStr}-AM`]: 0,
+      [`${dateStr}-PM`]: 0,
     }));
   };
 
@@ -462,8 +462,8 @@ export default function SalesSchedulePage() {
 
     setSlotCounts((sc) => ({
       ...sc,
-      [`${targetDateStr}-AM`]: Math.max(5, maxAm),
-      [`${targetDateStr}-PM`]: Math.max(5, maxPm),
+      [`${targetDateStr}-AM`]: Math.max(0, maxAm),
+      [`${targetDateStr}-PM`]: Math.max(0, maxPm),
     }));
   };
 
@@ -532,16 +532,16 @@ export default function SalesSchedulePage() {
               (a.activity_type !== "None" || (a.account_name && a.account_name.trim() !== ""))
           ).length;
 
-          // Sunday is optional; Mon-Sat still require 5 AM and 5 PM
+          // Sunday is optional; Mon-Sat still require at least 1 task
           if (d.label !== "Sunday") {
-            if (amCount < 5 || pmCount < 5) invalid = true;
+            if ((amCount + pmCount) < 1) invalid = true;
           }
         });
 
         if (invalid) {
           uxMetricsService.incrementCounter("salesPlanning.submitValidationErrors");
           toast.error(
-            "You must plan at least 5 AM tasks and 5 PM tasks for ALL scheduled days before submitting.",
+            "You must plan at least 1 task per day for all scheduled days before submitting.",
           );
           throw new Error("Invalid task counts."); // Throw an error to stop the mutation chain
         }
@@ -723,10 +723,10 @@ export default function SalesSchedulePage() {
   }, {});
 
   const allDaysFilled = weekDates.every((d) => {
-    // Sunday is optional; Mon-Sat still require 5 AM and 5 PM
+    // Sunday is optional
     if (d.label === "Sunday") return true;
     const counts = mapDateToBlockCounts[d.dateStr];
-    return counts && counts.AM >= 5 && counts.PM >= 5;
+    return counts && (counts.AM + counts.PM) >= 1;
   });
 
   const dayProgress = weekDates.map((d) => {
@@ -735,7 +735,7 @@ export default function SalesSchedulePage() {
       ...d,
       amCount: counts.AM,
       pmCount: counts.PM,
-      isReady: d.label === "Sunday" ? true : (counts.AM >= 5 && counts.PM >= 5),
+      isReady: d.label === "Sunday" ? true : ((counts.AM + counts.PM) >= 1),
     };
   });
 
@@ -744,12 +744,11 @@ export default function SalesSchedulePage() {
       if (day.isReady) acc.daysReady += 1;
       // Sunday is optional, don't count it towards "missing" requirements
       if (day.label !== "Sunday") {
-        if (day.amCount < 5) acc.missingAM += 5 - day.amCount;
-        if (day.pmCount < 5) acc.missingPM += 5 - day.pmCount;
+        if ((day.amCount + day.pmCount) < 1) acc.missingDays += 1;
       }
       return acc;
     },
-    { daysReady: 0, missingAM: 0, missingPM: 0 },
+    { daysReady: 0, missingDays: 0 },
   );
 
   const unplannedCount = activitiesData.filter(

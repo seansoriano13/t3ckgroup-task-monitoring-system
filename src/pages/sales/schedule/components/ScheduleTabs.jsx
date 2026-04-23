@@ -33,7 +33,7 @@ export function ScheduleTabs({
             </span>
             {dayStats && (
               <span className="text-[10px] font-bold text-gray-8 block">
-                AM {dayStats.amCount}/5 | PM {dayStats.pmCount}/5
+                {dayStats.amCount + dayStats.pmCount} Task{dayStats.amCount + dayStats.pmCount === 1 ? '' : 's'} (AM: {dayStats.amCount} | PM: {dayStats.pmCount})
               </span>
             )}
           </button>
