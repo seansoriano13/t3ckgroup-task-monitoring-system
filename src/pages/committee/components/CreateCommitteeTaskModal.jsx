@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+﻿import { useState, useMemo, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Maximize2,
@@ -137,12 +137,12 @@ export default function CreateCommitteeTaskModal({
         }`}
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-gray-3/40 shrink-0">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-primary text-white font-bold text-[9px] shrink-0">
+        <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-mauve-3/40 shrink-0">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-primary text-primary-foreground font-bold text-[9px] shrink-0">
               {user?.department?.charAt(0)?.toUpperCase() || "C"}
             </div>
-            <ChevronDown size={11} className="text-gray-6 rotate-[-90deg]" />
+            <ChevronDown size={11} className="text-mauve-6 rotate-[-90deg]" />
             <span className="font-medium text-muted-foreground/80">
               New Committee Task
             </span>
@@ -151,7 +151,7 @@ export default function CreateCommitteeTaskModal({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1.5 rounded-md text-slate-400 hover:text-foreground hover:bg-muted/80 transition-colors"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
               title={isExpanded ? "Collapse" : "Expand"}
             >
               <Maximize2 size={14} />
@@ -159,7 +159,7 @@ export default function CreateCommitteeTaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-md text-slate-400 hover:text-foreground hover:bg-muted/80 transition-colors"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
             >
               <X size={15} />
             </button>
@@ -179,7 +179,7 @@ export default function CreateCommitteeTaskModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Committee Task Title"
-              className="w-full text-xl font-semibold text-foreground bg-transparent outline-none placeholder:text-gray-6 border-none pb-1 mb-3"
+              className="w-full text-xl font-semibold text-foreground bg-transparent outline-none placeholder:text-mauve-6 border-none pb-1 mb-3"
               autoComplete="off"
             />
           </div>
@@ -189,7 +189,7 @@ export default function CreateCommitteeTaskModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide an overview of the committee's objective..."
-              className={`w-full bg-transparent border-none outline-none transition-all resize-y text-[13px] text-foreground placeholder:text-gray-6 ${
+              className={`w-full bg-transparent border-none outline-none transition-all resize-y text-[13px] text-foreground placeholder:text-mauve-6 ${
                 isExpanded ? "h-32" : "h-16"
               }`}
             />
@@ -197,7 +197,7 @@ export default function CreateCommitteeTaskModal({
 
           <div className="flex justify-center mb-8 pb-5 border-b border-border/50 animate-content-in stagger-3 relative z-10">
             <div className="flex flex-col items-center">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 px-1">
                 Target Due Date
               </span>
               <div className="relative">
@@ -218,8 +218,8 @@ export default function CreateCommitteeTaskModal({
 
           <div className="animate-content-in stagger-4 flex-1">
             <div className="mb-4">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-                Assign Members & Tasks <span className="text-red-500">*</span>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">
+                Assign Members & Tasks <span className="text-destructive">*</span>
               </label>
               <p className="text-[13px] text-muted-foreground">
                 Assign specific responsibilities to each team member by adding
@@ -239,7 +239,7 @@ export default function CreateCommitteeTaskModal({
                 >
                   {/* Assignee */}
                   <div className="flex flex-col gap-1.5 relative z-20">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase">
                       Assignee
                     </label>
                     <Select
@@ -268,7 +268,7 @@ export default function CreateCommitteeTaskModal({
 
                   {/* Role */}
                   <div className="flex flex-col gap-2">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase">
                       Role (Optional)
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -285,8 +285,8 @@ export default function CreateCommitteeTaskModal({
                           }
                           className={`px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all ${
                             member.role === r
-                              ? "bg-primary text-white shadow-sm scale-105 border border-primary"
-                              : "bg-card text-foreground border border-border hover:border-slate-400 hover:text-slate-800 shadow-sm"
+                              ? "bg-primary text-primary-foreground shadow-sm scale-105 border border-primary"
+                              : "bg-card text-foreground border border-border hover:border-mauve-5 hover:text-foreground shadow-sm"
                           }`}
                         >
                           {r}
@@ -315,7 +315,7 @@ export default function CreateCommitteeTaskModal({
                   {/* Task Description */}
                   <div className="flex-1 flex flex-col gap-2">
                     <div className="flex justify-between items-end">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                      <label className="block text-[10px] font-bold text-muted-foreground uppercase">
                         Specific Task
                       </label>
                       {/* Toggle tabs */}
@@ -333,7 +333,7 @@ export default function CreateCommitteeTaskModal({
                             member.descriptionType === "description" ||
                             !member.descriptionType
                               ? "bg-card text-foreground shadow-sm"
-                              : "text-slate-400 hover:text-muted-foreground/80"
+                              : "text-muted-foreground hover:text-muted-foreground/80"
                           }`}
                         >
                           Text
@@ -350,7 +350,7 @@ export default function CreateCommitteeTaskModal({
                           className={`text-[9px] px-2 py-0.5 rounded font-bold transition-all ${
                             member.descriptionType === "checklist"
                               ? "bg-card text-foreground shadow-sm"
-                              : "text-slate-400 hover:text-muted-foreground/80"
+                              : "text-muted-foreground hover:text-muted-foreground/80"
                           }`}
                         >
                           Checklist
@@ -397,7 +397,7 @@ export default function CreateCommitteeTaskModal({
                     <button
                       type="button"
                       onClick={() => handleRemoveMember(member.id)}
-                      className="absolute -top-3 -right-3 bg-card border border-border text-red-500 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:text-red-600 shadow-sm z-30"
+                      className="absolute -top-3 -right-3 bg-card border border-border text-destructive rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive/5 hover:text-destructive shadow-sm z-30"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -418,7 +418,7 @@ export default function CreateCommitteeTaskModal({
 
         {/* FOOTER */}
         <div className="px-5 py-4 border-t border-border bg-muted/30 flex items-center justify-between shrink-0">
-          <div className="hidden sm:flex items-center gap-3 text-[10px] text-slate-400 font-medium">
+          <div className="hidden sm:flex items-center gap-3 text-[10px] text-muted-foreground font-medium">
             <div className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 bg-muted/80 border border-border rounded text-muted-foreground font-sans text-[9px]">
                 Esc
@@ -441,7 +441,7 @@ export default function CreateCommitteeTaskModal({
               type="submit"
               form="create-committee-form"
               disabled={isSubmitting}
-              className="h-9 px-6 rounded-xl shadow-lg shadow-indigo-200"
+              className="h-9 px-6 rounded-xl shadow-lg shadow-primary/20"
             >
               {isSubmitting ? (
                 <>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
@@ -141,7 +141,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
     <div className="bg-card border border-border rounded-2xl shadow-sm mb-6 px-5 py-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="bg-muted p-1.5 rounded-lg">
-          <CheckCircle2 size={18} className="text-green-500" />
+          <CheckCircle2 size={18} className="text-green-9" />
         </div>
         <div>
           <h2 className="text-sm font-bold text-foreground">Expense Approval Queue</h2>
@@ -188,7 +188,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
                 }}
                 disabled={isPending}
                 size="sm"
-                className="flex items-center shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="flex items-center shadow-sm bg-green-10 hover:bg-green-11 text-primary-foreground"
               >
                 {bulkApproveMutation.isPending ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <CheckCircle2 size={14} className="mr-1.5" />}
                 Approve {selected.size === pendingExpenses.length ? "All" : `${selected.size} Selected`}
@@ -251,7 +251,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
               {/* Row checkbox */}
               <button
                 onClick={() => toggleOne(task.id)}
-                className="mt-0.5 shrink-0 text-slate-400 hover:text-muted-foreground transition-colors"
+                className="mt-0.5 shrink-0 text-muted-foreground hover:text-muted-foreground transition-colors"
               >
                 {isChecked ? <CheckSquare size={16} className="text-foreground" /> : <Square size={16} />}
               </button>
@@ -260,7 +260,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-xs font-semibold text-muted-foreground/80">{task.employees?.name}</span>
-                  <span className="text-gray-7 text-xs">·</span>
+                  <span className="text-mauve-7 text-xs">·</span>
                   <span className="text-xs text-muted-foreground">
                     {new Date(task.scheduled_date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
@@ -296,7 +296,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
               <div className="flex gap-2 shrink-0">
                 <Button
                   size="icon"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 w-8 shadow-sm"
+                  className="bg-green-10 hover:bg-green-11 text-primary-foreground h-8 w-8 shadow-sm"
                   onClick={() => approveMutation.mutate({ id: task.id, isApproved: true })}
                   disabled={isPending}
                   title="Approve"

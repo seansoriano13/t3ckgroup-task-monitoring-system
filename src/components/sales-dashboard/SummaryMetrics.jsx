@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Trophy, Target } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export function SummaryMetrics({
   totalWon,
@@ -7,52 +8,83 @@ export function SummaryMetrics({
   winRate,
   showQuota,
 }) {
-  const count = 2 + (showQuota ? 1 : 0) + (winRate !== null ? 1 : 0);
-
   return (
-    <div
-      className="bg-white border border-gray-200 rounded-xl overflow-hidden"
-      style={{ display: "grid", gridTemplateColumns: `repeat(${count}, 1fr)` }}
-    >
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Completed Sales */}
-      <div className="p-5 flex flex-col gap-1">
-        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-          <TrendingUp size={12} className="text-gray-400" /> Total Completed Sales
-        </h3>
-        <p className="text-2xl font-black text-gray-900 tabular-nums">
-          ₱{totalWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </p>
-      </div>
+      <StatCard
+        title="Total Completed Sales"
+        value={`₱${totalWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        subtitle="Revenue Won"
+        icon={<TrendingUp size={20} className="text-green-500" />}
+        color="emerald"
+      />
 
       {/* Total Lost Sales */}
-      <div className="p-5 flex flex-col gap-1 border-l border-gray-200">
-        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-          <TrendingDown size={12} className="text-gray-400" /> Total Lost Sales
-        </h3>
-        <p className="text-2xl font-black text-gray-900 tabular-nums">
-          ₱{totalLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </p>
-      </div>
+      <StatCard
+        title="Total Lost Sales"
+        value={`₱${totalLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        subtitle="Missed Opportunity"
+        icon={<TrendingDown size={20} className="text-destructive" />}
+        color="destructive"
+      />
 
       {/* Quota Achievement */}
       {showQuota && (
-        <div className="p-5 flex flex-col gap-1 border-l border-gray-200">
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-            <Trophy size={12} className="text-gray-400" /> Quota Achievement
-          </h3>
-          <p className="text-2xl font-black text-gray-900 tabular-nums">{companyPct}%</p>
-        </div>
+        <StatCard
+          title="Quota Achievement"
+          value={`${companyPct}%`}
+          subtitle="Target Progress"
+          icon={<Trophy size={20} className="text-amber-500" />}
+          color="amber"
+        />
       )}
 
       {/* Team Win Rate */}
       {winRate !== null && (
-        <div className="p-5 flex flex-col gap-1 border-l border-gray-200">
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-            <Target size={12} className="text-gray-400" /> Team Win Rate
-          </h3>
-          <p className="text-2xl font-black text-gray-900 tabular-nums">{winRate}%</p>
-        </div>
+        <StatCard
+          title="Team Win Rate"
+          value={`${winRate}%`}
+          subtitle="Conversion Ratio"
+          icon={<Target size={20} className="text-indigo-500" />}
+          color="indigo"
+        />
       )}
     </div>
+  );
+}
+
+// Reusable Sub-component for the cards (copied design from DashboardStats.jsx)
+function StatCard({ title, value, subtitle, icon, color }) {
+  const colorMap = {
+    indigo: "from-indigo-500/15 to-transparent",
+    amber: "from-amber-500/15 to-transparent",
+    destructive: "from-red-500/15 to-transparent",
+    emerald: "from-green-9/15 to-transparent",
+    slate: "from-slate-500/15 to-transparent",
+  };
+
+  return (
+    <Card className="p-5 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm">
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
+      />
+
+      <div className="flex justify-between items-start mb-3 relative z-10">
+        <div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1">
+            {title}
+          </p>
+          <h3 className="text-2xl font-extrabold tracking-tight text-foreground tabular-nums">
+            {value}
+          </h3>
+        </div>
+        <div className="p-2.5 rounded-xl bg-muted/50 border border-border group-hover:bg-muted transition-colors">
+          {icon}
+        </div>
+      </div>
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest relative z-10">
+        {subtitle}
+      </p>
+    </Card>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+﻿import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import {
@@ -375,7 +375,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                             >
                               {mLabel}
                               {isNow && !isSelected && (
-                                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm" />
+                                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[color:var(--blue-9)] shadow-sm" />
                               )}
                             </button>
                           );

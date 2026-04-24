@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+﻿import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { Routes } from "@generouted/react-router";
@@ -26,16 +26,16 @@ const queryClient = new QueryClient({
 // eslint-disable-next-line react-refresh/only-export-components
 function GlobalErrorFallback({ error, resetErrorBoundary }) {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-1 text-gray-12 p-6">
-      <div className="bg-gray-2 border border-red-a5 p-8 rounded-2xl shadow-2xl max-w-lg text-center">
+    <div className="flex flex-col items-center justify-center h-screen bg-mauve-1 text-foreground p-6">
+      <div className="bg-mauve-2 border border-red-a5 p-8 rounded-2xl shadow-2xl max-w-lg text-center">
         <h2 className="text-2xl font-black text-red-9 mb-2">System Error</h2>
-        <p className="text-gray-10 mb-6">The application encountered an unexpected issue.</p>
-        <pre className="text-xs bg-gray-1 border border-gray-4 p-4 rounded-xl text-red-11 mb-6 overflow-x-auto text-left">
+        <p className="text-mauve-10 mb-6">The application encountered an unexpected issue.</p>
+        <pre className="text-xs bg-mauve-1 border border-mauve-4 p-4 rounded-xl text-red-11 mb-6 overflow-x-auto text-left">
           {error.message}
         </pre>
         <button 
           onClick={resetErrorBoundary} 
-          className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold transition-all"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground px-6 py-3 rounded-xl font-bold transition-all"
         >
           Reload Dashboard
         </button>

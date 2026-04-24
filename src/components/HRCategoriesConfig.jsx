@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Plus, Edit, Trash2, Loader2, XSquare, Building2, Info, ChevronDown } from "lucide-react";
@@ -165,10 +165,10 @@ export default function HRCategoriesConfig() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="bg-gray-2 border border-gray-4 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative z-20">
+      <div className="bg-mauve-2 border border-mauve-4 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative z-20">
         <div className="relative flex-1 md:max-w-sm">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-mauve-8"
             width="18"
             height="18"
             viewBox="0 0 24 24"
@@ -186,37 +186,37 @@ export default function HRCategoriesConfig() {
             placeholder="Search categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-gray-6 transition-colors text-sm"
+            className="w-full bg-mauve-1 border border-mauve-4 text-foreground rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-mauve-6 transition-colors text-sm"
           />
         </div>
 
         <button
           type="button"
           onClick={openAdd}
-          className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg font-bold transition-colors text-sm shadow-sm active:scale-95"
+          className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2.5 rounded-lg font-bold transition-colors text-sm shadow-sm active:scale-95"
         >
           <Plus size={18} /> Add Category
         </button>
       </div>
 
-      <div className="bg-gray-2 border border-gray-4 rounded-xl shadow-lg overflow-x-auto">
+      <div className="bg-mauve-2 border border-mauve-4 rounded-xl shadow-lg overflow-x-auto">
         {isLoading ? (
           <div className="py-10 flex flex-col items-center justify-center gap-3">
             <Loader2 className="animate-spin" size={26} />
-            <p className="text-gray-9 font-bold">Loading categories...</p>
+            <p className="text-muted-foreground font-bold">Loading categories...</p>
           </div>
         ) : isError ? (
           <div className="p-8 text-center bg-red-a2 border-b border-red-a5">
             <p className="text-red-11 font-bold">Failed to load categories.</p>
           </div>
         ) : categories.length === 0 ? (
-          <div className="p-8 text-center text-gray-9 font-bold">
+          <div className="p-8 text-center text-muted-foreground font-bold">
             No categories found. Add the first one.
           </div>
         ) : (
           <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="bg-gray-1 border-b border-gray-4 text-xs font-bold text-gray-9 uppercase tracking-wider">
+                  <tr className="bg-mauve-1 border-b border-mauve-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                     <th className="p-4">Category ID</th>
                     <th className="p-4 w-1/3">Description</th>
                     <th className="p-4">Department</th>
@@ -229,26 +229,26 @@ export default function HRCategoriesConfig() {
                     filteredCategories.map((cat) => (
                       <tr
                         key={cat.id}
-                        className="hover:bg-gray-3/30 transition-colors"
+                        className="hover:bg-mauve-3/30 transition-colors"
                       >
                       <td className="p-4">
-                        <span className="text-xs font-bold text-gray-12 bg-gray-3 px-2 py-1 rounded border border-gray-4">
+                        <span className="text-xs font-bold text-foreground bg-mauve-3 px-2 py-1 rounded border border-mauve-4">
                           {cat.categoryId}
                         </span>
                       </td>
-                      <td className="p-4 text-sm text-gray-11 truncate max-w-xs">
+                      <td className="p-4 text-sm text-mauve-11 truncate max-w-xs">
                         {cat.description}
                       </td>
-                      <td className="p-4 text-sm text-gray-11">
+                      <td className="p-4 text-sm text-mauve-11">
                         {cat.department || "-"}
                       </td>
-                      <td className="p-4 text-sm text-gray-11">
+                      <td className="p-4 text-sm text-mauve-11">
                         {cat.subDepartment || "-"}
                       </td>
                       <td className="p-4 text-right space-x-2">
                         <button
                           onClick={() => openEdit(cat)}
-                          className="p-2 bg-gray-3 hover:bg-gray-4 text-gray-12 rounded-lg transition-colors inline-block"
+                          className="p-2 bg-mauve-3 hover:bg-mauve-4 text-foreground rounded-lg transition-colors inline-block"
                           title="Edit Category"
                         >
                           <Edit size={16} />
@@ -261,7 +261,7 @@ export default function HRCategoriesConfig() {
                               () => deleteMutation.mutate(cat)
                             );
                           }}
-                          className="p-2 bg-red-900/20 hover:bg-red-900/40 text-red-500 rounded-lg transition-colors inline-block"
+                          className="p-2 bg-red-900/20 hover:bg-red-900/40 text-destructive rounded-lg transition-colors inline-block"
                           title="Delete Category"
                           disabled={deleteMutation.isPending}
                         >
@@ -274,7 +274,7 @@ export default function HRCategoriesConfig() {
                   <tr>
                     <td
                       colSpan="5"
-                      className="p-8 text-center text-gray-9 font-bold"
+                      className="p-8 text-center text-muted-foreground font-bold"
                     >
                       No categories found matching your search.
                     </td>
@@ -295,9 +295,9 @@ export default function HRCategoriesConfig() {
             <div>
               <h2 className="text-xl font-black text-foreground flex items-center gap-2">
                 {editingId ? (
-                  <Edit size={20} className="text-indigo-500" />
+                  <Edit size={20} className="text-[color:var(--violet-9)]" />
                 ) : (
-                  <Plus size={20} className="text-indigo-500" />
+                  <Plus size={20} className="text-[color:var(--violet-9)]" />
                 )}
                 {editingId ? "Edit Category" : "Add Category"}
               </h2>
@@ -369,7 +369,7 @@ export default function HRCategoriesConfig() {
                       <span>{formData.department || "Set Department"}</span>
                       <ChevronDown
                         size={12}
-                        className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
                       />
                     </PropertyPill>
                   )}
@@ -377,7 +377,7 @@ export default function HRCategoriesConfig() {
                   {({ close }) => (
                     <div className="p-1">
                       <div className="px-3 py-2 border-b border-border mb-1">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                           Select Department
                         </p>
                       </div>
@@ -405,7 +405,7 @@ export default function HRCategoriesConfig() {
                           });
                           close();
                         }}
-                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
                       >
                         + Add New Department
                       </button>
@@ -429,7 +429,7 @@ export default function HRCategoriesConfig() {
                       {!disabled && (
                         <ChevronDown
                           size={12}
-                          className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                          className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
                         />
                       )}
                     </PropertyPill>
@@ -438,7 +438,7 @@ export default function HRCategoriesConfig() {
                   {({ close }) => (
                     <div className="p-1">
                       <div className="px-3 py-2 border-b border-border mb-1">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                           Select Sub-Dept
                         </p>
                       </div>
@@ -461,7 +461,7 @@ export default function HRCategoriesConfig() {
                           setFormData({ ...formData, subDepartment: "" });
                           close();
                         }}
-                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
                       >
                         + Add New Sub-Dept
                       </button>
@@ -472,16 +472,16 @@ export default function HRCategoriesConfig() {
 
               {/* Managed Mode Inputs (Fallback) */}
               {(isNewDept || isNewSubDept) && (
-                <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
+                <div className="bg-[color:var(--violet-2)]/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <Info size={14} className="text-indigo-600" />
-                    <p className="text-[11px] font-black text-indigo-900 uppercase tracking-widest">
+                    <Info size={14} className="text-[color:var(--violet-10)]" />
+                    <p className="text-[11px] font-black text-foreground uppercase tracking-widest">
                       Manual Entry Mode
                     </p>
                   </div>
                   {isNewDept && (
                     <div>
-                      <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                      <label className="text-[9px] font-bold text-foreground/60 uppercase tracking-wider mb-1 block">
                         New Department
                       </label>
                       <input
@@ -496,13 +496,13 @@ export default function HRCategoriesConfig() {
                             department: e.target.value.toUpperCase(),
                           })
                         }
-                        className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                        className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
                       />
                     </div>
                   )}
                   {isNewSubDept && (
                     <div>
-                      <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                      <label className="text-[9px] font-bold text-foreground/60 uppercase tracking-wider mb-1 block">
                         New Sub-Department
                       </label>
                       <input
@@ -517,7 +517,7 @@ export default function HRCategoriesConfig() {
                             subDepartment: e.target.value.toUpperCase(),
                           })
                         }
-                        className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                        className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
                       />
                     </div>
                   )}
@@ -532,7 +532,7 @@ export default function HRCategoriesConfig() {
                         subDepartment: "",
                       });
                     }}
-                    className="text-[10px] font-bold text-indigo-600 hover:underline"
+                    className="text-[10px] font-bold text-[color:var(--violet-10)] hover:underline"
                   >
                     Cancel manual entry
                   </button>
@@ -550,7 +550,7 @@ export default function HRCategoriesConfig() {
                 <button
                   type="submit"
                   disabled={upsertMutation.isPending}
-                  className="px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/15 transition-all active:scale-95 disabled:opacity-50"
                 >
                   {upsertMutation.isPending ? "Saving..." : "Save Category"}
                 </button>

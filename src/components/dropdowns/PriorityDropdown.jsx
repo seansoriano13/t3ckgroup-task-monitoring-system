@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Dropdown from "../ui/Dropdown";
 import { ChevronDown } from "lucide-react";
 import { PRIORITY_OPTIONS } from "../../constants/task";
@@ -17,17 +17,16 @@ export default function PriorityDropdown({
   return (
     <Dropdown
       disabled={disabled}
-      className={`z-[100] ${className}`}
+      className={`z-100 ${className}`}
       popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] min-w-[150px] popover-enter p-1"
       trigger={({ isOpen }) => {
         if (customTrigger) return customTrigger({ isOpen, currentPriority });
-        
+
         return (
           <button
             type="button"
             className={
-              triggerClassName ||
-              `property-pill ${isOpen ? "active" : ""}`
+              triggerClassName || `property-pill ${isOpen ? "active" : ""}`
             }
           >
             <span
@@ -36,7 +35,7 @@ export default function PriorityDropdown({
             <span className="text-muted-foreground font-medium">
               {currentPriority.label}
             </span>
-            <ChevronDown size={12} className="text-gray-7 ml-auto" />
+            <ChevronDown size={12} className="text-mauve-7 ml-auto" />
           </button>
         );
       }}

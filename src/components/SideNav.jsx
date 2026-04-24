@@ -29,19 +29,18 @@ import NotificationDrawer from "./NotificationDrawer";
 import ComprehensiveChatModal from "./ComprehensiveChatModal";
 import BroadcastDrawer from "./BroadcastDrawer";
 import GlobalDetailManager from "./GlobalDetailManager";
-import { NavLink, useNavigate } from "react-router";
+import { useLocation, Link, useNavigate, NavLink } from "react-router";
+import Avatar from "./Avatar";
 import { useState } from "react";
 import LogTaskModal from "./LogTaskModal";
 import CreateCommitteeTaskModal from "../pages/committee/components/CreateCommitteeTaskModal";
 import Dropdown from "./ui/Dropdown";
-import Select, { components } from "react-select";
-import { sidebarSelectStyles } from "../styles/selectStyles";
 import { committeeTaskService } from "../services/committeeTaskService";
 import { employeeService } from "../services/employeeService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-export default function SideNav({ onOpenAddTask }) {
+export default function SideNav() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -194,34 +193,6 @@ export default function SideNav({ onOpenAddTask }) {
     }
   };
 
-  const CustomPlaceholder = (props) => (
-    <components.Placeholder {...props}>
-      <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer transition-opacity">
-        {user?.picture ? (
-          <img
-            src={user.picture}
-            alt={user?.name || "Profile"}
-            className="w-[24px] h-[24px] rounded-md object-cover shrink-0 shadow-sm"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="w-[24px] h-[24px] rounded-md flex items-center justify-center bg-primary text-white font-bold text-[11px] shrink-0 shadow-sm">
-            {user?.name?.charAt(0)?.toUpperCase() || "U"}
-          </div>
-        )}
-        <span className="font-semibold text-[14px] truncate text-sidebar-foreground tracking-wide mt-[0.5px]">
-          {user?.name || "User"}
-        </span>
-      </div>
-    </components.Placeholder>
-  );
-
-  const CustomDropdownIndicator = (props) => (
-    <components.DropdownIndicator {...props}>
-      <ChevronDown size={14} className="text-sidebar-foreground/60" />
-    </components.DropdownIndicator>
-  );
-
   return (
     <>
       {/* Mobile Drawer Trigger (PanelRight) */}
@@ -266,17 +237,51 @@ export default function SideNav({ onOpenAddTask }) {
         <div className="px-3 pt-6 pb-2 flex flex-col gap-2.5">
           {/* Row 1: Profile Selector */}
           <div className="flex-1 min-w-0">
-            <Select
-              options={profileOptions}
-              value={null}
-              onChange={handleProfileSelect}
-              components={{
-                Placeholder: CustomPlaceholder,
-                DropdownIndicator: CustomDropdownIndicator,
-              }}
-              styles={sidebarSelectStyles}
-              isSearchable={false}
-            />
+            <Dropdown
+              className="flex-1 min-w-0"
+              trigger={({ isOpen }) => (
+                <div
+                  className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg transition-all ${
+                    isOpen ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer transition-opacity">
+                    <Avatar
+                      src={user?.picture}
+                      name={user?.name || "U"}
+                      size="md"
+                      className="rounded-md shadow-sm"
+                    />
+                    <span className="font-semibold text-[14px] truncate text-sidebar-foreground tracking-wide mt-[0.5px]">
+                      {user?.name || "User"}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    className={`text-sidebar-foreground/60 transition-transform duration-200 ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+              )}
+            >
+              {({ close }) => (
+                <div className="p-1.5 min-w-[215px] flex flex-col gap-0.5 bg-sidebar border border-sidebar-border rounded-xl shadow-2xl">
+                  {profileOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        handleProfileSelect(option);
+                        close();
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sidebar-foreground text-sm font-semibold text-foreground hover:bg-sidebar-accent transition-colors text-left"
+                    >
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Dropdown>
           </div>
 
           {/* Row 2: Action Buttons */}
@@ -306,7 +311,7 @@ export default function SideNav({ onOpenAddTask }) {
             >
               <Bell size={15} strokeWidth={2.2} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-white shadow-sm ring-2 ring-sidebar">
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-primary-foreground shadow-sm ring-2 ring-sidebar">
                   {unreadCount}
                 </span>
               )}
@@ -323,7 +328,7 @@ export default function SideNav({ onOpenAddTask }) {
             >
               <MessageCircle size={15} strokeWidth={2.2} />
               {unreadChatsCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-white shadow-sm ring-2 ring-sidebar">
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-primary-foreground shadow-sm ring-2 ring-sidebar">
                   {unreadChatsCount}
                 </span>
               )}
@@ -339,7 +344,7 @@ export default function SideNav({ onOpenAddTask }) {
                   <button
                     className={`relative flex-1 flex items-center justify-center py-2 px-3 rounded-lg border transition-all ${
                       isOpen
-                        ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/30 shadow-sm"
+                        ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/10 shadow-sm"
                         : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"
                     }`}
                     title="Create new..."
@@ -358,11 +363,8 @@ export default function SideNav({ onOpenAddTask }) {
                       }}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
                     >
-                      <SquarePen
-                        size={14}
-                        className="text-sidebar-primary/70"
-                      />
-                      <span>Log Regular Task</span>
+                      <SquarePen size={14} />
+                      <span>Task</span>
                     </button>
                     <button
                       onClick={() => {
@@ -372,7 +374,7 @@ export default function SideNav({ onOpenAddTask }) {
                       }}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
                     >
-                      <UsersRound size={14} className="text-sidebar-primary" />
+                      <UsersRound size={14} />
                       <span>Committee Task</span>
                     </button>
                   </div>

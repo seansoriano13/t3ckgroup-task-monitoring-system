@@ -31,7 +31,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
   const { isEditing, isSubmitting, task, formIsValid } = state;
 
   return (
-    <div className="p-4 border-t border-border bg-card flex justify-between items-center shrink-0 rounded-b-xl">
+    <div className="px-5 py-3 border-t border-border bg-card flex justify-between items-center shrink-0 rounded-b-xl">
       {/* ========================================= */}
       {/* LEFT: CANCEL / CLOSE & DELETE ZONE          */}
       {/* ========================================= */}
@@ -39,7 +39,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
         <Button
           variant="ghost"
           onClick={isEditing ? onCancel : onClose}
-          className="text-sm font-bold text-slate-500 hover:text-foreground"
+          className="text-sm font-bold text-muted-foreground hover:text-foreground"
         >
           {isEditing ? "Cancel" : "Close"}
         </Button>
@@ -68,7 +68,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
           <Button
             onClick={onSave}
             disabled={!formIsValid || isSubmitting}
-            className="font-bold px-8"
+            className="font-bold px-6 h-9 text-sm"
           >
             {isSubmitting ? (
               <Loader2 size={16} className="animate-spin" />
@@ -84,7 +84,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
               <Button
                 variant="outline"
                 onClick={onToggleEdit}
-                className="font-bold flex items-center gap-2"
+                className="font-bold flex items-center gap-2 h-9 text-sm"
               >
                 <Edit3 size={16} /> Edit
               </Button>
@@ -102,7 +102,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                     (state.isMarketing && !state.hasAttachments) ||
                     state.task.status === TASK_STATUS.AWAITING_APPROVAL
                   }
-                  className="bg-blue-600 hover:bg-blue-700 font-bold px-6"
+                  className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
                 >
                   {isSubmitting ? (
                     <Loader2 size={16} className="animate-spin" />
@@ -121,7 +121,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                     <Button
                       variant="secondary"
                       onClick={onSelfVerify}
-                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-9 px-4"
+                      className="bg-purple-600 hover:bg-purple-700 text-primary-foreground font-bold h-9 px-4"
                       title="Bypass unresponsive head approval"
                     >
                       <ShieldCheck size={14} /> Self-Verify
@@ -138,7 +138,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                     <Undo2 size={14} /> Recall
                   </Button>
 
-                  <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600 flex items-center gap-1.5 px-2">
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-[color:var(--blue-10)] flex items-center gap-1.5 px-2">
                     <Clock size={16} />
                     {state.isDelayed && state.enableVisualShaming ? (
                       <span className="text-destructive animate-pulse">DELAYED</span>
@@ -158,7 +158,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                     variant="outline"
                     onClick={onHeadReject}
                     disabled={isSubmitting}
-                    className="text-sm font-bold text-muted-foreground hover:text-destructive hover:border-destructive/30"
+                    className="text-sm font-bold text-muted-foreground hover:text-destructive hover:border-destructive/30 h-9"
                   >
                     <XCircle size={16} /> Not Approve
                   </Button>
@@ -166,7 +166,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   <Button
                     onClick={onMarkComplete}
                     disabled={isSubmitting || !state.canApprove}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 shadow-green-900/10"
+                    className="bg-green-9 hover:bg-green-9 text-primary-foreground font-bold px-5 h-9 text-sm shadow-green-900/10"
                   >
                     {isSubmitting ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -183,7 +183,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
               <Button
                 onClick={onHrVerify}
                 disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-700 font-bold px-6"
+                className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
               >
                 {isSubmitting ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -199,7 +199,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 variant="outline"
                 onClick={onUndoVerify}
                 disabled={isSubmitting}
-                className="font-bold px-4"
+                className="font-bold px-4 h-9 text-sm"
               >
                 {isSubmitting ? (
                   <Loader2 size={16} className="animate-spin" />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   Search,
   Filter,
@@ -84,13 +84,19 @@ export default function TaskFilters({
 
   const deptOptions = [
     { value: "ALL", label: "Dept: All" },
-    ...(!uniqueDepts.includes("SALES") ? [{ value: "SALES", label: "Dept: SALES" }] : []),
-    ...uniqueDepts.filter((d) => d !== "ALL").map((d) => ({ value: d, label: `Dept: ${d}` })),
+    ...(!uniqueDepts.includes("SALES")
+      ? [{ value: "SALES", label: "Dept: SALES" }]
+      : []),
+    ...uniqueDepts
+      .filter((d) => d !== "ALL")
+      .map((d) => ({ value: d, label: `Dept: ${d}` })),
   ];
 
   const subDeptOptions = [
     { value: "ALL", label: "Sub-Dept: All" },
-    ...uniqueSubDepts.filter((s) => s !== "ALL").map((s) => ({ value: s, label: `Sub: ${s}` })),
+    ...uniqueSubDepts
+      .filter((s) => s !== "ALL")
+      .map((s) => ({ value: s, label: `Sub: ${s}` })),
   ];
 
   const employeeOptions = [
@@ -98,19 +104,31 @@ export default function TaskFilters({
     ...uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name })),
   ];
 
-  const currentSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || sortOptions[0].label;
-  const currentStatusLabel = statusOptions.find((o) => o.value === statusFilter)?.label || statusOptions[0].label;
-  const currentDeptLabel = deptOptions.find((o) => o.value === deptFilter)?.label || deptOptions[0].label;
-  const currentSubDeptLabel = subDeptOptions.find((o) => o.value === subDeptFilter)?.label || subDeptOptions[0].label;
-  const currentEmployeeLabel = employeeOptions.find((o) => o.value === employeeFilter)?.label || employeeOptions[0].label;
+  const currentSortLabel =
+    sortOptions.find((o) => o.value === sortBy)?.label || sortOptions[0].label;
+  const currentStatusLabel =
+    statusOptions.find((o) => o.value === statusFilter)?.label ||
+    statusOptions[0].label;
+  const currentDeptLabel =
+    deptOptions.find((o) => o.value === deptFilter)?.label ||
+    deptOptions[0].label;
+  const currentSubDeptLabel =
+    subDeptOptions.find((o) => o.value === subDeptFilter)?.label ||
+    subDeptOptions[0].label;
+  const currentEmployeeLabel =
+    employeeOptions.find((o) => o.value === employeeFilter)?.label ||
+    employeeOptions[0].label;
 
   return (
     <div className="grid gap-3 md:gap-4">
       {/* Row 1: Search & Permanent Filters */}
-      <div className="bg-white border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
+      <div className="bg-card border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
         {/* Search */}
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            size={18}
+          />
           <Input
             type="text"
             placeholder="Search tasks..."
@@ -125,12 +143,16 @@ export default function TaskFilters({
           <div className="flex gap-2 items-center flex-wrap">
             {/* DATE PICKER */}
             <div
-              className={`bg-card flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${startDate || endDate
-                ? "text-foreground border-primary/20 font-medium"
-                : "border-border hover:border-border/80 text-foreground"
-                }`}
+              className={`bg-card flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${
+                startDate || endDate
+                  ? "text-foreground border-primary/20 font-medium"
+                  : "border-border hover:border-border/80 text-foreground"
+              }`}
             >
-              <CalendarIcon size={16} className={`${startDate || endDate ? "text-foreground" : "text-slate-400"} mr-2 shrink-0`} />
+              <CalendarIcon
+                size={16}
+                className={`${startDate || endDate ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
+              />
               <DatePicker
                 selectsRange={true}
                 startDate={startDate}
@@ -138,8 +160,11 @@ export default function TaskFilters({
                 onChange={(update) => setDateRange(update)}
                 isClearable={true}
                 placeholderText="Date Range"
-                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${startDate || endDate ? "text-foreground placeholder:text-slate-400 font-medium" : "text-foreground placeholder:text-slate-400"
-                  }`}
+                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${
+                  startDate || endDate
+                    ? "text-foreground placeholder:text-muted-foreground font-medium"
+                    : "text-foreground placeholder:text-muted-foreground"
+                }`}
               />
             </div>
 
@@ -183,7 +208,7 @@ export default function TaskFilters({
           {isAnyFilterActive && (
             <button
               onClick={handleClearAll}
-              className="ml-auto xl:ml-2 text-sm text-slate-400 hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
+              className="ml-auto xl:ml-2 text-sm text-muted-foreground hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
             >
               Clear All
             </button>
@@ -193,8 +218,7 @@ export default function TaskFilters({
 
       {/* Row 2: Advanced Filters */}
       {showAdvanced && (
-        <div className="bg-gray-50 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
-
+        <div className="bg-mauve-2 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Status Filter */}
           {showStatusFilter && (
             <Dropdown
@@ -229,25 +253,31 @@ export default function TaskFilters({
               const isActive = priorityFilter && priorityFilter !== "ALL";
               return (
                 <div
-                  className={`h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${isOpen
-                    ? "border-primary/50 ring-1 ring-primary/20 bg-card"
-                    : isActive
-                      ? "border-primary/20 bg-muted font-medium"
-                      : "border-border bg-card hover:border-border/80"
-                    }`}
+                  className={`h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${
+                    isOpen
+                      ? "border-mauve-6 ring-1 ring-mauve-6 bg-card"
+                      : isActive
+                        ? "border-mauve-6 font-medium"
+                        : "border-border bg-card hover:border-border/80"
+                  }`}
                 >
                   <div className="flex items-center gap-2 overflow-hidden flex-1">
                     {currentPriority.value !== "ALL" && (
-                      <div className={`w-2 h-2 shrink-0 rounded-full ${currentPriority.dot}`} />
+                      <div
+                        className={`w-2 h-2 shrink-0 rounded-full ${currentPriority.dot}`}
+                      />
                     )}
                     <span className="text-[13px] text-foreground font-[500] truncate block w-full text-left">
-                      {currentPriority.value === "ALL" ? "Priority: All" : currentPriority.label}
+                      {currentPriority.value === "ALL"
+                        ? "Priority: All"
+                        : currentPriority.label}
                     </span>
                   </div>
                   <ChevronDown
                     size={14}
-                    className={`ml-1 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""
-                      }`}
+                    className={`ml-1 shrink-0 text-muted-foreground transition-transform ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </div>
               );
@@ -259,7 +289,9 @@ export default function TaskFilters({
             <>
               {/* Dept */}
               <Dropdown
-                disabled={disableDeptFilter !== undefined ? disableDeptFilter : !isHr}
+                disabled={
+                  disableDeptFilter !== undefined ? disableDeptFilter : !isHr
+                }
                 className="flex-1 min-w-[180px]"
                 popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
                 trigger={({ isOpen, disabled }) => (

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 
 // Hooks
@@ -255,14 +255,14 @@ export default function LogTaskModal({ isOpen, onClose }) {
           {(isCommittee || isOthersGlobal) && (
             <div className="py-3 animate-slide-down">
               {!isCommittee && (
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
                   Others Details
                 </label>
               )}
 
               {isCommittee && (
-                <div className="bg-slate-100/80 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/50 mb-3">
-                  <label className="block text-[10px] font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-widest mb-3">
+                <div className="bg-mauve-4/80 /40 p-4 rounded-xl border border-mauve-5/60 /50 mb-3">
+                  <label className="block text-[10px] font-extrabold text-foreground  uppercase tracking-widest mb-3">
                     SELECT COMMITTEE ROLE
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -277,8 +277,8 @@ export default function LogTaskModal({ isOpen, onClose }) {
                           }}
                           className={`px-4 py-2 rounded-full text-[11px] font-bold tracking-wider transition-all duration-200 border ${
                             committeeRole === role
-                              ? "bg-primary text-white border-primary dark:bg-primary dark:text-white dark:border-primary shadow-md"
-                              : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 shadow-sm"
+                              ? "bg-primary text-primary-foreground border-primary dark:bg-primary dark:text-primary-foreground dark:border-primary shadow-md"
+                              : "bg-card text-mauve-11 border-mauve-5 hover:border-mauve-5 hover:bg-mauve-2   dark:text-muted-foreground dark:hover:bg-muted shadow-sm"
                           }`}
                         >
                           {role}
@@ -292,7 +292,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
               {(isOthersGlobal || committeeRole === "OTHERS") && (
                 <div className="animate-slide-down">
                   {isCommittee && committeeRole === "OTHERS" && (
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
                       Others Details
                     </label>
                   )}

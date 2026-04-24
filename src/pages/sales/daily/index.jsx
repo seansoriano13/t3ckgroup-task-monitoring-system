@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+﻿import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
@@ -211,7 +211,7 @@ export default function DailyExecutionPage() {
     return (
       <ProtectedRoute excludeSuperAdmin={true}>
         <div className="flex justify-center items-center h-[80vh] text-muted-foreground gap-3 font-bold">
-          <Loader2 className="animate-spin text-indigo-500" /> Fetching Daily Checklist...
+          <Loader2 className="animate-spin text-[color:var(--violet-9)]" /> Fetching Daily Checklist...
         </div>
       </ProtectedRoute>
     );
@@ -226,7 +226,7 @@ export default function DailyExecutionPage() {
           description="Tap the circles to cross off your planned calls and execution targets."
         >
           <div className="bg-card border border-border rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-sm hover:border-indigo-300 transition-colors">
-            <CalendarIcon size={16} className="text-indigo-500" />
+            <CalendarIcon size={16} className="text-[color:var(--violet-9)]" />
             <DatePicker
               selected={currentDateObj}
               onChange={(date) => {
@@ -261,8 +261,8 @@ export default function DailyExecutionPage() {
 
         {/* ALERTS */}
         {isFutureWeek && (
-          <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
-            <h2 className="text-base font-black text-indigo-700 mb-1 flex items-center justify-center gap-2">
+          <div className="bg-[color:var(--violet-2)] border border-mauve-5 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
+            <h2 className="text-base font-black text-[color:var(--violet-11)] mb-1 flex items-center justify-center gap-2">
               <AlertCircle size={18} /> Future Week Locked
             </h2>
             <p className="text-muted-foreground font-medium text-sm">
@@ -272,8 +272,8 @@ export default function DailyExecutionPage() {
           </div>
         )}
         {planStatus === "DRAFT" && !isFutureWeek && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
-            <h2 className="text-base font-black text-amber-700 mb-1 flex items-center justify-center gap-2">
+          <div className="bg-[color:var(--amber-2)] border border-[color:var(--amber-6)] rounded-2xl p-6 text-center mt-4 shadow-sm mb-4">
+            <h2 className="text-base font-black text-[color:var(--amber-11)] mb-1 flex items-center justify-center gap-2">
               <AlertCircle size={18} /> Plan Execution Locked
             </h2>
             <p className="text-muted-foreground font-medium text-sm">

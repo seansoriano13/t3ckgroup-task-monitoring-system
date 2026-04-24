@@ -1,4 +1,4 @@
-export function ScheduleTabs({
+﻿export function ScheduleTabs({
   weekDates,
   dayProgress,
   activeTab,
@@ -22,19 +22,19 @@ export function ScheduleTabs({
             onClick={() => setActiveTab(idx)}
             className={`px-5 py-3 font-bold text-sm tracking-wide border-b-2 transition-all whitespace-nowrap rounded-t-lg ${
               activeTab === idx
-                ? "border-indigo-600 text-indigo-600 bg-indigo-50/50"
+                ? "border-primary text-[color:var(--violet-10)] bg-[color:var(--violet-2)]/50"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
             {d.label}{" "}
             {hasTasks && (
               <span
-                className={`w-2 h-2 rounded-full ${isGreen ? "bg-green-500" : "bg-yellow-500"} inline-block ml-1 mb-0.5 shadow-sm`}
+                className={`w-2 h-2 rounded-full ${isGreen ? "bg-green-9" : "bg-[color:var(--yellow-9)]"} inline-block ml-1 mb-0.5 shadow-sm`}
               ></span>
             )}
               <span className={`text-[10px] font-bold text-muted-foreground block mt-0.5`}>{d.dateStr}</span>
             {dayStats && (
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mt-0.5">
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider block mt-0.5">
                 AM {dayStats.amCount}/5 · PM {dayStats.pmCount}/5
               </span>
             )}

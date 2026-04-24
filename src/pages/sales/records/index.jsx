@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { useAuth } from "../../../context/AuthContext";
@@ -100,7 +100,7 @@ export default function SalesRecordsPage() {
 
         {/* QUICK VIEWS — tab-aware */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
             Quick Views
           </span>
           {activeTab === "ACTIVITIES"
@@ -110,7 +110,7 @@ export default function SalesRecordsPage() {
                   onClick={() => applyPreset(preset.id)}
                   className={`text-[10px] font-black px-3 py-1.5 rounded-xl border transition-all ${
                     activePreset === preset.id
-                      ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100"
+                      ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/15"
                       : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -123,7 +123,7 @@ export default function SalesRecordsPage() {
                   onClick={() => applyRevPreset(preset.id)}
                   className={`text-[10px] font-black px-3 py-1.5 rounded-xl border transition-all ${
                     activeRevPreset === preset.id
-                      ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100"
+                      ? "bg-green-10 text-primary-foreground border-green-10 shadow-md shadow-green-5"
                       : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -137,15 +137,15 @@ export default function SalesRecordsPage() {
           <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground">
             Total: {recordsSummary.total}
           </span>
-          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-green-2 text-green-11 border border-green-6">
             Completed: {recordsSummary.completedPct}%
           </span>
           {activeTab === "ACTIVITIES" && (
-            <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-[color:var(--violet-2)] text-[color:var(--violet-11)] border border-mauve-5">
               Unplanned: {recordsSummary.unplannedPct}%
             </span>
           )}
-          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-[color:var(--amber-2)] text-[color:var(--amber-11)] border border-[color:var(--amber-6)]">
             {activeTab === "ACTIVITIES" ? "Pending Expense" : "Unverified"}:{" "}
             {recordsSummary.pendingExpense}
           </span>
@@ -156,7 +156,7 @@ export default function SalesRecordsPage() {
                   ? "bg-muted text-muted-foreground border-border"
                   : planVariance.direction === "over"
                     ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                    : "bg-red-50 text-red-700 border-red-200"
+                    : "bg-destructive/5 text-destructive border-destructive/30"
               }`}
             >
               Plan vs Actual: {planVariance.planned} vs {planVariance.completed} (
@@ -233,17 +233,17 @@ export default function SalesRecordsPage() {
 
         {employeeInsights.length > 0 && (
           <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4 flex items-center gap-2">
               Team Consistency Risk
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {employeeInsights.slice(0, 6).map((insight) => (
-                <div key={insight.employeeId} className="bg-muted/30 border border-border rounded-xl p-4 hover:border-indigo-200 transition-colors">
+                <div key={insight.employeeId} className="bg-muted/30 border border-border rounded-xl p-4 hover:border-mauve-5 transition-colors">
                   <p className="font-black text-sm text-foreground">{insight.employeeName}</p>
                   <p className="text-[11px] text-muted-foreground mt-1.5 font-bold">
                     Consistency {insight.consistencyScore}% · Risk {insight.riskScore}%
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-1 font-bold uppercase tracking-wider">
+                  <p className="text-[10px] text-muted-foreground mt-1 font-bold uppercase tracking-wider">
                     Completion {insight.completionRate}% · Unplanned {insight.unplannedRate}%
                   </p>
                 </div>

@@ -21,9 +21,9 @@ const ManagementSection = ({
   const canEditAssignee = isHr || isHead;
 
   return (
-    <div className="grid grid-cols-2 gap-4 bg-muted/30 p-5 rounded-2xl border border-border">
-      <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-1 flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+    <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
+      <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
         Management Details
       </div>
 
@@ -109,8 +109,8 @@ const ManagementSection = ({
       {!isEditing && reportedToName && (
         <div className="col-span-2 pt-2 border-t border-border mt-1">
           <FieldBox label="Reported To (Head)" isEditing={false}>
-            <p className="px-3 text-sm font-bold text-indigo-600 flex items-center gap-2">
-              <ClipboardList size={14} className="text-indigo-400" />
+            <p className="px-3 text-sm font-bold text-[color:var(--violet-10)] flex items-center gap-2">
+              <ClipboardList size={14} className="text-[color:var(--violet-8)]" />
               {reportedToName}
             </p>
           </FieldBox>

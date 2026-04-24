@@ -1,5 +1,6 @@
 /**
  * Shared react-select styles to ensure UI consistency across the application.
+ * All colors use Radix UI CSS variables — no hardcoded hex values.
  */
 
 // JS-based styles for standard react-select implementations
@@ -7,19 +8,19 @@ export const defaultSelectStyles = {
   control: (base, state) => ({
     ...base,
     minHeight: "36px",
-    backgroundColor: "#F9FAFB",
-    borderColor: state.isFocused ? "#111827" : "#E5E7EB",
+    backgroundColor: "var(--mauve-2)",
+    borderColor: state.isFocused ? "var(--mauve-8)" : "var(--mauve-6)",
     borderRadius: "8px",
-    boxShadow: state.isFocused ? "0 0 0 1px #111827" : "none",
+    boxShadow: state.isFocused ? "0 0 0 1px var(--mauve-8)" : "none",
     "&:hover": {
-      borderColor: "#D1D5DB",
+      borderColor: "var(--mauve-7)",
     },
     cursor: "pointer",
   }),
   menu: (base) => ({
     ...base,
-    backgroundColor: "#FFFFFF",
-    border: "1px solid #E5E7EB",
+    backgroundColor: "var(--mauve-2)",
+    border: "1px solid var(--mauve-6)",
     borderRadius: "8px",
     boxShadow:
       "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
@@ -31,37 +32,37 @@ export const defaultSelectStyles = {
     fontSize: "13px",
     padding: "8px 12px",
     backgroundColor: state.isFocused
-      ? "#F3F4F6"
+      ? "var(--mauve-4)"
       : state.isSelected
-        ? "#E5E7EB"
+        ? "var(--mauve-5)"
         : "transparent",
-    color: "#111827",
+    color: "var(--mauve-12)",
     cursor: "pointer",
     "&:active": {
-      backgroundColor: "#E5E7EB",
+      backgroundColor: "var(--mauve-5)",
     },
   }),
   singleValue: (base) => ({
     ...base,
-    color: "#111827",
+    color: "var(--mauve-12)",
     fontWeight: "600",
     fontSize: "13px",
   }),
   placeholder: (base) => ({
     ...base,
-    color: "#9CA3AF",
+    color: "var(--mauve-9)",
     fontSize: "13px",
   }),
   input: (base) => ({
     ...base,
-    color: "#111827",
+    color: "var(--mauve-12)",
     fontSize: "13px",
   }),
   indicatorSeparator: () => ({ display: "none" }),
   dropdownIndicator: (base) => ({
     ...base,
-    color: "#9CA3AF",
-    "&:hover": { color: "#4B5563" },
+    color: "var(--mauve-9)",
+    "&:hover": { color: "var(--mauve-11)" },
     padding: "4px",
   }),
 };
@@ -70,9 +71,9 @@ export const sidebarSelectStyles = {
   control: (base, state) => ({
     ...base,
     backgroundColor: state.isFocused
-      ? "rgba(var(--sidebar-accent-rgb), 0.5)"
+      ? "var(--sidebar-accent)"
       : "transparent",
-    color: "rgba(var(--sidebar-foreground-rgb), 0.8)",
+    color: "var(--sidebar-foreground)",
     border: "none",
     boxShadow: "none",
     cursor: "pointer",
@@ -80,7 +81,7 @@ export const sidebarSelectStyles = {
     padding: "4px",
     borderRadius: "6px",
     "&:hover": {
-      backgroundColor: "rgba(var(--sidebar-accent-rgb), 0.5)",
+      backgroundColor: "var(--sidebar-accent)",
     },
   }),
   valueContainer: (base) => ({
@@ -118,7 +119,7 @@ export const sidebarSelectStyles = {
 };
 
 export const inlineSelectStyles = (isFilled) => ({
-  control: (base, state) => ({
+  control: (base) => ({
     ...base,
     backgroundColor: "transparent",
     border: "none",
@@ -126,7 +127,7 @@ export const inlineSelectStyles = (isFilled) => ({
     minHeight: "32px",
     fontSize: "14px",
     fontWeight: isFilled ? "700" : "400",
-    color: isFilled ? "#111827" : "#9CA3AF",
+    color: isFilled ? "var(--mauve-12)" : "var(--mauve-9)",
     cursor: "pointer",
     "&:hover": { borderColor: "transparent" },
   }),
@@ -140,7 +141,7 @@ export const inlineSelectStyles = (isFilled) => ({
   }),
   placeholder: (base) => ({
     ...base,
-    color: "#9CA3AF",
+    color: "var(--mauve-9)",
     fontWeight: "400",
   }),
   singleValue: (base) => ({
@@ -154,10 +155,11 @@ export const inlineSelectStyles = (isFilled) => ({
   menu: (base) => ({
     ...base,
     borderRadius: "12px",
-    border: "1px solid #E5E7EB",
+    border: "1px solid var(--mauve-6)",
     boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
     marginTop: "4px",
     overflow: "hidden",
+    backgroundColor: "var(--mauve-2)",
     zIndex: 50,
   }),
   groupHeading: (base) => ({
@@ -165,8 +167,8 @@ export const inlineSelectStyles = (isFilled) => ({
     fontSize: "10px",
     fontWeight: "800",
     textTransform: "uppercase",
-    color: "#9CA3AF",
-    backgroundColor: "#F9FAFB",
+    color: "var(--mauve-9)",
+    backgroundColor: "var(--mauve-3)",
     padding: "8px 12px",
     margin: "0",
   }),
@@ -175,32 +177,32 @@ export const inlineSelectStyles = (isFilled) => ({
     fontSize: "13px",
     fontWeight: "600",
     padding: "8px 12px",
-    backgroundColor: state.isFocused ? "#F3F4F6" : state.isSelected ? "#F9FAFB" : "white",
-    color: state.isSelected ? "#111827" : "#374151",
+    backgroundColor: state.isFocused ? "var(--mauve-4)" : state.isSelected ? "var(--mauve-3)" : "var(--mauve-2)",
+    color: state.isSelected ? "var(--mauve-12)" : "var(--mauve-11)",
     cursor: "pointer",
-    "&:active": { backgroundColor: "#E5E7EB" },
+    "&:active": { backgroundColor: "var(--mauve-5)" },
   }),
 });
 
 // Tailwind-based classNames for react-select (Secondary/Administrative style)
 export const secondarySelectClassNames = {
   control: (state) =>
-    `min-h-[36px] w-full bg-gray-1 border ${state.isFocused ? "border-gray-6 ring-1 ring-gray-6" : "border-gray-4"} hover:border-gray-5 rounded-lg px-2 shadow-sm transition-all cursor-pointer`,
+    `min-h-[36px] w-full bg-mauve-1 border ${state.isFocused ? "border-mauve-6 ring-1 ring-mauve-6" : "border-mauve-4"} hover:border-mauve-5 rounded-lg px-2 shadow-sm transition-all cursor-pointer`,
   menu: () =>
-    `mt-1 bg-gray-1 border border-gray-4 rounded-lg shadow-xl overflow-hidden popover-enter`,
+    `mt-1 bg-mauve-1 border border-mauve-4 rounded-lg shadow-xl overflow-hidden popover-enter`,
   menuList: () => `p-1`,
   option: (state) =>
     `px-3 py-1.5 cursor-pointer transition-colors rounded-md !text-[13px] ${state.isFocused
-      ? "bg-slate-200 text-foreground font-bold"
+      ? "bg-mauve-4 text-foreground font-bold"
       : state.isSelected
-        ? "bg-slate-300 text-foreground font-bold"
+        ? "bg-mauve-5 text-foreground font-bold"
         : "text-muted-foreground bg-transparent"
     }`,
   singleValue: () => `text-foreground font-semibold text-xs`,
   placeholder: () => `text-muted-foreground text-xs`,
   input: () => `text-foreground text-xs`,
   indicatorSeparator: () => `hidden`,
-  dropdownIndicator: () => `text-slate-400 hover:text-slate-600 p-1`,
+  dropdownIndicator: () => `text-muted-foreground hover:text-foreground p-1`,
   valueContainer: () => `gap-1 py-0`,
 };
 
@@ -208,7 +210,7 @@ export const secondarySelectClassNames = {
 export const activityLogClassNames = secondarySelectClassNames;
 export const logTaskSelectClassNames = {
   ...secondarySelectClassNames,
-  control: (state) => 
+  control: (state) =>
     `${secondarySelectClassNames.control(state)} min-h-[44px]`, // Log task uses taller controls
 };
 

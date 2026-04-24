@@ -131,7 +131,7 @@ export default function ChecklistTaskInput({
             onDrop={(e) => handleDrop(e, index)}
             className={`flex items-center gap-3 group transition-all rounded-xl p-2.5 bg-muted/30 border border-transparent hover:border-border hover:bg-muted/50 ${draggedIndex === index ? "opacity-50" : ""}`}
           >
-            <span className="text-slate-400 cursor-grab active:cursor-grabbing opacity-50 group-hover:opacity-100 flex-shrink-0 p-1 hover:bg-muted rounded-md transition-all">
+            <span className="text-muted-foreground cursor-grab active:cursor-grabbing opacity-50 group-hover:opacity-100 flex-shrink-0 p-1 hover:bg-muted rounded-md transition-all">
               <GripVertical size={16} />
             </span>
             <div className="w-5 h-5 border border-border rounded-md flex-shrink-0 bg-card shadow-sm" />
@@ -156,15 +156,26 @@ export default function ChecklistTaskInput({
                       ?.querySelectorAll('input[type="text"]');
                     inputs?.[index + 1]?.focus();
                   }, 0);
+                } else if (e.key === "Backspace" && e.target.value === "") {
+                  e.preventDefault();
+                  if (items.length > 1) {
+                    const newItems = items.filter((_, i) => i !== index);
+                    setItems(newItems);
+                    emitChange(newItems);
+                    setTimeout(() => {
+                      const inputs = e.target.closest(".space-y-2")?.querySelectorAll('input[type="text"]');
+                      inputs?.[Math.max(0, index - 1)]?.focus();
+                    }, 0);
+                  }
                 }
               }}
               placeholder="List detailed requirement..."
-              className="flex-1 bg-transparent border-none outline-none text-foreground font-medium text-sm py-1 placeholder:text-slate-400 transition-all"
+              className="flex-1 bg-transparent border-none outline-none text-foreground font-medium text-sm py-1 placeholder:text-muted-foreground transition-all"
             />
             <button
               type="button"
               onClick={() => removeItem(index)}
-              className="text-slate-400 hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 p-1.5 rounded-lg hover:bg-destructive/10"
+              className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 p-1.5 rounded-lg hover:bg-destructive/10"
             >
               <X size={16} />
             </button>
@@ -177,11 +188,11 @@ export default function ChecklistTaskInput({
           <button
             type="button"
             onClick={addItem}
-            className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-all py-2 px-3 rounded-lg hover:bg-indigo-50"
+            className="flex items-center gap-2 text-xs font-bold text-[color:var(--violet-10)] hover:text-[color:var(--violet-11)] transition-all py-2 px-3 rounded-lg hover:bg-[color:var(--violet-2)]"
           >
             <Plus size={16} /> Add Item
           </button>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-muted px-2 py-1 rounded-md">
+          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest bg-muted px-2 py-1 rounded-md">
             Checklist Mode Enabled
           </span>
         </div>

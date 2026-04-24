@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,9 +49,9 @@ export default function BulkGradeModal({
         className="p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[500px] sm:max-w-none max-w-[95vw] rounded-2xl max-h-[90vh] overflow-hidden"
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-gray-3/40 shrink-0">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-emerald-500 text-white font-bold text-[9px] shrink-0">
+        <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-mauve-3/40 shrink-0">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-green-9 text-primary-foreground font-bold text-[9px] shrink-0">
               <CheckSquare size={10} />
             </div>
             <span className="font-bold text-muted-foreground">Bulk Evaluation</span>
@@ -59,7 +59,7 @@ export default function BulkGradeModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-md text-slate-400 hover:text-foreground hover:bg-muted/80 transition-colors"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
           >
             <X size={15} />
           </button>
@@ -83,11 +83,11 @@ export default function BulkGradeModal({
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((num) => {
                 const activeColorMap = {
-                  1: "bg-red-500 text-gray-1 hover:bg-red-600 border-red-500 shadow-red-500/40",
-                  2: "bg-orange-500 text-gray-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
-                  3: "bg-yellow-500 text-gray-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
-                  4: "bg-lime-500 text-gray-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
-                  5: "bg-green-500 text-gray-1 hover:bg-green-600 border-green-500 shadow-green-500/40",
+                  1: "bg-destructive text-mauve-1 hover:bg-destructive border-red-500 shadow-red-500/40",
+                  2: "bg-orange-500 text-mauve-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
+                  3: "bg-[color:var(--yellow-9)] text-mauve-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
+                  4: "bg-lime-500 text-mauve-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
+                  5: "bg-green-9 text-mauve-1 hover:bg-green-9 border-green-500 shadow-green-500/40",
                 };
 
                 return (
@@ -98,7 +98,7 @@ export default function BulkGradeModal({
                     className={`flex-1 py-3 rounded-lg font-black transition-all border text-sm ${
                       grade === num
                         ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                        : "bg-muted text-muted-foreground/80 border-border hover:border-slate-300 hover:bg-slate-100"
+                        : "bg-muted text-muted-foreground/80 border-border hover:border-mauve-5 hover:bg-mauve-4"
                     }`}
                   >
                     {num}
@@ -130,7 +130,7 @@ export default function BulkGradeModal({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || !grade}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-wide shadow-sm"
+            className="bg-green-10 hover:bg-green-11 text-primary-foreground font-bold tracking-wide shadow-sm"
           >
             {isSubmitting ? "Processing..." : `Approve ${selectedCount} Tasks`}
           </Button>

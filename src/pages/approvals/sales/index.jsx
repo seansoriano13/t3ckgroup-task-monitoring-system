@@ -27,12 +27,15 @@ import DayDeletionApprovalQueue from "../../../components/DayDeletionApprovalQue
 import { supabase } from "../../../lib/supabase";
 import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
+import TabGroup from "@/components/ui/TabGroup";
+import Avatar from "../../../components/Avatar";
 
 export default function SalesHeadApprovalsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("PENDING"); // "PENDING" | "VERIFIED" | "REQUESTS"
+  const [requestsSubTab, setRequestsSubTab] = useState("AMENDMENTS"); // "AMENDMENTS" | "DELETIONS"
   const [searchQuery, setSearchQuery] = useState("");
   const [filterEmp, setFilterEmp] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -413,7 +416,7 @@ export default function SalesHeadApprovalsPage() {
                 toast.dismiss(t.id);
                 bulkUnverifyMutation.mutate({ activityIds: ids });
               }}
-              className="flex items-center gap-1 bg-gray-12 text-white text-xs font-bold px-3 py-1.5 rounded-md hover:bg-black transition-colors active:scale-95"
+              className="flex items-center gap-1 bg-foreground text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-md hover:bg-mauve-12 transition-colors active:scale-95"
             >
               <Undo2 size={12} /> Undo
             </button>
@@ -421,7 +424,7 @@ export default function SalesHeadApprovalsPage() {
         ),
         {
           duration: 5000,
-          icon: <CheckCircle2 size={18} className="text-green-500" />,
+          icon: <CheckCircle2 size={18} className="text-green-9" />,
           style: {
             background: "var(--gray-1, #fff)",
             border: "1px solid var(--gray-4, #e5e5e5)",
@@ -489,74 +492,16 @@ export default function SalesHeadApprovalsPage() {
 
         {/* TAB TOGGLE & BULK ACTIONS */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/50 pb-4">
-          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
-            <button
-              onClick={() => setActiveTab("PENDING")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
-                activeTab === "PENDING"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted-foreground/10"
-              }`}
-            >
-              <CheckCircle2 size={14} />
-              Pending Verification
-              {rawPending.length > 0 && (
-                <span
-                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                    activeTab === "PENDING"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}
-                >
-                  {rawPending.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("VERIFIED")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
-                activeTab === "VERIFIED"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted-foreground/10"
-              }`}
-            >
-              <History size={14} />
-              Recently Verified
-              {rawVerified.length > 0 && (
-                <span
-                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                    activeTab === "VERIFIED"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}
-                >
-                  {rawVerified.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("REQUESTS")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
-                activeTab === "REQUESTS"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted-foreground/10"
-              }`}
-            >
-              <MessageSquare size={14} />
-              Requests
-              {totalRequestsCount > 0 && (
-                <span
-                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                    activeTab === "REQUESTS"
-                      ? "bg-amber-500 text-white"
-                      : "bg-amber-500/20 text-amber-600"
-                  }`}
-                >
-                  {totalRequestsCount}
-                </span>
-              )}
-            </button>
-          </div>
+          <TabGroup
+            tabs={[
+              { value: "PENDING", label: "Pending Verification", icon: CheckCircle2, badge: rawPending.length || undefined },
+              { value: "VERIFIED", label: "Recently Verified", icon: History, badge: rawVerified.length || undefined },
+              { value: "REQUESTS", label: "Requests", icon: MessageSquare, badge: totalRequestsCount || undefined },
+            ]}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            size="md"
+          />
 
           {/* BULK ACTION BAR */}
           {selectedActivities.size > 0 && (
@@ -595,9 +540,9 @@ export default function SalesHeadApprovalsPage() {
                     ? bulkVerifyMutation.isPending
                     : bulkUnverifyMutation.isPending
                 }
-                className={`flex items-center justify-center gap-2 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap cursor-pointer w-full sm:w-auto ${
+                className={`flex items-center justify-center gap-2 text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap cursor-pointer w-full sm:w-auto ${
                   activeTab === "PENDING"
-                    ? "bg-emerald-500 hover:bg-emerald-600"
+                    ? "bg-green-9 hover:bg-green-10"
                     : "bg-destructive/80 hover:bg-destructive text-destructive-foreground border border-destructive/20"
                 }`}
               >
@@ -644,30 +589,29 @@ export default function SalesHeadApprovalsPage() {
 
         {/* APPROVAL QUEUES (dedicated Requests tab) */}
         {activeTab === "REQUESTS" && (
-          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-8 w-1 bg-amber-500 rounded-full" />
-                <h2 className="text-xl font-black text-foreground tracking-tight uppercase">
-                  Schedule Modifications
-                </h2>
-              </div>
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Sub-tabs */}
+            <TabGroup
+              tabs={[
+                { value: "AMENDMENTS", label: "Schedule Modifications", badge: amendmentRequests.length || undefined },
+                { value: "DELETIONS", label: "Day Data Management", badge: deletionRequests.length || undefined },
+              ]}
+              activeTab={requestsSubTab}
+              onChange={setRequestsSubTab}
+              size="md"
+            />
+
+            {requestsSubTab === "AMENDMENTS" && (
               <PlanAmendmentApprovalQueue
                 initialExpandedId={location.state?.highlightPlanId}
               />
-            </div>
+            )}
 
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-8 w-1 bg-red-500 rounded-full" />
-                <h2 className="text-xl font-black text-foreground tracking-tight uppercase">
-                  Day Data Management
-                </h2>
-              </div>
+            {requestsSubTab === "DELETIONS" && (
               <DayDeletionApprovalQueue
                 initialHighlightDate={location.state?.highlightDeletionDate}
               />
-            </div>
+            )}
 
             {totalRequestsCount === 0 && (
               <div className="flex flex-col items-center justify-center py-24 bg-card border border-border border-dashed rounded-2xl text-center">
@@ -696,7 +640,7 @@ export default function SalesHeadApprovalsPage() {
             <div
               className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${
                 activeTab === "PENDING"
-                  ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
+                  ? "bg-green-3/50 text-green-10 ring-green-2"
                   : "bg-muted text-muted-foreground ring-muted/50"
               }`}
             >
@@ -768,9 +712,7 @@ function EmployeeBlock({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/20 shadow-inner">
-            {empGroup.employeeName.charAt(0).toUpperCase()}
-          </div>
+          <Avatar name={empGroup.employeeName} size="lg" className="bg-primary/10 text-primary border-primary/20 shadow-inner" />
           <div>
             <h2 className="text-lg font-bold text-foreground leading-tight">
               {empGroup.employeeName}
@@ -897,7 +839,7 @@ function DateGroupBlock({
             {/* AM Column */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[color:var(--amber-11)] bg-[color:var(--amber-2)] border border-[color:var(--amber-6)] px-2.5 py-1 rounded-md flex items-center gap-1.5">
                   <Clock size={11} /> AM — {amActivities.length}{" "}
                   {amActivities.length === 1 ? "Log" : "Logs"}
                 </span>
@@ -914,7 +856,7 @@ function DateGroupBlock({
             {/* PM Column */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[color:var(--violet-11)] bg-[color:var(--violet-2)] border border-mauve-5 px-2.5 py-1 rounded-md flex items-center gap-1.5">
                   <Clock size={11} /> PM — {pmActivities.length}{" "}
                   {pmActivities.length === 1 ? "Log" : "Logs"}
                 </span>
@@ -990,7 +932,7 @@ function ActivityCard({
             <Clock size={12} /> {activity.time_of_day}
           </span>
           {activity.is_unplanned && (
-            <span className="text-blue-600 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-md">
+            <span className="text-[color:var(--blue-10)] bg-[color:var(--blue-9)]/10 border border-blue-500/20 px-2 py-1 rounded-md">
               Unplanned
             </span>
           )}
@@ -1069,7 +1011,7 @@ function VerifiedActivityCard({
             <Clock size={12} /> {activity.time_of_day}
           </span>
           {activity.is_unplanned && (
-            <span className="text-blue-600 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-md">
+            <span className="text-[color:var(--blue-10)] bg-[color:var(--blue-9)]/10 border border-blue-500/20 px-2 py-1 rounded-md">
               Unplanned
             </span>
           )}
@@ -1097,7 +1039,7 @@ function VerifiedActivityCard({
       {/* Verification metadata */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[10px]">
         <span className="text-muted-foreground flex items-center gap-1">
-          <CheckCircle2 size={10} className="text-emerald-500" />
+          <CheckCircle2 size={10} className="text-green-9" />
           Verified:{" "}
           <span className="text-foreground font-semibold">
             {verifiedAtFormatted}

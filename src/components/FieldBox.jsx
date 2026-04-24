@@ -4,7 +4,7 @@ export const FieldBox = ({ label, isEditing, children }) => (
       {label}
     </label>
     <div
-      className={`min-h-[44px] flex items-center w-full bg-card border ${isEditing ? "border-border shadow-sm focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/10" : "border-transparent"} rounded-xl transition-all`}
+      className={`min-h-[38px] flex items-center w-full bg-card border ${isEditing ? "border-border shadow-sm focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/10" : "border-transparent"} rounded-lg transition-all`}
     >
       {children}
     </div>

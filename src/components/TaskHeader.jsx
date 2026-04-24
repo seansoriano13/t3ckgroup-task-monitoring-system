@@ -1,13 +1,13 @@
 import { ShieldCheck, MessageCircle, X } from "lucide-react";
 
 const TaskHeader = ({ isEditing, isHrVerified, onClose, onOpenChat }) => (
-  <div className="flex justify-between items-center p-6 border-b border-border bg-card shrink-0">
+  <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-card shrink-0">
     <div className="flex items-center gap-3">
-      <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+      <h2 className="text-xl font-extrabold tracking-tight text-foreground">
         {isEditing ? "Edit Task" : "Task Details"}
       </h2>
       {!isEditing && isHrVerified && (
-        <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-full border border-green-200 uppercase tracking-widest">
+        <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-10 bg-green-50 px-2.5 py-1 rounded-full border border-green-200 uppercase tracking-widest">
           <ShieldCheck size={12} /> Verified
         </span>
       )}
@@ -17,16 +17,16 @@ const TaskHeader = ({ isEditing, isHrVerified, onClose, onOpenChat }) => (
         <button
           onClick={onOpenChat}
           title="Open Conversation"
-          className="h-10 w-10 flex items-center justify-center rounded-xl text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all active:scale-95 border border-indigo-100"
+          className="h-9 w-9 flex items-center justify-center rounded-xl text-[color:var(--violet-10)] bg-[color:var(--violet-2)] hover:bg-[color:var(--violet-3)] transition-all active:scale-95 border border-indigo-100"
         >
-          <MessageCircle size={20} />
+          <MessageCircle size={18} />
         </button>
       )}
       <button
         onClick={onClose}
-        className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-muted hover:text-foreground transition-all active:scale-95 border border-transparent hover:border-border"
+        className="h-9 w-9 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 border border-transparent hover:border-border"
       >
-        <X size={20} />
+        <X size={18} />
       </button>
     </div>
   </div>

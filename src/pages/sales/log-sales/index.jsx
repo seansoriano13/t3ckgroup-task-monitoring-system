@@ -11,6 +11,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import PageHeader from "../../../components/ui/PageHeader";
 import PageContainer from "../../../components/ui/PageContainer";
+import TabGroup from "../../../components/ui/TabGroup";
 
 export default function LogSalesPage() {
   const { user } = useAuth();
@@ -90,6 +91,12 @@ export default function LogSalesPage() {
     <ProtectedRoute>
       <PageContainer maxWidth="7xl" className="pt-4">
         <PageHeader
+          showGradient={false}
+          lastWordColor={
+            isOrder
+              ? "text-green-9"
+              : "text-[color:var(--violet-9)]"
+          }
           title={isOrder ? "Sales Order" : "Sales Quotation"}
           description={
             isOrder
@@ -101,12 +108,12 @@ export default function LogSalesPage() {
             {isOrder ? (
               <ShoppingCart
                 size={32}
-                className="text-emerald-500 bg-emerald-50 p-1.5 rounded-xl border border-emerald-100"
+                className="text-green-9 bg-green-2 p-1.5 rounded-xl border border-green-3"
               />
             ) : (
               <FileText
                 size={32}
-                className="text-indigo-500 bg-indigo-50 p-1.5 rounded-xl border border-indigo-100"
+                className="text-[color:var(--violet-9)] bg-[color:var(--violet-2)] p-1.5 rounded-xl border border-indigo-100"
               />
             )}
           </div>
@@ -114,49 +121,35 @@ export default function LogSalesPage() {
 
         <form
           onSubmit={handleSubmit}
-          className={`bg-card border p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 transition-colors duration-300 ${
-            isOrder ? "border-emerald-200" : "border-indigo-200"
+          className={`max-w-4xl mx-auto bg-card border p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 transition-colors duration-300 ${
+            isOrder ? "border-green-6" : "border-mauve-5"
           }`}
         >
           {/* Record Type Toggle */}
-          <div className="flex bg-muted p-1 rounded-xl border border-border shadow-inner mb-6">
-            <button
-              type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  record_type: RECORD_TYPE.SALES_ORDER,
-                })
-              }
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                isOrder
-                  ? "bg-emerald-600 text-white shadow-md scale-[1.02]"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card"
-              }`}
-            >
-              <ShoppingCart size={15} /> Sales Order
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  record_type: RECORD_TYPE.SALES_QUOTATION,
-                })
-              }
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                !isOrder
-                  ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card"
-              }`}
-            >
-              <FileText size={15} /> Sales Quotation
-            </button>
-          </div>
+          <TabGroup
+            variant={isOrder ? "success" : "primary"}
+            tabs={[
+              {
+                value: RECORD_TYPE.SALES_ORDER,
+                label: "Sales Order",
+                icon: ShoppingCart,
+              },
+              {
+                value: RECORD_TYPE.SALES_QUOTATION,
+                label: "Sales Quotation",
+                icon: FileText,
+              },
+            ]}
+            activeTab={formData.record_type}
+            onChange={(v) => setFormData({ ...formData, record_type: v })}
+            size="md"
+            fullWidth={true}
+            className="mb-6"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Date
               </label>
               <DatePicker
@@ -177,53 +170,38 @@ export default function LogSalesPage() {
                 placeholderText="Select date"
                 className={`w-full bg-muted/40 border text-foreground rounded-xl p-3 outline-none font-bold transition-all cursor-pointer ${
                   isOrder
-                    ? "border-border focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    ? "border-border focus:border-green-8 focus:ring-2 focus:ring-green-3"
                     : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Status
               </label>
-              <div className="flex bg-muted border border-border rounded-xl p-1">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData({
-                      ...formData,
-                      status: REVENUE_STATUS.COMPLETED,
-                    })
-                  }
-                  className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${
-                    formData.status === REVENUE_STATUS.COMPLETED
-                      ? isOrder
-                        ? "bg-emerald-600 text-white shadow-md"
-                        : "bg-indigo-600 text-white shadow-md"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {isOrder ? "COMPLETED" : "SUBMITTED / LOGGED"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, status: REVENUE_STATUS.LOST })
-                  }
-                  className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${
-                    formData.status === REVENUE_STATUS.LOST
-                      ? "bg-destructive text-white shadow-md"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  LOST
-                </button>
-              </div>
+              <TabGroup
+                variant={isOrder ? "success" : "primary"}
+                tabs={[
+                  {
+                    value: REVENUE_STATUS.COMPLETED,
+                    label: isOrder ? "COMPLETED" : "SUBMITTED / LOGGED",
+                  },
+                  {
+                    value: REVENUE_STATUS.LOST,
+                    label: "LOST",
+                    variant: "destructive",
+                  },
+                ]}
+                activeTab={formData.status}
+                onChange={(v) => setFormData({ ...formData, status: v })}
+                size="sm"
+                fullWidth={true}
+              />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Account / Client Name
               </label>
               <input
@@ -236,14 +214,14 @@ export default function LogSalesPage() {
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
-                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
                     : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Product / Item
               </label>
               <input
@@ -259,16 +237,16 @@ export default function LogSalesPage() {
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
-                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
                     : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 {isOrder ? "SO Number" : "Quotation Number"}{" "}
-                <span className="normal-case font-medium text-gray-8">
+                <span className="normal-case font-medium text-mauve-8">
                   (Optional)
                 </span>
               </label>
@@ -288,7 +266,7 @@ export default function LogSalesPage() {
                 }}
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
-                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
                     : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
@@ -296,13 +274,13 @@ export default function LogSalesPage() {
 
             <div className="sm:col-span-1">
               <label
-                className={`text-xs font-bold uppercase block mb-1 ${isOrder ? "text-green-600" : "text-blue-600"}`}
+                className={`text-xs font-bold uppercase block mb-1 ${isOrder ? "text-green-10" : "text-indigo-600"}`}
               >
                 {isOrder ? "Revenue Amount (PHP)" : "Quotation Amount (PHP)"}
               </label>
               <div className="relative">
                 <span
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${isOrder ? "text-green-700/50" : "text-blue-700/50"}`}
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${isOrder ? "text-green-10" : "text-indigo-600"}`}
                 >
                   ₱
                 </span>
@@ -320,15 +298,15 @@ export default function LogSalesPage() {
                   }
                   className={`w-full bg-muted/40 border font-black text-2xl rounded-xl pl-10 pr-4 py-3 outline-none shadow-inner transition-all ${
                     isOrder
-                      ? "border-emerald-200 text-emerald-600 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-                      : "border-indigo-200 text-indigo-600 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                      ? "border-green-6 text-green-10 focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                      : "border-mauve-5 text-[color:var(--violet-10)] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                   }`}
                 />
               </div>
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Ref #
               </label>
               <input
@@ -343,14 +321,14 @@ export default function LogSalesPage() {
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
-                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
                     : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Remarks
               </label>
               <textarea
@@ -361,7 +339,7 @@ export default function LogSalesPage() {
                 }
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none resize-none h-24 transition-all ${
                   isOrder
-                    ? "focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
                     : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 }`}
               />
@@ -372,10 +350,10 @@ export default function LogSalesPage() {
             <button
               disabled={mutation.isPending}
               type="submit"
-              className={`w-full text-white font-black text-base py-4 rounded-2xl flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-xl uppercase tracking-widest ${
+              className={`w-full text-primary-foreground font-black text-base py-4 rounded-2xl flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-xl uppercase tracking-widest ${
                 isOrder
-                  ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
-                  : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200"
+                  ? "bg-green-10 hover:bg-green-800 shadow-green-800/20"
+                  : "bg-primary hover:bg-primary-hover shadow-primary/20"
               }`}
             >
               <Save size={24} />

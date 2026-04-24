@@ -403,11 +403,11 @@ export default function TaskDetails({
           }}
         />
 
-        <div className="p-8 flex-1 overflow-y-auto space-y-8 custom-scrollbar bg-card">
+        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-card">
           {task.status === "DELETED" && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-700 shadow-sm mt-0 -mb-4">
+            <div className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center gap-3 text-destructive shadow-sm mt-0 -mb-4">
               <div className="bg-red-100 p-2 rounded-lg">
-                <AlertTriangle size={20} className="text-red-600" />
+                <AlertTriangle size={20} className="text-destructive" />
               </div>
               <div>
                 <p className="text-sm font-black uppercase tracking-tight">Task Deleted</p>
@@ -447,7 +447,7 @@ export default function TaskDetails({
                 <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                   <FolderKanban size={12} /> Project / Campaign Title
                   {isEditing && (
-                    <span className="font-normal text-slate-500 normal-case tracking-normal">
+                    <span className="font-normal text-muted-foreground normal-case tracking-normal">
                       (optional)
                     </span>
                   )}
@@ -462,7 +462,7 @@ export default function TaskDetails({
                     className="h-11 shadow-sm"
                   />
                 ) : (
-                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-indigo-600 flex items-center gap-2 shadow-sm">
+                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-[color:var(--violet-10)] flex items-center gap-2 shadow-sm">
                     <FolderKanban size={14} />
                     {formData.projectTitle}
                   </div>
@@ -478,7 +478,7 @@ export default function TaskDetails({
                   <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                     <Receipt size={12} /> Payment Voucher
                     {isEditing && (
-                      <span className="font-normal text-slate-500 normal-case tracking-normal">
+                      <span className="font-normal text-muted-foreground normal-case tracking-normal">
                         (optional)
                       </span>
                     )}
@@ -493,7 +493,7 @@ export default function TaskDetails({
                       className="h-11 shadow-sm"
                     />
                   ) : (
-                    <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-slate-700 flex items-center gap-2 shadow-sm">
+                    <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-foreground flex items-center gap-2 shadow-sm">
                       <Receipt size={14} />
                       {formData.paymentVoucher}
                     </div>
@@ -511,7 +511,7 @@ export default function TaskDetails({
                     <button
                       type="button"
                       onClick={() => setDescriptionType("description")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "description" ? "bg-card text-foreground shadow-sm" : "text-slate-400 hover:text-muted-foreground/80"
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "description" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-muted-foreground/80"
                         }`}
                     >
                       Description
@@ -519,7 +519,7 @@ export default function TaskDetails({
                     <button
                       type="button"
                       onClick={() => setDescriptionType("checklist")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "checklist" ? "bg-card text-muted-foreground00 shadow-sm" : "text-slate-400 hover:text-slate-50000"
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "checklist" ? "bg-card text-muted-foreground00 shadow-sm" : "text-muted-foreground hover:text-slate-50000"
                         }`}
                     >
                       Checklist
@@ -527,8 +527,8 @@ export default function TaskDetails({
                   </div>
                 </div>
               ) : (
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] pl-1 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] pl-1 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                   Description
                 </label>
               )}
@@ -626,7 +626,7 @@ export default function TaskDetails({
                   </div>
 
                   {isFinalized && task.evaluatedByName && (
-                    <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                    <div className="text-[11px] text-muted-foreground flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         Evaluated by:{" "}
                         <span className="font-bold text-muted-foreground">
@@ -634,7 +634,7 @@ export default function TaskDetails({
                         </span>
                       </div>
                       {task.evaluatedById === task.loggedById && (
-                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-purple-500 text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
+                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-[color:var(--plum-9)] text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
                           Self-Verified
                         </span>
                       )}
@@ -666,7 +666,7 @@ export default function TaskDetails({
             )}
 
             {!isEditing && task.editedById && (
-              <div className="pt-4 border-t border-border flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="pt-4 border-t border-border flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <p className="flex items-center gap-1.5">
                   <PencilLine size={12} /> Last Modified By{" "}
                   <span className="text-muted-foreground/80">{task.editedByName}</span>
@@ -678,7 +678,7 @@ export default function TaskDetails({
             {/* KEYBOARD SHORTCUTS HINT */}
             {!isFinalized && !isEditing && canEvaluate && (
               <div className="pt-2 flex justify-center opacity-70 mb-4 pb-4">
-                <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase flex items-center gap-2">
+                <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase flex items-center gap-2">
                   Shortcuts:
                   {!isHr ? (
                     <>

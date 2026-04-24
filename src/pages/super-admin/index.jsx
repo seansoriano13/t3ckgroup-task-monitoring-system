@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
@@ -105,7 +105,7 @@ export default function SuperAdminDashboard() {
     <ProtectedRoute requireSuperAdmin={true}>
       {loadingEmps || loadingQuotas ? (
         <div className="flex h-[80vh] items-center justify-center space-x-2 text-muted-foreground">
-          <Loader2 className="animate-spin text-indigo-500" />
+          <Loader2 className="animate-spin text-[color:var(--violet-9)]" />
           <p className="font-black uppercase tracking-widest text-sm">
             Syncing Super Admin Metrics...
           </p>

@@ -1,4 +1,4 @@
-import Select from "react-select";
+﻿import Select from "react-select";
 import { Users, ClipboardList } from "lucide-react";
 import { LOG_TASK_SELECT_STYLES } from "../../constants/task";
 
@@ -37,7 +37,7 @@ export default function LogTaskAssignmentBar({
   const showHeadDropdown = !isHead || isHr || isSuperAdmin;
 
   return (
-    <div className="flex flex-col gap-4 py-4 border-t border-gray-3/40 animate-content-in stagger-4 relative z-[10]" ref={assignmentRef}>
+    <div className="flex flex-col gap-4 py-4 border-t border-mauve-3/40 animate-content-in stagger-4 relative z-[10]" ref={assignmentRef}>
       {/* ORGANIZATION SECTION (HR only) */}
       {isHr && (
         <div className="space-y-3">
@@ -95,7 +95,7 @@ export default function LogTaskAssignmentBar({
       {canAssignOthers && (
         <div className="space-y-1.5">
           {!isHr && (
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 pl-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 pl-1">
               <Users size={12} /> Assign To
             </label>
           )}
@@ -125,7 +125,7 @@ export default function LogTaskAssignmentBar({
       {/* REPORTED TO SECTION */}
       {showHeadDropdown && (
         <div className="space-y-1.5 pt-1">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 pl-1">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 pl-1">
             <ClipboardList size={12} /> Report To (Head)
           </label>
           <Select

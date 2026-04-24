@@ -1,5 +1,6 @@
 import { useState } from "react";
 import TaskCard from "./TaskCard";
+import Avatar from "./Avatar";
 import TaskDetails from "./TaskDetails";
 import { useAuth } from "../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -7,13 +8,22 @@ import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status.js";
 import { useMemo, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { Clock, TrendingUp, CheckCircle2, ArrowUpRight, User, Users, Activity, Plus } from "lucide-react";
+import {
+  Clock,
+  TrendingUp,
+  CheckCircle2,
+  ArrowUpRight,
+  User,
+  Users,
+  Activity,
+  Plus,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { formatTaskPreview } from "../utils/taskFormatters";
 import LogTaskModal from "./LogTaskModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
+import SectionHeader from "./ui/SectionHeader";
 
 function InsightBar({ label, count, total, color }) {
   const percentage = total === 0 ? 0 : Math.round((count / total) * 100);
@@ -21,9 +31,14 @@ function InsightBar({ label, count, total, color }) {
   return (
     <div className="group">
       <div className="flex justify-between text-[11px] mb-1.5 px-0.5">
-        <span className="text-slate-500 font-bold uppercase tracking-wider">{label}</span>
+        <span className="text-muted-foreground font-bold uppercase tracking-wider">
+          {label}
+        </span>
         <span className="text-foreground font-black">
-          {count} <span className="text-slate-400 font-medium ml-1">({percentage}%)</span>
+          {count}{" "}
+          <span className="text-muted-foreground font-medium ml-1">
+            ({percentage}%)
+          </span>
         </span>
       </div>
       <div className="w-full bg-muted/60 rounded-full h-2 overflow-hidden border border-border/5">
@@ -90,8 +105,12 @@ export default function TasksList({ selectedRange }) {
   }, [rawTasks, selectedTask]);
 
   const { myTasks, teamTasks } = useMemo(() => {
-    const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
-    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T23:59:59.999`) : new Date();
+    const rangeStart = selectedRange?.startDate
+      ? new Date(`${selectedRange.startDate}T00:00:00`)
+      : new Date(0);
+    const rangeEnd = selectedRange?.endDate
+      ? new Date(`${selectedRange.endDate}T23:59:59.999`)
+      : new Date();
 
     // 🔥 NEW: Instantly scrub all deleted tasks and filter by range boundaries
     const activeTasks = rawTasks.filter((t) => {
@@ -176,20 +195,20 @@ export default function TasksList({ selectedRange }) {
     <div className="space-y-10">
       {/* SECTION 1: MY PERSONAL TASKS (Visible to Everyone) */}
       <section className="space-y-6">
-        <div className="flex justify-between items-center bg-card p-4 rounded-2xl border border-border shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100">
-              <User size={20} />
-            </div>
-            <div className="flex flex-col">
-              <h2 className="text-lg font-black text-foreground tracking-tight">Personal Pipeline</h2>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Your Private Task Queue</p>
-            </div>
-          </div>
-          <Button variant="ghost" className="text-slate-500 font-bold uppercase tracking-widest text-[10px]" asChild>
+        <SectionHeader
+          icon={User}
+          title="Personal Pipeline"
+          description="Your Private Task Queue"
+          rangeLabel={selectedRange?.label}
+        >
+          <Button
+            variant="ghost"
+            className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]"
+            asChild
+          >
             <Link to="/tasks">View All</Link>
           </Button>
-        </div>
+        </SectionHeader>
 
         {myTasks.length > 0 ? (
           <div className="space-y-8">
@@ -221,18 +240,19 @@ export default function TasksList({ selectedRange }) {
                 <div key={statusKey} className="space-y-4">
                   <div className="flex items-center gap-2.5 px-1 py-1">
                     <div
-                      className={`w-2 h-2 rounded-full shadow-sm ${statusKey === "COMPLETE_VERIFIED"
-                        ? "bg-emerald-500 shadow-emerald-200"
-                        : statusKey === "COMPLETE_UNVERIFIED"
-                          ? "bg-green-400 shadow-green-200"
-                          : statusKey === "AWAITING APPROVAL"
-                            ? "bg-indigo-500 shadow-indigo-200"
-                            : statusKey === "NOT APPROVED"
-                              ? "bg-destructive shadow-red-200"
-                              : "bg-amber-500 shadow-amber-200"
-                        }`}
+                      className={`w-2 h-2 rounded-full shadow-sm ${
+                        statusKey === "COMPLETE_VERIFIED"
+                          ? "bg-green-9 shadow-green-5"
+                          : statusKey === "COMPLETE_UNVERIFIED"
+                            ? "bg-green-400 shadow-green-200"
+                            : statusKey === "AWAITING APPROVAL"
+                              ? "bg-primary shadow-primary/20"
+                              : statusKey === "NOT APPROVED"
+                                ? "bg-destructive shadow-red-200"
+                                : "bg-warning shadow-[color:var(--amber-5)]"
+                      }`}
                     />
-                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                       {statusKey === "COMPLETE_VERIFIED"
                         ? "HR Verified"
                         : statusKey === "COMPLETE_UNVERIFIED"
@@ -242,7 +262,7 @@ export default function TasksList({ selectedRange }) {
                             : statusKey === "NOT APPROVED"
                               ? "Return Required"
                               : "Active Priority"}
-                      <span className="ml-2 px-1.5 py-0.5 rounded-md bg-muted text-slate-400 text-[9px] border border-border/50">
+                      <span className="ml-2 px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[9px] border border-border/50">
                         {filtered.length}
                       </span>
                     </h3>
@@ -253,7 +273,9 @@ export default function TasksList({ selectedRange }) {
                         key={task.id}
                         task={task}
                         onView={() => handleOpenDrawer(task)}
-                        onSilentUpdate={(payload) => editTaskMutation.mutateAsync(payload)}
+                        onSilentUpdate={(payload) =>
+                          editTaskMutation.mutateAsync(payload)
+                        }
                       />
                     ))}
                   </div>
@@ -262,15 +284,18 @@ export default function TasksList({ selectedRange }) {
             })}
           </div>
         ) : (
-          <div className="p-16 text-center bg-card border border-border border-dashed rounded-[2rem] text-slate-500 flex flex-col items-center gap-4 shadow-sm">
-            <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-200">
+          <div className="p-16 text-center bg-card border border-border border-dashed rounded-[2rem] text-muted-foreground flex flex-col items-center gap-4 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-mauve-3 flex items-center justify-center text-mauve-9">
               <Plus size={32} />
             </div>
             <p className="font-bold text-lg text-foreground">Clean Slate</p>
-            <p className="text-sm max-w-xs text-muted-foreground">You haven't logged any personal tasks for this month yet. Start building your timeline.</p>
+            <p className="text-sm max-w-xs text-muted-foreground">
+              You haven't logged any personal tasks for this month yet. Start
+              building your timeline.
+            </p>
             <Button
               onClick={() => setIsLogTaskOpen(true)}
-              className="mt-2 h-11 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold shadow-lg shadow-indigo-200"
+              className="mt-2 h-11 px-8 rounded-xl bg-primary hover:bg-primary-hover font-bold shadow-lg shadow-primary/20"
             >
               Create New Task
             </Button>
@@ -281,34 +306,31 @@ export default function TasksList({ selectedRange }) {
       {/* SECTION 2: MANAGEMENT COMMAND CENTER (HR/HEAD ONLY) */}
       {isManagement && (
         <section className="mt-8 border-t border-border pt-8">
-          <div className="flex justify-between items-center mb-8 bg-card p-6 rounded-2xl border border-border shadow-sm overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <Activity size={100} />
-            </div>
-            <div className="relative z-10">
-              <h2 className="text-2xl font-black text-foreground flex items-center gap-3 tracking-tighter">
-                <span className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                  <Activity size={18} />
-                </span>
-                {isHr ? "Organization Hub" : "Team Performance"}
-              </h2>
-              <p className="text-sm text-slate-500 mt-1.5 font-bold uppercase tracking-widest bg-muted/50 inline-block px-2 py-0.5 rounded-md">
-                {isHr ? "Full Spectrum Oversight" : `${userSubDept} Radar`}
-              </p>
-            </div>
-            <Button variant="outline" className="font-bold border-border shadow-sm rounded-xl" asChild>
-              <Link to="/tasks" className="flex items-center gap-2">
-                Task Directory <ArrowUpRight size={16} />
-              </Link>
+          <SectionHeader
+            icon={Activity}
+            title={isHr ? "Organization Hub" : "Team Performance"}
+            description={
+              isHr ? "Full Spectrum Oversight" : `${userSubDept} Radar`
+            }
+            rangeLabel={selectedRange?.label}
+            className="mb-8"
+          >
+            <Button
+              variant="ghost"
+              className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]"
+              asChild
+            >
+              <Link to="/tasks">Task Directory</Link>
             </Button>
-          </div>
+          </SectionHeader>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* LEFT: LIVE ACTIVITY TICKER (Takes up 2/3 of the space) */}
             <div className="lg:col-span-2 bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
               <div className="bg-muted/30 border-b border-border p-5">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Clock size={14} className="text-indigo-500" /> Executive Feed
+                <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Clock size={14} className="text-mauve-9" />
+                  <p className="text-mauve-9">Executive Feed</p>
                 </h3>
               </div>
               <div className="divide-y divide-border/50">
@@ -324,36 +346,47 @@ export default function TasksList({ selectedRange }) {
                         className="px-5 py-4 hover:bg-muted/30 transition-all cursor-pointer flex items-center gap-4 group"
                       >
                         {/* Compact 24px avatar */}
-                        <div className="w-8 h-8 rounded-xl bg-muted border border-border flex items-center justify-center font-bold text-xs text-slate-500 uppercase transition-all group-hover:bg-card group-hover:shadow-sm group-hover:text-indigo-600">
-                          {task.loggedByName
-                            ? task.loggedByName.charAt(0).toUpperCase()
-                            : "?"}
-                        </div>
+                        <Avatar
+                          name={task.loggedByName}
+                          size="md"
+                          className="group-hover:bg-card group-hover:shadow-sm group-hover:text-green-11"
+                        />
                         {/* Main text block */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-slate-700 font-medium truncate">
-                            <span className="font-extrabold text-foreground">{task.loggedByName}</span> logged in <span className="font-bold text-indigo-600">{categoryDisplay}</span>
+                          <p className="text-sm text-foreground font-medium truncate">
+                            <span className="font-extrabold text-foreground">
+                              {task.loggedByName}
+                            </span>{" "}
+                            logged in{" "}
+                            <span className="font-bold text-green-11">
+                              {categoryDisplay}
+                            </span>
                           </p>
-                          <p className="text-xs text-slate-400 truncate mt-1">
+                          <p className="text-xs text-muted-foreground truncate mt-1">
                             {formatTaskPreview(task.taskDescription)}
                           </p>
                         </div>
                         {/* Inline: status dot(s) + date */}
                         <div className="shrink-0 flex items-center gap-2">
-                          {task.status === TASK_STATUS.COMPLETE && task.hrVerified && (
-                            <CheckCircle2 className="text-emerald-500" size={14} />
-                          )}
+                          {task.status === TASK_STATUS.COMPLETE &&
+                            task.hrVerified && (
+                              <CheckCircle2
+                                className="text-green-9"
+                                size={14}
+                              />
+                            )}
                           <div
-                            className={`w-2 h-2 rounded-full ${task.status === TASK_STATUS.COMPLETE
-                              ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
-                              : task.status === TASK_STATUS.AWAITING_APPROVAL
-                                ? "bg-indigo-500 shadow-[0_0_8px_rgba(79,70,229,0.3)]"
-                                : task.status === TASK_STATUS.NOT_APPROVED
-                                  ? "bg-destructive/60"
-                                  : "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
-                              }`}
+                            className={`w-2 h-2 rounded-full ${
+                              task.status === TASK_STATUS.COMPLETE
+                                ? "bg-green-9 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+                                : task.status === TASK_STATUS.AWAITING_APPROVAL
+                                  ? "bg-primary shadow-[0_0_8px_rgba(79,70,229,0.3)]"
+                                  : task.status === TASK_STATUS.NOT_APPROVED
+                                    ? "bg-destructive/60"
+                                    : "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                            }`}
                           />
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 bg-muted px-2 py-0.5 rounded-md border border-border/50">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 bg-muted px-2 py-0.5 rounded-md border border-border/50">
                             {new Date(task.createdAt).toLocaleDateString(
                               undefined,
                               { month: "short", day: "numeric" },
@@ -374,8 +407,9 @@ export default function TasksList({ selectedRange }) {
             {/* RIGHT: MINI ANALYTICS / QUICK INSIGHTS */}
             <div className="bg-card border border-border rounded-2xl shadow-sm p-6 flex flex-col gap-8">
               <div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-6">
-                  <TrendingUp size={14} className="text-indigo-500" /> Pipeline Analytics
+                <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 mb-6">
+                  <TrendingUp size={14} className="text-mauve-8" />
+                  <p>Pipeline Analytics</p>
                 </h3>
 
                 {/* Pre-calculate the buckets so the JSX stays perfectly clean */}
@@ -417,25 +451,25 @@ export default function TasksList({ selectedRange }) {
                             label="Drafts (Working)"
                             count={draftCount}
                             total={total}
-                            color="bg-gray-400"
+                            color="bg-mauve-6"
                           />
                           <InsightBar
                             label="Awaiting Mgt Approval"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-blue-500"
+                            color="bg-[color:var(--blue-9)]"
                           />
                           <InsightBar
                             label="Approved (Pending HR)"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-amber-500"
+                            color="bg-warning"
                           />
                           <InsightBar
                             label="HR Verified & Finalized"
                             count={verifiedCount}
                             total={total}
-                            color="bg-green-500"
+                            color="bg-green-9"
                           />
                         </>
                       )}
@@ -449,7 +483,7 @@ export default function TasksList({ selectedRange }) {
                             label="Needs My Review (New)"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-blue-500"
+                            color="bg-[color:var(--blue-9)]"
                           />
                           <InsightBar
                             label="Rejected by Me"
@@ -461,7 +495,7 @@ export default function TasksList({ selectedRange }) {
                             label="Subordinates Drafting"
                             count={draftCount}
                             total={total}
-                            color="bg-gray-400"
+                            color="bg-mauve-6"
                           />
                           <InsightBar
                             label="Approved (Pending HR)"
@@ -473,7 +507,7 @@ export default function TasksList({ selectedRange }) {
                             label="Verified by HR"
                             count={verifiedCount}
                             total={total}
-                            color="bg-green-500"
+                            color="bg-green-9"
                           />
                         </>
                       )}
@@ -487,7 +521,7 @@ export default function TasksList({ selectedRange }) {
                             label="Needs My Audit"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-amber-500"
+                            color="bg-orange-6"
                           />
                           <InsightBar
                             label="Awaiting Manager Review"
@@ -499,7 +533,7 @@ export default function TasksList({ selectedRange }) {
                             label="Employees Working"
                             count={draftCount}
                             total={total}
-                            color="bg-gray-500"
+                            color="bg-mauve-9"
                           />
                           <InsightBar
                             label="Manager Rejections"
@@ -511,7 +545,7 @@ export default function TasksList({ selectedRange }) {
                             label="Verified & Locked"
                             count={verifiedCount}
                             total={total}
-                            color="bg-emerald-500 shadow-emerald-200"
+                            color="bg-green-9 shadow-green-5"
                           />
                         </>
                       )}
@@ -521,11 +555,11 @@ export default function TasksList({ selectedRange }) {
               </div>
 
               {/* Dynamic Action Box based on Role */}
-              <div className="mt-auto rounded-2xl p-5 bg-indigo-50/50 border border-indigo-100 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">
+              <div className="mt-auto rounded-2xl p-5 bg-amber-1 border border-amber-4 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mauve-9 mb-2">
                   System Context
                 </p>
-                <p className="text-[13px] font-bold leading-relaxed text-indigo-950">
+                <p className="text-[13px] font-bold leading-relaxed text-foreground">
                   {!isHead &&
                     !isHr &&
                     "Tasks marked 'Return Required' need immediate revision to proceed."}

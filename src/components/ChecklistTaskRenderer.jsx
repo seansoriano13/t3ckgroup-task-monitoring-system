@@ -94,7 +94,7 @@ export default function ChecklistTaskRenderer({
         {items.map((item, i) => (
           <div
             key={i}
-            className={`flex items-start gap-4 py-2 px-3 rounded-xl transition-all duration-300 border border-transparent ${item.checked ? "bg-muted/20 opacity-60" : "bg-card shadow-sm border-border/10 hover:border-border/50"}`}
+            className={`flex items-center gap-3 py-2 px-4 rounded-xl transition-all duration-300 border ${item.checked ? "bg-muted/20 opacity-60 border-transparent" : "bg-card shadow-sm border-border/40 hover:border-border"}`}
           >
             <button
               onClick={(e) => {
@@ -102,18 +102,18 @@ export default function ChecklistTaskRenderer({
                 handleCheck(i);
               }}
               disabled={disabled || !isOwner}
-              className={`mt-1 shrink-0 transition-all duration-300 active:scale-75 disabled:cursor-not-allowed`}
+              className={`shrink-0 transition-all duration-300 active:scale-75 disabled:cursor-not-allowed flex items-center justify-center`}
             >
               {item.checked ? (
-                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-200">
-                  <CheckCircle2 size={12} className="text-white" />
+                <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center shadow-lg shadow-green-5">
+                  <CheckCircle2 size={12} className="text-primary-foreground" />
                 </div>
               ) : (
-                <div className="w-5 h-5 rounded-full border-2 border-slate-200 bg-card hover:border-indigo-400 hover:scale-110 transition-all" />
+                <div className="w-5 h-5 rounded-full border-2 border-mauve-5 bg-card hover:border-indigo-400 hover:scale-110 transition-all" />
               )}
             </button>
             <span
-              className={`flex-1 min-w-0 font-medium ${item.checked ? "line-through text-slate-400" : "text-slate-700"}`}
+              className={`flex-1 min-w-0 font-medium text-[13px] leading-tight ${item.checked ? "line-through text-muted-foreground" : "text-foreground"}`}
             >
               {item.text}
             </span>

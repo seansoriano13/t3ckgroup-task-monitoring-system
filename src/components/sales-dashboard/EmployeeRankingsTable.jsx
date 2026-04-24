@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import { AlertCircle, TrendingUp } from "lucide-react";
 
 export function EmployeeRankingsTable({
@@ -28,7 +28,7 @@ export function EmployeeRankingsTable({
 
   if (leaderboard.length === 0 && !isLoading) {
     return (
-      <div className="p-10 text-center text-gray-9 flex flex-col items-center bg-gray-1 border border-gray-4 rounded-2xl mt-6">
+      <div className="p-10 text-center text-muted-foreground flex flex-col items-center bg-mauve-1 border border-mauve-4 rounded-2xl mt-6">
         <AlertCircle size={32} className="mb-2 opacity-50" />
         <p className="font-medium">
           No sales data available for this period.
@@ -38,10 +38,10 @@ export function EmployeeRankingsTable({
   }
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden mt-6">
-      <div className="bg-gray-2 border-b border-gray-4 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+    <div className="bg-mauve-1 border border-mauve-4 rounded-2xl overflow-hidden mt-6">
+      <div className="bg-mauve-2 border-b border-mauve-4 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="flex items-center gap-2">
-          <h2 className="font-black text-gray-12 text-sm uppercase tracking-wider">
+          <h2 className="font-black text-foreground text-sm uppercase tracking-wider">
             Employee Performance [{label}]
           </h2>
           {isLoading && (
@@ -59,8 +59,8 @@ export function EmployeeRankingsTable({
                 key={sd}
                 onClick={() => setSubDeptFilter(sd)}
                 className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${subDeptFilter === sd
-                  ? "bg-gray-100 text-gray-900 border border-gray-200"
-                  : "text-gray-400 hover:text-gray-700 bg-transparent border border-transparent"
+                  ? "bg-mauve-3 text-foreground border border-mauve-4"
+                  : "text-muted-foreground hover:text-mauve-11 bg-transparent border border-transparent"
                   }`}
               >
                 {sd === "ALL" ? "All Teams" : sd}
@@ -72,7 +72,7 @@ export function EmployeeRankingsTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="bg-gray-2 text-xs font-bold text-gray-9 uppercase tracking-widest border-b border-gray-4">
+            <tr className="bg-mauve-2 text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-mauve-4">
               <th className="p-4 w-12 text-center">Rank</th>
               <th className="p-4">Employee</th>
               {showQuota && (
@@ -101,53 +101,53 @@ export function EmployeeRankingsTable({
               return (
                 <tr
                   key={emp.employee_id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-mauve-2 transition-colors"
                 >
                   <td className="p-4 text-center font-black">
                     {isTop ? (
-                      <span className="font-black text-gray-900 text-sm">#1</span>
+                      <span className="font-black text-foreground text-sm">#1</span>
                     ) : (
-                      <span className="text-gray-400">#{idx + 1}</span>
+                      <span className="text-muted-foreground">#{idx + 1}</span>
                     )}
                   </td>
-                  <td className="p-4 font-bold text-gray-12 text-sm">
+                  <td className="p-4 font-bold text-foreground text-sm">
                     <span>{emp.name}</span>
                     {isSelf && (
-                      <span className="ml-2 text-[10px] bg-gray-12 text-gray-1 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                      <span className="ml-2 text-[10px] bg-foreground text-mauve-1 px-2 py-0.5 rounded-full uppercase tracking-widest">
                         You
                       </span>
                     )}
                     {(emp.sub_department || emp.department) && (
-                      <span className="ml-2 text-[10px] font-bold text-gray-7 uppercase tracking-wider">
+                      <span className="ml-2 text-[10px] font-bold text-mauve-7 uppercase tracking-wider">
                         {emp.sub_department || emp.department}
                       </span>
                     )}
                   </td>
                   {showQuota && (
-                    <td className="p-4 text-right font-mono text-gray-11 text-sm">
+                    <td className="p-4 text-right font-mono text-mauve-11 text-sm">
                       {canSeeNumbers ? (
                         `₱${Number(emp.quota).toLocaleString()}`
                       ) : (
-                        <span className="text-gray-8 italic font-sans">
+                        <span className="text-mauve-8 italic font-sans">
                           {pct}% Quota
                         </span>
                       )}
                     </td>
                   )}
-                  <td className="p-4 text-right font-mono text-gray-900 font-semibold text-sm tabular-nums">
+                  <td className="p-4 text-right font-mono text-foreground font-semibold text-sm tabular-nums">
                     {canSeeNumbers ? (
                       `₱${emp.revenueWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     ) : (
-                      <span className="text-gray-500 font-sans">
+                      <span className="text-muted-foreground font-sans">
                         {pct}% Achieved
                       </span>
                     )}
                   </td>
-                  <td className="p-4 text-right font-mono text-gray-900 font-semibold text-sm tabular-nums">
+                  <td className="p-4 text-right font-mono text-foreground font-semibold text-sm tabular-nums">
                     {canSeeNumbers ? (
                       `₱${emp.revenueLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     ) : (
-                      <span className="text-gray-400 italic font-sans">
+                      <span className="text-muted-foreground italic font-sans">
                         N/A
                       </span>
                     )}
@@ -156,16 +156,16 @@ export function EmployeeRankingsTable({
                     {emp.winRate !== null ? (
                       <span
                         className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${emp.winRate >= 70
-                          ? "border-green-300 text-green-700"
+                          ? "border-green-300 text-green-11"
                           : emp.winRate >= 40
-                            ? "border-amber-300 text-amber-700"
-                            : "border-red-300 text-red-700"
+                            ? "border-amber-300 text-[color:var(--amber-11)]"
+                            : "border-red-300 text-destructive"
                           }`}
                       >
                         {emp.winRate}%
                       </span>
                     ) : (
-                      <span className="text-[10px] text-gray-400 italic">
+                      <span className="text-[10px] text-muted-foreground italic">
                         {totalDeals === 0 ? "No deals" : "—"}
                       </span>
                     )}
@@ -173,10 +173,10 @@ export function EmployeeRankingsTable({
                   <td className="p-4 text-center">
                     {showQuota ? (
                       <div className="flex items-center justify-center gap-2 w-max mx-auto">
-                        <div className="w-20 h-1 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                        <div className="w-20 h-1 bg-mauve-4 rounded-full overflow-hidden flex-shrink-0">
                           <div
                             className={`h-full ${pct >= 100
-                              ? "bg-green-500"
+                              ? "bg-green-9"
                               : pct >= 50
                                 ? "bg-amber-400"
                                 : "bg-red-400"
@@ -186,12 +186,12 @@ export function EmployeeRankingsTable({
                             }}
                           />
                         </div>
-                        <span className="text-xs font-medium text-gray-500 w-8 tabular-nums">
+                        <span className="text-xs font-medium text-muted-foreground w-8 tabular-nums">
                           {pct}%
                         </span>
                       </div>
                     ) : (
-                      <span className="text-xs font-bold text-gray-11">
+                      <span className="text-xs font-bold text-mauve-11">
                         {totalDeals} deals
                       </span>
                     )}

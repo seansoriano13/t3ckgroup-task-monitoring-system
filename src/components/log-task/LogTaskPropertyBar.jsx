@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Clock, ChevronDown } from "lucide-react";
 import DatePicker from "react-datepicker";
 import { formatTaskDateTime } from "../../utils/formatDate";
@@ -18,7 +18,7 @@ export default function LogTaskPropertyBar({
   setOthersRemarks,
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 py-2.5 border-t border-gray-3/40 animate-content-in stagger-3 relative z-[20]">
+    <div className="flex flex-wrap items-center gap-2 py-2.5 border-t border-mauve-3/40 animate-content-in stagger-3 relative z-[20]">
       {/* Category Dropdown */}
       <div className="relative z-[100]" ref={categoryRef}>
         <CategoryDropdown
@@ -56,7 +56,7 @@ export default function LogTaskPropertyBar({
               type="button"
               className={`property-pill ${isOpen ? "active" : ""}`}
             >
-              <Clock size={13} className="text-slate-400" />
+              <Clock size={13} className="text-muted-foreground" />
               <span
                 className={
                   formData.endAt ? "text-foreground" : "text-muted-foreground"
@@ -66,13 +66,13 @@ export default function LogTaskPropertyBar({
                   ? formatTaskDateTime(formData.endAt)
                   : "Set End Time"}
               </span>
-              <ChevronDown size={12} className="text-gray-7 ml-1" />
+              <ChevronDown size={12} className="text-mauve-7 ml-1" />
             </button>
           )}
         >
           {({ close }) => (
             <>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
                 End Date & Time
               </label>
               <div className="w-full py-1">
@@ -99,7 +99,7 @@ export default function LogTaskPropertyBar({
                     close();
                   }}
                   style={{ backgroundColor: "var(--primary)" }}
-                  className="px-4 py-1.5 text-white rounded-lg text-[11px] font-bold hover:opacity-90 transition-all shadow-sm"
+                  className="px-4 py-1.5 text-primary-foreground rounded-lg text-[11px] font-bold hover:opacity-90 transition-all shadow-sm"
                 >
                   Done
                 </button>

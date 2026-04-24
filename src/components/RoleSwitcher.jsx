@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import { employeeService } from "../services/employeeService";
@@ -15,11 +15,11 @@ const Toggle = ({ checked, onChange }) => (
     type="button"
     onClick={() => onChange(!checked)}
     className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-      checked ? "bg-gray-900" : "bg-gray-200"
+      checked ? "bg-mauve-12" : "bg-mauve-4"
     }`}
   >
     <span
-      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+      className={`inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
         checked ? "translate-x-4" : "translate-x-0"
       }`}
     />
@@ -185,18 +185,18 @@ export default function RoleSwitcher() {
   return (
     <div className="fixed bottom-6 left-6 md:left-6 z-[99999]">
       {isOpen && (
-        <div className="mb-4 bg-white border border-gray-200 rounded-xl shadow-2xl w-80 animate-in fade-in slide-in-from-bottom-3 duration-300 overflow-visible">
+        <div className="mb-4 bg-card border border-mauve-4 rounded-xl shadow-2xl w-80 animate-in fade-in slide-in-from-bottom-3 duration-300 overflow-visible">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100 rounded-t-xl">
+          <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-mauve-3 rounded-t-xl">
             <div className="flex items-center gap-2">
-              <FlaskConical size={14} className="text-gray-900" />
-              <h3 className="text-[11px] font-bold text-gray-900 uppercase tracking-widest">
+              <FlaskConical size={14} className="text-foreground" />
+              <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
                 Role Simulator
               </h3>
             </div>
             <button
               onClick={handleReset}
-              className="text-[10px] text-gray-400 hover:text-gray-900 font-bold transition-colors uppercase border border-gray-200 px-2 py-1 rounded-md hover:border-gray-900"
+              className="text-[10px] text-muted-foreground hover:text-foreground font-bold transition-colors uppercase border border-mauve-4 px-2 py-1 rounded-md hover:border-mauve-12"
             >
               Reset
             </button>
@@ -206,7 +206,7 @@ export default function RoleSwitcher() {
             {/* Field Sets */}
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase text-gray-400 font-bold tracking-widest pl-1">
+                <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest pl-1">
                   Department
                 </label>
                 <div className="relative">
@@ -233,7 +233,7 @@ export default function RoleSwitcher() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase text-gray-400 font-bold tracking-widest pl-1">
+                <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest pl-1">
                   Sub-Department
                 </label>
                 <div className="relative">
@@ -258,7 +258,7 @@ export default function RoleSwitcher() {
               </div>
             </div>
 
-            <div className="h-px bg-gray-50" />
+            <div className="h-px bg-mauve-2" />
 
             {/* Toggles */}
             <div className="space-y-4">
@@ -284,10 +284,10 @@ export default function RoleSwitcher() {
                   className="flex items-center justify-between group px-1"
                 >
                   <div>
-                    <p className="text-[13px] text-gray-900 font-bold leading-tight group-hover:text-black">
+                    <p className="text-[13px] text-foreground font-bold leading-tight group-hover:text-black">
                       {flag.label}
                     </p>
-                    <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
+                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
                       {flag.desc}
                     </p>
                   </div>
@@ -305,7 +305,7 @@ export default function RoleSwitcher() {
             <button
               onClick={() => handleApply()}
               disabled={switching}
-              className="w-full h-11 bg-[#111827] flex items-center justify-center gap-2 hover:bg-black text-white text-[13px] font-bold rounded-lg transition-all shadow-lg active:scale-[0.97] disabled:opacity-50"
+              className="w-full h-11 bg-[#111827] flex items-center justify-center gap-2 hover:bg-mauve-12 text-primary-foreground text-[13px] font-bold rounded-lg transition-all shadow-lg active:scale-[0.97] disabled:opacity-50"
             >
               {switching ? (
                 <Loader2 size={16} className="animate-spin opacity-60" />
@@ -324,12 +324,12 @@ export default function RoleSwitcher() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={switching}
-        className="flex items-center gap-3 px-6 py-3.5 rounded-full shadow-2xl transition-all active:scale-95 bg-[#111827] hover:bg-black text-white border border-white/5 group"
+        className="flex items-center gap-3 px-6 py-3.5 rounded-full shadow-2xl transition-all active:scale-95 bg-[#111827] hover:bg-mauve-12 text-primary-foreground border border-white/5 group"
       >
         <div
-          className={`p-1.5 rounded-md bg-white/10 group-hover:bg-white/20 transition-colors`}
+          className={`p-1.5 rounded-md bg-card/10 group-hover:bg-card/20 transition-colors`}
         >
-          <FlaskConical size={16} className="text-white" />
+          <FlaskConical size={16} className="text-primary-foreground" />
         </div>
         <span className="text-[13px] font-bold tracking-wide uppercase hidden md:block">
           {currentStatusText()}

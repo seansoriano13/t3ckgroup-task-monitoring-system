@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+﻿import { useMemo, useEffect } from "react";
 import { Search, AlertCircle, ArrowRight } from "lucide-react";
 import { INPUT_STYLE } from "../pages/login";
 import { useAuth } from "../context/AuthContext";
@@ -99,7 +99,7 @@ function DashboardHeader() {
           />
           <Search
             size={18}
-            className="absolute text-slate-400 right-3 top-1/2 -translate-y-1/2"
+            className="absolute text-muted-foreground right-3 top-1/2 -translate-y-1/2"
           />
         </div>
 
@@ -108,23 +108,23 @@ function DashboardHeader() {
 
       {/* 2. EXPRESS BANNER: Responsive stacking */}
       {pendingCount > 0 && (
-        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="bg-[color:var(--violet-2)] border border-indigo-100 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-4">
-            <div className="bg-white p-2.5 rounded-xl text-indigo-600 shadow-sm border border-indigo-50 shrink-0">
+            <div className="bg-card p-2.5 rounded-xl text-[color:var(--violet-10)] shadow-sm border border-indigo-50 shrink-0">
               <AlertCircle size={22} />
             </div>
             <div>
               <h3 className="text-foreground font-bold text-sm tracking-tight">
                 Review Required
               </h3>
-              <p className="text-slate-500 text-xs mt-0.5">
-                You have <span className="font-bold text-indigo-600">{pendingCount}</span> internal tasks awaiting your {isHr ? "verification" : "approval"}.
+              <p className="text-muted-foreground text-xs mt-0.5">
+                You have <span className="font-bold text-[color:var(--violet-10)]">{pendingCount}</span> internal tasks awaiting your {isHr ? "verification" : "approval"}.
               </p>
             </div>
           </div>
           <Link
             to="/approvals"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-200"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-primary/20"
           >
             Go to Approvals <ArrowRight size={16} />
           </Link>

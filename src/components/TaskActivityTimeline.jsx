@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../services/tasks/taskActivityService";
 import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
@@ -48,13 +48,13 @@ function ActivityEntry({ entry, currentUserId }) {
     return (
       <div className="flex items-start gap-2.5 py-2 px-1">
         <div className="w-6 h-6 rounded-full bg-muted/50 border border-border flex items-center justify-center shrink-0 mt-0.5">
-          <Zap size={12} className="text-slate-400" />
+          <Zap size={12} className="text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-slate-400 leading-relaxed">
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
             {entry.content}
           </p>
-          <p className="text-[9px] text-slate-500 mt-0.5">
+          <p className="text-[9px] text-muted-foreground mt-0.5">
             {formatTime(entry.createdAt)}
           </p>
         </div>
@@ -71,8 +71,8 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`py-3 px-3.5 rounded-xl border ${
           isRejection
-            ? "bg-red-500/5 border-red-500/20"
-            : "bg-green-500/5 border-green-500/20"
+            ? "bg-destructive/5 border-red-500/20"
+            : "bg-green-9/5 border-green-500/20"
         }`}
       >
         <div className="flex items-center justify-between mb-1.5">
@@ -80,8 +80,8 @@ function ActivityEntry({ entry, currentUserId }) {
             <div
               className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
                 isRejection
-                  ? "bg-red-500/20 text-red-400"
-                  : "bg-green-500/20 text-green-400"
+                  ? "bg-destructive/20 text-red-400"
+                  : "bg-green-9/20 text-green-9"
               }`}
             >
               {isRejection ? <AlertTriangle size={12} /> : <Star size={12} />}
@@ -93,15 +93,15 @@ function ActivityEntry({ entry, currentUserId }) {
               <span
                 className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
                   isRejection
-                    ? "bg-red-500/10 text-red-400 border-red-500/30"
-                    : "bg-green-500/10 text-green-400 border-green-500/30"
+                    ? "bg-destructive/10 text-red-400 border-red-500/30"
+                    : "bg-green-9/10 text-green-9 border-green-500/30"
                 }`}
               >
                 Grade: {grade}
               </span>
             )}
           </div>
-          <span className="text-[9px] text-slate-500">
+          <span className="text-[9px] text-muted-foreground">
             {formatTime(entry.createdAt)}
           </span>
         </div>
@@ -122,7 +122,7 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`py-4 px-4 rounded-2xl border ${
           isVerified
-            ? "bg-indigo-50/50 border-indigo-100"
+            ? "bg-[color:var(--violet-2)]/50 border-indigo-100"
             : "bg-destructive/5 border-destructive/20"
         }`}
       >
@@ -131,8 +131,8 @@ function ActivityEntry({ entry, currentUserId }) {
             <div
               className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
                 isVerified
-                  ? "bg-indigo-600 text-white"
-                  : "bg-destructive text-white"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-destructive text-primary-foreground"
               }`}
             >
               <ShieldCheck size={14} />
@@ -141,12 +141,12 @@ function ActivityEntry({ entry, currentUserId }) {
               <span className="text-xs font-bold text-foreground">
                 {entry.authorName || "HR Audit"}
               </span>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-indigo-600" : "text-destructive"}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-[color:var(--violet-10)]" : "text-destructive"}`}>
                 {isVerified ? "Verification Successful" : "Verification Failed"}
               </span>
             </div>
           </div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase">
             {formatTime(entry.createdAt)}
           </span>
         </div>
@@ -166,10 +166,10 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
           entry.authorIsHead || entry.authorIsSuperAdmin
-            ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+            ? "bg-warning/15 text-[color:var(--amber-9)] border-amber-500/30"
             : entry.authorIsHr
-              ? "bg-blue-500/15 text-blue-400 border-blue-500/30"
-              : "bg-muted/50 text-gray-10 border-border"
+              ? "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30"
+              : "bg-muted/50 text-mauve-10 border-border"
         }`}
       >
         {entry.authorName
@@ -185,25 +185,25 @@ function ActivityEntry({ entry, currentUserId }) {
       <div className={`max-w-[85%] ${isMe ? "items-end" : "items-start"}`}>
         <div className="flex items-center gap-2 mb-1 px-1">
           {!isMe && (
-            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
+            <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">
               {entry.authorName}
             </span>
           )}
           {isMe && (
-            <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest ml-auto">You</span>
+            <span className="text-[10px] font-extrabold text-[color:var(--violet-10)] uppercase tracking-widest ml-auto">You</span>
           )}
         </div>
         <div
           className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-300 ${
             isMe
-              ? "bg-indigo-600 text-white rounded-tr-none"
+              ? "bg-primary text-primary-foreground rounded-tr-none"
               : "bg-card text-foreground rounded-tl-none border border-border"
           }`}
         >
           {entry.content}
         </div>
         <p
-          className={`text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest ${
+          className={`text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest ${
             isMe ? "text-right" : "text-left"
           } px-1`}
         >
@@ -223,13 +223,13 @@ function LegacyEntries({ remarks, hrRemarks, evaluatedByName, grade }) {
 
   return (
     <div className="space-y-2 pb-3 mb-3 border-b border-border border-dashed">
-      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest px-1">
         Legacy Record
       </p>
       {remarks && (
         <div className="py-2 px-3 rounded-lg bg-muted/50/50 border border-border">
           <div className="flex items-center gap-2 mb-1">
-            <Star size={10} className="text-amber-400" />
+            <Star size={10} className="text-[color:var(--amber-9)]" />
             <span className="text-[10px] font-bold text-muted-foreground">
               {evaluatedByName || "Manager"} {grade ? `— Grade: ${grade}` : ""}
             </span>
@@ -238,9 +238,9 @@ function LegacyEntries({ remarks, hrRemarks, evaluatedByName, grade }) {
         </div>
       )}
       {hrRemarks && (
-        <div className="py-2 px-3 rounded-lg bg-blue-500/5 border border-blue-500/15">
+        <div className="py-2 px-3 rounded-lg bg-[color:var(--blue-9)]/5 border border-blue-500/15">
           <div className="flex items-center gap-2 mb-1">
-            <ShieldCheck size={10} className="text-blue-400" />
+            <ShieldCheck size={10} className="text-[color:var(--blue-9)]" />
             <span className="text-[10px] font-bold text-muted-foreground">HR Notes</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">{hrRemarks}</p>
@@ -356,7 +356,7 @@ export default function TaskActivityTimeline({
           Task Activity
         </span>
         {activity.length > 0 && (
-          <span className="text-[10px] font-bold text-slate-500 bg-muted/50 px-1.5 py-0.5 rounded-full border border-border ml-auto">
+          <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full border border-border ml-auto">
             {activity.length}
           </span>
         )}
@@ -385,11 +385,11 @@ export default function TaskActivityTimeline({
 
             {activity.length === 0 && !showLegacy && (
               <div className="text-center py-6">
-                <MessageCircle size={24} className="mx-auto text-gray-6 mb-2" />
-                <p className="text-[11px] text-slate-500 font-bold">
+                <MessageCircle size={24} className="mx-auto text-mauve-6 mb-2" />
+                <p className="text-[11px] text-muted-foreground font-bold">
                   No activity yet
                 </p>
-                <p className="text-[10px] text-gray-6 mt-0.5">
+                <p className="text-[10px] text-mauve-6 mt-0.5">
                   System events and comments will appear here.
                 </p>
               </div>
@@ -436,7 +436,7 @@ export default function TaskActivityTimeline({
             <Button
               onClick={handleSend}
               disabled={!message.trim() || postCommentMutation.isPending}
-              className="w-11 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-lg shadow-indigo-200 active:scale-90 transition-all shrink-0"
+              className="w-11 h-11 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all shrink-0"
               size="icon"
             >
               <Send size={18} />

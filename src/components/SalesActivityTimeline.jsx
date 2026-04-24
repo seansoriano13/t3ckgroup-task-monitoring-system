@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesActivityLogService } from "../services/sales/salesActivityLogService";
 import { useAuth } from "../context/AuthContext";
@@ -43,14 +43,14 @@ function ActivityEntry({ entry, currentUserId }) {
   if (entry.type === "SYSTEM") {
     return (
       <div className="flex items-start gap-2.5 py-2 px-1">
-        <div className="w-6 h-6 rounded-full bg-gray-3 border border-gray-4 flex items-center justify-center shrink-0 mt-0.5">
-          <Zap size={12} className="text-gray-8" />
+        <div className="w-6 h-6 rounded-full bg-mauve-3 border border-mauve-4 flex items-center justify-center shrink-0 mt-0.5">
+          <Zap size={12} className="text-mauve-8" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-gray-8 leading-relaxed">
+          <p className="text-[11px] text-mauve-8 leading-relaxed">
             {entry.content}
           </p>
-          <p className="text-[9px] text-gray-7 mt-0.5">{formatTime(entry.createdAt)}</p>
+          <p className="text-[9px] text-mauve-7 mt-0.5">{formatTime(entry.createdAt)}</p>
         </div>
       </div>
     );
@@ -64,8 +64,8 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`py-3 px-3.5 rounded-xl border ${
           isRejection
-            ? "bg-red-500/5 border-red-500/20"
-            : "bg-green-500/5 border-green-500/20"
+            ? "bg-destructive/5 border-red-500/20"
+            : "bg-green-9/5 border-green-500/20"
         }`}
       >
         <div className="flex items-center justify-between mb-1.5">
@@ -73,8 +73,8 @@ function ActivityEntry({ entry, currentUserId }) {
             <div
               className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
                 isRejection
-                  ? "bg-red-500/20 text-red-400"
-                  : "bg-green-500/20 text-green-400"
+                  ? "bg-destructive/20 text-red-400"
+                  : "bg-green-9/20 text-green-9"
               }`}
             >
               {isRejection ? (
@@ -83,16 +83,16 @@ function ActivityEntry({ entry, currentUserId }) {
                 <Star size={12} />
               )}
             </div>
-            <span className="text-xs font-bold text-gray-11">
+            <span className="text-xs font-bold text-mauve-11">
               {entry.authorName || "Head"}
             </span>
           </div>
-          <span className="text-[9px] text-gray-7">
+          <span className="text-[9px] text-mauve-7">
             {formatTime(entry.createdAt)}
           </span>
         </div>
         {entry.content && (
-          <p className="text-sm text-gray-11 leading-relaxed pl-8">
+          <p className="text-sm text-mauve-11 leading-relaxed pl-8">
             {entry.content}
           </p>
         )}
@@ -109,10 +109,10 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
           entry.authorIsHead || entry.authorIsSuperAdmin
-            ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+            ? "bg-warning/15 text-[color:var(--amber-9)] border-amber-500/30"
             : entry.authorIsHr
-              ? "bg-blue-500/15 text-blue-400 border-blue-500/30"
-              : "bg-gray-3 text-gray-10 border-gray-4"
+              ? "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30"
+              : "bg-mauve-3 text-mauve-10 border-mauve-4"
         }`}
       >
         {entry.authorName
@@ -132,12 +132,12 @@ function ActivityEntry({ entry, currentUserId }) {
       >
         <div className="flex items-center gap-2 mb-0.5">
           {!isMe && (
-            <span className="text-xs font-bold text-gray-10">
+            <span className="text-xs font-bold text-mauve-10">
               {entry.authorName}
             </span>
           )}
           {isMe && (
-            <span className="text-xs font-bold text-gray-8 ml-auto">
+            <span className="text-xs font-bold text-mauve-8 ml-auto">
               You
             </span>
           )}
@@ -145,14 +145,14 @@ function ActivityEntry({ entry, currentUserId }) {
         <div
           className={`px-4 py-3 rounded-2xl text-base leading-relaxed ${
             isMe
-              ? "bg-primary/15 text-gray-12 rounded-tr-md border border-primary/20"
-              : "bg-gray-3 text-gray-12 rounded-tl-md border border-gray-4"
+              ? "bg-primary/15 text-foreground rounded-tr-md border border-primary/20"
+              : "bg-mauve-3 text-foreground rounded-tl-md border border-mauve-4"
           }`}
         >
           {entry.content}
         </div>
         <p
-          className={`text-[11px] text-gray-7 mt-1.5 ${
+          className={`text-[11px] text-mauve-7 mt-1.5 ${
             isMe ? "text-right" : "text-left"
           } px-1`}
         >
@@ -171,18 +171,18 @@ function LegacyEntries({ headRemarks, headVerifiedByName }) {
   if (!headRemarks) return null;
 
   return (
-    <div className="space-y-2 pb-3 mb-3 border-b border-gray-4 border-dashed">
-      <p className="text-[9px] font-bold text-gray-7 uppercase tracking-widest px-1">
+    <div className="space-y-2 pb-3 mb-3 border-b border-mauve-4 border-dashed">
+      <p className="text-[9px] font-bold text-mauve-7 uppercase tracking-widest px-1">
         Legacy Record
       </p>
-      <div className="py-2 px-3 rounded-lg bg-gray-3/50 border border-gray-4">
+      <div className="py-2 px-3 rounded-lg bg-mauve-3/50 border border-mauve-4">
         <div className="flex items-center gap-2 mb-1">
-          <Star size={10} className="text-amber-400" />
-          <span className="text-[10px] font-bold text-gray-9">
+          <Star size={10} className="text-[color:var(--amber-9)]" />
+          <span className="text-[10px] font-bold text-muted-foreground">
             {headVerifiedByName || "Manager"}
           </span>
         </div>
-        <p className="text-xs text-gray-11 leading-relaxed">{headRemarks}</p>
+        <p className="text-xs text-mauve-11 leading-relaxed">{headRemarks}</p>
       </div>
     </div>
   );
@@ -265,15 +265,15 @@ export default function SalesActivityTimeline({
   const showLegacy = !hasActivityEntries && !!legacyHeadRemarks;
 
   return (
-    <div className="flex flex-col border border-gray-4 rounded-xl overflow-hidden bg-gray-1 mt-6">
+    <div className="flex flex-col border border-mauve-4 rounded-xl overflow-hidden bg-mauve-1 mt-6">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-4 bg-gray-2">
-        <MessageCircle size={18} className="text-gray-9" />
-        <span className="text-xs font-bold text-gray-9 uppercase tracking-wider">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-mauve-4 bg-mauve-2">
+        <MessageCircle size={18} className="text-muted-foreground" />
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
           Sales Activity Timeline
         </span>
         {activity.length > 0 && (
-          <span className="text-[10px] font-bold text-gray-7 bg-gray-3 px-1.5 py-0.5 rounded-full border border-gray-4 ml-auto">
+          <span className="text-[10px] font-bold text-mauve-7 bg-mauve-3 px-1.5 py-0.5 rounded-full border border-mauve-4 ml-auto">
             {activity.length}
           </span>
         )}
@@ -287,7 +287,7 @@ export default function SalesActivityTimeline({
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-5 h-5 border-2 border-gray-4 border-t-red-9 rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-mauve-4 border-t-red-9 rounded-full animate-spin" />
           </div>
         ) : (
           <>
@@ -302,12 +302,12 @@ export default function SalesActivityTimeline({
               <div className="text-center py-6">
                 <MessageCircle
                   size={24}
-                  className="mx-auto text-gray-6 mb-2"
+                  className="mx-auto text-mauve-6 mb-2"
                 />
-                <p className="text-[11px] text-gray-7 font-bold">
+                <p className="text-[11px] text-mauve-7 font-bold">
                   No activity yet
                 </p>
-                <p className="text-[10px] text-gray-6 mt-0.5">
+                <p className="text-[10px] text-mauve-6 mt-0.5">
                   Comments and approvals will appear here.
                 </p>
               </div>
@@ -326,7 +326,7 @@ export default function SalesActivityTimeline({
 
       {/* Input Box */}
       {!disabled && (
-        <div className="px-3 py-2.5 border-t border-gray-4 bg-gray-2">
+        <div className="px-3 py-2.5 border-t border-mauve-4 bg-mauve-2">
           <div className="flex items-center gap-2">
             <input
               ref={inputRef}
@@ -336,14 +336,14 @@ export default function SalesActivityTimeline({
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
               disabled={postCommentMutation.isPending}
-              className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-4 py-2.5 text-base text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
+              className="flex-1 bg-mauve-1 border border-mauve-4 rounded-lg px-4 py-2.5 text-base text-foreground placeholder:text-mauve-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
             />
             <button
               onClick={handleSend}
               disabled={
                 !message.trim() || postCommentMutation.isPending
               }
-              className="w-11 h-11 rounded-lg bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+              className="w-11 h-11 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground flex items-center justify-center transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
             >
               <Send size={18} />
             </button>

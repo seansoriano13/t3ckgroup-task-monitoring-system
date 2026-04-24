@@ -1,4 +1,4 @@
-import { CheckCircle2, AlertCircle, Loader2, Info, AlertTriangle } from "lucide-react";
+﻿import { CheckCircle2, AlertCircle, Loader2, Info, AlertTriangle } from "lucide-react";
 import { toast, resolveValue } from "react-hot-toast";
 
 export function CustomToast({ 
@@ -37,33 +37,33 @@ export function CustomToast({
   const configs = {
     success: {
       icon: CheckCircle2,
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
+      color: "text-green-9",
+      bg: "bg-green-9/10",
+      border: "border-green-9/20",
     },
     error: {
       icon: AlertCircle,
-      color: "text-red-500",
-      bg: "bg-red-500/10",
+      color: "text-destructive",
+      bg: "bg-destructive/10",
       border: "border-red-500/20",
     },
     loading: {
       icon: Loader2,
-      color: "text-indigo-500",
-      bg: "bg-indigo-500/10",
+      color: "text-[color:var(--violet-9)]",
+      bg: "bg-primary/10",
       border: "border-indigo-500/20",
       spin: true,
     },
     info: {
       icon: Info,
-      color: "text-indigo-500",
-      bg: "bg-indigo-500/10",
+      color: "text-[color:var(--violet-9)]",
+      bg: "bg-primary/10",
       border: "border-indigo-500/20",
     },
     confirm: {
       icon: AlertTriangle,
-      color: "text-red-600",
-      bg: "bg-red-600/10",
+      color: "text-destructive",
+      bg: "bg-destructive/10",
       border: "border-red-600/20",
     }
   };
@@ -105,7 +105,7 @@ export function CustomToast({
             {cancelText}
           </button>
           <button
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-[0_8px_16px_-4px_rgba(220,38,38,0.3)] uppercase tracking-widest flex items-center gap-2"
+            className="bg-destructive hover:bg-red-700 text-primary-foreground px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-[0_8px_16px_-4px_rgba(220,38,38,0.3)] uppercase tracking-widest flex items-center gap-2"
             onClick={() => {
               if (onConfirm) onConfirm();
               toast.dismiss(t.id);

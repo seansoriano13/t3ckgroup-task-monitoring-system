@@ -13,6 +13,8 @@ import PersonalizedHeroBanner from "../components/PersonalizedHeroBanner.jsx";
 import CommitteeTasksList from "../components/CommitteeTasksList.jsx";
 import PageHeader from "../components/ui/PageHeader";
 import PageContainer from "../components/ui/PageContainer";
+import SectionHeader from "../components/ui/SectionHeader";
+import { Users } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -47,11 +49,11 @@ export default function Dashboard() {
           {/* PIPELINE SECTION */}
           <div className="relative">
             <PageHeader
-              title="Organization Pulse"
+              title="Task Accomplishment Report"
               description="Executive Task & Performance Governance"
             >
               {globalRange?.label && (
-                <span className="text-indigo-600 font-bold px-3 py-1 bg-indigo-50 rounded-xl text-lg md:text-xl shrink-0">
+                <span className="text-mauve-11 font-bold px-3 py-1 bg-mauve-2 border border-mauve-4 rounded-xl text-lg md:text-xl shrink-0 shadow-sm">
                   — {globalRange.label}
                 </span>
               )}
@@ -65,7 +67,7 @@ export default function Dashboard() {
               <DashboardStats selectedRange={globalRange} />
               <EmployeePipelineMatrix selectedRange={globalRange} />
               <TasksList selectedRange={globalRange} />
-              <CommitteeTasksList />
+              <CommitteeTasksList selectedRange={globalRange} />
             </div>
           </div>
 
@@ -110,9 +112,22 @@ export default function Dashboard() {
 
           {/* HEAD VIEW MONTH PICKER */}
           <PageHeader
-            title={user?.is_head || user?.isHead ? "Departmental Pulse" : "Private Workflow"}
-            description={user?.is_head || user?.isHead ? "Subordinate Asset Monitoring" : "Personal Execution Roadmap"}
+            title={
+              user?.is_head || user?.isHead
+                ? "Departmental Pulse"
+                : "Private Workflow"
+            }
+            description={
+              user?.is_head || user?.isHead
+                ? "Subordinate Asset Monitoring"
+                : "Personal Execution Roadmap"
+            }
           >
+            {globalRange?.label && (
+              <span className="text-mauve-11 font-bold px-3 py-1 bg-mauve-2 border border-mauve-4 rounded-xl text-lg md:text-xl shrink-0 shadow-sm">
+                — {globalRange.label}
+              </span>
+            )}
             <FloatingMonthPicker
               selectedRange={globalRange}
               onChange={setGlobalRange}
@@ -127,15 +142,16 @@ export default function Dashboard() {
 
           <TasksList selectedRange={globalRange} />
 
-          <CommitteeTasksList />
+          <CommitteeTasksList selectedRange={globalRange} />
 
           {(user?.is_head || user?.isHead) && (
-            <div className="mt-4">
-              <div className="mb-8 border-b border-border pb-4">
-                <h3 className="text-lg font-black text-foreground">
-                  Subordinate Distribution
-                </h3>
-              </div>
+            <div className="mt-12 space-y-6">
+              <SectionHeader
+                icon={Users}
+                title="Subordinate Distribution"
+                description="Team Pipeline Overview"
+                rangeLabel={globalRange?.label}
+              />
               <EmployeePipelineMatrix selectedRange={globalRange} />
             </div>
           )}

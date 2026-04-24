@@ -20,6 +20,9 @@ importers:
       '@google/generative-ai':
         specifier: ^0.24.1
         version: 0.24.1
+      '@radix-ui/colors':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@react-oauth/google':
         specifier: ^0.13.5
         version: 0.13.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -684,6 +687,9 @@ packages:
 
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
+
+  '@radix-ui/colors@3.0.0':
+    resolution: {integrity: sha512-FUOsGBkHrYJwCSEtWRCIfQbZG7q1e6DgxCIOe1SUQzDe/7rXXeA47s8yCn6fuTNQAj1Zq4oTFi9Yjp3wzElcxg==}
 
   '@react-oauth/google@0.13.5':
     resolution: {integrity: sha512-xQWri2s/3nNekZJ4uuov2aAfQYu83bN3864KcFqw2pK1nNbFurQIjPFDXhWaKH3IjYJ2r/9yyIIpsn5lMqrheQ==}
@@ -3759,6 +3765,8 @@ snapshots:
       outvariant: 1.4.3
 
   '@open-draft/until@2.1.0': {}
+
+  '@radix-ui/colors@3.0.0': {}
 
   '@react-oauth/google@0.13.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:

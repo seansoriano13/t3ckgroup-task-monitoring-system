@@ -2,23 +2,23 @@ import { TASK_STATUS, SALES_STATUS } from "../constants/status";
 
 export default function StatusBadge({ status }) {
   const statusStyles = {
-    [TASK_STATUS.COMPLETE]: "bg-white text-green-600 border-green-400",
-    [TASK_STATUS.INCOMPLETE]: "bg-white text-amber-600 border-amber-400",
-    [TASK_STATUS.AWAITING_APPROVAL]: "bg-white text-blue-600 border-blue-400",
-    [TASK_STATUS.NOT_APPROVED]: "bg-white text-red-600 border-red-400",
-    [SALES_STATUS.COMPLETED]: "bg-white text-green-600 border-green-400",
-    [SALES_STATUS.LOST]: "bg-white text-red-600 border-red-400",
+    [TASK_STATUS.COMPLETE]: "bg-card text-green-600 dark:text-green-400 border-green-400",
+    [TASK_STATUS.INCOMPLETE]: "bg-card text-amber-600 dark:text-amber-400 border-amber-400",
+    [TASK_STATUS.AWAITING_APPROVAL]: "bg-card text-blue-600 dark:text-blue-400 border-blue-400",
+    [TASK_STATUS.NOT_APPROVED]: "bg-card text-red-600 dark:text-red-400 border-red-400",
+    [SALES_STATUS.COMPLETED]: "bg-card text-green-600 dark:text-green-400 border-green-400",
+    [SALES_STATUS.LOST]: "bg-card text-red-600 dark:text-red-400 border-red-400",
     
     // Legacy / Other support
-    WON: "bg-white text-green-600 border-green-400",
-    LOST: "bg-white text-red-600 border-red-400",
-    DRAFT: "bg-white text-amber-600 border-amber-400",
-    SUBMITTED: "bg-white text-blue-600 border-blue-400",
-    APPROVED: "bg-white text-green-600 border-green-400",
-    DONE: "bg-white text-green-600 border-green-400",
-    ACTIVE: "bg-white text-blue-600 border-blue-400",
-    CANCELLED: "bg-white text-red-600 border-red-400",
-    DEFAULT: "bg-white text-gray-500 border-gray-300",
+    WON: "bg-card text-green-600 dark:text-green-400 border-green-400",
+    LOST: "bg-card text-red-600 dark:text-red-400 border-red-400",
+    DRAFT: "bg-card text-amber-600 dark:text-amber-400 border-amber-400",
+    SUBMITTED: "bg-card text-blue-600 dark:text-blue-400 border-blue-400",
+    APPROVED: "bg-card text-green-600 dark:text-green-400 border-green-400",
+    DONE: "bg-card text-green-600 dark:text-green-400 border-green-400",
+    ACTIVE: "bg-card text-blue-600 dark:text-blue-400 border-blue-400",
+    CANCELLED: "bg-card text-red-600 dark:text-red-400 border-red-400",
+    DEFAULT: "bg-card text-muted-foreground border-mauve-5",
   };
 
   const safeStatus = status?.toUpperCase() || "";

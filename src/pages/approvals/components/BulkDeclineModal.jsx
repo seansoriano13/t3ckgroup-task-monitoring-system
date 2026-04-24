@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, XSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,9 +48,9 @@ export default function BulkDeclineModal({
         className="p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[500px] sm:max-w-none max-w-[95vw] rounded-2xl max-h-[90vh] overflow-hidden"
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-gray-3/40 shrink-0">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-red-500 text-white font-bold text-[9px] shrink-0">
+        <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-mauve-3/40 shrink-0">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-destructive text-primary-foreground font-bold text-[9px] shrink-0">
               <XSquare size={10} />
             </div>
             <span className="font-bold text-muted-foreground">Bulk Decline</span>
@@ -58,7 +58,7 @@ export default function BulkDeclineModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-md text-slate-400 hover:text-foreground hover:bg-muted/80 transition-colors"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
           >
             <X size={15} />
           </button>
@@ -98,7 +98,7 @@ export default function BulkDeclineModal({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || !remarks.trim()}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold tracking-wide shadow-sm"
+            className="bg-destructive hover:bg-red-700 text-primary-foreground font-bold tracking-wide shadow-sm"
           >
             {isSubmitting ? "Processing..." : `Decline ${selectedCount} Tasks`}
           </Button>

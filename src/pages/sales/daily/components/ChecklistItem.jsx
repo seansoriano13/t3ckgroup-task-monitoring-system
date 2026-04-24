@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../../services/salesService";
 import toast from "react-hot-toast";
@@ -112,11 +112,11 @@ export function ChecklistItem({
       ref={itemRef}
       className={`p-4 flex gap-4 border-l-4 transition-all duration-500 ${justChecked ? "animate-check-flash" : ""} ${
         isHighlighted
-          ? "border-l-indigo-500 bg-indigo-50/60"
+          ? "border-l-indigo-500 bg-[color:var(--violet-2)]/60"
           : isLost
             ? "border-l-destructive/60"
             : isWon
-              ? "border-l-emerald-400/60"
+              ? "border-l-green-8/60"
               : isPendingApproval
                 ? "border-l-amber-400/60"
                 : "border-l-transparent"
@@ -133,20 +133,20 @@ export function ChecklistItem({
           <CheckCircle2
             key={justChecked ? "pop" : "idle"}
             size={24}
-            className={`text-green-500 ${justChecked ? "animate-success-pop" : ""}`}
+            className={`text-green-9 ${justChecked ? "animate-success-pop" : ""}`}
           />
         ) : isPendingApproval ? (
           <div className="relative">
-            <CheckCircle2 size={24} className="text-amber-500 opacity-50" />
+            <CheckCircle2 size={24} className="text-[color:var(--amber-9)] opacity-50" />
             <Clock
               size={12}
-              className="text-amber-600 absolute -right-1 -bottom-1 bg-white rounded-full shadow-sm"
+              className="text-[color:var(--amber-10)] absolute -right-1 -bottom-1 bg-card rounded-full shadow-sm"
             />
           </div>
         ) : (
           <Circle
             size={24}
-            className={`text-slate-300 transition-transform ${justChecked ? "scale-110" : ""}`}
+            className={`text-muted-foreground transition-transform ${justChecked ? "scale-110" : ""}`}
           />
         )}
       </button>
@@ -155,8 +155,8 @@ export function ChecklistItem({
       <div className="mt-1 shrink-0">
         <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-[10px] font-black border transition-all ${
           isDone || isPendingApproval
-            ? "bg-muted text-gray-4 border-gray-4"
-            : "bg-indigo-50 text-indigo-600 border-indigo-200"
+            ? "bg-muted text-mauve-4 border-mauve-4"
+            : "bg-[color:var(--violet-2)] text-[color:var(--violet-10)] border-mauve-5"
         }`}>
           {index}
         </span>
@@ -165,11 +165,11 @@ export function ChecklistItem({
       <div className="flex-1 min-w-0">
         <div
           onClick={() => onView(data)}
-          className={`font-bold text-base cursor-pointer hover:text-indigo-600 transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-muted-foreground" : "text-foreground"}`}
+          className={`font-bold text-base cursor-pointer hover:text-[color:var(--violet-10)] transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-muted-foreground" : "text-foreground"}`}
         >
           <span>{data.account_name}</span>
           {data.is_unplanned && (
-            <span className="text-[10px] bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full not-italic no-underline border border-blue-500/20">
+            <span className="text-[10px] bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] px-2 py-0.5 rounded-full not-italic no-underline border border-blue-500/20">
               EXTRA
             </span>
           )}
@@ -179,7 +179,7 @@ export function ChecklistItem({
             </span>
           )}
           {isPendingApproval && (
-            <span className="text-[10px] bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full not-italic font-black tracking-widest border border-amber-500/20">
+            <span className="text-[10px] bg-warning/10 text-[color:var(--amber-10)] px-2 py-0.5 rounded-full not-italic font-black tracking-widest border border-amber-500/20">
               PENDING APPROVAL
             </span>
           )}
@@ -193,22 +193,22 @@ export function ChecklistItem({
         {(data.reference_number || data.expense_amount) && (
           <div className="flex flex-wrap gap-2 mt-1.5">
             {data.reference_number && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 border border-amber-500/25 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-warning/10 text-[color:var(--amber-10)] border border-amber-500/25 px-2 py-0.5 rounded-full">
                 {data.reference_number}
               </span>
             )}
             {data.expense_amount && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 border border-emerald-500/25 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-green-9/10 text-green-10 border border-green-9/25 px-2 py-0.5 rounded-full">
                 {Number(data.expense_amount).toLocaleString()}
               </span>
             )}
             {isAdminView && isWon && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-600 border border-green-500/25 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-green-9/10 text-green-10 border border-green-500/25 px-2 py-0.5 rounded-full">
                 ✅ WON
               </span>
             )}
             {isAdminView && isLost && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 border border-red-500/25 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-destructive/10 text-destructive border border-red-500/25 px-2 py-0.5 rounded-full">
                 🚫 LOST
               </span>
             )}
@@ -222,7 +222,7 @@ export function ChecklistItem({
               <button
                 onClick={() => selfApproveMutation.mutate()}
                 disabled={selfApproveMutation.isPending || disabledUI}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 rounded-lg text-xs font-bold transition-all border border-emerald-500/20 shadow-sm disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-9/10 hover:bg-green-9/20 text-green-10 rounded-lg text-xs font-bold transition-all border border-green-9/20 shadow-sm disabled:opacity-50"
               >
                 {selfApproveMutation.isPending ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -236,7 +236,7 @@ export function ChecklistItem({
 
         {isAdminView && isDone && data.reference_number && (
           <div className="mt-2 flex items-center gap-2">
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider shrink-0">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider shrink-0">
               Outcome:
             </label>
             <select
@@ -293,7 +293,7 @@ export function ChecklistItem({
               {selectedImages.length > 0 && (
                 <button 
                   onClick={() => setSelectedImages([])}
-                  className="text-red-500 hover:bg-red-500/10 p-1 rounded"
+                  className="text-destructive hover:bg-destructive/10 p-1 rounded"
                 >
                   <X size={14} />
                 </button>
@@ -303,7 +303,7 @@ export function ChecklistItem({
         ) : !isDone ? (
           <button
             onClick={() => setIsEditing(true)}
-           className="mt-1 text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors"
+           className="mt-1 text-[10px] font-black text-muted-foreground hover:text-[color:var(--violet-10)] uppercase tracking-widest transition-colors"
           >
             {details ? `Note: ${details}` : "+ Add Note (Optional)"}
           </button>
@@ -318,7 +318,7 @@ export function ChecklistItem({
 
       <button
         onClick={() => onView(data)}
-        className="mt-1 shrink-0 text-slate-300 hover:text-indigo-500 transition-colors p-1 rounded-lg hover:bg-indigo-50"
+        className="mt-1 shrink-0 text-muted-foreground hover:text-[color:var(--violet-9)] transition-colors p-1 rounded-lg hover:bg-[color:var(--violet-2)]"
         title="View Details"
       >
         <Maximize2 size={18} />

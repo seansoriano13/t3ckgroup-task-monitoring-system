@@ -10,12 +10,19 @@ import {
   Cell,
   PieChart,
   Pie,
+  AreaChart,
+  Area,
 } from "recharts";
-import { BarChart3, PieChart as PieIcon, Package } from "lucide-react";
+import {
+  BarChart3,
+  PieChart as PieIcon,
+  Package,
+  Activity,
+} from "lucide-react";
 
 // ── Color tokens ──────────────────────────────────────────────────────────────
-const COLOR_WON = "#111827";   // Dark Charcoal
-const COLOR_LOST = "#E5E7EB";  // Soft muted gray
+const COLOR_WON = "#111827"; // Dark Charcoal
+const COLOR_LOST = "#E5E7EB"; // Soft muted gray
 
 // Curated muted palette — no pure primaries
 const PIE_COLORS = [
@@ -34,24 +41,27 @@ const currencyFormatter = (value) => `₱${Number(value).toLocaleString()}`;
 
 /** Convert any string to Title Case */
 const toTitleCase = (str) =>
-  str
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
 import {
   USE_LOCAL_DEMO_DATA,
   MOCK_LEADERBOARD,
   MOCK_PRODUCT_DATA,
 } from "./salesChartsMockData";
+import { useMemo } from "react";
 
 // ── Shared tooltip ─────────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-xl p-3 shadow-xl text-xs">
-      <p className="font-black text-gray-12 mb-1">{label}</p>
+    <div className="bg-mauve-1 border border-mauve-4 rounded-xl p-3 shadow-xl text-xs">
+      <p className="font-black text-foreground mb-1">{label}</p>
       {payload.map((entry, i) => (
-        <p key={i} style={{ color: entry.color || "#111827" }} className="font-bold">
+        <p
+          key={i}
+          style={{ color: entry.color || "#111827" }}
+          className="font-bold"
+        >
           {entry.name}: ₱{Number(entry.value).toLocaleString()}
         </p>
       ))}
@@ -100,9 +110,80 @@ const CustomBarLegend = ({ payload }) => {
   );
 };
 
+// ── 0. Revenue Trend Area Chart ────────────────────────────────────────────────
+export function RevenueTrendChart({ revenueLogs }) {
+  const data = useMemo(() => {
+    if (!revenueLogs?.length) return [];
+    const daily = {};
+    revenueLogs.forEach((log) => {
+      const d = log.date;
+      const val = Number(log.revenue_amount) || 0;
+      if (!daily[d]) daily[d] = 0;
+      daily[d] += val;
+    });
+    return Object.entries(daily)
+      .map(([date, amount]) => ({ date, amount }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [revenueLogs]);
+
+  if (data.length < 2) return null;
+
+  return (
+    <div className="bg-mauve-1 border border-mauve-4 rounded-2xl p-5 shadow-sm">
+      <h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-2 mb-6">
+        <Activity size={14} style={{ color: "#111827" }} />
+        Daily Revenue Performance
+      </h3>
+      <div className="h-[240px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#111827" stopOpacity={0.1} />
+                <stop offset="95%" stopColor="#111827" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              vertical={false}
+              stroke="#F3F4F6"
+              strokeDasharray="4 4"
+            />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: "#888", fontSize: 10 }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(d) => d.split("-").slice(1).join("/")}
+            />
+            <YAxis
+              tickFormatter={currencyFormatter}
+              tick={{ fill: "#888", fontSize: 10 }}
+              axisLine={false}
+              tickLine={false}
+              width={80}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="amount"
+              name="Revenue"
+              stroke="#111827"
+              strokeWidth={3}
+              fillOpacity={1}
+              fill="url(#colorRevenue)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 // ── 1. Bar Chart — Revenue by Representative ──────────────────────────────────
 export function RepRevenueChart({ leaderboard }) {
-  const sourceLeaderboard = USE_LOCAL_DEMO_DATA ? MOCK_LEADERBOARD : leaderboard;
+  const sourceLeaderboard = USE_LOCAL_DEMO_DATA
+    ? MOCK_LEADERBOARD
+    : leaderboard;
   if (!sourceLeaderboard?.length) return null;
 
   const data = sourceLeaderboard
@@ -118,13 +199,13 @@ export function RepRevenueChart({ leaderboard }) {
   if (data.length === 0) return null;
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-sm">
-      <h3 className="text-xs font-black uppercase tracking-widest text-gray-12 flex items-center gap-2 mb-4">
+    <div className="bg-mauve-1 border border-mauve-4 rounded-2xl p-5 shadow-sm">
+      <h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-2 mb-4">
         {/* Dark Charcoal icon — no red/green */}
         <BarChart3 size={14} style={{ color: "#111827" }} />
         Revenue by Representative
       </h3>
-      <div className="h-[300px]">
+      <div className="h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} barGap={4} barCategoryGap="35%">
             {/* Horizontal grid — virtually invisible dashed lines */}
@@ -155,8 +236,18 @@ export function RepRevenueChart({ leaderboard }) {
               content={<CustomBarLegend />}
             />
             {/* Sleek 28px-wide bars — pillar shaped */}
-            <Bar dataKey="Won" fill={COLOR_WON} radius={[4, 4, 0, 0]} barSize={28} />
-            <Bar dataKey="Lost" fill={COLOR_LOST} radius={[4, 4, 0, 0]} barSize={28} />
+            <Bar
+              dataKey="Won"
+              fill={COLOR_WON}
+              radius={[4, 4, 0, 0]}
+              barSize={28}
+            />
+            <Bar
+              dataKey="Lost"
+              fill={COLOR_LOST}
+              radius={[4, 4, 0, 0]}
+              barSize={28}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -166,7 +257,9 @@ export function RepRevenueChart({ leaderboard }) {
 
 // ── 2. Win Rate Donut ─────────────────────────────────────────────────────────
 export function WinRateGauge({ leaderboard }) {
-  const sourceLeaderboard = USE_LOCAL_DEMO_DATA ? MOCK_LEADERBOARD : leaderboard;
+  const sourceLeaderboard = USE_LOCAL_DEMO_DATA
+    ? MOCK_LEADERBOARD
+    : leaderboard;
   if (!sourceLeaderboard?.length) return null;
 
   const totalWon = sourceLeaderboard.reduce((s, e) => s + e.dealsWon, 0);
@@ -182,22 +275,25 @@ export function WinRateGauge({ leaderboard }) {
     { name: "Lost", value: totalLost },
   ];
 
-  // Thin ring: outerRadius=55, innerRadius=44 → ring width = 11px
-  const OUTER = 55;
-  const INNER = 44;
+  // Thin ring: outerRadius=65, innerRadius=54 → ring width = 11px
+  const OUTER = 65;
+  const INNER = 54;
 
   return (
     /* No 'overflow-hidden' so the watermark div is simply gone */
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-sm">
+    <div className="bg-mauve-1 border border-mauve-4 rounded-2xl p-5 shadow-sm">
       {/* Watermark (faded PieIcon) removed */}
-      <h3 className="text-xs font-black uppercase tracking-widest text-gray-12 flex items-center gap-2 mb-4">
+      <h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-2 mb-4">
         {/* Dark Charcoal icon */}
         <PieIcon size={14} style={{ color: "#111827" }} />
         Team Win Rate
       </h3>
 
       {/* Donut with centered label — using position relative/absolute */}
-      <div style={{ position: "relative", width: 120, height: 120 }}>
+      <div
+        className="mx-auto"
+        style={{ position: "relative", width: 140, height: 140 }}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -242,16 +338,38 @@ export function WinRateGauge({ leaderboard }) {
       </div>
 
       {/* Sub-label below the donut */}
-      <p className="text-[10px] font-bold text-gray-8 uppercase tracking-widest mt-3">
-        {totalWon} won / {totalLost} lost / {totalDeals} total
-      </p>
+      <div className="mt-4 space-y-2 border-t border-mauve-3 pt-4">
+        <div className="flex justify-between items-center text-[11px] font-bold">
+          <span className="text-mauve-11 uppercase tracking-tight">
+            Won Deals
+          </span>
+          <span className="text-foreground">{totalWon}</span>
+        </div>
+        <div className="w-full bg-mauve-3 h-1.5 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#111827]"
+            style={{ width: `${winRate}%` }}
+          />
+        </div>
+        <div className="flex justify-between items-center text-[11px] font-bold">
+          <span className="text-mauve-11 uppercase tracking-tight">
+            Lost Deals
+          </span>
+          <span className="text-foreground">{totalLost}</span>
+        </div>
+        <p className="text-[10px] font-bold text-mauve-8 uppercase tracking-widest text-center pt-2">
+          {totalDeals} total opportunities
+        </p>
+      </div>
     </div>
   );
 }
 
 // ── 3. Product Breakdown Pie ──────────────────────────────────────────────────
 export function ProductBreakdownChart({ productData }) {
-  const sourceProductData = USE_LOCAL_DEMO_DATA ? MOCK_PRODUCT_DATA : productData;
+  const sourceProductData = USE_LOCAL_DEMO_DATA
+    ? MOCK_PRODUCT_DATA
+    : productData;
   if (!sourceProductData?.length) return null;
 
   const topProducts = sourceProductData.slice(0, 8);
@@ -262,15 +380,15 @@ export function ProductBreakdownChart({ productData }) {
   }));
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-sm">
-      <h3 className="text-xs font-black uppercase tracking-widest text-gray-12 flex items-center gap-2 mb-4">
+    <div className="bg-mauve-1 border border-mauve-4 rounded-2xl p-5 shadow-sm">
+      <h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-2 mb-4">
         {/* Dark Charcoal icon */}
         <Package size={14} style={{ color: "#111827" }} />
         Product Retail Revenue Breakdown
       </h3>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+      <div className="flex flex-col gap-4">
         {/* Pie Chart — muted curated colors */}
-        <div className="h-[260px]">
+        <div className="h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -279,8 +397,8 @@ export function ProductBreakdownChart({ productData }) {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={100}
-                innerRadius={50}
+                outerRadius={80}
+                innerRadius={45}
                 paddingAngle={2}
                 stroke="none"
               >
@@ -303,7 +421,7 @@ export function ProductBreakdownChart({ productData }) {
         </div>
 
         {/* Ranked list — flat, no background boxes, bottom-border separators */}
-        <div>
+        <div className="max-h-[100px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-mauve-4 scrollbar-track-transparent">
           {topProducts.map((p, i) => (
             <div
               key={p.name}

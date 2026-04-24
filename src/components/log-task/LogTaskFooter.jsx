@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+﻿import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function LogTaskFooter({
@@ -19,18 +19,18 @@ export default function LogTaskFooter({
               className="sr-only"
             />
             <div
-              className={`w-8 h-4.5 rounded-full transition-colors ${createMore ? "bg-indigo-600" : "bg-slate-200 group-hover:bg-slate-300"}`}
+              className={`w-8 h-4.5 rounded-full transition-colors ${createMore ? "bg-primary" : "bg-mauve-5 group-hover:bg-mauve-6"}`}
             />
             <div
-              className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white rounded-full transition-transform ${createMore ? "translate-x-3.5" : "translate-x-0"}`}
+              className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-card rounded-full transition-transform ${createMore ? "translate-x-3.5" : "translate-x-0"}`}
             />
           </div>
-          <span className="text-[11px] font-semibold text-slate-400 group-hover:text-foreground transition-colors">
+          <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
             Create more
           </span>
         </label>
 
-        <div className="hidden sm:flex items-center gap-3 text-[10px] text-slate-400 font-medium">
+        <div className="hidden sm:flex items-center gap-3 text-[10px] text-muted-foreground font-medium">
           <div className="flex items-center gap-1.5">
             <kbd className="px-1.5 py-0.5 bg-muted/80 border border-border rounded text-muted-foreground font-sans text-[9px]">
               Ctrl
@@ -41,7 +41,7 @@ export default function LogTaskFooter({
             </kbd>
             <span className="ml-0.5">to save</span>
           </div>
-          <div className="w-[3px] h-[3px] rounded-full bg-slate-200" />
+          <div className="w-[3px] h-[3px] rounded-full bg-mauve-5" />
           <div className="flex items-center gap-1">
             <kbd className="px-1.5 py-0.5 bg-muted/80 border border-border rounded text-muted-foreground font-sans text-[9px]">
               Esc
@@ -64,7 +64,7 @@ export default function LogTaskFooter({
           type="submit"
           form="log-task-form"
           disabled={isSubmitting}
-          className="h-9 px-6 rounded-xl shadow-lg shadow-indigo-200"
+          className="h-9 px-6 rounded-xl shadow-lg shadow-primary/20"
         >
           {isSubmitting ? (
             <>

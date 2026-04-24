@@ -8,6 +8,7 @@ import { taskActivityService } from "../../../services/tasks/taskActivityService
 import { taskService } from "../../../services/taskService";
 import { employeeService } from "../../../services/employeeService";
 import TaskDetails from "../../../components/TaskDetails.jsx";
+import Avatar from "../../../components/Avatar.jsx";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
 import toast from "react-hot-toast";
 import {
@@ -30,6 +31,7 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
+import StatusBadge from "@/components/StatusBadge.jsx";
 
 const PAGE_SIZE = 50;
 
@@ -72,10 +74,15 @@ function tryParseChecklist(str) {
     if (Array.isArray(parsed) && Array.isArray(parsed[0])) {
       parsed = parsed[0];
     }
-    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === "object" && "text" in parsed[0]) {
+    if (
+      Array.isArray(parsed) &&
+      parsed.length > 0 &&
+      typeof parsed[0] === "object" &&
+      "text" in parsed[0]
+    ) {
       return parsed;
     }
-  // eslint-disable-next-line no-empty, no-unused-vars
+    // eslint-disable-next-line no-empty, no-unused-vars
   } catch (e) {}
   return null;
 }
@@ -83,32 +90,41 @@ function tryParseChecklist(str) {
 // ── ContentDisplay ────────────────────────────────────────────────────────────
 function ContentDisplay({ content }) {
   if (!content) return <span className="italic opacity-70">(no message)</span>;
-  
+
   const parsedChecklist = tryParseChecklist(content);
-
-
 
   if (parsedChecklist) {
     const displayItems = parsedChecklist.slice(0, 4);
     const remaining = parsedChecklist.length - 4;
-    
+
     return (
       <div className="space-y-1.5 mt-2 flex flex-col">
         {displayItems.map((item, idx) => (
-          <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
+          <div
+            key={idx}
+            className="flex items-start gap-2 text-xs text-muted-foreground"
+          >
             {item.checked ? (
-              <CheckSquare size={13} className="shrink-0 text-primary mt-[2px]" />
+              <CheckSquare
+                size={13}
+                className="shrink-0 text-primary mt-[2px]"
+              />
             ) : (
-              <Square size={13} className="shrink-0 text-muted-foreground/40 mt-[2px]" />
+              <Square
+                size={13}
+                className="shrink-0 text-muted-foreground/40 mt-[2px]"
+              />
             )}
-            <span className={`${item.checked ? "line-through opacity-60" : ""} break-words leading-snug line-clamp-2`}>
+            <span
+              className={`${item.checked ? "line-through opacity-60" : ""} break-words leading-snug line-clamp-2`}
+            >
               {item.text}
             </span>
           </div>
         ))}
         {remaining > 0 && (
           <div className="text-[10px] font-bold text-muted-foreground/60 pl-[22px] pt-0.5 uppercase tracking-wider">
-            + {remaining} more item{remaining !== 1 ? 's' : ''}
+            + {remaining} more item{remaining !== 1 ? "s" : ""}
           </div>
         )}
       </div>
@@ -307,13 +323,13 @@ export default function SuperAdminActivityLogPage() {
 
   // Date input style — matches LogTaskModal inner fields
   const dateCls =
-    "w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:border-gray-6 transition-colors hover:border-gray-5 cursor-pointer";
+    "w-full bg-mauve-1 border border-mauve-4 rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:border-mauve-6 transition-colors hover:border-mauve-5 cursor-pointer";
 
   return (
     <ProtectedRoute requireSuperAdmin={true}>
       <div className="max-w-6xl mx-auto space-y-5 px-2 pb-10">
         {/* ── Header — same eyebrow pattern as LogTaskHeader ─────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-3/40 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/40 pb-5">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-foreground">
               Activity Log
@@ -350,12 +366,15 @@ export default function SuperAdminActivityLogPage() {
         {/* ── Filter Panel — mirrors LogTaskPropertyBar container ─────── */}
         <div className="bg-card border border-border rounded-2xl shadow-sm">
           {/* Panel top bar — matches LogTaskHeader strip */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-3/40 bg-muted/30">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-muted border border-border shrink-0">
                 <Filter size={10} className="text-muted-foreground" />
               </div>
-              <ChevronDown size={11} className="text-gray-6 -rotate-90" />
+              <ChevronDown
+                size={11}
+                className="text-muted-foreground -rotate-90"
+              />
               <span className="font-medium text-muted-foreground/80">
                 Filters
               </span>
@@ -369,7 +388,7 @@ export default function SuperAdminActivityLogPage() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-foreground transition-colors"
+                className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={12} /> Clear
               </button>
@@ -384,7 +403,7 @@ export default function SuperAdminActivityLogPage() {
                 <div className="relative flex items-center">
                   <Search
                     size={13}
-                    className="absolute left-3 text-gray-7 pointer-events-none shrink-0"
+                    className="absolute left-3 text-muted-foreground pointer-events-none shrink-0"
                   />
                   <input
                     value={filters.search}
@@ -392,7 +411,7 @@ export default function SuperAdminActivityLogPage() {
                       setFilters((p) => ({ ...p, search: e.target.value }))
                     }
                     placeholder="Search content or task description…"
-                    className="w-full bg-gray-1 border border-gray-4 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-12 outline-none focus:border-gray-6 hover:border-gray-5 transition-colors placeholder:text-gray-7"
+                    className="w-full bg-mauve-1 border border-mauve-4 rounded-lg pl-8 pr-3 py-2 text-xs text-foreground outline-none focus:border-mauve-6 hover:border-mauve-5 transition-colors placeholder:text-muted-foreground"
                   />
                 </div>
               </FieldBox>
@@ -667,14 +686,13 @@ export default function SuperAdminActivityLogPage() {
           <div className="space-y-2">
             {filteredEntries.map((e) => {
               const Icon = typeIcon(e.type);
-              const initials = getInitials(e.authorName);
 
               return (
                 <button
                   key={e.id}
                   type="button"
                   onClick={() => setSelectedTaskId(e.taskId)}
-                  className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-gray-6 hover:bg-muted/40 transition-all duration-150 animate-content-in group"
+                  className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-mauve-6 hover:bg-muted/40 transition-all duration-150 animate-content-in group"
                 >
                   <div className="flex items-start gap-3">
                     {/* Icon bubble — matches LogTaskHeader dept badge style */}
@@ -705,20 +723,32 @@ export default function SuperAdminActivityLogPage() {
                           return (
                             <div className="mb-1.5 space-y-1">
                               {displayItems.map((item, idx) => (
-                                <div key={idx} className="flex items-start gap-1.5 text-xs font-bold text-foreground">
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-1.5 text-xs font-bold text-foreground"
+                                >
                                   {item.checked ? (
-                                    <CheckSquare size={13} className="shrink-0 text-primary mt-[1px]" />
+                                    <CheckSquare
+                                      size={13}
+                                      className="shrink-0 text-mauve-10 mt"
+                                    />
                                   ) : (
-                                    <Square size={13} className="shrink-0 text-muted-foreground/50 mt-[1px]" />
+                                    <Square
+                                      size={13}
+                                      className="shrink-0 text-muted-foreground/50 mt-[1px]"
+                                    />
                                   )}
-                                  <span className={`${item.checked ? "line-through opacity-60" : ""} line-clamp-1`}>
+                                  <span
+                                    className={`${item.checked ? "line-through opacity-60" : ""} line-clamp-1`}
+                                  >
                                     {item.text}
                                   </span>
                                 </div>
                               ))}
                               {remaining > 0 && (
                                 <div className="text-[10px] font-bold text-muted-foreground/60 pl-5 uppercase tracking-wider">
-                                  + {remaining} more checklist item{remaining !== 1 ? 's' : ''}
+                                  + {remaining} more checklist item
+                                  {remaining !== 1 ? "s" : ""}
                                 </div>
                               )}
                             </div>
@@ -740,20 +770,18 @@ export default function SuperAdminActivityLogPage() {
                       <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                         {/* Author — matches LogTaskHeader dept initial badge */}
                         <div className="flex items-center gap-1.5">
-                          <div className="w-[16px] h-[16px] rounded flex items-center justify-center bg-primary text-white font-bold text-[8px] shrink-0">
-                            {initials.charAt(0)}
-                          </div>
-                          <span className="text-[11px] font-semibold text-slate-400">
+                          <Avatar
+                            name={e.authorName || "System"}
+                            size="xxs"
+                            className="bg-mauve-4 text-mauve-12  shadow-sm"
+                          />
+                          <span className="text-[11px] font-semibold text-muted-foreground">
                             {e.authorName || "System"}
                           </span>
                         </div>
 
                         {/* Status — matches .property-pill */}
-                        {e.taskStatus && (
-                          <span className="property-pill !py-0.5 !px-2 !text-[9px] !rounded-full pointer-events-none">
-                            {e.taskStatus}
-                          </span>
-                        )}
+                        <StatusBadge status={e.taskStatus} />
                       </div>
                     </div>
                   </div>
@@ -765,7 +793,7 @@ export default function SuperAdminActivityLogPage() {
 
         {/* ── Bottom pagination ─────────────────────────────────────── */}
         {filteredEntries.length > 0 && (
-          <div className="flex items-center justify-center gap-3 pt-3 border-t border-gray-3/40">
+          <div className="flex items-center justify-center gap-3 pt-3 border-t border-border/40">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}

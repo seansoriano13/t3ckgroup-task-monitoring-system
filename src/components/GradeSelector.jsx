@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GradeSelector — Extracted from ManagerEvaluation.
  * Renders the 1-5 grade buttons for head task evaluation.
  *
@@ -14,11 +14,11 @@ export default function GradeSelector({
   compact = false,
 }) {
   const activeColorMap = {
-    1: "bg-red-500 text-white border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]",
-    2: "bg-orange-500 text-white border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]",
-    3: "bg-amber-500 text-white border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]",
-    4: "bg-lime-500 text-white border-lime-500 shadow-[0_0_15px_rgba(132,204,22,0.3)]",
-    5: "bg-emerald-500 text-white border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]",
+    1: "bg-destructive text-primary-foreground border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]",
+    2: "bg-orange-500 text-primary-foreground border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]",
+    3: "bg-warning text-primary-foreground border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]",
+    4: "bg-lime-500 text-primary-foreground border-lime-500 shadow-[0_0_15px_rgba(132,204,22,0.3)]",
+    5: "bg-green-9 text-primary-foreground border-green-9 shadow-[0_0_15px_rgba(16,185,129,0.3)]",
   };
 
   return (

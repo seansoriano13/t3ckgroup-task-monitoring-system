@@ -13,7 +13,9 @@ import {
   RepRevenueChart,
   ProductBreakdownChart,
   WinRateGauge,
+  RevenueTrendChart,
 } from "./sales-dashboard/SalesCharts";
+import PageHeader from "./ui/PageHeader";
 
 export default function SalesDashboard({ globalRange }) {
   const { user } = useAuth();
@@ -103,27 +105,34 @@ export default function SalesDashboard({ globalRange }) {
   const printReport = () => window.print();
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-10 px-2 sm:px-0">
+    <div className="max-w-7xl mx-auto space-y-4 pb-6 px-2 sm:px-0">
       {/* HEADER */}
-      <div className="flex flex-col gap-4 border-b border-gray-4 pb-4 print:hidden">
+      <div className="flex flex-col gap-4 border-b border-mauve-4 pb-4 print:hidden">
+        <PageHeader
+          title="Sales Accomplishment Report"
+          description="Revenue performance, quota tracking, and strategic analytics."
+        />
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-gray-12 flex items-center uppercase">
+          {/* <div>
+            <h1 className="text-2xl font-black text-foreground flex items-center uppercase">
               Sales Accomplishment Report
               {rangeLabel && (
-                <span className="text-gray-12 ml-2">— {rangeLabel}</span>
+                <span className="text-mauve-11 font-bold px-3 py-1 bg-mauve-2 border border-mauve-4 rounded-xl text-lg ml-3 shadow-sm lowercase">
+                  — {rangeLabel}
+                </span>
               )}
             </h1>
-            <p className="text-gray-9 mt-1 font-medium text-sm">
+            <p className="text-muted-foreground mt-1 font-medium text-sm">
               Revenue performance, quota tracking, and strategic analytics.
             </p>
-          </div>
-          <button
+          </div> */}
+
+          {/* <button
             onClick={printReport}
-            className="bg-white hover:bg-gray-50 text-gray-900 font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm border border-gray-200 shrink-0 print:hidden"
+            className="bg-card hover:bg-mauve-2 text-foreground font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm border border-mauve-4 shrink-0 print:hidden"
           >
-            <Download size={16} className="text-gray-500" /> Export PDF
-          </button>
+            <Download size={16} className="text-muted-foreground" /> Export PDF
+          </button> */}
         </div>
       </div>
 
@@ -154,15 +163,16 @@ export default function SalesDashboard({ globalRange }) {
 
       {/* CHARTS — visible to admins */}
       {isAdmin && leaderboard.length > 0 && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <RevenueTrendChart revenueLogs={revenueLogs} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <RepRevenueChart leaderboard={leaderboard} />
             <WinRateGauge leaderboard={leaderboard} />
+            {productData.length > 0 && (
+              <ProductBreakdownChart productData={productData} />
+            )}
           </div>
-
-          {productData.length > 0 && (
-            <ProductBreakdownChart productData={productData} />
-          )}
         </div>
       )}
 
@@ -172,10 +182,8 @@ export default function SalesDashboard({ globalRange }) {
       )}
 
       {/* DETAILED PERFORMANCE METRICS (Execution rates, pipelines, financial ROI) */}
-      <div className="mt-8 border-t border-gray-4 pt-8">
-        <SalesPerformanceMetrics
-          globalRange={globalRange}
-        />
+      <div className="mt-8 border-t border-mauve-4 pt-8">
+        <SalesPerformanceMetrics globalRange={globalRange} />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
@@ -765,7 +765,7 @@ export default function SalesSchedulePage() {
     return (
       <ProtectedRoute excludeSuperAdmin={true}>
         <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-gray-8" size={32} />
+          <Loader2 className="animate-spin text-mauve-8" size={32} />
         </div>
       </ProtectedRoute>
     );

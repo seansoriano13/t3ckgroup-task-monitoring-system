@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { salesService } from "../services/salesService";
@@ -98,7 +98,7 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
             {/* Header: Matching EmployeeBlock */}
             <div className="bg-muted/30 p-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-600 font-black flex items-center justify-center border border-red-500/20 shadow-inner">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 text-destructive font-black flex items-center justify-center border border-red-500/20 shadow-inner">
                   {req.employeeName?.charAt(0)}
                 </div>
                 <div>
@@ -106,35 +106,35 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                     {req.employeeName}
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] font-black text-gray-9 uppercase tracking-widest flex items-center gap-1">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
                       <Calendar size={12} /> {req.date}
                     </span>
-                    <span className="text-[10px] font-black bg-red-500/10 text-red-600 border border-red-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                    <span className="text-[10px] font-black bg-destructive/10 text-destructive border border-red-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
                       {req.activities.length} Activities
                     </span>
                   </div>
                 </div>
               </div>
               <div className="hidden sm:flex flex-col items-end">
-                <span className="text-[10px] font-black uppercase tracking-widest text-red-600">Pending Wipe</span>
-                <span className="text-[9px] text-gray-5 font-bold uppercase tracking-tighter">Deletion Request</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-destructive">Pending Wipe</span>
+                <span className="text-[9px] text-mauve-5 font-bold uppercase tracking-tighter">Deletion Request</span>
               </div>
             </div>
 
             <div className="p-6 flex flex-col lg:flex-row gap-6">
               <div className="flex items-center gap-4 shrink-0">
-                <div className="w-14 h-14 rounded-full bg-red-500/10 text-red-600 font-black flex items-center justify-center border border-red-500/20 shadow-inner text-xl">
+                <div className="w-14 h-14 rounded-full bg-destructive/10 text-destructive font-black flex items-center justify-center border border-red-500/20 shadow-inner text-xl">
                   {req.employeeName?.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-12 text-lg leading-tight uppercase tracking-tight">
+                  <h3 className="font-bold text-foreground text-lg leading-tight uppercase tracking-tight">
                     {req.employeeName}
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-black bg-white border border-gray-3 px-2 py-0.5 rounded text-gray-9 flex items-center gap-1 uppercase tracking-widest">
+                    <span className="text-[10px] font-black bg-card border border-mauve-3 px-2 py-0.5 rounded text-muted-foreground flex items-center gap-1 uppercase tracking-widest">
                       <Calendar size={12} /> {req.date}
                     </span>
-                    <span className="text-[10px] font-black bg-red-100 border border-red-200 px-2 py-0.5 rounded text-red-700 uppercase tracking-widest">
+                    <span className="text-[10px] font-black bg-red-100 border border-destructive/30 px-2 py-0.5 rounded text-destructive uppercase tracking-widest">
                       {req.activities.length} Activities
                     </span>
                   </div>
@@ -142,45 +142,45 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
               </div>
 
               <div className="flex-1 min-w-0 space-y-4">
-                <div className="bg-gray-1 border border-gray-4 rounded-xl p-4 shadow-inner">
-                  <label className="text-[10px] font-black text-red-600 uppercase tracking-widest block mb-2 flex items-center gap-1.5">
+                <div className="bg-mauve-1 border border-mauve-4 rounded-xl p-4 shadow-inner">
+                  <label className="text-[10px] font-black text-destructive uppercase tracking-widest block mb-2 flex items-center gap-1.5">
                     <AlertCircle size={14} /> Reason for Wipe
                   </label>
-                  <p className="text-sm text-gray-12 font-medium leading-relaxed italic">
+                  <p className="text-sm text-foreground font-medium leading-relaxed italic">
                     "{req.reason || "No reason provided"}"
                   </p>
                 </div>
 
                 <div className="mt-4 space-y-1.5 border-t border-red-500/10 pt-3">
-                  <p className="text-[10px] font-black text-gray-9 uppercase tracking-widest mb-2">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
                     Activities to be Wiped ({req.activities.length})
                   </p>
                   <div className="max-h-[240px] overflow-y-auto pr-2 custom-scrollbar space-y-1.5">
                     {req.activities.map((activity) => (
                       <div
                         key={activity.id}
-                        className="bg-white border border-gray-4 rounded-lg p-2 flex items-center justify-between gap-3 hover:border-red-200 transition-colors"
+                        className="bg-card border border-mauve-4 rounded-lg p-2 flex items-center justify-between gap-3 hover:border-destructive/30 transition-colors"
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <div className={`w-1.5 h-1.5 rounded-full ${activity.activity_type === 'SALES CALL' ? 'bg-emerald-400' : 'bg-blue-400'}`} />
-                            <p className="text-[11px] font-black text-gray-12 truncate" title={activity.account_name}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${activity.activity_type === 'SALES CALL' ? 'bg-green-8' : 'bg-blue-400'}`} />
+                            <p className="text-[11px] font-black text-foreground truncate" title={activity.account_name}>
                               {activity.account_name}
                             </p>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5 ml-3.5">
-                            <span className="text-[9px] font-bold text-gray-5 uppercase tracking-wide flex items-center gap-1">
+                            <span className="text-[9px] font-bold text-mauve-5 uppercase tracking-wide flex items-center gap-1">
                               <Clock size={8} /> {activity.time_of_day}
                             </span>
-                            <span className="text-gray-4 text-[9px]">•</span>
-                            <span className="text-[9px] font-bold text-gray-5 uppercase tracking-wide">
+                            <span className="text-mauve-4 text-[9px]">•</span>
+                            <span className="text-[9px] font-bold text-mauve-5 uppercase tracking-wide">
                               {activity.activity_type}
                             </span>
                           </div>
                         </div>
                         <button
                           type="button"
-                          className="text-gray-4 hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-red-50 shrink-0"
+                          className="text-mauve-4 hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/5 shrink-0"
                           onClick={() => setViewActivity(activity)}
                           title="View Details"
                         >
@@ -202,7 +202,7 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                       isApproved: false,
                     })
                   }
-                  className="w-full lg:w-32 px-4 py-2.5 bg-gray-2 hover:bg-gray-3 text-gray-7 text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-4 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full lg:w-32 px-4 py-2.5 bg-mauve-2 hover:bg-mauve-3 text-mauve-7 text-[10px] font-black uppercase tracking-widest rounded-xl border border-mauve-4 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <XCircle size={14} /> Deny
                 </button>
@@ -219,7 +219,7 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                       })
                     );
                   }}
-                  className="w-full lg:w-32 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full lg:w-32 px-4 py-2.5 bg-destructive hover:bg-red-700 text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 size={14} /> Approve
                 </button>

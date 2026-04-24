@@ -35,8 +35,12 @@ export default function DashboardStats({ selectedRange }) {
 
   const stats = useMemo(() => {
     // 1. Filter tasks for ONLY this date range, EXCLUDING Super Admin
-    const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
-    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T00:00:00`) : new Date();
+    const rangeStart = selectedRange?.startDate
+      ? new Date(`${selectedRange.startDate}T00:00:00`)
+      : new Date(0);
+    const rangeEnd = selectedRange?.endDate
+      ? new Date(`${selectedRange.endDate}T00:00:00`)
+      : new Date();
 
     const thisMonthTasks = rawTasks.filter((t) => {
       const taskDate = new Date(t.createdAt);
@@ -119,7 +123,9 @@ export default function DashboardStats({ selectedRange }) {
           t.status === TASK_STATUS.INCOMPLETE ||
           t.status === TASK_STATUS.AWAITING_APPROVAL,
       ).length;
-      teamCompleted = teamTasks.filter((t) => t.status === TASK_STATUS.COMPLETE).length;
+      teamCompleted = teamTasks.filter(
+        (t) => t.status === TASK_STATUS.COMPLETE,
+      ).length;
       teamRejected = teamTasks.filter(
         (t) => t.status === TASK_STATUS.NOT_APPROVED,
       ).length;
@@ -159,7 +165,7 @@ export default function DashboardStats({ selectedRange }) {
             title="My Pending"
             value={stats.myPending}
             subtitle="Drafting"
-            icon={<Clock size={20} className="text-slate-400" />}
+            icon={<Clock size={20} className="text-muted-foreground" />}
             color="indigo"
           />
           <StatCard
@@ -180,7 +186,7 @@ export default function DashboardStats({ selectedRange }) {
             title="My Completed"
             value={stats.myCompleted}
             subtitle="Verified this Month"
-            icon={<CheckCircle2 size={20} className="text-emerald-500" />}
+            icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
           />
         </>
@@ -193,7 +199,7 @@ export default function DashboardStats({ selectedRange }) {
             title="Pending Approval"
             value={stats.teamPendingApprovals}
             subtitle="Requires Review"
-            icon={<AlertCircle size={20} className="text-indigo-500" />}
+            icon={<AlertCircle size={20} className="text-foreground" />}
             color="indigo"
           />
           <StatCard
@@ -214,7 +220,7 @@ export default function DashboardStats({ selectedRange }) {
             title="Completed Tasks"
             value={stats.teamCompleted}
             subtitle="Completed this Month"
-            icon={<CheckCircle2 size={20} className="text-emerald-500" />}
+            icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
           />
         </>
@@ -248,7 +254,7 @@ export default function DashboardStats({ selectedRange }) {
             title="All Tasks"
             value={stats.hrAllTasks}
             subtitle="Org Output this Month"
-            icon={<Database size={20} className="text-indigo-500" />}
+            icon={<Database size={20} className="text-foreground" />}
             color="indigo"
           />
         </>
@@ -260,28 +266,33 @@ export default function DashboardStats({ selectedRange }) {
 // Reusable Sub-component for the cards
 function StatCard({ title, value, subtitle, icon, color }) {
   const colorMap = {
-    indigo: "from-indigo-500/10 to-transparent",
-    amber: "from-amber-500/10 to-transparent",
-    destructive: "from-destructive/10 to-transparent",
-    emerald: "from-emerald-500/10 to-transparent",
+    indigo: "from-indigo-500/15 to-transparent",
+    amber: "from-amber-500/15 to-transparent",
+    destructive: "from-red-500/15 to-transparent",
+    emerald: "from-green-9/15 to-transparent",
+    slate: "from-slate-500/15 to-transparent",
   };
 
   return (
     <Card className="p-6 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm">
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`} />
-      
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
+      />
+
       <div className="flex justify-between items-start mb-5 relative z-10">
         <div>
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1">
             {title}
           </p>
-          <h3 className="text-4xl font-extrabold tracking-tight text-foreground">{value}</h3>
+          <h3 className="text-4xl font-extrabold tracking-tight text-foreground">
+            {value}
+          </h3>
         </div>
         <div className="p-2.5 rounded-xl bg-muted/50 border border-border group-hover:bg-muted transition-colors">
           {icon}
         </div>
       </div>
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest relative z-10">
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest relative z-10">
         {subtitle}
       </p>
     </Card>

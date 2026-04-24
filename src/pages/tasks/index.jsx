@@ -17,6 +17,7 @@ import { employeeService } from "../../services/employeeService.js";
 import { useMemo } from "react";
 import PageHeader from "../../components/ui/PageHeader";
 import PageContainer from "../../components/ui/PageContainer";
+import TabGroup from "../../components/ui/TabGroup";
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -245,10 +246,10 @@ export default function TasksPage() {
         title={
           isHr
             ? hrViewMode === "ALL"
-              ? "Company Tasks"
+              ? `All Tasks`
               : "My Tasks"
             : isManagement
-              ? "All tasks"
+              ? "Team tasks"
               : "My Tasks"
         }
         description={
@@ -262,28 +263,15 @@ export default function TasksPage() {
         }
       >
         {isHr && (
-          <div className="flex bg-card border border-border rounded-xl overflow-hidden shrink-0 shadow-sm p-1">
-            <button
-              onClick={() => setHrViewMode("ALL")}
-              className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg ${
-                hrViewMode === "ALL"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              Company
-            </button>
-            <button
-              onClick={() => setHrViewMode("PERSONAL")}
-              className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg ${
-                hrViewMode === "PERSONAL"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              My Tasks
-            </button>
-          </div>
+          <TabGroup
+            variant="pill"
+            tabs={[
+              { value: "ALL", label: "Company" },
+              { value: "PERSONAL", label: "My Tasks" },
+            ]}
+            activeTab={hrViewMode}
+            onChange={setHrViewMode}
+          />
         )}
       </PageHeader>
 
@@ -355,14 +343,14 @@ export default function TasksPage() {
                 <div
                   className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${
                     statusKey === "COMPLETE_VERIFIED"
-                      ? "bg-green-500"
+                      ? "bg-green-9"
                       : statusKey === "COMPLETE_UNVERIFIED"
-                        ? "bg-emerald-400"
+                        ? "bg-green-8"
                         : statusKey === "AWAITING_APPROVAL"
-                          ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                          ? "bg-[color:var(--blue-9)]"
                           : statusKey === "NOT APPROVED"
-                            ? "bg-red-500"
-                            : "bg-amber-500"
+                            ? "bg-destructive"
+                            : "bg-[color:var(--amber-9)]"
                   }`}
                 />
                 <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
@@ -376,7 +364,7 @@ export default function TasksPage() {
                           ? "Not Approved"
                           : "Pending / In Progress"}
                 </h3>
-                <span className="text-[10px] font-bold text-slate-400 bg-card px-2 py-0.5 rounded-full border border-border ml-auto">
+                <span className="text-[10px] font-bold text-muted-foreground bg-card px-2 py-0.5 rounded-full border border-border ml-auto">
                   {allGroupTasks.length} Total
                 </span>
               </div>
@@ -398,7 +386,7 @@ export default function TasksPage() {
               {/* Per-Group Mini Pagination */}
               {totalGroupPages > 1 && (
                 <div className="flex items-center justify-end gap-3 pt-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Page {currentGroupPage} / {totalGroupPages}
                   </span>
                   <div className="flex gap-1">
@@ -449,10 +437,10 @@ export default function TasksPage() {
                           }
                           className={`w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition-all border ${
                             p === currentGroupPage
-                              ? "bg-primary border-primary text-primary-foreground text-white border-primary"
+                              ? "bg-primary border-primary text-primary-foreground text-primary-foreground border-primary"
                               : p === "..."
                                 ? "bg-transparent text-muted-foreground/80 border-transparent cursor-default"
-                                : "bg-muted/50 text-muted-foreground/80 border-border hover:border-slate-300"
+                                : "bg-muted/50 text-muted-foreground/80 border-border hover:border-mauve-5"
                           }`}
                         >
                           {p}
@@ -480,7 +468,7 @@ export default function TasksPage() {
             <p className="text-muted-foreground/80 font-bold text-base md:text-lg">
               No tasks found.
             </p>
-            <p className="text-slate-400 text-xs md:text-sm mt-1 px-4">
+            <p className="text-muted-foreground text-xs md:text-sm mt-1 px-4">
               Try adjusting your filters or search term.
             </p>
           </div>

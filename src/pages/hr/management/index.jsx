@@ -28,6 +28,7 @@ import { Users } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import PageHeader from "../../../components/ui/PageHeader";
 import PageContainer from "../../../components/ui/PageContainer";
+import TabGroup from "../../../components/ui/TabGroup";
 
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
@@ -131,35 +132,23 @@ export default function EmployeeManagement() {
         />
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-card border border-border rounded-xl w-fit shadow-sm">
-          <button
-            onClick={() => setActiveTab("employees")}
-            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
-              activeTab === "employees"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
-          >
-            Employees
-          </button>
-          <button
-            onClick={() => setActiveTab("categories")}
-            className={`px-4 py-2 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all duration-200 ${
-              activeTab === "categories"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
-          >
-            Categories Config
-          </button>
-        </div>
+        <TabGroup
+          variant="pill"
+          tabs={[
+            { value: "employees", label: "Employees" },
+            { value: "categories", label: "Categories Config" },
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          size="md"
+        />
 
         {activeTab === "employees" ? (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-card border border-border p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative z-20">
               <div className="relative flex-1 md:max-w-sm">
                 <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -167,12 +156,12 @@ export default function EmployeeManagement() {
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-muted/40 border border-border text-foreground rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-sm"
+                  className="w-full bg-muted/40 border border-border text-foreground rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[color:var(--mauve-8)] focus:ring-2 focus:ring-[color:var(--mauve-4)] transition-all text-sm"
                 />
               </div>
               <button
                 onClick={handleAddNew}
-                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-100"
+                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all shadow-lg shadow-primary/15"
               >
                 <UserPlus size={16} /> Add Employee
               </button>
@@ -181,7 +170,7 @@ export default function EmployeeManagement() {
             <div className="bg-card border border-border rounded-2xl shadow-sm overflow-x-auto">
               <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="bg-muted/50 border-b border-border text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
+                  <tr className="bg-muted/50 border-b border-border text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     <th className="p-4">Name</th>
                     <th className="p-4">Email</th>
                     <th className="p-4">Department</th>
@@ -200,7 +189,7 @@ export default function EmployeeManagement() {
                       >
                         <Loader2
                           size={24}
-                          className="animate-spin mx-auto mb-2 text-indigo-500"
+                          className="animate-spin mx-auto mb-2 text-[color:var(--violet-9)]"
                         />
                         Loading employees...
                       </td>
@@ -226,7 +215,7 @@ export default function EmployeeManagement() {
                             <p className="font-black text-foreground">
                               {emp.name}
                             </p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                               {emp.id?.slice(0, 8)}...
                             </p>
                           </div>
@@ -245,17 +234,17 @@ export default function EmployeeManagement() {
                         </td>
                         <td className="p-4 text-xs flex gap-1">
                           {emp.isSuperAdmin && (
-                            <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
+                            <span className="bg-[color:var(--violet-2)] text-[color:var(--violet-11)] border border-mauve-5 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
                               <Shield size={11} /> Super Admin
                             </span>
                           )}
                           {emp.isHr && (
-                            <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
+                            <span className="bg-[color:var(--blue-2)] text-[color:var(--blue-11)] border border-[color:var(--blue-6)] px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
                               HR
                             </span>
                           )}
                           {emp.isHead && (
-                            <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
+                            <span className="bg-[color:var(--amber-2)] text-[color:var(--amber-11)] border border-[color:var(--amber-6)] px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
                               Head
                             </span>
                           )}
@@ -268,7 +257,7 @@ export default function EmployeeManagement() {
                         <td className="p-4 text-right space-x-2">
                           <button
                             onClick={() => handleEdit(emp)}
-                            className="p-2 bg-muted hover:bg-muted/70 text-foreground rounded-xl transition-all inline-block hover:border-indigo-200 border border-transparent"
+                            className="p-2 bg-muted hover:bg-muted/70 text-foreground rounded-xl transition-all inline-block hover:border-mauve-5 border border-transparent"
                             title="Edit Employee"
                           >
                             <Edit size={15} />
@@ -457,9 +446,9 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
           <div>
             <h2 className="text-xl font-black text-foreground flex items-center gap-2">
               {isEditing ? (
-                <Edit size={20} className="text-indigo-500" />
+                <Edit size={20} className="text-[color:var(--violet-9)]" />
               ) : (
-                <UserPlus size={20} className="text-indigo-500" />
+                <UserPlus size={20} className="text-[color:var(--violet-9)]" />
               )}
               {isEditing ? "Edit Employee" : "Add Employee"}
             </h2>
@@ -498,7 +487,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
+                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-[color:var(--mauve-8)] focus:ring-4 focus:ring-[color:var(--mauve-4)] transition-all text-foreground font-medium"
                   />
                 </div>
               </div>
@@ -516,7 +505,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
+                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-[color:var(--mauve-8)] focus:ring-4 focus:ring-[color:var(--mauve-4)] transition-all text-foreground font-medium"
                   />
                 </div>
               </div>
@@ -528,7 +517,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <div className="relative">
                   <Briefcase
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
                   />
                   <input
                     type="text"
@@ -537,7 +526,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                       setFormData({ ...formData, role: e.target.value })
                     }
                     placeholder="e.g. MARKETING ASSISTANT"
-                    className="w-full bg-muted/40 border border-border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
+                    className="w-full bg-muted/40 border border-border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-[color:var(--mauve-8)] focus:ring-4 focus:ring-[color:var(--mauve-4)] transition-all text-foreground font-medium"
                   />
                 </div>
               </div>
@@ -557,7 +546,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     <span>{formData.department || "Set Department"}</span>
                     <ChevronDown
                       size={12}
-                      className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
                     />
                   </PropertyPill>
                 )}
@@ -565,7 +554,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 {({ close }) => (
                   <div className="p-1">
                     <div className="px-3 py-2 border-b border-border mb-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                         Select Department
                       </p>
                     </div>
@@ -593,7 +582,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                         });
                         close();
                       }}
-                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
                     >
                       + Add New Department
                     </button>
@@ -617,7 +606,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     {!disabled && (
                       <ChevronDown
                         size={12}
-                        className={`ml-1 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
                       />
                     )}
                   </PropertyPill>
@@ -626,7 +615,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 {({ close }) => (
                   <div className="p-1">
                     <div className="px-3 py-2 border-b border-border mb-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                         Select Sub-Dept
                       </p>
                     </div>
@@ -649,7 +638,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                         setFormData({ ...formData, subDepartment: "" });
                         close();
                       }}
-                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 transition-colors uppercase tracking-wider"
+                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
                     >
                       + Add New Sub-Dept
                     </button>
@@ -660,16 +649,16 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
 
             {/* Managed Mode Inputs (Fallback) */}
             {(isNewDept || isNewSubDept) && (
-              <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
+              <div className="bg-[color:var(--violet-2)]/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
                 <div className="flex items-center gap-2 mb-1">
-                  <Info size={14} className="text-indigo-600" />
-                  <p className="text-[11px] font-black text-indigo-900 uppercase tracking-widest">
+                  <Info size={14} className="text-[color:var(--violet-10)]" />
+                  <p className="text-[11px] font-black text-foreground uppercase tracking-widest">
                     Manual Entry Mode
                   </p>
                 </div>
                 {isNewDept && (
                   <div>
-                    <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                    <label className="text-[9px] font-bold text-foreground/60 uppercase tracking-wider mb-1 block">
                       New Department
                     </label>
                     <input
@@ -684,13 +673,13 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                           department: e.target.value.toUpperCase(),
                         })
                       }
-                      className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                      className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-[color:var(--mauve-8)] transition-all font-bold"
                     />
                   </div>
                 )}
                 {isNewSubDept && (
                   <div>
-                    <label className="text-[9px] font-bold text-indigo-900/60 uppercase tracking-wider mb-1 block">
+                    <label className="text-[9px] font-bold text-foreground/60 uppercase tracking-wider mb-1 block">
                       New Sub-Department
                     </label>
                     <input
@@ -705,7 +694,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                           subDepartment: e.target.value.toUpperCase(),
                         })
                       }
-                      className="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                      className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-[color:var(--mauve-8)] transition-all font-bold"
                     />
                   </div>
                 )}
@@ -720,7 +709,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                       subDepartment: "",
                     });
                   }}
-                  className="text-[10px] font-bold text-indigo-600 hover:underline"
+                  className="text-[10px] font-bold text-[color:var(--violet-10)] hover:underline"
                 >
                   Cancel manual entry
                 </button>
@@ -735,7 +724,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHead ? "bg-amber-100 text-amber-600" : "bg-muted text-slate-400 group-hover:bg-amber-50"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHead ? "bg-[color:var(--amber-3)] text-[color:var(--amber-10)]" : "bg-muted text-muted-foreground group-hover:bg-[color:var(--amber-2)]"}`}
                     >
                       <Shield size={18} />
                     </div>
@@ -749,6 +738,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     </div>
                   </div>
                   <Switch
+                    className="data-checked:bg-foreground data-checked:text-background"
                     checked={formData.isHead}
                     onCheckedChange={(checked) =>
                       setFormData({ ...formData, isHead: checked })
@@ -759,7 +749,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHr ? "bg-blue-100 text-blue-600" : "bg-muted text-slate-400 group-hover:bg-blue-50"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHr ? "bg-[color:var(--blue-3)] text-[color:var(--blue-10)]" : "bg-muted text-muted-foreground group-hover:bg-[color:var(--blue-2)]"}`}
                     >
                       <Users size={18} />
                     </div>
@@ -773,6 +763,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     </div>
                   </div>
                   <Switch
+                    className="data-checked:bg-foreground data-checked:text-background"
                     checked={formData.isHr}
                     onCheckedChange={(checked) =>
                       setFormData({ ...formData, isHr: checked })
@@ -783,7 +774,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isSuperAdmin ? "bg-indigo-100 text-indigo-600" : "bg-muted text-slate-400 group-hover:bg-indigo-50"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isSuperAdmin ? "bg-[color:var(--violet-3)] text-[color:var(--violet-10)]" : "bg-muted text-muted-foreground group-hover:bg-[color:var(--violet-2)]"}`}
                     >
                       <Shield size={18} strokeWidth={2.5} />
                     </div>
@@ -797,6 +788,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     </div>
                   </div>
                   <Switch
+                    className="data-checked:bg-foreground data-checked:text-background"
                     checked={formData.isSuperAdmin}
                     onCheckedChange={(checked) =>
                       setFormData({
@@ -811,7 +803,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.has_sales_flow ? "bg-emerald-100 text-emerald-600" : "bg-muted text-slate-400 group-hover:bg-emerald-50"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.has_sales_flow ? "bg-green-3 text-green-10" : "bg-muted text-muted-foreground group-hover:bg-green-2"}`}
                     >
                       <Briefcase size={18} />
                     </div>
@@ -825,6 +817,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     </div>
                   </div>
                   <Switch
+                    className="data-checked:bg-foreground data-checked:text-background"
                     checked={formData.has_sales_flow}
                     onCheckedChange={(checked) =>
                       setFormData({
@@ -839,7 +832,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.has_task_flow ? "bg-fuchsia-100 text-fuchsia-600" : "bg-muted text-slate-400 group-hover:bg-fuchsia-50"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.has_task_flow ? "bg-fuchsia-100 text-fuchsia-600" : "bg-muted text-muted-foreground group-hover:bg-fuchsia-50"}`}
                     >
                       <ListCheck size={18} />
                     </div>
@@ -853,6 +846,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     </div>
                   </div>
                   <Switch
+                    className="data-checked:bg-foreground data-checked:text-background"
                     checked={formData.has_task_flow}
                     onCheckedChange={(checked) =>
                       setFormData({
@@ -880,7 +874,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
             type="submit"
             form="employee-form"
             disabled={mutation.isPending}
-            className="px-10 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-indigo-200 disabled:opacity-50 text-[11px] uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2"
+            className="px-10 py-3.5 bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-2xl transition-all shadow-xl shadow-primary/20 disabled:opacity-50 text-[11px] uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2"
           >
             {mutation.isPending ? (
               <Loader2 size={14} className="animate-spin" />

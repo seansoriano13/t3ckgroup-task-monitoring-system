@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, CheckSquare, XSquare, Undo2 } from "lucide-react";
+﻿import { CheckCircle2, Clock, CheckSquare, XSquare, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "../../../components/ui/PageHeader";
 
@@ -16,9 +16,13 @@ export function ApprovalHeader({
   handleUndoBulk,
   isVerifiedTab,
 }) {
-  const title = isSuperAdmin ? "Verification Queue" : isHr ? "HR Queue" : "Manager Queue";
-  const description = isSuperAdmin 
-    ? "Review and verify all tasks system-wide." 
+  const title = isSuperAdmin
+    ? "Verification Queue"
+    : isHr
+      ? "HR Queue"
+      : "Manager Queue";
+  const description = isSuperAdmin
+    ? "Review and verify all tasks system-wide."
     : isHr
       ? "Audit and verify graded tasks for payroll accuracy."
       : "Review and grade pending tasks from your team.";
@@ -41,17 +45,22 @@ export function ApprovalHeader({
                 <Button
                   onClick={handleBulkDecline}
                   size="sm"
-                  className="font-semibold shadow-sm text-white bg-red-500 hover:bg-red-600"
+                  className="font-semibold shadow-sm text-primary-foreground bg-destructive hover:bg-red-9"
                 >
-                  <XSquare className="mr-2 h-4 w-4" /> Decline {selectedCount} Selected
+                  <XSquare className="mr-2 h-4 w-4" /> Decline {selectedCount}{" "}
+                  Selected
                 </Button>
               )}
               <Button
                 onClick={isVerifiedTab ? handleUndoBulk : handleBulkApprove}
                 size="sm"
-                className={`font-semibold shadow-sm text-white ${isVerifiedTab ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"}`}
+                className={`font-semibold shadow-sm text-primary-foreground ${isVerifiedTab ? "bg-destructive hover:bg-destructive" : "bg-green-10 hover:bg-green-9"}`}
               >
-                {isVerifiedTab ? <Undo2 className="mr-2 h-4 w-4" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                {isVerifiedTab ? (
+                  <Undo2 className="mr-2 h-4 w-4" />
+                ) : (
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                )}
                 {isVerifiedTab ? "Undo" : "Approve"} {selectedCount} Selected
               </Button>
             </>

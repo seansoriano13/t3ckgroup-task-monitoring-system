@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
@@ -76,7 +76,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
   if (!stats || stats.total === 0) {
     return (
       <div className="bg-card border border-border rounded-3xl p-8 text-center">
-        <Activity className="mx-auto text-gray-5 mb-3" size={32} />
+        <Activity className="mx-auto text-mauve-5 mb-3" size={32} />
         <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
           No tasks recorded for this period
         </p>
@@ -108,19 +108,19 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
 
           <div className="flex gap-4">
             <div className="bg-muted border border-border rounded-2xl px-5 py-3 text-center">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">
                 Avg Grade
               </p>
-              <div className="flex items-center justify-center gap-1.5 text-blue-500">
+              <div className="flex items-center justify-center gap-1.5 text-[color:var(--blue-9)]">
                 <Star size={16} className="fill-current" />
                 <span className="text-lg font-black">{stats.avgGrade}</span>
               </div>
             </div>
             <div className="bg-muted border border-border rounded-2xl px-5 py-3 text-center">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">
                 Execution
               </p>
-              <div className="flex items-center justify-center gap-1.5 text-green-500">
+              <div className="flex items-center justify-center gap-1.5 text-green-9">
                 <TrendingUp size={16} />
                 <span className="text-lg font-black">
                   {stats.completionRate}%
@@ -133,10 +133,10 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
         {/* The Pipeline Bar */}
         <div className="space-y-3 mb-6">
           <div className="flex justify-between items-end">
-            <span className="text-xs font-black text-gray-10 uppercase tracking-widest">
+            <span className="text-xs font-black text-mauve-10 uppercase tracking-widest">
               Task Distribution
             </span>
-            <span className="text-[10px] font-bold text-slate-400 bg-muted px-2 py-0.5 rounded border border-border">
+            <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border">
               {stats.total} Total Tasks
             </span>
           </div>
@@ -145,7 +145,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.draft > 0 && (
               <div
                 style={{ width: `${(stats.draft / stats.total) * 100}%` }}
-                className="bg-gray-6/30 border-r border-border flex items-center justify-center text-[10px] font-bold text-slate-400"
+                className="bg-mauve-6/30 border-r border-border flex items-center justify-center text-[10px] font-bold text-muted-foreground"
                 title="Drafts"
               >
                 {stats.draft}
@@ -154,7 +154,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.rejected > 0 && (
               <div
                 style={{ width: `${(stats.rejected / stats.total) * 100}%` }}
-                className="bg-primary/50 border-r border-gray-2 flex items-center justify-center text-[10px] font-bold text-white shadow-inner"
+                className="bg-primary/50 border-r border-mauve-2 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-inner"
                 title="Rejected"
               >
                 {stats.rejected}
@@ -163,7 +163,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.pendingHead > 0 && (
               <div
                 style={{ width: `${(stats.pendingHead / stats.total) * 100}%` }}
-                className="bg-indigo-500 border-r border-gray-2 flex items-center justify-center text-[10px] font-bold text-white shadow-inner"
+                className="bg-primary border-r border-mauve-2 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-inner"
                 title="Awaiting Head Approval"
               >
                 {stats.pendingHead}
@@ -172,7 +172,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.pendingHr > 0 && (
               <div
                 style={{ width: `${(stats.pendingHr / stats.total) * 100}%` }}
-                className="bg-amber-500 border-r border-gray-2 animate-pulse flex items-center justify-center text-[10px] font-bold text-amber-950"
+                className="bg-warning border-r border-mauve-2 animate-pulse flex items-center justify-center text-[10px] font-bold text-amber-950"
                 title="Pending Verification"
               >
                 {stats.pendingHr}
@@ -181,7 +181,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.verified > 0 && (
               <div
                 style={{ width: `${(stats.verified / stats.total) * 100}%` }}
-                className="bg-green-500 flex items-center justify-center text-[10px] font-bold text-white shadow-lg"
+                className="bg-green-9 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-lg"
                 title="Verified"
               >
                 {stats.verified}
@@ -196,7 +196,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             icon={<Clock size={12} />}
             label="Incomplete"
             value={stats.draft}
-            color="bg-gray-6/50"
+            color="bg-mauve-6/50"
           />
           <LegendItem
             icon={<Activity size={12} />}
@@ -208,19 +208,19 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             icon={<Clock size={12} />}
             label="Awaiting Head"
             value={stats.pendingHead}
-            color="bg-indigo-500"
+            color="bg-primary"
           />
           <LegendItem
             icon={<Clock size={12} />}
             label="Wait Review"
             value={stats.pendingHr}
-            color="bg-amber-500"
+            color="bg-warning"
           />
           <LegendItem
             icon={<CheckCircle2 size={12} />}
             label="Verified"
             value={stats.verified}
-            color="bg-green-500"
+            color="bg-green-9"
           />
         </div>
       </div>
@@ -231,11 +231,11 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
 function LegendItem({ icon, label, value, color }) {
   return (
     <div className="flex items-center gap-3 bg-muted/50 border border-border/50 p-2 rounded-xl">
-      <div className={`p-1.5 rounded-lg ${color} text-white shadow-sm`}>
+      <div className={`p-1.5 rounded-lg ${color} text-primary-foreground shadow-sm`}>
         {icon}
       </div>
       <div>
-        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">
           {label}
         </p>
         <p className="text-sm font-black text-foreground leading-none">{value}</p>

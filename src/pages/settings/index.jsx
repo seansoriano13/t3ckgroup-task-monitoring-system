@@ -12,7 +12,7 @@ function SettingToggle({ label, description, icon: Icon, checked, onToggle, isPe
   return (
     <div className="p-5 flex items-center justify-between hover:bg-muted/30 transition-colors group">
       <div className="flex items-center gap-4">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${checked ? "bg-indigo-100 text-indigo-600" : "bg-muted text-slate-400"}`}>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${checked ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
           <Icon size={18} />
         </div>
         <div>
@@ -26,10 +26,10 @@ function SettingToggle({ label, description, icon: Icon, checked, onToggle, isPe
         <div
           onClick={!isPending ? onToggle : undefined}
           className={`w-11 h-6 rounded-full relative cursor-pointer transition-all duration-200 shrink-0 ${
-            checked ? "bg-indigo-600 shadow-md shadow-indigo-200" : "bg-slate-200"
+            checked ? "bg-primary shadow-sm" : "bg-mauve-5"
           } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          <div className={`absolute top-1 bg-white w-4 h-4 rounded-full shadow transition-all duration-200 ${checked ? "right-1" : "left-1"}`} />
+          <div className={`absolute top-1 bg-mauve-1 w-4 h-4 rounded-full shadow transition-all duration-200 ${checked ? "right-1" : "left-1"}`} />
         </div>
       )}
     </div>
@@ -73,7 +73,7 @@ export default function SettingsPage() {
         {/* PREFERENCES SECTION */}
         <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-border bg-muted/30">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
               App Preferences
             </h2>
           </div>
@@ -82,7 +82,7 @@ export default function SettingsPage() {
             {/* Theme Toggle */}
             <div className="p-5 flex items-center justify-between hover:bg-muted/30 transition-colors">
               <div className="flex items-center gap-4">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${theme === "dark" ? "bg-indigo-100 text-indigo-600" : "bg-amber-100 text-amber-600"}`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${theme === "dark" ? "bg-primary/10 text-primary" : "bg-mauve-4 text-mauve-10"}`}>
                   {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
                 </div>
                 <div>
@@ -93,17 +93,17 @@ export default function SettingsPage() {
               <div
                 onClick={toggleTheme}
                 className={`w-11 h-6 rounded-full relative cursor-pointer transition-all duration-200 shrink-0 ${
-                  theme === "dark" ? "bg-indigo-600 shadow-md shadow-indigo-200" : "bg-slate-200"
+                  theme === "dark" ? "bg-primary shadow-sm" : "bg-mauve-5"
                 }`}
               >
-                <div className={`absolute top-1 bg-white w-4 h-4 rounded-full shadow transition-all duration-200 ${theme === "dark" ? "right-1" : "left-1"}`} />
+                <div className={`absolute top-1 bg-mauve-1 w-4 h-4 rounded-full shadow transition-all duration-200 ${theme === "dark" ? "right-1" : "left-1"}`} />
               </div>
             </div>
 
             {/* Notifications row */}
             <div className="p-5 flex items-center justify-between hover:bg-muted/30 transition-colors">
               <div className="flex items-center gap-4">
-                <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center text-slate-400">
+                <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
                   <Bell size={18} />
                 </div>
                 <div>
@@ -112,8 +112,8 @@ export default function SettingsPage() {
                 </div>
               </div>
               {/* Fake Toggle - Off */}
-              <div className="w-11 h-6 bg-slate-200 rounded-full relative cursor-pointer shrink-0">
-                <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition-all" />
+              <div className="w-11 h-6 bg-mauve-5 rounded-full relative cursor-pointer shrink-0">
+                <div className="absolute left-1 top-1 bg-mauve-1 w-4 h-4 rounded-full shadow transition-all" />
               </div>
             </div>
           </div>
@@ -121,13 +121,13 @@ export default function SettingsPage() {
 
         {/* SUPER ADMIN SECURITY SYSTEM ZONE */}
         {isSuperAdmin && (
-          <div className="bg-card border border-indigo-200 rounded-2xl shadow-sm overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl pointer-events-none -mr-20 -mt-20" />
-            <div className="px-5 py-4 border-b border-border bg-indigo-50/50 flex items-center gap-2.5 relative z-10">
-              <div className="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <Shield size={14} className="text-indigo-600" />
+          <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl pointer-events-none -mr-20 -mt-20" />
+            <div className="px-5 py-4 border-b border-border bg-muted/30 flex items-center gap-2.5 relative z-10">
+              <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Shield size={14} className="text-primary" />
               </div>
-              <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 Customization
               </h2>
             </div>
@@ -215,7 +215,7 @@ export default function SettingsPage() {
             </p>
             <button
               onClick={logout}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-card text-destructive hover:bg-destructive hover:text-white transition-all border border-destructive/30 hover:border-destructive shadow-sm hover:shadow-md hover:shadow-red-100"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-card text-destructive hover:bg-destructive hover:text-mauve-1 transition-all border border-destructive/30 hover:border-destructive shadow-sm"
             >
               <LogOut size={18} />
               Sign Out

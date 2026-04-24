@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   Search,
   Filter,
@@ -130,11 +130,11 @@ export default function SalesFilters({
   return (
     <div className="grid gap-3 md:gap-4">
       {/* Row 1: Search & Permanent Filters */}
-      <div className="bg-white border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
+      <div className="bg-card border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
 
         {/* Search */}
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input
             type="text"
             placeholder={
@@ -172,7 +172,7 @@ export default function SalesFilters({
                       </span>
                       <ChevronDown
                         size={10}
-                        className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        className={`text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
                       />
                     </div>
                   )}
@@ -201,7 +201,7 @@ export default function SalesFilters({
                 </Dropdown>
 
                 <div className="relative flex items-center px-2">
-                  <CalendarIcon size={14} className={`${selectedDateFilter ? "text-foreground" : "text-slate-400"} mr-2 shrink-0`} />
+                  <CalendarIcon size={14} className={`${selectedDateFilter ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`} />
                   <DatePicker
                     selected={selectedDateFilter ? new Date(selectedDateFilter) : null}
                     onChange={(date) => {
@@ -228,7 +228,7 @@ export default function SalesFilters({
                     placeholderText={
                       timeframe === "YEARLY" ? "Select Year" : timeframe === "MONTHLY" ? "Select Month" : "Select Date"
                     }
-                    className={`bg-transparent outline-none w-[110px] text-[13px] cursor-pointer ${selectedDateFilter ? "text-foreground placeholder:text-slate-400 font-medium" : "text-foreground placeholder:text-slate-400"
+                    className={`bg-transparent outline-none w-[110px] text-[13px] cursor-pointer ${selectedDateFilter ? "text-foreground placeholder:text-muted-foreground font-medium" : "text-foreground placeholder:text-muted-foreground"
                       }`}
                   />
                 </div>
@@ -275,7 +275,7 @@ export default function SalesFilters({
           {isAnyFilterActive && (
             <button
               onClick={handleClearAll}
-              className="ml-auto xl:ml-2 text-sm text-slate-400 hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
+              className="ml-auto xl:ml-2 text-sm text-muted-foreground hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
             >
               Clear All
             </button>
@@ -285,7 +285,7 @@ export default function SalesFilters({
 
       {/* Row 2: Advanced Filters */}
       {showAdvanced && (
-        <div className="bg-gray-50 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-mauve-2 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
 
           {/* Status Filter */}
           <Dropdown

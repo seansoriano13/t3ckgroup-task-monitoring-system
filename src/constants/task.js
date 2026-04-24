@@ -1,7 +1,7 @@
-import { logTaskSelectClassNames } from "../styles/selectStyles";
+﻿import { logTaskSelectClassNames } from "../styles/selectStyles";
 
 export const PRIORITY_OPTIONS = [
-  { value: "LOW", label: "Low", dot: "bg-emerald-400" },
+  { value: "LOW", label: "Low", dot: "bg-green-8" },
   { value: "MEDIUM", label: "Medium", dot: "bg-amber-400" },
   { value: "HIGH", label: "High", dot: "bg-red-400" },
 ];

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 /**
  * Standard Page Header component to ensure visual consistency across all tabs.
@@ -11,11 +11,14 @@ const PageHeader = ({
   children,
   showGradient = true,
   className = "",
+  lastWordColor = "text-primary",
 }) => {
   // Split title to apply gradient to the last part
   const titleWords = title.split(" ");
-  const lastWord = titleWords.length > 1 ? titleWords[titleWords.length - 1] : "";
-  const firstPart = titleWords.length > 1 ? titleWords.slice(0, -1).join(" ") : title;
+  const lastWord =
+    titleWords.length > 1 ? titleWords[titleWords.length - 1] : "";
+  const firstPart =
+    titleWords.length > 1 ? titleWords.slice(0, -1).join(" ") : title;
 
   return (
     <div
@@ -25,11 +28,9 @@ const PageHeader = ({
         <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight flex flex-wrap items-center gap-x-2">
           <span>{firstPart}</span>
           {lastWord && showGradient ? (
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary pr-1">
-              {lastWord}
-            </span>
+            <span className="text-primary pr-1">{lastWord}</span>
           ) : lastWord ? (
-            <span>{lastWord}</span>
+            <span className={`${lastWordColor}`}>{lastWord}</span>
           ) : null}
         </h1>
         {description && (

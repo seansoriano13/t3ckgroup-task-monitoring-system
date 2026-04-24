@@ -7,11 +7,14 @@ import PageContainer from "../../components/ui/PageContainer";
 import { employeeService } from "../../services/employeeService";
 import toast from "react-hot-toast";
 import { Users, Plus, Search } from "lucide-react";
+import TabGroup from "../../components/ui/TabGroup";
 
 import CommitteeTaskCard from "./components/CommitteeTaskCard";
 import CreateCommitteeTaskModal from "./components/CreateCommitteeTaskModal";
 import CommitteeTaskDetailModal from "./components/CommitteeTaskDetailModal";
 import RateEmployeesModal from "./components/RateEmployeesModal";
+import CommitteeTaskFilters from "../../components/CommitteeTaskFilters";
+import { useCommitteeTaskFilters } from "../../hooks/useCommitteeTaskFilters";
 
 export default function CommitteeTasksPage() {
   const { user } = useAuth();
@@ -40,26 +43,23 @@ export default function CommitteeTasksPage() {
 
   // --- UI State ---
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("ALL"); // ALL, ACTIVE, COMPLETED
+  const [statusFilter, setStatusFilter] = useState("ALL"); // ALL, ACTIVE, COMPLETED
+  const [creatorFilter, setCreatorFilter] = useState("ALL");
+  const [dueDate, setDueDate] = useState(null);
 
   const [selectedTask, setSelectedTask] = useState(null);
   const [isRateOpen, setIsRateOpen] = useState(false);
 
   // --- Filtering ---
-  const filteredTasks = committeeTasks.filter((t) => {
-    if (activeTab === "ACTIVE" && t.status !== "ACTIVE") return false;
-    if (activeTab === "COMPLETED" && t.status === "ACTIVE") return false;
-
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      return (
-        t.title.toLowerCase().includes(q) ||
-        (t.description || "").toLowerCase().includes(q) ||
-        t.creator?.name.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  const { filteredTasks, uniqueCreators } = useCommitteeTaskFilters(
+    committeeTasks,
+    {
+      searchTerm,
+      statusFilter,
+      creatorFilter,
+      dueDate,
+    },
+  );
 
   // --- Mutations ---
 
@@ -215,38 +215,18 @@ export default function CommitteeTasksPage() {
       />
 
       {/* TOOLBAR */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card p-3 rounded-2xl border border-border">
-        {/* Search */}
-        <div className="relative w-full sm:max-w-md">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
-          <input
-            type="text"
-            placeholder="Search tasks or creators..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-muted/50 border border-border rounded-xl pl-9 pr-4 py-2 text-sm text-foreground outline-none focus:border-primary/50 transition-colors"
-          />
-        </div>
-
-        {/* Tabs */}
-        <div className="flex bg-muted p-1 rounded-xl w-full sm:w-auto overflow-x-auto shrink-0">
-          {["ALL", "ACTIVE", "COMPLETED"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                activeTab === tab
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+      <div className="mb-6">
+        <CommitteeTaskFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          creatorFilter={creatorFilter}
+          setCreatorFilter={setCreatorFilter}
+          dueDate={dueDate}
+          setDueDate={setDueDate}
+          uniqueCreators={uniqueCreators}
+        />
       </div>
 
       {/* GRID */}

@@ -22,17 +22,18 @@ import {
   Star,
   ShieldCheck,
   AlertTriangle,
-  Clock
+  Clock,
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "../lib/supabase";
 import { cn } from "@/lib/utils";
+import TabGroup from "@/components/ui/TabGroup";
 
-// ═════════════════════════════════════════════════════════════
+// -------------------------------------------------------------
 //  HELPERS
-// ═════════════════════════════════════════════════════════════
+// -------------------------------------------------------------
 const timeAgo = (dateString) => {
   if (!dateString) return "";
   const d = new Date(dateString);
@@ -48,9 +49,9 @@ const timeAgo = (dateString) => {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
-// ═════════════════════════════════════════════════════════════
+// -------------------------------------------------------------
 //  SUB-COMPONENTS
-// ═════════════════════════════════════════════════════════════
+// -------------------------------------------------------------
 
 function MessageBubble({ entry, currentUserId }) {
   const isMe = entry.authorId === currentUserId;
@@ -74,51 +75,98 @@ function MessageBubble({ entry, currentUserId }) {
   }
 
   if (entry.type === "APPROVAL" || entry.type === "HR_NOTE") {
-    const isRejection = entry.metadata?.event === "REJECTED" || entry.type === "HR_NOTE" && entry.metadata?.event !== "HR_VERIFIED";
-    const isVerified = entry.type === "HR_NOTE" && entry.metadata?.event === "HR_VERIFIED";
+    const isRejection =
+      entry.metadata?.event === "REJECTED" ||
+      (entry.type === "HR_NOTE" && entry.metadata?.event !== "HR_VERIFIED");
+    const isVerified =
+      entry.type === "HR_NOTE" && entry.metadata?.event === "HR_VERIFIED";
 
     return (
-      <div className={cn(
-        "mx-4 my-2 p-3 rounded-xl border border-dashed text-xs",
-        isRejection ? "bg-red-500/5 border-red-500/20 text-red-600" :
-          isVerified ? "bg-indigo-500/5 border-indigo-500/20 text-indigo-600" :
-            "bg-green-500/5 border-green-500/20 text-green-600"
-      )}>
+      <div
+        className={cn(
+          "mx-4 my-2 p-3 rounded-xl border border-dashed text-xs",
+          isRejection
+            ? "bg-destructive/5 border-red-500/20 text-destructive"
+            : isVerified
+              ? "bg-primary/5 border-foreground/20 text-foreground"
+              : "bg-green-9/5 border-green-500/20 text-green-10",
+        )}
+      >
         <div className="flex items-center gap-2 mb-1">
-          {isRejection ? <AlertTriangle size={12} /> : isVerified ? <ShieldCheck size={12} /> : <Star size={12} />}
+          {isRejection ? (
+            <AlertTriangle size={12} />
+          ) : isVerified ? (
+            <ShieldCheck size={12} />
+          ) : (
+            <Star size={12} />
+          )}
           <span className="font-bold uppercase tracking-wider">
             {entry.type === "HR_NOTE" ? "HR Audit" : "Management Action"}
           </span>
-          <span className="ml-auto opacity-60 text-[10px]">{timeAgo(entry.createdAt)}</span>
+          <span className="ml-auto opacity-60 text-[10px]">
+            {timeAgo(entry.createdAt)}
+          </span>
         </div>
-        <p className="font-medium">{entry.content || (isVerified ? "Record Verified" : "Action taken")}</p>
+        <p className="font-medium">
+          {entry.content || (isVerified ? "Record Verified" : "Action taken")}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className={cn("flex gap-3 px-4 py-2", isMe ? "flex-row-reverse" : "flex-row")}>
-      <div className={cn(
-        "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black uppercase border",
-        entry.authorIsHead || entry.authorIsSuperAdmin ? "bg-amber-100 text-amber-600 border-amber-200" :
-          entry.authorIsHr ? "bg-blue-100 text-blue-600 border-blue-200" :
-            "bg-muted text-muted-foreground border-border"
-      )}>
+    <div
+      className={cn(
+        "flex gap-3 px-4 py-2",
+        isMe ? "flex-row-reverse" : "flex-row",
+      )}
+    >
+      <div
+        className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black uppercase border",
+          entry.authorIsHead || entry.authorIsSuperAdmin
+            ? "bg-[color:var(--amber-3)] text-[color:var(--amber-10)] border-[color:var(--amber-6)]"
+            : entry.authorIsHr
+              ? "bg-[color:var(--blue-3)] text-[color:var(--blue-10)] border-[color:var(--blue-6)]"
+              : "bg-muted text-muted-foreground border-border",
+        )}
+      >
         {entry.authorName?.charAt(0) || "?"}
       </div>
-      <div className={cn("max-w-[80%] flex flex-col", isMe ? "items-end" : "items-start")}>
+      <div
+        className={cn(
+          "max-w-[80%] flex flex-col",
+          isMe ? "items-end" : "items-start",
+        )}
+      >
         <div className="flex items-center gap-2 mb-1 px-1">
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
             {isMe ? "You" : entry.authorName}
           </span>
-          {entry.authorIsHead && <span className="text-[8px] bg-amber-500/10 text-amber-600 px-1 rounded font-black uppercase">Head</span>}
-          {entry.authorIsHr && <span className="text-[8px] bg-blue-500/10 text-blue-600 px-1 rounded font-black uppercase">HR</span>}
-          {entry.authorIsSuperAdmin && <span className="text-[8px] bg-indigo-500/10 text-indigo-600 px-1 rounded font-black uppercase">Admin</span>}
+          {entry.authorIsHead && (
+            <span className="text-[8px] bg-warning/10 text-[color:var(--amber-10)] px-1 rounded font-black uppercase">
+              Head
+            </span>
+          )}
+          {entry.authorIsHr && (
+            <span className="text-[8px] bg-[color:var(--blue-9)]/10 text-[color:var(--blue-10)] px-1 rounded font-black uppercase">
+              HR
+            </span>
+          )}
+          {entry.authorIsSuperAdmin && (
+            <span className="text-[8px] bg-primary/10 text-foreground px-1 rounded font-black uppercase">
+              Admin
+            </span>
+          )}
         </div>
-        <div className={cn(
-          "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all",
-          isMe ? "bg-indigo-600 text-white rounded-tr-none" : "bg-card border border-border rounded-tl-none"
-        )}>
+        <div
+          className={cn(
+            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all",
+            isMe
+              ? "bg-primary text-primary-foreground rounded-tr-none"
+              : "bg-card border border-border rounded-tl-none",
+          )}
+        >
           {entry.content}
         </div>
         <span className="text-[9px] text-muted-foreground/60 mt-1 px-1 font-medium">
@@ -129,11 +177,16 @@ function MessageBubble({ entry, currentUserId }) {
   );
 }
 
-// ═════════════════════════════════════════════════════════════
+// -------------------------------------------------------------
 //  MAIN COMPONENT
-// ═════════════════════════════════════════════════════════════
+// -------------------------------------------------------------
 
-export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityId, initialEntityType }) {
+export default function ComprehensiveChatModal({
+  isOpen,
+  onClose,
+  initialEntityId,
+  initialEntityType,
+}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
@@ -152,14 +205,15 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
   useEffect(() => {
     const handleDetailsLoaded = () => setIsDetailsLoading(false);
     window.addEventListener("ENTITY_DETAILS_LOADED", handleDetailsLoaded);
-    return () => window.removeEventListener("ENTITY_DETAILS_LOADED", handleDetailsLoaded);
+    return () =>
+      window.removeEventListener("ENTITY_DETAILS_LOADED", handleDetailsLoaded);
   }, []);
 
   useEffect(() => {
     setInternalOpen(isOpen);
   }, [isOpen]);
 
-  // ── Data: Active Chats ────────────────────────────────────
+  // -- Data: Active Chats ------------------------------------
   const { data: activeChats = [], isLoading: isLoadingList } = useQuery({
     queryKey: ["activeChats", user?.id],
     queryFn: () => activeChatService.getActiveChats(user?.id),
@@ -172,7 +226,9 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
       const { entityId, entityType } = e.detail;
       if (entityId && entityType) {
         // Find existing chat or prepare to select it
-        const chat = activeChats.find(c => c.entity_id === entityId && c.entity_type === entityType);
+        const chat = activeChats.find(
+          (c) => c.entity_id === entityId && c.entity_type === entityType,
+        );
         if (chat) {
           setSelectedChat(chat);
         } else {
@@ -180,40 +236,57 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
           setSelectedChat({
             entity_id: entityId,
             entity_type: entityType,
-            title: entityType === 'TASK' ? 'New Task Thread' : entityType === 'COMMITTEE_TASK' ? 'New Committee Thread' : 'New Sales Thread',
-            is_placeholder: true
+            title:
+              entityType === "TASK"
+                ? "New Task Thread"
+                : entityType === "COMMITTEE_TASK"
+                  ? "New Committee Thread"
+                  : "New Sales Thread",
+            is_placeholder: true,
           });
         }
         setIsMobileListVisible(false);
         setInternalOpen(true);
       }
     };
-    window.addEventListener('OPEN_CHAT_MODAL', handleOpenChat);
-    return () => window.removeEventListener('OPEN_CHAT_MODAL', handleOpenChat);
+    window.addEventListener("OPEN_CHAT_MODAL", handleOpenChat);
+    return () => window.removeEventListener("OPEN_CHAT_MODAL", handleOpenChat);
   }, [activeChats]);
 
-
-
-  // ── Data: Messages for Selected Chat ──────────────────────
+  // -- Data: Messages for Selected Chat ----------------------
   const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
-    queryKey: ["chatMessages", selectedChat?.entity_type, selectedChat?.entity_id],
+    queryKey: [
+      "chatMessages",
+      selectedChat?.entity_type,
+      selectedChat?.entity_id,
+    ],
     queryFn: () =>
       selectedChat?.entity_type === "TASK"
         ? taskActivityService.getActivityForTask(selectedChat.entity_id)
         : selectedChat?.entity_type === "COMMITTEE_TASK"
-          ? committeeTaskActivityService.getActivityForTask(selectedChat.entity_id)
-          : salesActivityLogService.getActivityForSalesActivity(selectedChat.entity_id),
+          ? committeeTaskActivityService.getActivityForTask(
+              selectedChat.entity_id,
+            )
+          : salesActivityLogService.getActivityForSalesActivity(
+              selectedChat.entity_id,
+            ),
     enabled: !!selectedChat && internalOpen,
   });
 
-  // ── Data: Entity Details for Deletion Check ───────────────
+  // -- Data: Entity Details for Deletion Check ---------------
   const { data: selectedEntityData } = useQuery({
-    queryKey: ["entityDetailsForChat", selectedChat?.entity_type, selectedChat?.entity_id],
+    queryKey: [
+      "entityDetailsForChat",
+      selectedChat?.entity_type,
+      selectedChat?.entity_id,
+    ],
     queryFn: async () => {
       if (selectedChat?.entity_type === "TASK") {
         return await taskService.getTaskById(selectedChat.entity_id);
       } else if (selectedChat?.entity_type === "COMMITTEE_TASK") {
-        return await committeeTaskService.getCommitteeTaskById(selectedChat.entity_id);
+        return await committeeTaskService.getCommitteeTaskById(
+          selectedChat.entity_id,
+        );
       } else if (selectedChat?.entity_type === "SALES") {
         return await salesService.getSalesActivityById(selectedChat.entity_id);
       }
@@ -223,20 +296,30 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     staleTime: 0,
   });
 
-  const isEntityDeleted = selectedEntityData?.status === "DELETED" || selectedEntityData?.status === "CANCELLED" || selectedEntityData?.is_deleted;
-  const isEntityPendingWipe = selectedEntityData?.delete_requested_by && !isEntityDeleted;
+  const isEntityDeleted =
+    selectedEntityData?.status === "DELETED" ||
+    selectedEntityData?.status === "CANCELLED" ||
+    selectedEntityData?.is_deleted;
+  const isEntityPendingWipe =
+    selectedEntityData?.delete_requested_by && !isEntityDeleted;
 
-  // ── Mutations ─────────────────────────────────────────────
+  // -- Mutations ---------------------------------------------
   const markAsReadMutation = useMutation({
     mutationFn: ({ entityType, entityId, latestCreatedAt }) =>
-      activeChatService.markAsRead(user?.id, entityType, entityId, latestCreatedAt),
+      activeChatService.markAsRead(
+        user?.id,
+        entityType,
+        entityId,
+        latestCreatedAt,
+      ),
     onSuccess: (_, variables) => {
       queryClient.setQueryData(["activeChats", user?.id], (old = []) =>
         old.map((c) =>
-          c.entity_id === variables.entityId && c.entity_type === variables.entityType
+          c.entity_id === variables.entityId &&
+          c.entity_type === variables.entityType
             ? { ...c, is_unread: false }
-            : c
-        )
+            : c,
+        ),
       );
     },
   });
@@ -247,7 +330,7 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
       queryClient.invalidateQueries({ queryKey: ["activeChats", user?.id] });
       setSelectionMode(false);
       setSelectedChatIds(new Set());
-    }
+    },
   });
 
   const unarchiveMutation = useMutation({
@@ -256,7 +339,7 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
       queryClient.invalidateQueries({ queryKey: ["activeChats", user?.id] });
       setSelectionMode(false);
       setSelectedChatIds(new Set());
-    }
+    },
   });
 
   const sendMessageMutation = useMutation({
@@ -268,16 +351,31 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
           : salesActivityLogService.addComment(entityId, user.id, content),
     onSuccess: () => {
       setMessageContent("");
-      queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat?.entity_type, selectedChat?.entity_id] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "chatMessages",
+          selectedChat?.entity_type,
+          selectedChat?.entity_id,
+        ],
+      });
       queryClient.invalidateQueries({ queryKey: ["activeChats", user?.id] });
     },
   });
 
-  // ── Effects ───────────────────────────────────────────────
+  // -- Effects -----------------------------------------------
   // Pre-select chat if initial entity provided
   useEffect(() => {
-    if (isOpen && initialEntityId && initialEntityType && activeChats.length > 0) {
-      const match = activeChats.find(c => c.entity_id === initialEntityId && c.entity_type === initialEntityType);
+    if (
+      isOpen &&
+      initialEntityId &&
+      initialEntityType &&
+      activeChats.length > 0
+    ) {
+      const match = activeChats.find(
+        (c) =>
+          c.entity_id === initialEntityId &&
+          c.entity_type === initialEntityType,
+      );
       if (match) {
         setSelectedChat(match);
         setIsMobileListVisible(false);
@@ -291,15 +389,42 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
 
     const channel = supabase
       .channel(`chat-system-updates-${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "task_activity", filter: "type=eq.COMMENT" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "committee_task_activity", filter: "type=eq.COMMENT" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "sales_activity_logs", filter: "type=eq.COMMENT" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
-      })
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "task_activity",
+          filter: "type=eq.COMMENT",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "committee_task_activity",
+          filter: "type=eq.COMMENT",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "sales_activity_logs",
+          filter: "type=eq.COMMENT",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["activeChats", user.id] });
+        },
+      )
       .subscribe();
 
     return () => {
@@ -311,21 +436,54 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
   useEffect(() => {
     if (!selectedChat || !internalOpen) return;
 
-    const channel = selectedChat.entity_type === "TASK"
-      ? taskActivityService.subscribeToActivity(selectedChat.entity_id, () => {
-        queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat.entity_type, selectedChat.entity_id] });
-      }, "-modal")
-      : selectedChat.entity_type === "COMMITTEE_TASK"
-        ? committeeTaskActivityService.subscribeToActivity(selectedChat.entity_id, () => {
-          queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat.entity_type, selectedChat.entity_id] });
-        }, "-modal")
-        : salesActivityLogService.subscribeToActivity(selectedChat.entity_id, () => {
-          queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedChat.entity_type, selectedChat.entity_id] });
-        }, "-modal");
+    const channel =
+      selectedChat.entity_type === "TASK"
+        ? taskActivityService.subscribeToActivity(
+            selectedChat.entity_id,
+            () => {
+              queryClient.invalidateQueries({
+                queryKey: [
+                  "chatMessages",
+                  selectedChat.entity_type,
+                  selectedChat.entity_id,
+                ],
+              });
+            },
+            "-modal",
+          )
+        : selectedChat.entity_type === "COMMITTEE_TASK"
+          ? committeeTaskActivityService.subscribeToActivity(
+              selectedChat.entity_id,
+              () => {
+                queryClient.invalidateQueries({
+                  queryKey: [
+                    "chatMessages",
+                    selectedChat.entity_type,
+                    selectedChat.entity_id,
+                  ],
+                });
+              },
+              "-modal",
+            )
+          : salesActivityLogService.subscribeToActivity(
+              selectedChat.entity_id,
+              () => {
+                queryClient.invalidateQueries({
+                  queryKey: [
+                    "chatMessages",
+                    selectedChat.entity_type,
+                    selectedChat.entity_id,
+                  ],
+                });
+              },
+              "-modal",
+            );
 
     return () => {
-      if (selectedChat.entity_type === "TASK") taskActivityService.unsubscribeFromActivity(channel);
-      else if (selectedChat.entity_type === "COMMITTEE_TASK") committeeTaskActivityService.unsubscribeFromActivity(channel);
+      if (selectedChat.entity_type === "TASK")
+        taskActivityService.unsubscribeFromActivity(channel);
+      else if (selectedChat.entity_type === "COMMITTEE_TASK")
+        committeeTaskActivityService.unsubscribeFromActivity(channel);
       else salesActivityLogService.unsubscribeFromActivity(channel);
     };
   }, [selectedChat, internalOpen]);
@@ -337,11 +495,11 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     }
   }, [messages]);
 
-  // ── Handlers ──────────────────────────────────────────────
+  // -- Handlers ----------------------------------------------
   const handleChatSelect = (chat) => {
     if (selectionMode) {
       const key = `${chat.entity_type}_${chat.entity_id}`;
-      setSelectedChatIds(prev => {
+      setSelectedChatIds((prev) => {
         const next = new Set(prev);
         if (next.has(key)) next.delete(key);
         else next.add(key);
@@ -352,15 +510,21 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
 
     setSelectedChat(chat);
     if (chat.is_unread) {
-      markAsReadMutation.mutate({ entityType: chat.entity_type, entityId: chat.entity_id, latestCreatedAt: chat.latest_created_at });
+      markAsReadMutation.mutate({
+        entityType: chat.entity_type,
+        entityId: chat.entity_id,
+        latestCreatedAt: chat.latest_created_at,
+      });
     }
     setIsMobileListVisible(false);
   };
 
   const handleBulkArchiveToggle = () => {
     if (selectedChatIds.size === 0) return;
-    const chatsToProcess = activeChats.filter(c => selectedChatIds.has(`${c.entity_type}_${c.entity_id}`));
-    
+    const chatsToProcess = activeChats.filter((c) =>
+      selectedChatIds.has(`${c.entity_type}_${c.entity_id}`),
+    );
+
     if (viewFilter === "ACTIVE") {
       archiveMutation.mutate(chatsToProcess);
     } else {
@@ -374,7 +538,7 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     sendMessageMutation.mutate({
       entityType: selectedChat.entity_type,
       entityId: selectedChat.entity_id,
-      content: messageContent.trim()
+      content: messageContent.trim(),
     });
   };
 
@@ -382,79 +546,97 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
     let list = activeChats;
     // Apply View Filter
     if (viewFilter === "ACTIVE") {
-      list = list.filter(c => !c.is_archived);
+      list = list.filter((c) => !c.is_archived);
     } else {
-      list = list.filter(c => c.is_archived);
+      list = list.filter((c) => c.is_archived);
     }
 
     if (!searchQuery) return list;
     const q = searchQuery.toLowerCase();
-    return list.filter(c =>
-      c.title?.toLowerCase().includes(q) ||
-      c.latest_message?.toLowerCase().includes(q) ||
-      c.latest_author?.toLowerCase().includes(q)
+    return list.filter(
+      (c) =>
+        c.title?.toLowerCase().includes(q) ||
+        c.latest_message?.toLowerCase().includes(q) ||
+        c.latest_author?.toLowerCase().includes(q),
     );
   }, [activeChats, searchQuery, viewFilter]);
 
-  // ── Render ────────────────────────────────────────────────
+  // -- Render ------------------------------------------------
   return (
-    <Dialog open={internalOpen} onOpenChange={(open) => {
-      if (!open) {
-        setInternalOpen(false);
-        onClose();
-      }
-    }}>
-      <DialogContent 
+    <Dialog
+      open={internalOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          setInternalOpen(false);
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
         showCloseButton={false}
         className="p-0 gap-0 z-[100] bg-card border-border shadow-2xl w-[calc(100%-2rem)] sm:max-w-[90vw] md:max-w-5xl h-[90vh] md:h-[85vh] rounded-2xl overflow-hidden flex flex-row border-none ring-0 outline-none"
       >
         {/* SIDEBAR: Conversation List */}
-        <div className={cn(
-          "w-full md:w-[320px] bg-muted/30 border-r border-border flex flex-col transition-all",
-          !isMobileListVisible && "hidden md:flex"
-        )}>
+        <div
+          className={cn(
+            "w-full md:w-[320px] bg-muted/30 border-r border-border flex flex-col transition-all",
+            !isMobileListVisible && "hidden md:flex",
+          )}
+        >
           <div className="p-4 border-b border-border space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <MessageCircle size={20} className="text-indigo-600" />
+                <MessageCircle size={20} className="text-foreground" />
                 Conversations
               </h2>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant={selectionMode ? "secondary" : "ghost"} 
-                  size="sm" 
+                <Button
+                  variant={selectionMode ? "secondary" : "ghost"}
+                  size="sm"
                   onClick={() => {
                     setSelectionMode(!selectionMode);
                     setSelectedChatIds(new Set());
-                  }} 
-                  className={cn("h-8 px-2 text-xs font-bold", selectionMode && "bg-indigo-100 text-indigo-700 hover:bg-indigo-200")}
+                  }}
+                  className={cn(
+                    "h-8 px-2 text-xs font-bold",
+                    selectionMode &&
+                      "bg-muted text-foreground hover:bg-[color:var(--violet-4)]",
+                  )}
                 >
                   {selectionMode ? "Cancel" : "Select"}
                 </Button>
-                <Button variant="ghost" size="icon-sm" onClick={onClose} className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onClose}
+                  className="md:hidden"
+                >
                   <X size={18} />
                 </Button>
               </div>
             </div>
 
             {/* TABS */}
-            <div className="flex items-center bg-muted/50 p-1 rounded-lg">
-              <button 
-                onClick={() => { setViewFilter("ACTIVE"); setSelectionMode(false); setSelectedChatIds(new Set()); }}
-                className={cn("flex-1 text-xs font-bold py-1.5 rounded-md transition-all", viewFilter === "ACTIVE" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground")}
-              >
-                Inbox
-              </button>
-              <button 
-                onClick={() => { setViewFilter("ARCHIVED"); setSelectionMode(false); setSelectedChatIds(new Set()); }}
-                className={cn("flex-1 text-xs font-bold py-1.5 rounded-md transition-all", viewFilter === "ARCHIVED" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground")}
-              >
-                Archived
-              </button>
-            </div>
+            <TabGroup
+              type="pill"
+              tabs={[
+                { value: "ACTIVE", label: "Inbox" },
+                { value: "ARCHIVED", label: "Archived" },
+              ]}
+              activeTab={viewFilter}
+              onChange={(v) => {
+                setViewFilter(v);
+                setSelectionMode(false);
+                setSelectedChatIds(new Set());
+              }}
+              fullWidth={true}
+            />
 
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={14}
+              />
               <Input
                 placeholder="Search conversations..."
                 className="pl-9 bg-card border-border h-9 text-xs"
@@ -465,13 +647,17 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
 
             {/* SELECTION ACTIONS BAR */}
             {selectionMode && selectedChatIds.size > 0 && (
-              <div className="flex items-center justify-between bg-indigo-50 border border-indigo-100 rounded-lg p-2 px-3">
-                <span className="text-xs font-bold text-indigo-700">{selectedChatIds.size} selected</span>
-                <Button 
-                  size="sm" 
+              <div className="flex items-center justify-between bg-muted/50 border border-indigo-100 rounded-lg p-2 px-3">
+                <span className="text-xs font-bold text-foreground">
+                  {selectedChatIds.size} selected
+                </span>
+                <Button
+                  size="sm"
                   onClick={handleBulkArchiveToggle}
-                  disabled={archiveMutation.isPending || unarchiveMutation.isPending}
-                  className="h-7 text-xs px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-bold"
+                  disabled={
+                    archiveMutation.isPending || unarchiveMutation.isPending
+                  }
+                  className="h-7 text-xs px-3 bg-primary hover:bg-primary-hover text-primary-foreground rounded-md font-bold"
                 >
                   {viewFilter === "ACTIVE" ? "Archive" : "Unarchive"}
                 </Button>
@@ -481,11 +667,18 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
             {isLoadingList ? (
-              <div className="p-8 text-center text-xs text-muted-foreground animate-pulse font-medium italic">Loading your chats...</div>
+              <div className="p-8 text-center text-xs text-muted-foreground animate-pulse font-medium italic">
+                Loading your chats...
+              </div>
             ) : filteredChats.length === 0 ? (
               <div className="p-8 text-center space-y-2">
-                <MessageCircle size={32} className="mx-auto text-muted-foreground/30" />
-                <p className="text-xs font-bold text-muted-foreground">No chats found</p>
+                <MessageCircle
+                  size={32}
+                  className="mx-auto text-muted-foreground/30"
+                />
+                <p className="text-xs font-bold text-muted-foreground">
+                  No chats found
+                </p>
               </div>
             ) : (
               filteredChats.map((chat) => {
@@ -498,54 +691,82 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
                     onClick={() => handleChatSelect(chat)}
                     className={cn(
                       "w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 group relative border",
-                      selectionMode ? "hover:bg-muted" : (
-                        selectedChat?.entity_id === chat.entity_id && selectedChat?.entity_type === chat.entity_type
-                          ? "bg-indigo-600/10 border-indigo-600/20 ring-1 ring-indigo-600/20"
-                          : "bg-transparent border-transparent hover:bg-card hover:border-border"
-                      )
+                      selectionMode
+                        ? "hover:bg-muted"
+                        : selectedChat?.entity_id === chat.entity_id &&
+                            selectedChat?.entity_type === chat.entity_type
+                          ? "bg-mauve-4 border-mauve-4 ring-1 ring-mauve-6"
+                          : "bg-transparent border-transparent hover:bg-card hover:border-border",
                     )}
                   >
                     {selectionMode && (
-                       <div className="mt-1">
-                          <input 
-                            type="checkbox" 
-                            checked={isChecked}
-                            readOnly
-                            className="w-4 h-4 rounded-sm border-gray-300 text-indigo-600 focus:ring-indigo-600 pointer-events-none"
-                          />
-                       </div>
+                      <div className="mt-1">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          readOnly
+                          className="w-4 h-4 rounded-sm border-mauve-5 text-foreground focus:ring-indigo-600 pointer-events-none"
+                        />
+                      </div>
                     )}
-                    
-                    <div className={cn(
-                      "p-2 rounded-lg shrink-0 flex items-center justify-center",
-                      chat.is_unread ? "bg-indigo-600 text-white" : "bg-muted text-muted-foreground"
-                    )}>
-                      {chat.entity_type === "TASK" ? <ListCheck size={16} /> : chat.entity_type === "COMMITTEE_TASK" ? <Users size={16} /> : <Target size={16} />}
+
+                    <div
+                      className={cn(
+                        "p-2 rounded-lg shrink-0 flex items-center justify-center",
+                        chat.is_unread
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {chat.entity_type === "TASK" ? (
+                        <ListCheck size={16} />
+                      ) : chat.entity_type === "COMMITTEE_TASK" ? (
+                        <Users size={16} />
+                      ) : (
+                        <Target size={16} />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0 pr-2">
                       <div className="flex justify-between items-center mb-0.5">
                         <div className="flex items-center gap-1.5">
-                          <span className={cn(
-                            "text-[10px] font-black uppercase tracking-tighter opacity-70",
-                            chat.entity_type === "TASK" ? "text-indigo-600" : chat.entity_type === "COMMITTEE_TASK" ? "text-violet-600" : "text-emerald-600"
-                          )}>
-                            {chat.entity_type === "COMMITTEE_TASK" ? "COMMITTEE" : chat.entity_type}
+                          <span
+                            className={cn(
+                              "text-[10px] font-black uppercase tracking-tighter opacity-70",
+                              chat.entity_type === "TASK"
+                                ? "text-foreground"
+                                : chat.entity_type === "COMMITTEE_TASK"
+                                  ? "text-violet-9"
+                                  : "text-green-10",
+                            )}
+                          >
+                            {chat.entity_type === "COMMITTEE_TASK"
+                              ? "COMMITTEE"
+                              : chat.entity_type}
                           </span>
-                          {chat.is_deleted && chat.entity_type !== 'COMMITTEE_TASK' && (
-                            <span className="text-[8px] bg-red-100 text-red-600 px-1 py-0.5 rounded-sm font-black uppercase tracking-widest flex items-center gap-0.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 block"></span> Deleted
-                            </span>
-                          )}
+                          {chat.is_deleted &&
+                            chat.entity_type !== "COMMITTEE_TASK" && (
+                              <span className="text-[8px] bg-red-100 text-destructive px-1 py-0.5 rounded-sm font-black uppercase tracking-widest flex items-center gap-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive block"></span>{" "}
+                                Deleted
+                              </span>
+                            )}
                         </div>
-                        <span className="text-[9px] text-muted-foreground/60 font-bold ml-2 shrink-0">{timeAgo(chat.latest_created_at)}</span>
+                        <span className="text-[9px] text-muted-foreground/60 font-bold ml-2 shrink-0">
+                          {timeAgo(chat.latest_created_at)}
+                        </span>
                       </div>
-                      <h4 className="text-[13px] font-bold truncate leading-tight mb-1">{chat.title}</h4>
+                      <h4 className="text-[13px] font-bold truncate leading-tight mb-1">
+                        {chat.title}
+                      </h4>
                       <p className="text-xs text-muted-foreground truncate leading-relaxed">
-                        <span className="font-bold text-foreground/80">{chat.latest_author}:</span> {chat.latest_message}
+                        <span className="font-bold text-foreground/80">
+                          {chat.latest_author}:
+                        </span>{" "}
+                        {chat.latest_message}
                       </p>
                     </div>
                     {chat.is_unread && !selectionMode && (
-                      <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 rounded-full bg-indigo-600 shadow-lg shadow-indigo-600/40" />
+                      <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-lg shadow-foreground/40" />
                     )}
                   </button>
                 );
@@ -555,22 +776,32 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
         </div>
 
         {/* MAIN AREA: Chat Thread */}
-        <div className={cn(
-          "flex-1 flex flex-col bg-card relative",
-          isMobileListVisible && "hidden md:flex"
-        )}>
+        <div
+          className={cn(
+            "flex-1 flex flex-col bg-card relative",
+            isMobileListVisible && "hidden md:flex",
+          )}
+        >
           {selectedChat ? (
             <>
               {/* Thread Header */}
               <div className="h-16 border-b border-border px-4 flex items-center justify-between shrink-0 bg-card/80 backdrop-blur-md z-10">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <Button variant="ghost" size="icon-sm" onClick={() => setIsMobileListVisible(true)} className="md:hidden">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setIsMobileListVisible(true)}
+                    className="md:hidden"
+                  >
                     <ChevronLeft size={20} />
                   </Button>
                   <div className="min-w-0">
-                    <h3 className="text-sm font-black truncate">{selectedChat.title}</h3>
+                    <h3 className="text-sm font-black truncate">
+                      {selectedChat.title}
+                    </h3>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                      {selectedChat.entity_type} • {selectedChat.subtitle || "Overview"}
+                      {selectedChat.entity_type} �{" "}
+                      {selectedChat.subtitle || "Overview"}
                     </div>
                   </div>
                 </div>
@@ -582,9 +813,14 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
                     disabled={isDetailsLoading}
                     onClick={() => {
                       setIsDetailsLoading(true);
-                      window.dispatchEvent(new CustomEvent('OPEN_ENTITY_DETAILS', {
-                        detail: { id: selectedChat.entity_id, type: selectedChat.entity_type }
-                      }));
+                      window.dispatchEvent(
+                        new CustomEvent("OPEN_ENTITY_DETAILS", {
+                          detail: {
+                            id: selectedChat.entity_id,
+                            type: selectedChat.entity_type,
+                          },
+                        }),
+                      );
                       // Close the chat modal so the detail modal appears on top without z-index conflicts
                       setTimeout(() => {
                         setIsDetailsLoading(false);
@@ -612,46 +848,72 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
               {/* Banners for Deleted / Wipe Requested */}
               {isEntityDeleted ? (
                 <div className="bg-destructive/10 border-b border-destructive/20 text-destructive px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
-                  <AlertTriangle size={14} className="mt-0.5 sm:mt-0 shrink-0" /> 
+                  <AlertTriangle
+                    size={14}
+                    className="mt-0.5 sm:mt-0 shrink-0"
+                  />
                   <div className="leading-tight">
-                    <span className="uppercase tracking-widest mr-1">Deleted Record:</span>
+                    <span className="uppercase tracking-widest mr-1">
+                      Deleted Record:
+                    </span>
                     <span className="font-medium opacity-90">
-                      This {selectedChat?.entity_type?.toLowerCase() || 'record'} has been deleted. Chat history is preserved for auditing.
+                      This{" "}
+                      {selectedChat?.entity_type?.toLowerCase() || "record"} has
+                      been deleted. Chat history is preserved for auditing.
                     </span>
                   </div>
                 </div>
               ) : isEntityPendingWipe ? (
-                <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-600 px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
-                  <AlertTriangle size={14} className="mt-0.5 sm:mt-0 shrink-0" /> 
+                <div className="bg-warning/10 border-b border-amber-500/20 text-[color:var(--amber-10)] px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
+                  <AlertTriangle
+                    size={14}
+                    className="mt-0.5 sm:mt-0 shrink-0"
+                  />
                   <div className="leading-tight">
-                    <span className="uppercase tracking-widest mr-1">Pending Wipe Request:</span>
+                    <span className="uppercase tracking-widest mr-1">
+                      Pending Wipe Request:
+                    </span>
                     <span className="font-medium opacity-90">
-                      A deletion request has been submitted for this {selectedChat?.entity_type?.toLowerCase() || 'record'}.
+                      A deletion request has been submitted for this{" "}
+                      {selectedChat?.entity_type?.toLowerCase() || "record"}.
                     </span>
                   </div>
                 </div>
               ) : null}
 
               {/* Messages Area */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar py-4 space-y-1">
+              <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto custom-scrollbar py-4 space-y-1"
+              >
                 {isLoadingMessages ? (
                   <div className="flex items-center justify-center h-full gap-2 text-muted-foreground italic text-xs">
-                    <Clock size={14} className="animate-spin" /> Fetching history...
+                    <Clock size={14} className="animate-spin" /> Fetching
+                    history...
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full opacity-30 select-none">
                     <MessageCircle size={64} strokeWidth={1} />
-                    <p className="text-sm font-black mt-2">Start a conversation</p>
+                    <p className="text-sm font-black mt-2">
+                      Start a conversation
+                    </p>
                   </div>
                 ) : (
                   messages.map((m) => (
-                    <MessageBubble key={m.id} entry={m} currentUserId={user.id} />
+                    <MessageBubble
+                      key={m.id}
+                      entry={m}
+                      currentUserId={user.id}
+                    />
                   ))
                 )}
               </div>
 
               {/* Input Area */}
-              <form onSubmit={handleSend} className="p-4 border-t border-border bg-muted/10">
+              <form
+                onSubmit={handleSend}
+                className="p-4 border-t border-border bg-muted/10"
+              >
                 {isEntityDeleted ? (
                   <div className="bg-muted border border-border rounded-xl p-3 text-center text-xs font-bold text-muted-foreground opacity-70">
                     Input disabled. The associated record has been deleted.
@@ -663,19 +925,26 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
                       onChange={(e) => setMessageContent(e.target.value)}
                       placeholder="Write a message..."
                       className="border-none shadow-none focus-visible:ring-0 text-sm h-10 disabled:opacity-50"
-                      disabled={sendMessageMutation.isPending || isEntityDeleted}
+                      disabled={
+                        sendMessageMutation.isPending || isEntityDeleted
+                      }
                     />
                     <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
                       <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
                         <Clock size={10} /> Enter to send
                       </span>
                       <Button
-                        disabled={!messageContent.trim() || sendMessageMutation.isPending || isEntityDeleted}
+                        disabled={
+                          !messageContent.trim() ||
+                          sendMessageMutation.isPending ||
+                          isEntityDeleted
+                        }
                         type="submit"
                         size="sm"
                         className="h-8 px-4 rounded-xl font-bold gap-2"
                       >
-                        {sendMessageMutation.isPending ? "..." : "Send"} <Send size={14} />
+                        {sendMessageMutation.isPending ? "..." : "Send"}{" "}
+                        <Send size={14} />
                       </Button>
                     </div>
                   </div>
@@ -690,7 +959,8 @@ export default function ComprehensiveChatModal({ isOpen, onClose, initialEntityI
               <div>
                 <h3 className="text-lg font-bold">Your Conversations</h3>
                 <p className="text-sm text-muted-foreground max-w-[280px]">
-                  Select a task or sales activity from the list to view its chat history.
+                  Select a task or sales activity from the list to view its chat
+                  history.
                 </p>
               </div>
             </div>

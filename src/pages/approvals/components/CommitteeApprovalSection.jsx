@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { committeeTaskService } from "../../../services/committeeTaskService";
 import { useAuth } from "../../../context/AuthContext";
 import { useState } from "react";
@@ -80,7 +80,7 @@ export default function CommitteeApprovalSection() {
                <div>
                   <h3 className="font-black text-xl text-foreground">{task.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1">Created by: <span className="font-bold text-foreground">{task.creator?.name}</span></p>
-                  {task.description && <p className="text-sm text-slate-500 mt-2">{task.description}</p>}
+                  {task.description && <p className="text-sm text-muted-foreground mt-2">{task.description}</p>}
                </div>
                <div className="shrink-0 flex flex-col gap-2 min-w-[250px]">
                   <textarea 
@@ -93,7 +93,7 @@ export default function CommitteeApprovalSection() {
                     <button 
                       onClick={() => verifyMutation.mutate({ id: task.id, remarks: actionRemarks[task.id] })}
                       disabled={verifyMutation.isPending}
-                      className="flex-1 flex items-center justify-center gap-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-1 bg-green-9 hover:bg-green-9 text-primary-foreground py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
                     >
                       <CheckCircle2 size={14} /> Verify
                     </button>
@@ -106,7 +106,7 @@ export default function CommitteeApprovalSection() {
                         rejectMutation.mutate({ id: task.id, remarks: actionRemarks[task.id] });
                       }}
                       disabled={rejectMutation.isPending}
-                      className="flex-1 flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-1 bg-destructive hover:bg-destructive text-primary-foreground py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
                     >
                       <XCircle size={14} /> Reject
                     </button>
@@ -115,19 +115,19 @@ export default function CommitteeApprovalSection() {
             </div>
             
             <div className="p-5 bg-muted/10">
-               <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Member Evaluations</h4>
+               <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Member Evaluations</h4>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                  {task.members?.map(m => (
                    <div key={m.id} className="bg-card border border-border p-3 rounded-lg flex flex-col gap-1.5">
                      <div className="flex justify-between items-start">
                        <span className="font-bold text-sm">{m.employee?.name}</span>
-                       <div className="flex items-center text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded text-xs font-bold gap-0.5">
+                       <div className="flex items-center text-[color:var(--amber-9)] bg-warning/10 px-1.5 py-0.5 rounded text-xs font-bold gap-0.5">
                          {m.grade} <Star size={10} fill="currentColor" />
                        </div>
                      </div>
                      <p className="text-[11px] text-muted-foreground line-clamp-2">{m.task_description}</p>
                      {m.grade_remarks && (
-                       <div className="mt-1 p-1.5 bg-muted rounded text-[10px] text-slate-500 italic">
+                       <div className="mt-1 p-1.5 bg-muted rounded text-[10px] text-muted-foreground italic">
                          "{m.grade_remarks}"
                        </div>
                      )}

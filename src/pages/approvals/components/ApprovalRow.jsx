@@ -8,6 +8,7 @@ import ChecklistTaskRenderer from "../../../components/ChecklistTaskRenderer.jsx
 import { TASK_STATUS } from "../../../constants/status.js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Avatar from "../../../components/Avatar";
 
 export function ApprovalRow({
   task,
@@ -49,7 +50,7 @@ export function ApprovalRow({
     }
 
     if (!isHr) {
-      const keyMap = { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+      const keyMap = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
       if (keyMap[e.key]) {
         e.preventDefault();
         const num = keyMap[e.key];
@@ -168,13 +169,13 @@ export function ApprovalRow({
       ref={rowRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className={`outline-none border transition-all duration-300 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 ${
+      className={`outline-none border transition-all duration-300 rounded-xl focus-visible:ring-2 focus-visible:ring-mauve-6 focus-visible:border-mauve-6 ${
         isSelected
-            ? "border-primary shadow-[0_0_15px_rgba(79,70,229,0.15)] bg-primary/5"
-            : expanded
-              ? "bg-card border-border"
-              : "border-border bg-card shadow-sm hover:border-primary/30"
-        }`}
+          ? "border-mauve-8 shadow-[0_0_15px_rgba(79,70,229,0.15)] bg-mauve-4"
+          : expanded
+            ? "bg-card border-border"
+            : "border-border bg-card shadow-sm hover:border-mauve-8"
+      }`}
     >
       {/* COMPACT ROW */}
       <div
@@ -182,35 +183,28 @@ export function ApprovalRow({
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-          <div 
-             className={`relative w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-black border shadow-inner transition-all duration-300 overflow-hidden ${
-                 appSettings?.enable_bulk_approval && onToggleSelection 
-                   ? "cursor-pointer hover:scale-105 hover:shadow-md" 
-                   : ""
-             } ${
-                 isSelected 
-                   ? "bg-primary text-primary-foreground border-primary" 
-                   : "bg-primary/10 text-primary border-primary/20"
-             }`}
-             onClick={(e) => {
-                 if (appSettings?.enable_bulk_approval && onToggleSelection) {
-                     e.stopPropagation();
-                     onToggleSelection(task.id);
-                 }
-             }}
-             title={appSettings?.enable_bulk_approval && onToggleSelection ? (isSelected ? "Deselect task" : "Select for bulk approval") : undefined}
-          >
-             {/* The Check Icon */}
-             <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isSelected ? "scale-100 opacity-100 rotate-0" : "scale-50 opacity-0 -rotate-90"}`}>
-                 <CheckCircle2 size={24} className="text-white" />
-             </div>
-             {/* The Avatar Initial */}
-             <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isSelected ? "scale-50 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0"}`}>
-                {task.loggedByName
-                  ? task.loggedByName.charAt(0).toUpperCase()
-                  : "?"}
-             </div>
-          </div>
+          <Avatar
+            name={task.loggedByName}
+            size="lg"
+            isSelected={isSelected}
+            showCheckOnSelect={true}
+            className={!isSelected ? " shadow-inner" : "shadow-inner"}
+            onClick={
+              appSettings?.enable_bulk_approval && onToggleSelection
+                ? (e) => {
+                    e.stopPropagation();
+                    onToggleSelection(task.id);
+                  }
+                : undefined
+            }
+            title={
+              appSettings?.enable_bulk_approval && onToggleSelection
+                ? isSelected
+                  ? "Deselect task"
+                  : "Select for bulk approval"
+                : undefined
+            }
+          />
           <div className="min-w-0 flex-1 md:flex-none md:w-40 lg:w-56 shrink-0">
             <h3 className="font-bold text-foreground text-xs md:text-sm truncate">
               {task.loggedByName}
@@ -234,7 +228,7 @@ export function ApprovalRow({
             </span>
             {task.editedAt && (
               <span
-                className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest"
+                className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-widest"
                 title={`Last modified ${formatDate(task.editedAt)}${task.editedByName ? ` by ${task.editedByName}` : ""}`}
               >
                 Mod: {formatDate(task.editedAt)}
@@ -243,7 +237,7 @@ export function ApprovalRow({
           </div>
 
           {appSettings?.enable_visual_shaming && isDelayed && (
-            <span className="px-2 py-1 rounded bg-orange-400/20 text-orange-500 text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
+            <span className="px-2 py-1 rounded bg-orange-400/20 text-[color:var(--amber-10)] text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
               Delayed
             </span>
           )}
@@ -258,7 +252,7 @@ export function ApprovalRow({
           )}
 
           <button
-            className="text-slate-400 hover:text-primary transition-colors p-1"
+            className="text-muted-foreground hover:text-primary transition-colors p-1"
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails(task);
@@ -268,7 +262,7 @@ export function ApprovalRow({
             <Maximize2 size={16} />
           </button>
 
-          <button className="text-slate-400 hover:text-foreground transition-colors p-1">
+          <button className="text-muted-foreground hover:text-foreground transition-colors p-1">
             {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
         </div>
@@ -284,7 +278,7 @@ export function ApprovalRow({
                 Task Description
               </label>
               {task.taskDescription &&
-                task.taskDescription.trim().startsWith("[") ? (
+              task.taskDescription.trim().startsWith("[") ? (
                 <div className="mt-1">
                   <ChecklistTaskRenderer
                     description={task.taskDescription}
@@ -308,7 +302,7 @@ export function ApprovalRow({
                     userId={currentUserId}
                     attachments={task.attachments}
                     readOnly={true}
-                    onChange={() => { }}
+                    onChange={() => {}}
                   />
                 </div>
               )}
@@ -326,20 +320,21 @@ export function ApprovalRow({
                     <div className="flex gap-1.5 md:gap-2 pointer-events-none select-none">
                       {[1, 2, 3, 4, 5].map((num) => {
                         const activeColorMap = {
-                          1: "bg-red-500 text-gray-1 border-red-500 shadow-red-500/40",
-                          2: "bg-orange-500 text-gray-1 border-orange-500 shadow-orange-500/40",
-                          3: "bg-yellow-500 text-gray-1 border-yellow-500 shadow-yellow-500/40",
-                          4: "bg-lime-500 text-gray-1 border-lime-500 shadow-lime-500/40",
-                          5: "bg-green-500 text-gray-1 border-green-500 shadow-green-500/40",
+                          1: "bg-destructive text-mauve-1 border-red-500 shadow-red-500/40",
+                          2: "bg-orange-500 text-mauve-1 border-orange-500 shadow-orange-500/40",
+                          3: "bg-[color:var(--yellow-9)] text-mauve-1 border-yellow-500 shadow-yellow-500/40",
+                          4: "bg-lime-500 text-mauve-1 border-lime-500 shadow-lime-500/40",
+                          5: "bg-green-9 text-mauve-1 border-green-500 shadow-green-500/40",
                         };
                         const isSelected = task.grade === num;
                         return (
                           <div
                             key={num}
-                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${isSelected
-                              ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                              : "bg-muted text-muted-foreground/80 border-border opacity-40"
-                              }`}
+                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${
+                              isSelected
+                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
+                                : "bg-muted text-muted-foreground/80 border-border opacity-40"
+                            }`}
                           >
                             {num}
                           </div>
@@ -365,7 +360,9 @@ export function ApprovalRow({
                       type="text"
                       value={hrRemarks}
                       onChange={(e) => setHrRemarks(e.target.value)}
-                      placeholder={isVerifiedTab ? "No notes provided" : "Audit notes..."}
+                      placeholder={
+                        isVerifiedTab ? "No notes provided" : "Audit notes..."
+                      }
                       className="w-full bg-background"
                       disabled={isVerifiedTab}
                     />
@@ -384,7 +381,7 @@ export function ApprovalRow({
                       <Button
                         onClick={handleHrVerify}
                         disabled={isSubmitting}
-                        className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-primary-foreground"
                       >
                         Verify & Sign
                       </Button>
@@ -401,21 +398,22 @@ export function ApprovalRow({
                     <div className="flex gap-1.5 md:gap-2">
                       {[1, 2, 3, 4, 5].map((num) => {
                         const activeColorMap = {
-                          1: "bg-red-500 text-gray-1 hover:bg-red-600 border-red-500 shadow-red-500/40",
-                          2: "bg-orange-500 text-gray-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
-                          3: "bg-yellow-500 text-gray-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
-                          4: "bg-lime-500 text-gray-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
-                          5: "bg-green-500 text-gray-1 hover:bg-green-600 border-green-500 shadow-green-500/40",
+                          1: "bg-destructive text-mauve-1 hover:bg-destructive border-red-500 shadow-red-500/40",
+                          2: "bg-orange-500 text-mauve-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
+                          3: "bg-[color:var(--yellow-9)] text-mauve-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
+                          4: "bg-lime-500 text-mauve-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
+                          5: "bg-green-9 text-mauve-1 hover:bg-green-9 border-green-500 shadow-green-500/40",
                         };
 
                         return (
                           <button
                             key={num}
                             onClick={() => setGrade(num)}
-                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${grade === num
-                              ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                              : "bg-muted text-muted-foreground/80 border-border"
-                              } ${!isVerifiedTab && "hover:border-slate-300 hover:bg-slate-100"}`}
+                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
+                              grade === num
+                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
+                                : "bg-muted text-muted-foreground/80 border-border"
+                            } ${!isVerifiedTab && "hover:border-mauve-5 hover:bg-mauve-4"}`}
                             disabled={isVerifiedTab}
                           >
                             {num}
@@ -433,7 +431,11 @@ export function ApprovalRow({
                       type="text"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
-                      placeholder={isVerifiedTab && !remarks ? "No feedback provided" : "Add feedback..."}
+                      placeholder={
+                        isVerifiedTab && !remarks
+                          ? "No feedback provided"
+                          : "Add feedback..."
+                      }
                       className="w-full bg-background mt-1"
                       disabled={isVerifiedTab}
                     />
@@ -452,7 +454,7 @@ export function ApprovalRow({
                       <Button
                         onClick={handleHeadApprove}
                         disabled={grade === null || isSubmitting}
-                        className="order-1 sm:order-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-primary-foreground"
                       >
                         Approve Task
                       </Button>
@@ -466,18 +468,33 @@ export function ApprovalRow({
           {/* KEYBOARD SHORTCUTS HINT */}
           {!isVerifiedTab && (
             <div className="mt-6 pt-3 border-t border-border/50 flex justify-center opacity-70">
-              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase flex items-center gap-2">
+              <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase flex items-center gap-2">
                 Shortcuts:
                 {!isHr ? (
                   <>
-                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">1-5</span> Select Grade
-                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">Enter</span> Approve
-                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
+                    <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border">
+                      1-5
+                    </span>{" "}
+                    Select Grade
+                    <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                      Enter
+                    </span>{" "}
+                    Approve
+                    <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                      X
+                    </span>{" "}
+                    Reject
                   </>
                 ) : (
                   <>
-                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border">V / Enter</span> Verify
-                    <span className="bg-slate-100 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
+                    <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border">
+                      V / Enter
+                    </span>{" "}
+                    Verify
+                    <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                      X
+                    </span>{" "}
+                    Reject
                   </>
                 )}
               </p>

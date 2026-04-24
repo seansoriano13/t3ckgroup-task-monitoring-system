@@ -16,7 +16,7 @@ export default function ImageAttachment({
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Core upload logic â€” shared by file picker and paste handler
+  // Core upload logic — shared by file picker and paste handler
   const uploadFiles = useCallback(async (files) => {
     if (!files || files.length === 0) return;
 
@@ -51,7 +51,7 @@ export default function ImageAttachment({
     }
   }, [attachments, taskId, userId, onChange]);
 
-  // Clipboard paste handler â€” intercepts Ctrl+V screenshots
+  // Clipboard paste handler — intercepts Ctrl+V screenshots
   useEffect(() => {
     if (readOnly || taskId === "NEW") return;
 
@@ -61,7 +61,7 @@ export default function ImageAttachment({
       if (imageItems.length === 0) return;
 
       e.preventDefault();
-      toast("Screenshot detected â€” uploading...", { icon: "ðŸ“‹" });
+      toast("Screenshot detected — uploading...", { icon: "??" });
       const files = imageItems.map((item) => {
         const blob = item.getAsFile();
         return new File([blob], `paste_${Date.now()}.png`, { type: blob.type });
@@ -134,9 +134,9 @@ export default function ImageAttachment({
       {signedUrls.length > 0 && (
          <div className="grid grid-cols-3 gap-2">
             {signedUrls.map((item, index) => (
-              <div key={item.path} className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-video flex items-center justify-center">
+              <div key={item.path} className="relative group rounded-lg overflow-hidden border border-mauve-4 bg-mauve-2 aspect-video flex items-center justify-center">
                  {isLoadingUrls ? (
-                    <Loader2 size={16} className="animate-spin text-gray-8" />
+                    <Loader2 size={16} className="animate-spin text-mauve-8" />
                  ) : (
                    <>
                      <img 
@@ -149,14 +149,14 @@ export default function ImageAttachment({
                      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                            onClick={(e) => { e.stopPropagation(); setFullscreenImage(item.signedUrl); }}
-                           className="bg-black/60 hover:bg-black/80 text-white p-1 rounded backdrop-blur-sm"
+                           className="bg-black/60 hover:bg-mauve-12/80 text-primary-foreground p-1 rounded backdrop-blur-sm"
                         >
                            <Maximize2 size={12} />
                         </button>
                         {!readOnly && (
                           <button 
                              onClick={(e) => { e.stopPropagation(); handleDelete(item.path); }}
-                             className="bg-red-500/80 hover:bg-red-600 text-white p-1 rounded backdrop-blur-sm"
+                             className="bg-destructive/80 hover:bg-destructive text-primary-foreground p-1 rounded backdrop-blur-sm"
                           >
                              <X size={12} />
                           </button>
@@ -176,7 +176,7 @@ export default function ImageAttachment({
              type="button"
              onClick={() => fileInputRef.current?.click()}
              disabled={isUploading || taskId === "NEW"}
-             className="w-full py-4 border-2 border-dashed border-gray-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-gray-9 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+             className="w-full py-4 border-2 border-dashed border-mauve-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground hover:border-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
            >
              {isUploading ? (
                 <>
@@ -191,7 +191,7 @@ export default function ImageAttachment({
              )}
            </button>
            {taskId !== "NEW" && !isUploading && (
-             <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-7 font-medium">
+             <p className="flex items-center justify-center gap-1.5 text-[11px] text-mauve-7 font-medium">
                <ClipboardPaste size={12} />
                Or paste a screenshot directly (Ctrl+V)
              </p>
@@ -206,7 +206,7 @@ export default function ImageAttachment({
            onClick={() => setFullscreenImage(null)}
          >
            <button 
-             className="absolute top-6 right-6 text-white hover:text-red-500 transition-colors bg-black/50 p-2 rounded-full"
+             className="absolute top-6 right-6 text-primary-foreground hover:text-destructive transition-colors bg-black/50 p-2 rounded-full"
              onClick={() => setFullscreenImage(null)}
            >
              <X size={24} />

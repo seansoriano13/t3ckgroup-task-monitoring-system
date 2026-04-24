@@ -16,6 +16,7 @@ import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status";
+import Avatar from "./Avatar";
 
 export default function EmployeePipelineMatrix({ selectedRange }) {
   const navigate = useNavigate();
@@ -140,10 +141,12 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
       <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 tracking-tight">
-            <Activity className="text-foreground" size={18} /> Team Pipeline
-            Radar
+            <div className="w-10 h-10 rounded-xl bg-mauve-2 flex items-center justify-center text-mauve-11 shadow-sm border border-mauve-4">
+              <Activity size={18} />
+            </div>
+            Team Pipeline Radar
           </h2>
-          <p className="text-sm text-[#6B7280] mt-0.5">
+          <p className="text-sm text-mauve-10  mt-0.5">
             {isHr ? "Organization-wide metrics" : "Performance metrics"} •{" "}
             <span className="font-semibold text-foreground">
               {selectedRange?.label || "This Range"}
@@ -171,24 +174,24 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-lg">
+          <div className="flex items-center gap-1.5 bg-mauve-2 border border-mauve-5 p-1 rounded-lg">
             <button
               onClick={() => setLayoutMode("row")}
-              className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-white shadow-sm text-blue-600" : "text-slate-400 hover:text-slate-600"}`}
+              className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
               title="Single Row"
             >
               <List size={16} />
             </button>
             <button
               onClick={() => setLayoutMode("stack")}
-              className={`p-1 rounded transition-all ${layoutMode === "stack" ? "bg-white shadow-sm text-blue-600" : "text-slate-400 hover:text-slate-600"}`}
+              className={`p-1 rounded transition-all ${layoutMode === "stack" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
               title="3-Row Stack"
             >
               <Rows3 size={16} />
             </button>
             <button
               onClick={() => setLayoutMode("grid")}
-              className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-slate-400 hover:text-slate-600"}`}
+              className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
               title="Full Grid"
             >
               <LayoutGrid size={16} />
@@ -218,7 +221,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             onClick={() =>
               navigate("/tasks", { state: { filterEmployeeId: emp.id } })
             }
-            className={`cursor-pointer flex flex-col transition-colors hover:bg-slate-50 hover:border-slate-300 ${
+            className={`cursor-pointer flex flex-col transition-colors hover:bg-mauve-3 hover:border-mauve-5 ${
               layoutMode === "grid"
                 ? "w-full"
                 : "min-w-[260px] sm:min-w-[290px] snap-start"
@@ -233,19 +236,11 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             {/* Header: Avatar & Name */}
             <div className="flex justify-between items-center gap-2">
               <div className="flex gap-2.5 items-center min-w-0">
-                <div
-                  className="rounded-full flex items-center justify-center shrink-0"
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    backgroundColor: "#F1F5F9",
-                    color: "#475569",
-                  }}
-                >
-                  {emp.name.charAt(0)}
-                </div>
+                <Avatar
+                  className="bg-white"
+                  size="sm"
+                  name={emp.name.charAt(0)}
+                />
                 <div className="min-w-0">
                   <h3
                     className="line-clamp-1"
@@ -278,7 +273,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                   background: "transparent",
                 }}
               >
-                <Star size={11} className="text-gray-6 fill-gray-6" />
+                <Star size={11} className="text-mauve-6 fill-gray-6" />
                 <span
                   style={{
                     fontSize: "12px",
@@ -318,36 +313,36 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
               >
                 {emp.draft > 0 && (
                   <div
+                    className="bg-orange-a7"
                     style={{
                       width: `${(emp.draft / emp.total) * 100}%`,
-                      background: "#F59E0B",
                     }}
                     title={`${emp.draft} Incomplete`}
                   />
                 )}
                 {emp.rejected > 0 && (
                   <div
+                    className="bg-red-a7"
                     style={{
                       width: `${(emp.rejected / emp.total) * 100}%`,
-                      background: "#EF4444",
                     }}
                     title={`${emp.rejected} Rejected`}
                   />
                 )}
                 {emp.pendingHr > 0 && (
                   <div
+                    className="bg-blue-a7"
                     style={{
                       width: `${(emp.pendingHr / emp.total) * 100}%`,
-                      background: "#3B82F6",
                     }}
                     title={`${emp.pendingHr} Pending HR`}
                   />
                 )}
                 {emp.verified > 0 && (
                   <div
+                    className="bg-green-a7"
                     style={{
                       width: `${(emp.verified / emp.total) * 100}%`,
-                      background: "#22C55E",
                     }}
                     title={`${emp.verified} Verified`}
                   />
@@ -447,7 +442,17 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                 style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}
               >
                 {emp.completionRate}%
-                <TrendingUp size={13} style={{ color: "#22C55E" }} />
+                <TrendingUp
+                  size={13}
+                  style={{
+                    color:
+                      emp.completionRate >= 80
+                        ? "#22C55E"
+                        : emp.completionRate >= 50
+                          ? "#F59E0B"
+                          : "#EF4444",
+                  }}
+                />
               </span>
             </div>
           </div>

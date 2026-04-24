@@ -1,4 +1,4 @@
-import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
+﻿import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { storageService } from "../../../../services/storageService";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -30,7 +30,7 @@ export function AddUnplannedForm({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-[10px] font-black text-muted-foreground hover:text-indigo-600 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
+        className="w-full text-[10px] font-black text-muted-foreground hover:text-[color:var(--violet-10)] transition-colors flex items-center gap-1.5 uppercase tracking-widest"
       >
         <Plus size={14} /> NEW UNPLANNED ITEM
       </button>
@@ -80,7 +80,7 @@ export function AddUnplannedForm({
   return (
     <div className="animate-in fade-in slide-in-from-top-2 p-5 bg-card rounded-2xl border border-border mt-2 space-y-4 shadow-lg relative w-full overflow-hidden">
       <div className="flex justify-between items-center border-b border-border pb-3 mb-2">
-        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 flex items-center gap-1.5">
+        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--violet-10)] flex items-center gap-1.5">
           <Plus size={13} /> Unplanned Entry
         </h4>
       </div>
@@ -88,7 +88,7 @@ export function AddUnplannedForm({
       <div className="space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
               Account &amp; Activity
             </label>
             <div className="flex gap-2">
@@ -119,7 +119,7 @@ export function AddUnplannedForm({
             </div>
           </div>
           <div>
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Contact Person
             </label>
             <input
@@ -132,7 +132,7 @@ export function AddUnplannedForm({
             />
           </div>
           <div>
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Contact Number
             </label>
             <input
@@ -145,7 +145,7 @@ export function AddUnplannedForm({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Email Address
             </label>
             <input
@@ -158,7 +158,7 @@ export function AddUnplannedForm({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Address
             </label>
             <input
@@ -171,9 +171,9 @@ export function AddUnplannedForm({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] flex items-center gap-1 w-full justify-between mb-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] flex items-center gap-1 w-full justify-between mb-1.5">
               Execution Details
-              <span className="text-[9px] font-medium text-slate-400 italic lowercase">(optional remarks)</span>
+              <span className="text-[9px] font-medium text-muted-foreground italic lowercase">(optional remarks)</span>
             </label>
             <textarea
               placeholder="What occurred?"
@@ -187,7 +187,7 @@ export function AddUnplannedForm({
         </div>
 
         <div className="border-t border-border pt-4 mt-2 sm:col-span-2">
-          <label className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] block mb-2.5">
+          <label className="text-[10px] font-black text-[color:var(--amber-10)] uppercase tracking-[0.2em] block mb-2.5">
             Fund Request &amp; Reference
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -198,7 +198,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, reference_number: e.target.value })
               }
-              className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-slate-300"
+              className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
             />
             <input
               type="number"
@@ -211,7 +211,7 @@ export function AddUnplannedForm({
                     e.target.value === "" ? "" : Number(e.target.value),
                 })
               }
-              className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-slate-300"
+              className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
               min="0"
               step="0.01"
             />
@@ -220,7 +220,7 @@ export function AddUnplannedForm({
 
         {/* --- IMAGE ATTACHMENTS --- */}
         <div className="border-t border-border pt-4 mt-2">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] block mb-2">
+          <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-2">
             Proof of Execution
           </label>
           <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ export function AddUnplannedForm({
             {selectedImages.length > 0 && !isUploading && (
               <button
                 onClick={() => setSelectedImages([])}
-                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                 title="Clear selection"
               >
                 <X size={16} />
@@ -263,7 +263,7 @@ export function AddUnplannedForm({
         <button
           disabled={!payload.account_name || isUploading}
           onClick={handleSave}
-          className="flex-[2] py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-200 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          className="flex-[2] py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           {isUploading && <Loader2 size={14} className="animate-spin" />}
           {isUploading ? "Uploading..." : "Add Item"}

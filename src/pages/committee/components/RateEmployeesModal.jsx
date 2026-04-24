@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, Star } from "lucide-react";
 import GradeSelector from "../../../components/GradeSelector";
@@ -81,17 +81,17 @@ export default function RateEmployeesModal({
         className="p-0 gap-0 z-[80] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[960px] sm:max-w-none max-w-[95vw] rounded-2xl max-h-[90vh] overflow-hidden"
       >
         {/* HEADER */}
-        <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-3/40 shrink-0 relative overflow-hidden bg-card">
+        <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-mauve-3/40 shrink-0 relative overflow-hidden bg-card">
           <div className="space-y-1 mt-1">
             <div className="flex items-center gap-2 mb-2.5">
-              <span className="text-[10px] font-bold bg-amber-500/10 text-amber-600 px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm border border-amber-500/20">
+              <span className="text-[10px] font-bold bg-warning/10 text-[color:var(--amber-10)] px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm border border-amber-500/20">
                 Evaluation Mode
               </span>
             </div>
             <h2 className="text-2xl font-black text-foreground tracking-tight leading-tight">
               Rate Committee Members
             </h2>
-            <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 mt-2">
+            <div className="flex items-center gap-4 text-xs font-semibold text-muted-foreground mt-2">
               <span className="truncate max-w-[400px]">For: {task.title}</span>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function RateEmployeesModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-md text-slate-400 hover:text-foreground hover:bg-muted/80 transition-colors"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
             >
               <X size={15} />
             </button>
@@ -131,8 +131,8 @@ export default function RateEmployeesModal({
                       <span
                         className={`text-[9px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider ${
                           rating.status === "DONE"
-                            ? "bg-green-500/10 text-green-600 border border-green-500/20"
-                            : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                            ? "bg-green-9/10 text-green-10 border border-green-500/20"
+                            : "bg-warning/10 text-[color:var(--amber-10)] border border-amber-500/20"
                         }`}
                       >
                         {rating.status}
@@ -140,7 +140,7 @@ export default function RateEmployeesModal({
                     </div>
 
                     <div className="bg-muted/20 p-3 rounded-xl border border-border/50">
-                      <span className="font-bold uppercase tracking-widest text-[9px] text-slate-400 block mb-1">
+                      <span className="font-bold uppercase tracking-widest text-[9px] text-muted-foreground block mb-1">
                         Assigned Task
                       </span>
                       {(() => {
@@ -163,7 +163,7 @@ export default function RateEmployeesModal({
                     </div>
 
                     {rating.status !== "DONE" && (
-                      <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1.5 bg-amber-500/10 w-fit px-2 py-1 rounded-md border border-amber-500/20">
+                      <p className="text-[10px] font-bold text-[color:var(--amber-9)] uppercase tracking-widest flex items-center gap-1.5 bg-warning/10 w-fit px-2 py-1 rounded-md border border-amber-500/20">
                         Warning: Task not marked DONE by employee
                       </p>
                     )}
@@ -172,7 +172,7 @@ export default function RateEmployeesModal({
                   {/* Rating Controls */}
                   <div className="flex flex-col gap-4 lg:w-[280px] shrink-0 bg-muted/10 p-4 rounded-xl border border-border/50">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
                         Performance Grade
                       </label>
                       <GradeSelector
@@ -184,7 +184,7 @@ export default function RateEmployeesModal({
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
                         Remarks (Optional)
                       </label>
                       <textarea
@@ -209,7 +209,7 @@ export default function RateEmployeesModal({
 
         {/* FOOTER */}
         <div className="px-6 py-4 border-t border-border bg-muted/30 flex items-center justify-between shrink-0">
-          <div className="hidden sm:flex items-center gap-3 text-[10px] text-slate-400 font-medium">
+          <div className="hidden sm:flex items-center gap-3 text-[10px] text-muted-foreground font-medium">
             <div className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 bg-muted/80 border border-border rounded text-muted-foreground font-sans text-[9px]">
                 Esc
@@ -217,7 +217,7 @@ export default function RateEmployeesModal({
               <span>to close</span>
             </div>
             {!allMembersDone && (
-              <span className="text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+              <span className="text-destructive font-bold bg-destructive/10 px-2 py-0.5 rounded border border-red-500/20">
                 Cannot submit: Not all members are DONE
               </span>
             )}
@@ -233,7 +233,7 @@ export default function RateEmployeesModal({
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !allMembersDone}
-              className="h-9 px-6 rounded-xl shadow-lg shadow-indigo-200 bg-primary hover:bg-primary/90 text-white flex items-center gap-2 font-bold transition-colors disabled:opacity-50"
+              className="h-9 px-6 rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2 font-bold transition-colors disabled:opacity-50"
             >
               <Star size={14} fill="currentColor" />
               {isSubmitting ? "Submitting..." : "Submit Ratings & Complete"}

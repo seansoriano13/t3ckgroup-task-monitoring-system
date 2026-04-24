@@ -19,6 +19,7 @@ import BulkGradeModal from "./components/BulkGradeModal";
 import BulkDeclineModal from "./components/BulkDeclineModal";
 import { Button } from "@/components/ui/button";
 import PageContainer from "../../components/ui/PageContainer";
+import TabGroup from "../../components/ui/TabGroup";
 
 export default function ApprovalsPage() {
   const { user } = useAuth();
@@ -540,65 +541,16 @@ export default function ApprovalsPage() {
 
         {/* TAB TOGGLE */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/50 pb-4 mt-2">
-          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
-            <button
-              onClick={() => setActiveTab("PENDING")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
-                activeTab === "PENDING"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted-foreground/10"
-              }`}
-            >
-              <CheckCircle2 size={14} />
-              Pending
-              {pendingTasks.length > 0 && (
-                <span
-                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                    activeTab === "PENDING"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}
-                >
-                  {pendingTasks.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("VERIFIED")}
-              className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
-                activeTab === "VERIFIED"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted-foreground/10"
-              }`}
-            >
-              <History size={14} />
-              Recently {isHr ? "Verified" : "Approved"}
-              {verifiedTasks.length > 0 && (
-                <span
-                  className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                    activeTab === "VERIFIED"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted-foreground/20 text-muted-foreground"
-                  }`}
-                >
-                  {verifiedTasks.length}
-                </span>
-              )}
-            </button>
-            {isHr && (
-              <button
-                onClick={() => setActiveTab("COMMITTEE")}
-                className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all whitespace-nowrap shrink-0 ${
-                  activeTab === "COMMITTEE"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted-foreground/10"
-                }`}
-              >
-                <Users size={14} />
-                Committee Tasks
-              </button>
-            )}
-          </div>
+          <TabGroup
+            tabs={[
+              { value: "PENDING", label: "Pending", icon: CheckCircle2, badge: pendingTasks.length || undefined },
+              { value: "VERIFIED", label: isHr ? "Recently Verified" : "Recently Approved", icon: History, badge: verifiedTasks.length || undefined },
+              ...(isHr ? [{ value: "COMMITTEE", label: "Committee Tasks", icon: Users }] : []),
+            ]}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            size="md"
+          />
         </div>
 
         {activeRawData.length > 0 && (
@@ -736,7 +688,7 @@ export default function ApprovalsPage() {
                 <div
                   className={`relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 shadow-sm ring-4 ${
                     activeTab === "PENDING"
-                      ? "bg-emerald-100/50 text-emerald-600 ring-emerald-50"
+                      ? "bg-green-3/50 text-green-10 ring-green-2"
                       : "bg-muted text-muted-foreground ring-muted/50"
                   }`}
                 >
