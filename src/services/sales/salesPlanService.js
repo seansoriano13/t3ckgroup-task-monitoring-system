@@ -1,6 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import { notificationService } from "../notificationService";
 import { SALES_PLAN_STATUS } from "../../constants/status";
+import { salesActivityLogService } from "./salesActivityLogService";
 
 export const salesPlanService = {
   async getWeeklyPlan(employeeId, weekStartDate) {
@@ -69,6 +70,27 @@ export const salesPlanService = {
       });
     }
 
+    // Add SYSTEM logs for plan submission
+    supabase
+      .from("sales_activities")
+      .select("id")
+      .eq("plan_id", planId)
+      .neq("is_deleted", true)
+      .then(({ data: activities }) => {
+        if (activities && activities.length > 0) {
+          Promise.allSettled(
+            activities.map((item) =>
+              salesActivityLogService.addSystemEvent(
+                item.id,
+                `Weekly plan containing this activity was submitted${isAutoApproved ? " (Auto-approved)" : " for approval"}.`,
+                { event: "PLAN_SUBMITTED", isAutoApproved },
+              ),
+            ),
+          ).catch(console.error);
+        }
+      })
+      .catch(console.error);
+
     return data;
   },
 
@@ -104,6 +126,19 @@ export const salesPlanService = {
         message: `${userObj.name || "A Sales Rep"} has requested to amend their approved weekly plan. Reason: ${reason}`,
         reference_id: String(planId),
       }).catch(console.error);
+    }
+
+    // Add SYSTEM logs for plan amendment request
+    if (activities && activities.length > 0) {
+      Promise.allSettled(
+        activities.map((item) =>
+          salesActivityLogService.addSystemEvent(
+            item.id,
+            `Plan amendment requested. Reason: ${reason}`,
+            { event: "PLAN_AMENDMENT_REQUESTED", reason },
+          ),
+        ),
+      ).catch(console.error);
     }
 
     return data;
@@ -144,6 +179,28 @@ export const salesPlanService = {
           reference_id: planId,
         });
       }
+
+      // Add SYSTEM logs for amendment approval
+      supabase
+        .from("sales_activities")
+        .select("id")
+        .eq("plan_id", planId)
+        .neq("is_deleted", true)
+        .then(({ data: activities }) => {
+          if (activities && activities.length > 0) {
+            Promise.allSettled(
+              activities.map((item) =>
+                salesActivityLogService.addSystemEvent(
+                  item.id,
+                  "Plan amendment approved. Changes were saved.",
+                  { event: "PLAN_AMENDMENT_RESOLVED", isApproved: true },
+                ),
+              ),
+            ).catch(console.error);
+          }
+        })
+        .catch(console.error);
+
       return data;
     } else {
       // Revert to snapshot
@@ -185,6 +242,27 @@ export const salesPlanService = {
           reference_id: planId,
         });
       }
+
+      // Add SYSTEM logs for amendment rejection
+      supabase
+        .from("sales_activities")
+        .select("id")
+        .eq("plan_id", planId)
+        .neq("is_deleted", true)
+        .then(({ data: activities }) => {
+          if (activities && activities.length > 0) {
+            Promise.allSettled(
+              activities.map((item) =>
+                salesActivityLogService.addSystemEvent(
+                  item.id,
+                  "Plan amendment rejected. The plan has been reverted to its previous approved state.",
+                  { event: "PLAN_AMENDMENT_RESOLVED", isApproved: false },
+                ),
+              ),
+            ).catch(console.error);
+          }
+        })
+        .catch(console.error);
 
       return data;
     }

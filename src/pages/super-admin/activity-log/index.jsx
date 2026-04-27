@@ -3,11 +3,13 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../../../services/tasks/taskActivityService";
+import { salesActivityLogService } from "../../../services/sales/salesActivityLogService";
 import { taskService } from "../../../services/taskService";
+import { salesExecutionService } from "../../../services/sales/salesExecutionService";
 import { employeeService } from "../../../services/employeeService";
 import TaskDetails from "../../../components/TaskDetails.jsx";
+import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 import Avatar from "../../../components/Avatar.jsx";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
 import toast from "react-hot-toast";
@@ -32,6 +34,7 @@ import {
   Square,
 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge.jsx";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const PAGE_SIZE = 50;
 
@@ -176,8 +179,10 @@ function SkeletonCard() {
 // ═════════════════════════════════════════════════════════════════════════════
 export default function SuperAdminActivityLogPage() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("TASKS");
   const [page, setPage] = useState(0);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [selectedSalesActivityId, setSelectedSalesActivityId] = useState(null);
 
   const [filters, setFilters] = useState({
     type: "ALL",
@@ -205,6 +210,7 @@ export default function SuperAdminActivityLogPage() {
     filters.dateFrom,
     filters.dateTo,
     filters.search,
+    activeTab,
   ]);
 
   const { data: employees = [] } = useQuery({
@@ -218,9 +224,9 @@ export default function SuperAdminActivityLogPage() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["superAdminActivityLog", offset, filters],
-    queryFn: () =>
-      taskActivityService.getRecentTaskActivity({
+    queryKey: ["superAdminActivityLog", activeTab, offset, filters],
+    queryFn: () => {
+      const params = {
         limit: PAGE_SIZE,
         offset,
         type: filters.type,
@@ -232,7 +238,13 @@ export default function SuperAdminActivityLogPage() {
           : null,
         dateTo: filters.dateTo ? new Date(filters.dateTo).toISOString() : null,
         search: filters.search,
-      }),
+      };
+
+      if (activeTab === "SALES") {
+        return salesActivityLogService.getRecentSalesActivity(params);
+      }
+      return taskActivityService.getRecentTaskActivity(params);
+    },
     staleTime: 15_000,
   });
 
@@ -274,7 +286,14 @@ export default function SuperAdminActivityLogPage() {
   const { data: selectedTask } = useQuery({
     queryKey: ["taskById", selectedTaskId],
     queryFn: () => taskService.getTaskById(selectedTaskId),
-    enabled: !!selectedTaskId,
+    enabled: !!selectedTaskId && activeTab === "TASKS",
+  });
+
+  const { data: selectedSalesActivity } = useQuery({
+    queryKey: ["salesActivityById", selectedSalesActivityId],
+    queryFn: () =>
+      salesExecutionService.getSalesActivityById(selectedSalesActivityId),
+    enabled: !!selectedSalesActivityId && activeTab === "SALES",
   });
 
   const updateTaskMutation = useMutation({
@@ -335,8 +354,30 @@ export default function SuperAdminActivityLogPage() {
               Activity Log
             </h1>
             <p className="text-muted-foreground mt-1 font-medium text-sm">
-              Recent task timeline events across the system.
+              Recent timeline events across the system.
             </p>
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl shrink-0 mt-4 max-w-fit border border-border/40">
+              <button
+                onClick={() => setActiveTab("TASKS")}
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                  activeTab === "TASKS"
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Task Logs
+              </button>
+              <button
+                onClick={() => setActiveTab("SALES")}
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                  activeTab === "SALES"
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sales Logs
+              </button>
+            </div>
           </div>
 
           {/* Pagination — styled like LogTaskFooter action buttons */}
@@ -445,16 +486,32 @@ export default function SuperAdminActivityLogPage() {
               />
             </FieldBox>
 
-            <FieldBox label="Task Status">
+            <FieldBox
+              label={activeTab === "SALES" ? "Sales Status" : "Task Status"}
+            >
               <Select
-                options={[
-                  { value: "ALL", label: "All Statuses" },
-                  { value: "INCOMPLETE", label: "INCOMPLETE" },
-                  { value: "AWAITING APPROVAL", label: "AWAITING APPROVAL" },
-                  { value: "COMPLETE", label: "COMPLETE" },
-                  { value: "NOT APPROVED", label: "NOT APPROVED" },
-                  { value: "DELETED", label: "DELETED" },
-                ]}
+                options={
+                  activeTab === "SALES"
+                    ? [
+                        { value: "ALL", label: "All Statuses" },
+                        { value: "PENDING", label: "PENDING" },
+                        { value: "APPROVED", label: "APPROVED" },
+                        { value: "REJECTED", label: "REJECTED" },
+                        { value: "COMPLETED", label: "COMPLETED" },
+                        { value: "LOST", label: "LOST" },
+                      ]
+                    : [
+                        { value: "ALL", label: "All Statuses" },
+                        { value: "INCOMPLETE", label: "INCOMPLETE" },
+                        {
+                          value: "AWAITING APPROVAL",
+                          label: "AWAITING APPROVAL",
+                        },
+                        { value: "COMPLETE", label: "COMPLETE" },
+                        { value: "NOT APPROVED", label: "NOT APPROVED" },
+                        { value: "DELETED", label: "DELETED" },
+                      ]
+                }
                 value={
                   filters.taskStatus === "ALL"
                     ? { value: "ALL", label: "All Statuses" }
@@ -511,7 +568,9 @@ export default function SuperAdminActivityLogPage() {
               />
             </FieldBox>
 
-            <FieldBox label="Task Owner">
+            <FieldBox
+              label={activeTab === "SALES" ? "Sales Rep" : "Task Owner"}
+            >
               <Select
                 options={[
                   { value: "ALL", label: "All Employees" },
@@ -691,8 +750,14 @@ export default function SuperAdminActivityLogPage() {
                 <button
                   key={e.id}
                   type="button"
-                  onClick={() => setSelectedTaskId(e.taskId)}
-                  className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-mauve-6 hover:bg-muted/40 transition-all duration-150 animate-content-in group"
+                  onClick={() => {
+                    if (activeTab === "TASKS") {
+                      setSelectedTaskId(e.taskId);
+                    } else if (activeTab === "SALES") {
+                      setSelectedSalesActivityId(e.taskId);
+                    }
+                  }}
+                  className={`w-full text-left bg-card border border-border rounded-xl p-4 transition-all duration-150 animate-content-in group hover:border-mauve-6 hover:bg-muted/40 cursor-pointer`}
                 >
                   <div className="flex items-start gap-3">
                     {/* Icon bubble — matches LogTaskHeader dept badge style */}
@@ -824,6 +889,13 @@ export default function SuperAdminActivityLogPage() {
         onDeleteTask={(taskId, userId) =>
           deleteTaskMutation.mutate({ taskId, userId })
         }
+      />
+
+      <SalesTaskDetailsModal
+        isOpen={!!selectedSalesActivityId}
+        onClose={() => setSelectedSalesActivityId(null)}
+        activity={selectedSalesActivity}
+        appSettings={{}}
       />
     </ProtectedRoute>
   );

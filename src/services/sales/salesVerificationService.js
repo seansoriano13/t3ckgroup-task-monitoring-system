@@ -121,6 +121,15 @@ export const salesVerificationService = {
       })
       .catch(console.error);
 
+    // LOG TO TIMELINE
+    salesActivityLogService
+      .addSystemEvent(
+        activityId,
+        `Expense fund request was ${isApproved ? "approved" : "rejected"}.`,
+        { event: "EXPENSE_PROCESSED", isApproved }
+      )
+      .catch(console.error);
+
     return activity;
   },
 
@@ -153,6 +162,17 @@ export const salesVerificationService = {
         }),
       ),
     );
+
+    // LOG TO TIMELINE
+    Promise.allSettled(
+      activityIds.map((id) =>
+        salesActivityLogService.addSystemEvent(
+          id,
+          "Expense fund request was approved via bulk action.",
+          { event: "EXPENSE_PROCESSED", isApproved: true, bulk: true },
+        ),
+      ),
+    ).catch(console.error);
 
     return data;
   },

@@ -1,5 +1,6 @@
-﻿import React from "react";
+import React from "react";
 import { FieldBox } from "./FieldBox";
+import GradeSelector from "./GradeSelector.jsx";
 import { TASK_STATUS } from "../constants/status";
 
 export default function ManagerEvaluation({
@@ -64,29 +65,8 @@ export default function ManagerEvaluation({
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
               Final Grade
             </label>
-            <div className="flex gap-2 pointer-events-none select-none">
-              {[1, 2, 3, 4, 5].map((num) => {
-                const activeColorMap = {
-                  1: "bg-destructive text-mauve-1 border-red-500 shadow-red-500/40",
-                  2: "bg-orange-500 text-mauve-1 border-orange-500 shadow-orange-500/40",
-                  3: "bg-[color:var(--yellow-9)] text-mauve-1 border-yellow-500 shadow-yellow-500/40",
-                  4: "bg-lime-500 text-mauve-1 border-lime-500 shadow-lime-500/40",
-                  5: "bg-green-9 text-mauve-1 border-green-500 shadow-green-500/40",
-                };
-                const isSelected = task.grade === num;
-                return (
-                  <div
-                    key={num}
-                    className={`flex-1 py-2.5 rounded-lg font-black border text-sm text-center transition-all ${
-                      isSelected
-                        ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                        : "bg-mauve-2 text-mauve-10 border-mauve-4 opacity-40"
-                    }`}
-                  >
-                    {num}
-                  </div>
-                );
-              })}
+            <div className="mt-1">
+              <GradeSelector grade={task.grade} finalized={true} />
             </div>
           </div>
 
@@ -110,42 +90,12 @@ export default function ManagerEvaluation({
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 mb-2 block">
               Performance Grade (1-5)
             </label>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((num) => {
-                const isActive = approvalGrade === num;
-
-                // 1. Define the dynamic color scheme for each grade
-                const activeColorMap = {
-                  1: "bg-destructive text-mauve-1 hover:bg-destructive border-red-500 shadow-red-500/40",
-                  2: "bg-orange-500 text-mauve-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
-                  3: "bg-[color:var(--yellow-9)] text-mauve-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
-                  4: "bg-lime-500 text-mauve-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
-                  5: "bg-green-9 text-mauve-1 hover:bg-green-9 border-green-500 shadow-green-500/40",
-                };
-
-                return (
-                  <button
-                    key={num}
-                    disabled={!canEvaluate}
-                    onClick={() => setApprovalGrade(num)}
-                    className={`flex-1 py-2.5 rounded-lg font-bold transition-all border ${
-                      !canEvaluate ? "opacity-50 cursor-not-allowed" : ""
-                    } ${
-                      isActive
-                        ? // 2. Apply the specific color from the map if active
-                          `${activeColorMap[num]} shadow-lg scale-[1.02]`
-                        : // 3. Otherwise, apply default inactive styles
-                          `bg-mauve-2 text-mauve-10 border-mauve-4 ${
-                            canEvaluate
-                              ? "hover:border-mauve-6 hover:bg-mauve-3"
-                              : ""
-                          }`
-                    }`}
-                  >
-                    {num}
-                  </button>
-                );
-              })}
+            <div className="mt-1">
+              <GradeSelector
+                grade={approvalGrade}
+                onSelect={setApprovalGrade}
+                canEvaluate={canEvaluate}
+              />
             </div>
           </div>
 

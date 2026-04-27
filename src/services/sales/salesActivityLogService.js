@@ -36,6 +36,99 @@ export const salesActivityLogService = {
     }));
   },
 
+  async getRecentSalesActivity({
+    limit = 50,
+    offset = 0,
+    type = "ALL",
+    authorId = "ALL",
+    employeeId = "ALL",
+    taskStatus = "ALL",
+    dateFrom = null,
+    dateTo = null,
+    search = "",
+  } = {}) {
+    const safeLimit = Math.max(1, Math.min(200, Number(limit) || 50));
+    const safeOffset = Math.max(0, Number(offset) || 0);
+
+    let query = supabase
+      .from("sales_activity_logs")
+      .select(
+        `
+        *,
+        activity:sales_activities!sales_activity_logs_sales_activity_id_fkey(
+          id,
+          account_name,
+          status,
+          employee_id,
+          created_at,
+          employee:employees!sales_activities_employee_id_fkey(name, department, sub_department)
+        ),
+        author:employees!sales_activity_logs_author_id_fkey(name, is_head, is_hr, is_super_admin)
+      `,
+      )
+      .order("created_at", { ascending: false });
+
+    if (type && type !== "ALL") query = query.eq("type", type);
+    if (authorId && authorId !== "ALL") {
+      if (authorId === "SYSTEM") query = query.is("author_id", null);
+      else query = query.eq("author_id", authorId);
+    }
+    if (employeeId && employeeId !== "ALL") query = query.eq("activity.employee_id", employeeId);
+    if (taskStatus && taskStatus !== "ALL") query = query.eq("activity.status", taskStatus);
+
+    if (dateFrom) query = query.gte("created_at", dateFrom);
+    if (dateTo) query = query.lte("created_at", dateTo);
+
+    const trimmed = (search || "").trim();
+    if (trimmed) {
+      const esc = trimmed.replace(/%/g, "\\%").replace(/_/g, "\\_");
+      const like = `%${esc}%`;
+
+      const { data: actMatch, error: actSearchErr } = await supabase
+        .from("sales_activities")
+        .select("id")
+        .ilike("account_name", like)
+        .limit(500);
+
+      if (!actSearchErr) {
+        const ids = (actMatch || []).map((a) => a.id).filter(Boolean);
+        if (ids.length > 0) {
+          const inList = ids.join(",");
+          query = query.or(`content.ilike.${like},sales_activity_id.in.(${inList})`);
+        } else {
+          query = query.ilike("content", like);
+        }
+      } else {
+        query = query.ilike("content", like);
+      }
+    }
+
+    query = query.range(safeOffset, safeOffset + safeLimit - 1);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return (data || []).map((entry) => ({
+      id: entry.id,
+      taskId: entry.sales_activity_id,
+      taskDescription: entry.activity?.account_name || null,
+      taskStatus: entry.activity?.status || null,
+      taskLoggedBy: entry.activity?.employee_id || null,
+      taskCreatorName: entry.activity?.employee?.name || null,
+      taskCreatorDept: entry.activity?.employee?.department || null,
+      taskCreatorSubDept: entry.activity?.employee?.sub_department || null,
+      type: entry.type,
+      content: entry.content,
+      metadata: entry.metadata,
+      createdAt: entry.created_at,
+      authorId: entry.author_id,
+      authorName: entry.author?.name || null,
+      authorIsHead: entry.author?.is_head || false,
+      authorIsHr: entry.author?.is_hr || false,
+      authorIsSuperAdmin: entry.author?.is_super_admin || false,
+    }));
+  },
+
   /**
    * Add a human comment to the sales timeline
    */

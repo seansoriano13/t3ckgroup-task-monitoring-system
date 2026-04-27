@@ -9,6 +9,7 @@ import { TASK_STATUS } from "../../../constants/status.js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Avatar from "../../../components/Avatar";
+import GradeSelector from "../../../components/GradeSelector.jsx";
 
 export function ApprovalRow({
   task,
@@ -317,29 +318,8 @@ export function ApprovalRow({
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                       Manager's Evaluation
                     </p>
-                    <div className="flex gap-1.5 md:gap-2 pointer-events-none select-none">
-                      {[1, 2, 3, 4, 5].map((num) => {
-                        const activeColorMap = {
-                          1: "bg-destructive text-mauve-1 border-red-500 shadow-red-500/40",
-                          2: "bg-orange-500 text-mauve-1 border-orange-500 shadow-orange-500/40",
-                          3: "bg-[color:var(--yellow-9)] text-mauve-1 border-yellow-500 shadow-yellow-500/40",
-                          4: "bg-lime-500 text-mauve-1 border-lime-500 shadow-lime-500/40",
-                          5: "bg-green-9 text-mauve-1 border-green-500 shadow-green-500/40",
-                        };
-                        const isSelected = task.grade === num;
-                        return (
-                          <div
-                            key={num}
-                            className={`flex-1 py-2.5 rounded-lg font-black border text-xs md:text-sm text-center transition-all ${
-                              isSelected
-                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                                : "bg-muted text-muted-foreground/80 border-border opacity-40"
-                            }`}
-                          >
-                            {num}
-                          </div>
-                        );
-                      })}
+                    <div className="mt-1">
+                      <GradeSelector grade={task.grade} finalized={true} />
                     </div>
                   </div>
 
@@ -395,31 +375,13 @@ export function ApprovalRow({
                     <label className="text-[10px] font-bold text-primary uppercase tracking-wider mb-2 block">
                       Assign Grade (1-5)
                     </label>
-                    <div className="flex gap-1.5 md:gap-2">
-                      {[1, 2, 3, 4, 5].map((num) => {
-                        const activeColorMap = {
-                          1: "bg-destructive text-mauve-1 hover:bg-destructive border-red-500 shadow-red-500/40",
-                          2: "bg-orange-500 text-mauve-1 hover:bg-orange-600 border-orange-500 shadow-orange-500/40",
-                          3: "bg-[color:var(--yellow-9)] text-mauve-1 hover:bg-yellow-600 border-yellow-500 shadow-yellow-500/40",
-                          4: "bg-lime-500 text-mauve-1 hover:bg-lime-600 border-lime-500 shadow-lime-500/40",
-                          5: "bg-green-9 text-mauve-1 hover:bg-green-9 border-green-500 shadow-green-500/40",
-                        };
-
-                        return (
-                          <button
-                            key={num}
-                            onClick={() => setGrade(num)}
-                            className={`flex-1 py-2.5 rounded-lg font-black transition-all border text-xs md:text-sm ${
-                              grade === num
-                                ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                                : "bg-muted text-muted-foreground/80 border-border"
-                            } ${!isVerifiedTab && "hover:border-mauve-5 hover:bg-mauve-4"}`}
-                            disabled={isVerifiedTab}
-                          >
-                            {num}
-                          </button>
-                        );
-                      })}
+                    <div className="mt-1">
+                      <GradeSelector
+                        grade={grade}
+                        onSelect={setGrade}
+                        canEvaluate={!isVerifiedTab}
+                        finalized={isVerifiedTab}
+                      />
                     </div>
                   </div>
 

@@ -222,10 +222,7 @@ export default function CommitteeTaskDetailModal({
                   className="flex items-center"
                 >
                   {isHrVerified ? (
-                    <CheckCircle2
-                      size={14}
-                      className="text-green-9"
-                    />
+                    <CheckCircle2 size={14} className="text-green-9" />
                   ) : (
                     <Clock size={14} className="text-[color:var(--amber-9)]" />
                   )}
@@ -837,7 +834,7 @@ export default function CommitteeTaskDetailModal({
               )}
             </>
           ) : (
-            <div className="animate-in fade-in space-y-6 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-primary before:from-transparent before:via-slate-200 before:to-transparent">
+            <div className="animate-in fade-in space-y-6 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-mauve-4 before:from-transparent before:via-slate-200 before:to-transparent">
               {isLoadingLogs ? (
                 <div className="flex items-center justify-center py-10">
                   <Loader2 className="animate-spin text-primary" size={24} />
@@ -859,8 +856,7 @@ export default function CommitteeTaskDetailModal({
                     log.action === "MEMBER_ADDED"
                   ) {
                     Icon = log.action === "CREATED" ? PlusCircle : Plus;
-                    colorClass =
-                      "bg-green-100 text-green-10 border-green-200";
+                    colorClass = "bg-green-100 text-green-10 border-green-200";
                   } else if (
                     log.action === "MEMBER_DONE" ||
                     log.action === "COMPLETED" ||

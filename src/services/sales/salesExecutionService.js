@@ -1,6 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import { notificationService } from "../notificationService";
 import { REVENUE_STATUS } from "../../constants/status";
+import { salesActivityLogService } from "./salesActivityLogService";
 
 export const salesExecutionService = {
   async bulkUpsertActivities(activitiesArray) {
@@ -58,6 +59,17 @@ export const salesExecutionService = {
           }
         }
       }
+
+      // Add SYSTEM logs for newly created activities
+      Promise.allSettled(
+        inserted.map((item) =>
+          salesActivityLogService.addSystemEvent(
+            item.id,
+            "Activity created.",
+            { event: "CREATED" },
+          ),
+        ),
+      ).catch(console.error);
     }
 
     if (toUpdate.length > 0) {
@@ -112,6 +124,17 @@ export const salesExecutionService = {
           reference_id: dates[0],
         })
         .catch(console.error);
+
+      // Add SYSTEM logs for wipe request
+      Promise.allSettled(
+        activities.map((item) =>
+          salesActivityLogService.addSystemEvent(
+            item.id,
+            `Requested to wipe this activity from the day's pipeline. Reason: ${reason}`,
+            { event: "DAY_WIPE_REQUESTED", reason },
+          ),
+        ),
+      ).catch(console.error);
     }
 
     return activities;
@@ -165,6 +188,19 @@ export const salesExecutionService = {
         reference_id: dateStr,
       })
       .catch(console.error);
+
+    // Add SYSTEM logs for wipe resolution
+    if (activities && activities.length > 0) {
+      Promise.allSettled(
+        activities.map((item) =>
+          salesActivityLogService.addSystemEvent(
+            item.id,
+            `Day wipe request was ${isApproved ? "approved (activity deleted)" : "denied (activity retained)"}.`,
+            { event: "DAY_WIPE_RESOLVED", isApproved },
+          ),
+        ),
+      ).catch(console.error);
+    }
 
     return activities;
   },
@@ -263,6 +299,15 @@ export const salesExecutionService = {
         .catch(console.error);
     }
 
+    // Add logging
+    if (activity) {
+      salesActivityLogService.addSystemEvent(
+        activityId,
+        targetStatus === REVENUE_STATUS.APPROVED ? "Activity marked as done." : "Activity completion requested (Expense pending approval).",
+        { event: "COMPLETED", targetStatus }
+      ).catch(console.error);
+    }
+
     return activity;
   },
 
@@ -275,6 +320,15 @@ export const salesExecutionService = {
       .select()
       .single();
     if (error) throw error;
+
+    if (data) {
+      salesActivityLogService.addSystemEvent(
+        activityId,
+        `Outcome updated to ${outcome || 'none'}.`,
+        { event: "OUTCOME_UPDATED", outcome }
+      ).catch(console.error);
+    }
+
     return data;
   },
 
@@ -286,6 +340,15 @@ export const salesExecutionService = {
       .select()
       .single();
     if (error) throw error;
+
+    if (data) {
+      salesActivityLogService.addSystemEvent(
+        activityId,
+        "Activity attachments updated.",
+        { event: "ATTACHMENTS_UPDATED" }
+      ).catch(console.error);
+    }
+
     return data;
   },
 

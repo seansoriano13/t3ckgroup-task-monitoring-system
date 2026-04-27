@@ -153,22 +153,16 @@ export const taskMutationService = {
       }
     }
 
-    // If the caller is attempting to transition workflow state, validate it against the current DB state.
-    const needsTransitionCheck =
-      payload?.status !== undefined || payload?.hrVerified !== undefined;
-
     let current = null;
-    if (needsTransitionCheck) {
-      const { data: cur, error: curErr } = await supabase
-        .from("tasks")
-        .select(
-          "status, hr_verified, evaluated_by, logged_by, reported_to, task_description, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
-        )
-        .eq("id", taskId)
-        .single();
-      if (curErr) throw curErr;
-      current = cur;
-    }
+    const { data: cur, error: curErr } = await supabase
+      .from("tasks")
+      .select(
+        "status, hr_verified, evaluated_by, logged_by, reported_to, task_description, project_title, category_id, priority, start_at, end_at, remarks, grade, payment_voucher, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
+      )
+      .eq("id", taskId)
+      .single();
+    if (curErr) throw curErr;
+    current = cur;
 
     const isHeadApprove =
       payload?.status === TASK_STATUS.COMPLETE &&
@@ -451,6 +445,32 @@ export const taskMutationService = {
           `Task recalled by ${editorName}.`,
           { event: "STATUS_CHANGE", old_status: TASK_STATUS.AWAITING_APPROVAL, new_status: TASK_STATUS.INCOMPLETE },
         );
+      }
+
+      // Check for core field edits (only log if we aren't already logging a state transition)
+      if (!isEmployeeSelfComplete && !isHeadApprove && !isHeadReject && !isHrReject && !isRecall && payload.status === undefined) {
+        const edits = [];
+        if (payload.taskDescription !== undefined && payload.taskDescription !== current.task_description) edits.push("description");
+        if (payload.projectTitle !== undefined && payload.projectTitle !== current.project_title) edits.push("project");
+        if (payload.categoryId !== undefined && payload.categoryId !== current.category_id) edits.push("category");
+        if (payload.priority !== undefined && payload.priority !== current.priority) edits.push("priority");
+        if (payload.startAt !== undefined) {
+          const newStart = payload.startAt ? new Date(payload.startAt).toISOString() : null;
+          if (newStart !== current.start_at) edits.push("start date");
+        }
+        if (payload.endAt !== undefined) {
+          const newEnd = payload.endAt ? new Date(payload.endAt).toISOString() : null;
+          if (newEnd !== current.end_at) edits.push("end date");
+        }
+        if (payload.remarks !== undefined && payload.remarks !== current.remarks) edits.push("remarks");
+
+        if (edits.length > 0) {
+          taskActivityService.addSystemEvent(
+            taskId,
+            `Task ${edits.join(", ")} updated by ${editorName}.`,
+            { event: "TASK_EDITED", edits }
+          );
+        }
       }
     }
 
