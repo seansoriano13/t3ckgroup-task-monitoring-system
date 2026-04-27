@@ -6,7 +6,7 @@ import { taskService } from "../../../services/taskService.js";
 import { supabase } from "../../../lib/supabase.js";
 import { TASK_STATUS } from "../../../constants/status.js";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
-import { Search, CheckCircle2, History } from "lucide-react";
+import { Search, CheckCircle2, History, Users2 } from "lucide-react";
 import toast from "react-hot-toast";
 import ExpenseApprovalQueue from "../../../components/ExpenseApprovalQueue.jsx";
 import TaskDetails from "../../../components/TaskDetails.jsx";
@@ -70,12 +70,16 @@ export default function TaskApprovalsPage() {
   const [isBulkGradeModalOpen, setIsBulkGradeModalOpen] = useState(false);
   const [isBulkDeclineModalOpen, setIsBulkDeclineModalOpen] = useState(false);
 
+  // Super-admin scope toggle: default to "my queue only" so they don't see all tasks on load
+  const [reportedToMeOnly, setReportedToMeOnly] = useState(true);
+
   useEffect(() => {
     setCurrentPage(1);
     setSelectedTaskIds([]);
   }, [
     searchQuery, priorityFilter, sortBy, dateRange,
     statusFilter, deptFilter, subDeptFilter, employeeFilter, activeTab,
+    reportedToMeOnly,
   ]);
 
   useEffect(() => {
@@ -130,7 +134,8 @@ export default function TaskApprovalsPage() {
         if (!isHead && !isSuperAdmin) return false;
 
         if (t.reportedTo) {
-          if (isSuperAdmin) {
+          // Super admin with scope toggle: when "reported to me only" is on, treat like a head
+          if (isSuperAdmin && !reportedToMeOnly) {
             return (
               t.status === TASK_STATUS.INCOMPLETE ||
               t.status === TASK_STATUS.AWAITING_APPROVAL
@@ -143,7 +148,7 @@ export default function TaskApprovalsPage() {
           );
         }
 
-        // Fallback: dept-matching for legacy tasks
+        // Fallback: dept-matching for legacy tasks without reported_to
         const taskSubDept =
           t.sub_department || t.subDepartment ||
           t.creator?.sub_department || t.employees?.sub_department || "";
@@ -160,15 +165,16 @@ export default function TaskApprovalsPage() {
         let matches = false;
 
         if (t.status === TASK_STATUS.INCOMPLETE) {
-          matches = isNotMe && isMyDept;
+          if (isSuperAdmin && !reportedToMeOnly) matches = isNotMe;
+          else matches = isNotMe && isMyDept;
         } else if (t.status === TASK_STATUS.AWAITING_APPROVAL) {
           const canOpsManagerApprove =
             appSettings?.marketing_approval_by_ops_manager && isMyDept;
-          if (isMarketing && (isSuperAdmin || canOpsManagerApprove)) {
+          if (isSuperAdmin && !reportedToMeOnly) {
+            matches = isNotMe;
+          } else if (isMarketing && canOpsManagerApprove) {
             matches = isNotMe;
           } else if (!isMarketing && appSettings?.universal_task_submission && isMyDept) {
-            matches = isNotMe;
-          } else if (isSuperAdmin) {
             matches = isNotMe;
           }
         }
@@ -180,18 +186,18 @@ export default function TaskApprovalsPage() {
         if (b.priority === "HIGH" && a.priority !== "HIGH") return 1;
         return new Date(a.createdAt) - new Date(b.createdAt);
       });
-  }, [rawTasks, user?.id, userDept, userSubDept, isHead, isSuperAdmin, appSettings]);
+  }, [rawTasks, user?.id, userDept, userSubDept, isHead, isSuperAdmin, appSettings, reportedToMeOnly]);
 
   const verifiedTasks = useMemo(() => {
     return rawTasks
       .filter((t) => {
         const isNotMe = t.loggedById !== user?.id;
         if (!isNotMe) return false;
-        if (isSuperAdmin) return t.status === TASK_STATUS.COMPLETE && t.evaluatedById != null;
+        if (isSuperAdmin && !reportedToMeOnly) return t.status === TASK_STATUS.COMPLETE && t.evaluatedById != null;
         return t.status === TASK_STATUS.COMPLETE && t.evaluatedById === user?.id;
       })
       .sort((a, b) => new Date(b.evaluatedAt || b.createdAt) - new Date(a.evaluatedAt || a.createdAt));
-  }, [rawTasks, user?.id, isSuperAdmin]);
+  }, [rawTasks, user?.id, isSuperAdmin, reportedToMeOnly]);
 
   const activeRawData = activeTab === "PENDING" ? pendingTasks : verifiedTasks;
 
@@ -402,6 +408,21 @@ export default function TaskApprovalsPage() {
             onChange={setActiveTab}
             size="md"
           />
+
+          {/* Super-admin scope toggle — visible only to super admins */}
+          {isSuperAdmin && (
+            <button
+              onClick={() => setReportedToMeOnly((prev) => !prev)}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all shrink-0 ${
+                reportedToMeOnly
+                  ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
+                  : "bg-amber-500/10 border-amber-500/30 text-amber-600 hover:bg-amber-500/20"
+              }`}
+            >
+              <Users2 size={13} />
+              {reportedToMeOnly ? "My Queue" : "All Tasks (System-wide)"}
+            </button>
+          )}
         </div>
 
         {activeRawData.length > 0 && (
