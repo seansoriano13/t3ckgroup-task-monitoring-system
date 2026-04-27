@@ -32,7 +32,7 @@ import { activeChatService } from "../../../services/tasks/activeChatService";
 import { useQuery } from "@tanstack/react-query";
 import Select from "react-select";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
-import { formatDate } from "@/utils/formatDate";
+import { formatDate, formatDueDate } from "@/utils/formatDate";
 
 const COMMITTEE_ROLES = ["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"];
 
@@ -240,11 +240,7 @@ export default function CommitteeTaskDetailModal({
               {task.due_date && (
                 <div className="flex items-center gap-1.5">
                   <Calendar size={14} className="text-primary/70" /> Due{" "}
-                  {new Date(task.due_date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {formatDueDate(task.due_date)}
                 </div>
               )}
             </div>

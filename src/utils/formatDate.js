@@ -38,3 +38,26 @@ export const formatTaskDateTime = (val) => {
     return val;
   }
 };
+
+export const formatDueDate = (val) => {
+  if (!val) return null;
+  try {
+    const d = new Date(val);
+    const options = {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    };
+
+    // Only show time if it's NOT exactly 12:00 AM (00:00)
+    if (d.getHours() !== 0 || d.getMinutes() !== 0) {
+      options.hour = "numeric";
+      options.minute = "2-digit";
+      options.hour12 = true;
+    }
+
+    return d.toLocaleString("en-US", options);
+  } catch {
+    return val;
+  }
+};

@@ -3,6 +3,7 @@ import StatusBadge from "../../../components/StatusBadge";
 import { formatChecklistToString } from "../../../utils/taskFormatters";
 import GradeSelector from "../../../components/GradeSelector";
 import Avatar from "../../../components/Avatar";
+import { formatDueDate } from "../../../utils/formatDate";
 
 export default function CommitteeTaskCard({
   task,
@@ -129,10 +130,7 @@ export default function CommitteeTaskCard({
                   : ""
               }
             >
-              {new Date(task.due_date).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-              })}
+              {formatDueDate(task.due_date)}
             </span>
           </div>
         )}

@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Maximize2,
@@ -204,9 +204,11 @@ export default function CreateCommitteeTaskModal({
                 <DatePicker
                   selected={dueDate}
                   onChange={(date) => setDueDate(date)}
-                  dateFormat="MMMM d, yyyy"
-                  placeholderText="Select optional due date"
-                  className="bg-muted border border-border rounded-lg pl-8 pr-3 py-2 text-xs text-foreground outline-none focus:border-primary/50 transition-colors w-56 text-center"
+                  showTimeSelect
+                  timeIntervals={15}
+                  dateFormat="MMMM d, yyyy h:mm aa"
+                  placeholderText="Select optional due date & time"
+                  className="bg-muted border border-border rounded-lg pl-8 pr-3 py-2 text-xs text-foreground outline-none focus:border-primary/50 transition-colors w-64 text-center"
                 />
                 <Calendar
                   size={13}

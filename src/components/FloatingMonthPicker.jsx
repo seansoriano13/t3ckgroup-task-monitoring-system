@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import {
@@ -8,6 +8,7 @@ import {
   RotateCcw,
   TrendingUp,
   LayoutGrid,
+  GripVertical,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -220,7 +221,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
 
   const content = (
     <div
-      className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
     >
       <Draggable
         handle=".drag-handle"
@@ -238,16 +239,21 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
           }
         }}
       >
-        <div ref={panelRef} className="relative">
+        <div ref={panelRef} className="relative pointer-events-auto">
           {/* FAB TRIGGER BUTTON — the stable handle */}
           <button
             onClick={() => setOpen((v) => !v)}
-            className={`drag-handle cursor-grab active:cursor-grabbing pointer-events-auto flex items-center gap-2.5 px-4 py-2 rounded-2xl shadow-lg transition-all duration-300 active:scale-95 border text-sm ${
+            title="Drag to reposition"
+            className={`drag-handle cursor-grab active:cursor-grabbing pointer-events-auto flex items-center gap-2.5 px-3 py-2 rounded-2xl shadow-lg transition-all duration-300 active:scale-95 border text-sm ${
               open
                 ? "bg-card text-foreground border-border ring-2 ring-primary/10 shadow-xl"
                 : "bg-card text-foreground border-border hover:border-border/80 hover:bg-accent/50"
             }`}
           >
+            <GripVertical
+              size={12}
+              className="text-muted-foreground/30 group-hover:text-muted-foreground/50 transition-colors -ml-0.5"
+            />
             <div
               className={`p-1.5 rounded-lg transition-colors ${open ? "bg-primary/10" : "bg-muted"}`}
             >
