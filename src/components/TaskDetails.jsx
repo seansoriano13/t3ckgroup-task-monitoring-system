@@ -21,7 +21,6 @@ import { confirmDeleteToast } from "./ui/CustomToast";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-
 import { activeChatService } from "../services/tasks/activeChatService";
 import { createPortal } from "react-dom";
 
@@ -96,7 +95,11 @@ export default function TaskDetails({
         const desc = task.taskDescription;
         if (desc) {
           const trimmed = typeof desc === "string" ? desc.trim() : "";
-          if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}")) || Array.isArray(desc)) {
+          if (
+            (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+            (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+            Array.isArray(desc)
+          ) {
             initialDescriptionType = "checklist";
           }
         }
@@ -167,7 +170,12 @@ export default function TaskDetails({
   const isOwner = user?.id === task.loggedById;
   const isHrRejected = task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
   const canEdit =
-    isHr || isHead || (isOwner && task.status !== TASK_STATUS.COMPLETE && task.status !== TASK_STATUS.AWAITING_APPROVAL && !isHrRejected);
+    isHr ||
+    isHead ||
+    (isOwner &&
+      task.status !== TASK_STATUS.COMPLETE &&
+      task.status !== TASK_STATUS.AWAITING_APPROVAL &&
+      !isHrRejected);
 
   let isChecklistFormat = false;
   let hasUncheckedItems = false;
@@ -315,7 +323,9 @@ export default function TaskDetails({
 
   const handleVerify = () => {
     if (task.status !== TASK_STATUS.COMPLETE) {
-      toast.error("Security policy limits verification exclusively to fully COMPLETE entries.");
+      toast.error(
+        "Security policy limits verification exclusively to fully COMPLETE entries.",
+      );
       return;
     }
     executeUpdate({
@@ -331,29 +341,50 @@ export default function TaskDetails({
   const handleKeyDown = (e) => {
     if (!isOpen || isSubmitting || isEditing) return;
 
-    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+    if (
+      e.target.tagName === "INPUT" ||
+      e.target.tagName === "TEXTAREA" ||
+      e.target.tagName === "SELECT"
+    ) {
       if (e.key !== "Enter") return;
     }
 
     if (isFinalized || !canEvaluate) return;
 
     if (!isHr) {
-      const keyMap = { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
-      if (keyMap[e.key] && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      const keyMap = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+      if (
+        keyMap[e.key] &&
+        e.target.tagName !== "INPUT" &&
+        e.target.tagName !== "TEXTAREA"
+      ) {
         e.preventDefault();
         setApprovalGrade(keyMap[e.key]);
       } else if (e.key === "Enter") {
         e.preventDefault();
         handleApprove();
-      } else if (e.key.toLowerCase() === "x" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      } else if (
+        e.key.toLowerCase() === "x" &&
+        e.target.tagName !== "INPUT" &&
+        e.target.tagName !== "TEXTAREA"
+      ) {
         e.preventDefault();
         handleReject();
       }
     } else {
-      if ((e.key.toLowerCase() === "v" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") || e.key === "Enter") {
+      if (
+        (e.key.toLowerCase() === "v" &&
+          e.target.tagName !== "INPUT" &&
+          e.target.tagName !== "TEXTAREA") ||
+        e.key === "Enter"
+      ) {
         e.preventDefault();
         handleVerify();
-      } else if (e.key.toLowerCase() === "x" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      } else if (
+        e.key.toLowerCase() === "x" &&
+        e.target.tagName !== "INPUT" &&
+        e.target.tagName !== "TEXTAREA"
+      ) {
         e.preventDefault();
         handleReject();
       }
@@ -375,7 +406,7 @@ export default function TaskDetails({
           toast.error("Failed to delete task.", { id: loadingToast });
           setIsSubmitting(false);
         }
-      }
+      },
     );
   };
 
@@ -397,9 +428,11 @@ export default function TaskDetails({
           isHrVerified={task.hrVerified}
           onClose={onClose}
           onOpenChat={() => {
-            window.dispatchEvent(new CustomEvent('OPEN_CHAT_MODAL', { 
-              detail: { entityId: task.id, entityType: 'TASK' } 
-            }));
+            window.dispatchEvent(
+              new CustomEvent("OPEN_CHAT_MODAL", {
+                detail: { entityId: task.id, entityType: "TASK" },
+              }),
+            );
           }}
         />
 
@@ -410,8 +443,13 @@ export default function TaskDetails({
                 <AlertTriangle size={20} className="text-destructive" />
               </div>
               <div>
-                <p className="text-sm font-black uppercase tracking-tight">Task Deleted</p>
-                <p className="text-xs font-bold opacity-80">This task has been soft-deleted and is hidden from regular views.</p>
+                <p className="text-sm font-black uppercase tracking-tight">
+                  Task Deleted
+                </p>
+                <p className="text-xs font-bold opacity-80">
+                  This task has been soft-deleted and is hidden from regular
+                  views.
+                </p>
               </div>
             </div>
           )}
@@ -471,35 +509,34 @@ export default function TaskDetails({
             )}
 
             {/* --- PAYMENT VOUCHER --- */}
-            {((isEditing &&
-              taskDept?.toUpperCase() === "ADMIN") ||
+            {((isEditing && taskDept?.toUpperCase() === "ADMIN") ||
               formData.paymentVoucher) && (
-                <div className="flex flex-col gap-1.5 pt-2">
-                  <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
-                    <Receipt size={12} /> Payment Voucher
-                    {isEditing && (
-                      <span className="font-normal text-muted-foreground normal-case tracking-normal">
-                        (optional)
-                      </span>
-                    )}
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      type="text"
-                      name="paymentVoucher"
-                      value={formData.paymentVoucher || ""}
-                      onChange={handleChange}
-                      placeholder="e.g. PV-2026-001"
-                      className="h-11 shadow-sm"
-                    />
-                  ) : (
-                    <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-foreground flex items-center gap-2 shadow-sm">
-                      <Receipt size={14} />
-                      {formData.paymentVoucher}
-                    </div>
+              <div className="flex flex-col gap-1.5 pt-2">
+                <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                  <Receipt size={12} /> Payment Voucher
+                  {isEditing && (
+                    <span className="font-normal text-muted-foreground normal-case tracking-normal">
+                      (optional)
+                    </span>
                   )}
-                </div>
-              )}
+                </label>
+                {isEditing ? (
+                  <Input
+                    type="text"
+                    name="paymentVoucher"
+                    value={formData.paymentVoucher || ""}
+                    onChange={handleChange}
+                    placeholder="e.g. PV-2026-001"
+                    className="h-11 shadow-sm"
+                  />
+                ) : (
+                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-foreground flex items-center gap-2 shadow-sm">
+                    <Receipt size={14} />
+                    {formData.paymentVoucher}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5 pt-2">
               {isEditing ? (
@@ -511,16 +548,22 @@ export default function TaskDetails({
                     <button
                       type="button"
                       onClick={() => setDescriptionType("description")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "description" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-muted-foreground/80"
-                        }`}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
+                        descriptionType === "description"
+                          ? "bg-card text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-muted-foreground/80"
+                      }`}
                     >
                       Description
                     </button>
                     <button
                       type="button"
                       onClick={() => setDescriptionType("checklist")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "checklist" ? "bg-card text-muted-foreground00 shadow-sm" : "text-muted-foreground hover:text-slate-50000"
-                        }`}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
+                        descriptionType === "checklist"
+                          ? "bg-card text-muted-foreground00 shadow-sm"
+                          : "text-muted-foreground hover:text-slate-50000"
+                      }`}
                     >
                       Checklist
                     </button>
@@ -544,7 +587,8 @@ export default function TaskDetails({
                     name="taskDescription"
                     value={
                       typeof formData.taskDescription === "string" &&
-                        (formData.taskDescription.trim().startsWith("[") || formData.taskDescription.trim().startsWith("{"))
+                      (formData.taskDescription.trim().startsWith("[") ||
+                        formData.taskDescription.trim().startsWith("{"))
                         ? ""
                         : formData.taskDescription
                     }
@@ -610,12 +654,15 @@ export default function TaskDetails({
 
             {/* --- GRADE SELECTOR (for evaluation) --- */}
             {!isEditing && (
-              <div className={`p-4 rounded-xl border ${isComplete
-                ? "bg-muted/50/50 border-border"
-                : isNotApproved
-                  ? "bg-destructive/10 border-destructive/20"
-                  : "border-primary/20"
-                }`}>
+              <div
+                className={`p-4 rounded-xl border ${
+                  isComplete
+                    ? "bg-muted/50/50 border-border"
+                    : isNotApproved
+                      ? "bg-destructive/10 border-destructive/20"
+                      : "border-primary/20"
+                }`}
+              >
                 <div className="grid gap-1 mb-3">
                   <div className="text-xs font-bold uppercase tracking-wider">
                     {isFinalized
@@ -669,7 +716,9 @@ export default function TaskDetails({
               <div className="pt-4 border-t border-border flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <p className="flex items-center gap-1.5">
                   <PencilLine size={12} /> Last Modified By{" "}
-                  <span className="text-muted-foreground/80">{task.editedByName}</span>
+                  <span className="text-muted-foreground/80">
+                    {task.editedByName}
+                  </span>
                 </p>
                 <p>{formatDate(task.editedAt)}</p>
               </div>
@@ -682,14 +731,29 @@ export default function TaskDetails({
                   Shortcuts:
                   {!isHr ? (
                     <>
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">1-5</span> Select Grade
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">Enter</span> Approve
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">
+                        1-5
+                      </span>{" "}
+                      Select Grade
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                        Enter
+                      </span>{" "}
+                      Approve
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                        X
+                      </span>{" "}
+                      Reject
                     </>
                   ) : (
                     <>
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">V / Enter</span> Verify
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">
+                        V / Enter
+                      </span>{" "}
+                      Verify
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                        X
+                      </span>{" "}
+                      Reject
                     </>
                   )}
                 </p>
@@ -781,6 +845,6 @@ export default function TaskDetails({
         />
       </div>
     </>,
-    document.body
+    document.body,
   );
 }

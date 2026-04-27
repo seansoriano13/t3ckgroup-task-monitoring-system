@@ -1,19 +1,11 @@
-﻿import {
-  X,
-  Calendar,
-  User,
-  Briefcase,
-  Phone,
-  Mail,
-  MapPin,
-  Tag,
+import {
   DollarSign,
-  MessageCircle,
   AlertTriangle,
   Trash2,
+  Tag,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
@@ -21,15 +13,22 @@ import toast from "react-hot-toast";
 import SalesActivityTimeline from "./SalesActivityTimeline";
 import { activeChatService } from "../services/tasks/activeChatService";
 import CloudinaryImageAttachment from "./CloudinaryImageAttachment";
+import SalesHeader from "./SalesHeader";
+import { FieldBox } from "./FieldBox";
 
 export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSettings }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const modalRef = useRef(null);
+
   const [localOutcome, setLocalOutcome] = useState(
     activity?.sales_outcome || "",
   );
 
-  const isActivityCompleted = activity?.status === "DONE" || activity?.status === "APPROVED" || !!activity?.details_daily;
+  const isActivityCompleted =
+    activity?.status === "DONE" ||
+    activity?.status === "APPROVED" ||
+    !!activity?.details_daily;
 
   // Sync local state whenever the opened activity changes
   useEffect(() => {
@@ -40,10 +39,13 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
     }
   }, [activity?.id, activity?.sales_outcome]);
 
-  // Mark as read when open
+  // Mark as read & focus panel when open
   useEffect(() => {
     if (isOpen && activity?.id && user?.id) {
-      activeChatService.markAsRead(user.id, 'SALES', activity.id);
+      activeChatService.markAsRead(user.id, "SALES", activity.id);
+    }
+    if (isOpen) {
+      setTimeout(() => modalRef.current?.focus({ preventScroll: true }), 100);
     }
   }, [isOpen, activity?.id, user?.id]);
 
@@ -58,7 +60,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
     onError: (err) => toast.error(err.message),
   });
 
-  if (!isOpen || !activity) return null;
+  if (!activity) return null;
 
   const isAdminView =
     user?.isSuperAdmin ||
@@ -79,70 +81,26 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
         onClick={onClose}
       />
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-[600px] bg-mauve-2 border-l border-mauve-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        ref={modalRef}
+        tabIndex={0}
+        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-card border-l border-border shadow-2xl z-[9999] transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
-        {/* Header */}
-        <div className="p-6 border-b border-mauve-4 bg-mauve-1 flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-black text-foreground">
-                Sales Activity Details
-              </h2>
-              <span
-                className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${activity.status === "DONE" || activity.status === "APPROVED" ? "bg-green-9/10 text-green-9" : activity.status === "PENDING" ? "bg-warning/10 text-[color:var(--amber-9)]" : "bg-mauve-4 text-mauve-11"}`}
-              >
-                {(activity.status === "PENDING" && !appSettings?.sales_self_approve_expenses)
-                  ? "PENDING"
-                  : activity.status === "APPROVED"
-                    ? "DONE"
-                    : activity.status}
-              </span>
-              {(activity.is_unplanned || !activity.sales_weekly_plans?.status) && (
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] border border-blue-500/30">
-                  UNPLANNED
-                </span>
-              )}
-              {/* Sales Outcome Badge */}
-              {localOutcome === "COMPLETED" && (
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-green-9/10 text-green-9 border border-green-500/30">
-                  WON
-                </span>
-              )}
-              {localOutcome === "LOST" && (
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-destructive/10 text-destructive border border-red-500/30">
-                  LOST
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground font-bold mt-1 flex items-center gap-2">
-              <Calendar size={14} /> {activity?.scheduled_date} (
-              {activity?.time_of_day})
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                window.dispatchEvent(new CustomEvent('OPEN_CHAT_MODAL', {
-                  detail: { entityId: activity?.id, entityType: 'SALES' }
-                }));
-              }}
-              title="Open Conversation"
-              className="h-10 w-10 flex items-center justify-center rounded-full text-green-10 bg-green-2 hover:bg-green-3 transition-all active:scale-95 border border-green-3"
-            >
-              <MessageCircle size={18} />
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 bg-mauve-3 hover:bg-mauve-4 rounded-full text-mauve-11 transition-colors"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
+        <SalesHeader
+          onClose={onClose}
+          onOpenChat={() => {
+            window.dispatchEvent(
+              new CustomEvent("OPEN_CHAT_MODAL", {
+                detail: { entityId: activity?.id, entityType: "SALES" },
+              }),
+            );
+          }}
+        />
 
         {/* Scrollable Body */}
-        <div className="p-6 flex-1 overflow-y-auto space-y-6">
-          {/* Deletion / Pending Wipe Banner */}
+        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-card">
+
+
+          {/* Deletion banner */}
           {activity?.is_deleted && (
             <div className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center gap-3 text-destructive shadow-sm">
               <div className="bg-red-100 p-2 rounded-lg">
@@ -150,11 +108,14 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
               </div>
               <div>
                 <p className="text-sm font-black uppercase tracking-tight">Activity Deleted</p>
-                <p className="text-xs font-bold opacity-80">This activity has been soft-deleted and is hidden from regular views.</p>
+                <p className="text-xs font-bold opacity-80">
+                  This activity has been soft-deleted and is hidden from regular views.
+                </p>
               </div>
             </div>
           )}
 
+          {/* Pending wipe banner */}
           {!activity?.is_deleted && activity?.delete_requested_by && (
             <div className="bg-[color:var(--amber-2)] border border-[color:var(--amber-6)] rounded-xl p-4 flex items-center gap-3 text-[color:var(--amber-11)] shadow-sm transition-all duration-300 animate-pulse">
               <div className="bg-[color:var(--amber-3)] p-2 rounded-lg">
@@ -162,251 +123,293 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
               </div>
               <div>
                 <p className="text-sm font-black uppercase tracking-tight">Pending Wipe Request</p>
-                <p className="text-xs font-bold opacity-80">A deletion request has been submitted for this activity and is awaiting approval.</p>
+                <p className="text-xs font-bold opacity-80">
+                  A deletion request has been submitted for this activity and is awaiting approval.
+                </p>
               </div>
             </div>
           )}
 
-          <div className="bg-mauve-1 border border-mauve-4 rounded-xl p-5 space-y-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-mauve-3">
-              <User size={16} className="text-primary" />
-              <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
-                Representative
-              </h3>
+          {/* ── Representative ─────────────────────────────── */}
+          <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              Representative
             </div>
-            <p className="font-black text-lg text-foreground">
-              {activity.employees?.name}
-            </p>
-            <p className="text-xs font-bold text-mauve-10 uppercase tracking-widest">
-              {activity.employees?.department}
-            </p>
+
+            <FieldBox label="Name" isEditing={false}>
+              <p className="px-3 text-sm font-bold text-foreground">
+                {activity.employees?.name || "N/A"}
+              </p>
+            </FieldBox>
+
+            <FieldBox label="Department" isEditing={false}>
+              <p className="px-3 text-sm font-semibold text-foreground">
+                {activity.employees?.department || "N/A"}
+              </p>
+            </FieldBox>
+
+            <FieldBox label="Status" isEditing={false}>
+              <div className="px-3 flex items-center gap-1.5 flex-wrap">
+                <span
+                  className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                    activity?.status === "DONE" || activity?.status === "APPROVED"
+                      ? "bg-green-9/10 text-green-9"
+                      : activity?.status === "PENDING"
+                        ? "bg-warning/10 text-[color:var(--amber-9)]"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {activity?.status === "PENDING" &&
+                  !appSettings?.sales_self_approve_expenses
+                    ? "PENDING"
+                    : activity?.status === "APPROVED"
+                      ? "DONE"
+                      : activity?.status}
+                </span>
+                {(activity?.is_unplanned || !activity?.sales_weekly_plans?.status) && (
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] border border-blue-500/30">
+                    UNPLANNED
+                  </span>
+                )}
+                {localOutcome === "COMPLETED" && (
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-green-9/10 text-green-9 border border-green-500/30">
+                    WON
+                  </span>
+                )}
+                {localOutcome === "LOST" && (
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-destructive/10 text-destructive border border-red-500/30">
+                    LOST
+                  </span>
+                )}
+              </div>
+            </FieldBox>
+
+            <FieldBox label="Scheduled Date" isEditing={false}>
+              <p className="px-3 text-sm font-semibold text-foreground">
+                {activity?.scheduled_date
+                  ? `${activity.scheduled_date}${activity?.time_of_day ? ` (${activity.time_of_day})` : ""}`
+                  : "N/A"}
+              </p>
+            </FieldBox>
           </div>
 
-          <div className="bg-mauve-1 border border-mauve-4 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-mauve-3">
-              <Briefcase size={16} className="text-[color:var(--blue-9)]" />
-              <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
-                Client &amp; Prospect Info
-              </h3>
+          {/* ── Client & Prospect Info ──────────────────────── */}
+          <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              Client &amp; Prospect Info
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="sm:col-span-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                  Account / Client Name
-                </label>
-                <p className="text-sm font-bold text-foreground bg-mauve-2 p-3 rounded-lg border border-mauve-3">
+            <div className="col-span-2">
+              <FieldBox label="Account / Client Name" isEditing={false}>
+                <p className="px-3 text-sm font-semibold text-foreground">
                   {activity.account_name || "N/A"}
                 </p>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                  Contact Person
-                </label>
-                <p className="text-sm font-bold text-foreground bg-mauve-2 p-3 rounded-lg border border-mauve-3 flex items-center gap-2">
-                  <User size={14} className="text-muted-foreground" />{" "}
-                  {activity.contact_person || "N/A"}
-                </p>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                  Contact Number
-                </label>
-                <p className="text-sm font-bold text-foreground bg-mauve-2 p-3 rounded-lg border border-mauve-3 flex items-center gap-2">
-                  <Phone size={14} className="text-muted-foreground" />{" "}
-                  {activity.contact_number || "N/A"}
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                  Email Address
-                </label>
-                <p className="text-sm font-bold text-foreground bg-mauve-2 p-3 rounded-lg border border-mauve-3 flex items-center gap-2">
-                  <Mail size={14} className="text-muted-foreground" />{" "}
+              </FieldBox>
+            </div>
+
+            <FieldBox label="Contact Person" isEditing={false}>
+              <p className="px-3 text-sm font-semibold text-foreground">
+                {activity.contact_person || "N/A"}
+              </p>
+            </FieldBox>
+
+            <FieldBox label="Contact Number" isEditing={false}>
+              <p className="px-3 text-sm font-semibold text-foreground">
+                {activity.contact_number || "N/A"}
+              </p>
+            </FieldBox>
+
+            <div className="col-span-2">
+              <FieldBox label="Email Address" isEditing={false}>
+                <p className="px-3 text-sm font-semibold text-foreground">
                   {activity.email_address || "N/A"}
                 </p>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                  Address
-                </label>
-                <p className="text-sm font-bold text-foreground bg-mauve-2 p-3 rounded-lg border border-mauve-3 flex items-center gap-2">
-                  <MapPin size={14} className="text-muted-foreground" />{" "}
+              </FieldBox>
+            </div>
+
+            <div className="col-span-2">
+              <FieldBox label="Address" isEditing={false}>
+                <p className="px-3 text-sm font-semibold text-foreground">
                   {activity.address || "N/A"}
                 </p>
-              </div>
+              </FieldBox>
             </div>
           </div>
 
-          <div className="bg-mauve-1 border border-mauve-4 rounded-xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-mauve-3">
-              <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
-                Execution Remarks
-              </h3>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                Planned Activity Type
-              </label>
-              <p className="text-sm font-bold text-foreground bg-mauve-2 p-3 rounded-lg border border-mauve-3 w-max">
-                {activity.activity_type || "N/A"}
-              </p>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                Initial Plan Remarks
-              </label>
-              <p className="text-sm text-mauve-11 bg-mauve-2 p-4 rounded-lg border border-mauve-3 whitespace-pre-wrap">
-                {activity.remarks_plan || "No remarks provided."}
-              </p>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                Actual Execution Details
-              </label>
-              <p className="text-sm font-semibold text-foreground bg-[color:var(--blue-9)]/5 p-4 rounded-lg border border-blue-500/20 whitespace-pre-wrap">
-                {activity.details_daily || "Not executed yet."}
-              </p>
+          {/* ── Execution Remarks ───────────────────────────── */}
+          <div className="grid grid-cols-1 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              Execution Remarks
             </div>
 
-            {/* === ATTACHMENTS SECTION === */}
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-mauve-4 mt-2">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+            <FieldBox label="Planned Activity Type" isEditing={false}>
+              <p className="px-3 text-sm font-semibold text-foreground">
+                {activity.activity_type || "N/A"}
+              </p>
+            </FieldBox>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                Initial Plan Remarks
+              </label>
+              <div className="bg-muted/30 p-4 rounded-xl border border-border text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                {activity.remarks_plan || "No remarks provided."}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                Actual Execution Details
+              </label>
+              <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground text-[15px] whitespace-pre-wrap leading-relaxed shadow-sm">
+                {activity.details_daily || "Not executed yet."}
+              </div>
+            </div>
+
+            {/* Attachments */}
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-border mt-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                 Attachments
               </label>
               <CloudinaryImageAttachment
                 activityId={activity.id}
                 attachments={activity.attachments || []}
                 onChange={(newUrls) => {
-                  salesService.updateActivityAttachments(activity.id, newUrls)
+                  salesService
+                    .updateActivityAttachments(activity.id, newUrls)
                     .then(() => {
                       queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
                       queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
                       toast.success("Attachments updated!");
                     })
-                    .catch(e => toast.error("Failed to update attachments: " + e.message));
+                    .catch((e) =>
+                      toast.error("Failed to update attachments: " + e.message),
+                    );
                 }}
                 readOnly={
                   isAdminView ||
                   activity.status === "NOT_APPROVED" ||
                   activity.status === "APPROVED" ||
-                  (user?.id !== activity.employee_id)
+                  user?.id !== activity.employee_id
                 }
               />
             </div>
           </div>
 
-          {/* === FINANCIAL & REFERENCE SECTION === */}
+          {/* ── Financial & Reference ───────────────────────── */}
           {(activity?.reference_number ||
             activity?.so_number ||
             activity?.expense_amount) && (
-              <div
-                className={`bg-mauve-1 border rounded-xl p-5 shadow-sm space-y-4 ${localOutcome === "LOST" ? "border-red-500/30 bg-destructive/5" : localOutcome === "COMPLETED" ? "border-green-500/30 bg-green-9/5" : "border-amber-500/30"}`}
-              >
-                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-mauve-3">
-                  <DollarSign size={16} className="text-[color:var(--amber-9)]" />
-                  <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
-                    Fund Request &amp; Reference
-                  </h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                      Reference No. (SQ/TRM)
-                    </label>
-                    <p className="text-sm font-black text-[color:var(--amber-10)] bg-warning/10 p-3 rounded-lg border border-amber-500/20 flex items-center gap-2">
-                      <Tag size={14} />
-                      {activity?.reference_number || (
-                        <span className="text-mauve-7 italic font-normal text-xs">
-                          Not set (Generic BizDev)
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                      SO Number
-                    </label>
-                    <p className="text-sm font-black text-[color:var(--blue-9)] bg-[color:var(--blue-9)]/10 p-3 rounded-lg border border-blue-500/20 flex items-center gap-2">
-                      <Tag size={14} />
-                      {activity?.so_number || (
-                        <span className="text-mauve-7 italic font-normal text-xs">
-                          Not provided
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                      Est. Expense (₱)
-                    </label>
-                    <p className="text-sm font-black text-green-10 bg-green-9/10 p-3 rounded-lg border border-green-9/20">
-                      {activity?.expense_amount ? (
-                        `₱ ${Number(activity?.expense_amount).toLocaleString()}`
-                      ) : (
-                        <span className="text-mauve-7 italic font-normal text-xs">
+            <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
+              <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Fund Request &amp; Reference
+              </div>
+
+              <FieldBox label="Reference No. (SQ/TRM)" isEditing={false}>
+                <p className="px-3 text-sm font-black text-[color:var(--amber-10)] flex items-center gap-2">
+                  <Tag size={13} className="shrink-0" />
+                  {activity?.reference_number || (
+                    <span className="text-muted-foreground italic font-normal text-xs">
+                      Not set (Generic BizDev)
+                    </span>
+                  )}
+                </p>
+              </FieldBox>
+
+              <FieldBox label="SO Number" isEditing={false}>
+                <p className="px-3 text-sm font-black text-[color:var(--blue-9)] flex items-center gap-2">
+                  <Tag size={13} className="shrink-0" />
+                  {activity?.so_number || (
+                    <span className="text-muted-foreground italic font-normal text-xs">
+                      Not provided
+                    </span>
+                  )}
+                </p>
+              </FieldBox>
+
+              <div className="col-span-2">
+                <FieldBox label="Est. Expense (₱)" isEditing={false}>
+                  <p className="px-3 text-sm font-black text-green-10 flex items-center gap-2">
+                    <DollarSign size={13} className="shrink-0" />
+                    {activity?.expense_amount
+                      ? `₱ ${Number(activity?.expense_amount).toLocaleString()}`
+                      : (
+                        <span className="text-muted-foreground italic font-normal text-xs">
                           No amount declared
                         </span>
                       )}
-                    </p>
-                  </div>
-                </div>
+                  </p>
+                </FieldBox>
               </div>
-            )}
+            </div>
+          )}
 
-          <div className="flex items-center justify-between pb-2 border-b border-mauve-3">
-            <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
-              Sales Outcome
-            </h3>
-            {activity.is_deleted || activity.delete_requested_by ? (
-              <span className="text-[10px] font-bold text-destructive bg-destructive/5 px-2 py-0.5 rounded-full uppercase tracking-widest border border-red-100">
-                Locked — {activity.is_deleted ? "Deleted" : "Pending Wipe"}
-              </span>
-            ) : !isActivityCompleted && (
-              <span className="text-[10px] font-bold text-mauve-8 bg-mauve-3 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                Locked — Not executed yet
-              </span>
-            )}
-          </div>
-          <div className="flex gap-3">
-            {["", "COMPLETED", "LOST"].map((opt) => (
-              <button
-                key={opt}
-                onClick={() =>
-                  isActivityCompleted && !activity.is_deleted && !activity.delete_requested_by && handleOutcomeChange(opt)
-                }
-                disabled={
-                  outcomeMutation.isPending ||
-                  !isActivityCompleted ||
-                  !!activity.is_deleted ||
-                  !!activity.delete_requested_by
-                }
-                title={
-                  activity.is_deleted ? "Task is deleted" :
-                    activity.delete_requested_by ? "Wipe request pending" :
-                      !isActivityCompleted ? "Activity must be completed first" :
-                        undefined
-                }
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border transition-all ${localOutcome === opt
-                  ? opt === "COMPLETED"
-                    ? "bg-green-9 text-primary-foreground border-green-500 shadow-green-500/25 shadow-lg"
-                    : opt === "LOST"
-                      ? "bg-destructive text-primary-foreground border-red-500 shadow-red-500/25 shadow-lg"
-                      : "bg-mauve-4 text-foreground border-mauve-5"
-                  : "bg-mauve-2 text-muted-foreground border-mauve-4"
+          {/* ── Sales Outcome ───────────────────────────────── */}
+          <div className="flex flex-col gap-1.5 pt-2">
+            <div className="flex items-center justify-between pl-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Sales Outcome
+              </label>
+              {activity.is_deleted || activity.delete_requested_by ? (
+                <span className="text-[10px] font-bold text-destructive bg-destructive/5 px-2 py-0.5 rounded-full uppercase tracking-widest border border-red-100">
+                  Locked — {activity.is_deleted ? "Deleted" : "Pending Wipe"}
+                </span>
+              ) : (
+                !isActivityCompleted && (
+                  <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full uppercase tracking-widest">
+                    Locked — Not executed yet
+                  </span>
+                )
+              )}
+            </div>
+            <div className="flex gap-3 mt-1">
+              {["", "COMPLETED", "LOST"].map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() =>
+                    isActivityCompleted &&
+                    !activity.is_deleted &&
+                    !activity.delete_requested_by &&
+                    handleOutcomeChange(opt)
+                  }
+                  disabled={
+                    outcomeMutation.isPending ||
+                    !isActivityCompleted ||
+                    !!activity.is_deleted ||
+                    !!activity.delete_requested_by
+                  }
+                  title={
+                    activity.is_deleted
+                      ? "Task is deleted"
+                      : activity.delete_requested_by
+                      ? "Wipe request pending"
+                      : !isActivityCompleted
+                      ? "Activity must be completed first"
+                      : undefined
+                  }
+                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border transition-all ${
+                    localOutcome === opt
+                      ? opt === "COMPLETED"
+                        ? "bg-green-9 text-primary-foreground border-green-500 shadow-green-500/25 shadow-lg"
+                        : opt === "LOST"
+                        ? "bg-destructive text-primary-foreground border-red-500 shadow-red-500/25 shadow-lg"
+                        : "bg-muted text-foreground border-border"
+                      : "bg-card text-muted-foreground border-border"
                   } disabled:opacity-40 disabled:cursor-not-allowed`}
-              >
-                {opt === ""
-                  ? "Pending"
-                  : opt === "COMPLETED"
-                    ? "WON"
-                    : "LOST"}
-              </button>
-            ))}
+                >
+                  {opt === "" ? "Pending" : opt === "COMPLETED" ? "WON" : "LOST"}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* === TIMELINE SECTION === */}
-          <div className="pt-2 border-t border-mauve-4 mt-2">
+          {/* ── Timeline ────────────────────────────────────── */}
+          <div className="pt-2 border-t border-border mt-2">
             <SalesActivityTimeline
               salesActivityId={activity?.id}
               legacyHeadRemarks={activity?.head_remarks}
@@ -416,9 +419,8 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
           </div>
 
         </div>
-
       </div>
     </>,
-    document.body
+    document.body,
   );
 }

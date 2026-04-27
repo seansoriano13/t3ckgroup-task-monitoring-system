@@ -82,7 +82,7 @@ export default function DashboardStats({ selectedRange }) {
     ).length;
 
     // 3. Calculate Management Stats (Only if Head or HR)
-    let teamPendingApprovals = 0;
+    let teamInProgress = 0;
     let teamCompleted = 0;
     let teamPendingHr = 0;
     let teamRejected = 0;
@@ -136,10 +136,8 @@ export default function DashboardStats({ selectedRange }) {
         }
       });
 
-      teamPendingApprovals = teamTasks.filter(
-        (t) =>
-          t.status === TASK_STATUS.INCOMPLETE ||
-          t.status === TASK_STATUS.AWAITING_APPROVAL,
+      teamInProgress = teamTasks.filter(
+        (t) => t.status === TASK_STATUS.INCOMPLETE,
       ).length;
       teamCompleted = teamTasks.filter(
         (t) => t.status === TASK_STATUS.COMPLETE,
@@ -157,7 +155,7 @@ export default function DashboardStats({ selectedRange }) {
       myPendingApproval,
       myPendingHr,
       myCompleted,
-      teamPendingApprovals,
+      teamInProgress,
       teamCompleted,
       teamRejected,
       teamPendingHr,
@@ -235,16 +233,14 @@ export default function DashboardStats({ selectedRange }) {
       {isHead && !isHr && (
         <>
           <StatCard
-            title="Pending Approval"
-            value={stats.teamPendingApprovals}
-            subtitle="Requires Review"
-            icon={<AlertCircle size={20} className="text-foreground" />}
-            color="indigo"
+            title="In Progress"
+            value={stats.teamInProgress}
+            subtitle="Actively being logged"
+            icon={<Activity size={20} className="text-muted-foreground" />}
+            color="slate"
             onClick={() =>
               navigate("/tasks", {
-                state: {
-                  presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL },
-                },
+                state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } },
               })
             }
           />

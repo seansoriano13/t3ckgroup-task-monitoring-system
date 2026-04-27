@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { activeChatService } from "../services/tasks/activeChatService";
+import Avatar from "./Avatar";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import { taskActivityService } from "../services/tasks/taskActivityService";
 import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
 import { salesActivityLogService } from "../services/sales/salesActivityLogService";
@@ -55,6 +57,7 @@ const timeAgo = (dateString) => {
 
 function MessageBubble({ entry, currentUserId }) {
   const isMe = entry.authorId === currentUserId;
+  const avatarMap = useEmployeeAvatarMap();
 
   if (entry.type === "SYSTEM") {
     return (
@@ -121,18 +124,18 @@ function MessageBubble({ entry, currentUserId }) {
         isMe ? "flex-row-reverse" : "flex-row",
       )}
     >
-      <div
+      <Avatar
+        name={entry.authorName || "?"}
+        src={avatarMap.get(entry.authorId) ?? undefined}
+        size="md"
         className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black uppercase border",
           entry.authorIsHead || entry.authorIsSuperAdmin
             ? "bg-amber-3 text-amber-10 border-amber-6"
             : entry.authorIsHr
               ? "bg-blue-3 text-blue-10 border-blue-6"
-              : "bg-muted text-muted-foreground border-border",
+              : "",
         )}
-      >
-        {entry.authorName?.charAt(0) || "?"}
-      </div>
+      />
       <div
         className={cn(
           "max-w-[80%] flex flex-col",
