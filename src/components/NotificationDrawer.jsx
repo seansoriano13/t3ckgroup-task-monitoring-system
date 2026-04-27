@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notificationService } from "../services/notificationService";
 import { useAuth } from "../context/AuthContext";
@@ -27,11 +27,14 @@ import Dropdown from "./ui/Dropdown";
 import { confirmDeleteToast } from "./ui/CustomToast";
 import toast from "react-hot-toast";
 import TabGroup from "./ui/TabGroup";
+import Avatar from "./Avatar";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 
 export default function NotificationDrawer({ isOpen, onClose }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const avatarMap = useEmployeeAvatarMap();
 
   const [activeTab, setActiveTab] = useState("ALL");
 
@@ -216,13 +219,19 @@ export default function NotificationDrawer({ isOpen, onClose }) {
 
       if (notif.type === "TASK_APPROVED_BY_HEAD" && isHrUser) {
         // HR got notified that a Head approved — send to HR verification queue
-        navigate("/approvals/hr-verification", { state: { openTaskId: notif.reference_id } });
+        navigate("/approvals/hr-verification", {
+          state: { openTaskId: notif.reference_id },
+        });
       } else if (isHeadUser || isSA) {
         // Head or SuperAdmin: task approval queue
-        navigate("/approvals/tasks", { state: { openTaskId: notif.reference_id } });
+        navigate("/approvals/tasks", {
+          state: { openTaskId: notif.reference_id },
+        });
       } else if (isHrUser) {
         // HR-only: task verification queue
-        navigate("/approvals/hr-verification", { state: { openTaskId: notif.reference_id } });
+        navigate("/approvals/hr-verification", {
+          state: { openTaskId: notif.reference_id },
+        });
       } else {
         // Employee: their own task page
         navigate("/tasks", { state: { openTaskId: notif.reference_id } });
@@ -415,11 +424,35 @@ export default function NotificationDrawer({ isOpen, onClose }) {
                         }`}
               >
                 <div className="flex gap-4 items-start">
-                  <div
-                    className={`p-2 rounded-full shrink-0 ${notif.is_read ? "bg-muted" : "bg-primary/10"}`}
-                  >
-                    {getIconForType(notif.type)}
+                  <div className="relative shrink-0">
+                    {notif.sender_id || notif.sender?.id ? (
+                      <Avatar
+                        name={notif.sender?.name || "User"}
+                        src={
+                          avatarMap.get(notif.sender_id || notif.sender?.id) ??
+                          undefined
+                        }
+                        size="md"
+                        className={!notif.is_read ? "ring-2 ring-mauve-6" : ""}
+                      />
+                    ) : (
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${notif.is_read ? "bg-muted" : "bg-primary/10"}`}
+                      >
+                        {getIconForType(notif.type)}
+                      </div>
+                    )}
+
+                    {/* Small type badge overlay if it's an avatar */}
+                    {(notif.sender_id || notif.sender?.id) && (
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-card border border-border rounded-full flex items-center justify-center shadow-sm z-10">
+                        {React.cloneElement(getIconForType(notif.type), {
+                          size: 10,
+                        })}
+                      </div>
+                    )}
                   </div>
+
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1 gap-2">
                       <h4
