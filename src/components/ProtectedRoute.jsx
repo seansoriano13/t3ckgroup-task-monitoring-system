@@ -1,4 +1,4 @@
-import { Navigate } from "react-router";
+﻿import { Navigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
@@ -12,7 +12,7 @@ export default function ProtectedRoute({
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500 font-bold">
+      <div className="min-h-screen flex items-center justify-center bg-mauve-2 text-muted-foreground font-bold">
         Loading Portal...
       </div>
     );

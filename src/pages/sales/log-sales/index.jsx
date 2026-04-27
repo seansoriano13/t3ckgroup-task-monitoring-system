@@ -7,6 +7,11 @@ import toast from "react-hot-toast";
 import { DollarSign, Save, FileText, ShoppingCart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { RECORD_TYPE, REVENUE_STATUS } from "../../../constants/status";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import PageHeader from "../../../components/ui/PageHeader";
+import PageContainer from "../../../components/ui/PageContainer";
+import TabGroup from "../../../components/ui/TabGroup";
 
 export default function LogSalesPage() {
   const { user } = useAuth();
@@ -84,111 +89,119 @@ export default function LogSalesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-3xl mx-auto space-y-6 pb-10 px-2 sm:px-4">
-        <div className="border-b border-gray-4 pb-4">
-          <h1 className="text-3xl font-black text-gray-12 flex items-center gap-3">
-            {isOrder ? (
-              <>
-                <ShoppingCart size={28} className="text-green-500" /> Sales
-                Order
-              </>
-            ) : (
-              <>
-                <FileText size={28} className="text-blue-500" /> Sales Quotation
-              </>
-            )}
-          </h1>
-          <p className="text-gray-9 mt-1 font-medium">
-            {isOrder
+      <PageContainer maxWidth="7xl" className="pt-4">
+        <PageHeader
+          showGradient={false}
+          lastWordColor={
+            isOrder
+              ? "text-green-9"
+              : "text-[color:var(--violet-9)]"
+          }
+          title={isOrder ? "Sales Order" : "Sales Quotation"}
+          description={
+            isOrder
               ? "Record Completed Sale operations to contribute to your monthly Quota Rankings."
-              : "Record Quotations sent to clients. These do not count toward your Quota until converted to Sales Orders."}
-          </p>
-        </div>
+              : "Record Quotations sent to clients. These do not count toward your Quota until converted to Sales Orders."
+          }
+        >
+          <div className="flex items-center gap-2">
+            {isOrder ? (
+              <ShoppingCart
+                size={32}
+                className="text-green-9 bg-green-2 p-1.5 rounded-xl border border-green-3"
+              />
+            ) : (
+              <FileText
+                size={32}
+                className="text-[color:var(--violet-9)] bg-[color:var(--violet-2)] p-1.5 rounded-xl border border-indigo-100"
+              />
+            )}
+          </div>
+        </PageHeader>
 
         <form
           onSubmit={handleSubmit}
-          className={`bg-gray-1 border p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 transition-colors duration-300 ${isOrder ? "border-green-500/30" : "border-blue-500/30"}`}
+          className={`max-w-4xl mx-auto bg-card border p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 transition-colors duration-300 ${
+            isOrder ? "border-green-6" : "border-mauve-5"
+          }`}
         >
           {/* Record Type Toggle */}
-          <div className="flex bg-gray-2 p-1 rounded-xl border border-gray-4 shadow-inner mb-6">
-            <button
-              type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  record_type: RECORD_TYPE.SALES_ORDER,
-                })
-              }
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg transition-all ${
-                isOrder
-                  ? "bg-green-600 text-white shadow-md transform scale-[1.02]"
-                  : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
-              }`}
-            >
-              <ShoppingCart size={16} /> Sales Order
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  record_type: RECORD_TYPE.SALES_QUOTATION,
-                })
-              }
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg transition-all ${
-                !isOrder
-                  ? "bg-blue-600 text-white shadow-md transform scale-[1.02]"
-                  : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
-              }`}
-            >
-              <FileText size={16} /> Sales Quotation
-            </button>
-          </div>
+          <TabGroup
+            variant={isOrder ? "success" : "primary"}
+            tabs={[
+              {
+                value: RECORD_TYPE.SALES_ORDER,
+                label: "Sales Order",
+                icon: ShoppingCart,
+              },
+              {
+                value: RECORD_TYPE.SALES_QUOTATION,
+                label: "Sales Quotation",
+                icon: FileText,
+              },
+            ]}
+            activeTab={formData.record_type}
+            onChange={(v) => setFormData({ ...formData, record_type: v })}
+            size="md"
+            fullWidth={true}
+            className="mb-6"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Date
               </label>
-              <input
+              <DatePicker
+                selected={formData.date ? new Date(formData.date) : null}
+                onChange={(date) => {
+                  if (!date) {
+                    setFormData({ ...formData, date: "" });
+                    return;
+                  }
+                  const y = date.getFullYear();
+                  const m = String(date.getMonth() + 1).padStart(2, "0");
+                  const d = String(date.getDate()).padStart(2, "0");
+                  setFormData({ ...formData, date: `${y}-${m}-${d}` });
+                }}
+                dateFormat="MMM d, yyyy"
                 required
-                type="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-                className="w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 font-bold"
+                portalId="root"
+                placeholderText="Select date"
+                className={`w-full bg-muted/40 border text-foreground rounded-xl p-3 outline-none font-bold transition-all cursor-pointer ${
+                  isOrder
+                    ? "border-border focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                    : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Status
               </label>
-              <div className="flex bg-gray-2 border border-gray-4 rounded-lg p-1">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, status: REVENUE_STATUS.COMPLETED })
-                  }
-                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === REVENUE_STATUS.COMPLETED ? (isOrder ? "bg-green-600 text-white shadow-md" : "bg-blue-600 text-white shadow-md") : "text-gray-9 hover:text-gray-12"}`}
-                >
-                  {isOrder ? "COMPLETED" : "SUBMITTED / LOGGED"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, status: REVENUE_STATUS.LOST })
-                  }
-                  className={`flex-1 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${formData.status === REVENUE_STATUS.LOST ? "bg-red-500 text-white shadow-md" : "text-gray-9 hover:text-gray-12"}`}
-                >
-                  LOST
-                </button>
-              </div>
+              <TabGroup
+                variant={isOrder ? "success" : "primary"}
+                tabs={[
+                  {
+                    value: REVENUE_STATUS.COMPLETED,
+                    label: isOrder ? "COMPLETED" : "SUBMITTED / LOGGED",
+                  },
+                  {
+                    value: REVENUE_STATUS.LOST,
+                    label: "LOST",
+                    variant: "destructive",
+                  },
+                ]}
+                activeTab={formData.status}
+                onChange={(v) => setFormData({ ...formData, status: v })}
+                size="sm"
+                fullWidth={true}
+              />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Account / Client Name
               </label>
               <input
@@ -199,12 +212,16 @@ export default function LogSalesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, account: e.target.value })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none focus:border-green-500 ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Product / Item
               </label>
               <input
@@ -218,14 +235,18 @@ export default function LogSalesPage() {
                     product_item_sold: e.target.value,
                   })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 {isOrder ? "SO Number" : "Quotation Number"}{" "}
-                <span className="normal-case font-medium text-gray-8">
+                <span className="normal-case font-medium text-mauve-8">
                   (Optional)
                 </span>
               </label>
@@ -243,19 +264,23 @@ export default function LogSalesPage() {
                     });
                   }
                 }}
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div className="sm:col-span-1">
               <label
-                className={`text-xs font-bold uppercase block mb-1 ${isOrder ? "text-green-600" : "text-blue-600"}`}
+                className={`text-xs font-bold uppercase block mb-1 ${isOrder ? "text-green-10" : "text-indigo-600"}`}
               >
                 {isOrder ? "Revenue Amount (PHP)" : "Quotation Amount (PHP)"}
               </label>
               <div className="relative">
                 <span
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${isOrder ? "text-green-700/50" : "text-blue-700/50"}`}
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${isOrder ? "text-green-10" : "text-indigo-600"}`}
                 >
                   ₱
                 </span>
@@ -266,19 +291,22 @@ export default function LogSalesPage() {
                   placeholder="72800.00"
                   value={formData.revenue_amount}
                   onChange={(e) =>
-                    setFormData({ ...formData, revenue_amount: e.target.value })
+                    setFormData({
+                      ...formData,
+                      revenue_amount: e.target.value,
+                    })
                   }
-                  className={`w-full bg-gray-2 border font-black text-xl rounded-lg pl-10 pr-4 py-3 outline-none shadow-inner ${
+                  className={`w-full bg-muted/40 border font-black text-2xl rounded-xl pl-10 pr-4 py-3 outline-none shadow-inner transition-all ${
                     isOrder
-                      ? "border-green-900/40 text-green-500 focus:border-green-500"
-                      : "border-blue-900/40 text-blue-500 focus:border-blue-500"
+                      ? "border-green-6 text-green-10 focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                      : "border-mauve-5 text-[color:var(--violet-10)] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                   }`}
                 />
               </div>
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Ref #
               </label>
               <input
@@ -286,14 +314,21 @@ export default function LogSalesPage() {
                 placeholder="Optional"
                 value={formData.reference_number}
                 onChange={(e) =>
-                  setFormData({ ...formData, reference_number: e.target.value })
+                  setFormData({
+                    ...formData,
+                    reference_number: e.target.value,
+                  })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
+                  isOrder
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
 
             <div className="sm:col-span-1">
-              <label className="text-xs font-bold text-gray-9 uppercase block mb-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
                 Remarks
               </label>
               <textarea
@@ -302,19 +337,23 @@ export default function LogSalesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, remarks: e.target.value })
                 }
-                className={`w-full bg-gray-2 border border-gray-4 text-gray-12 rounded-lg p-3 outline-none resize-none h-12 ${isOrder ? "focus:border-green-500" : "focus:border-blue-500"}`}
+                className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none resize-none h-24 transition-all ${
+                  isOrder
+                    ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
+                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                }`}
               />
             </div>
           </div>
 
-          <div className="pt-6 border-t border-gray-4">
+          <div className="pt-6 border-t border-border">
             <button
               disabled={mutation.isPending}
               type="submit"
-              className={`w-full text-white font-black text-lg py-4 rounded-xl flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-lg ${
+              className={`w-full text-primary-foreground font-black text-base py-4 rounded-2xl flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-xl uppercase tracking-widest ${
                 isOrder
-                  ? "bg-green-600 hover:bg-green-700 shadow-green-900/20"
-                  : "bg-blue-600 hover:bg-blue-700 shadow-blue-900/20"
+                  ? "bg-green-10 hover:bg-green-800 shadow-green-800/20"
+                  : "bg-primary hover:bg-primary-hover shadow-primary/20"
               }`}
             >
               <Save size={24} />
@@ -326,7 +365,7 @@ export default function LogSalesPage() {
             </button>
           </div>
         </form>
-      </div>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

@@ -1,4 +1,4 @@
-import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
+﻿import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { storageService } from "../../../../services/storageService";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -30,7 +30,7 @@ export function AddUnplannedForm({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-xs font-bold text-gray-9 hover:text-primary transition-colors flex items-center gap-1"
+        className="w-full text-[10px] font-black text-muted-foreground hover:text-[color:var(--violet-10)] transition-colors flex items-center gap-1.5 uppercase tracking-widest"
       >
         <Plus size={14} /> NEW UNPLANNED ITEM
       </button>
@@ -78,17 +78,17 @@ export function AddUnplannedForm({
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-top-2 p-4 bg-gray-3 rounded-xl border border-gray-4 mt-2 space-y-4 shadow-sm relative w-full overflow-hidden">
-      <div className="flex justify-between items-center border-b border-gray-4 pb-2 mb-2">
-        <h4 className="text-[11px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-          <Plus size={14} /> Unplanned Entry
+    <div className="animate-in fade-in slide-in-from-top-2 p-5 bg-card rounded-2xl border border-border mt-2 space-y-4 shadow-lg relative w-full overflow-hidden">
+      <div className="flex justify-between items-center border-b border-border pb-3 mb-2">
+        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--violet-10)] flex items-center gap-1.5">
+          <Plus size={13} /> Unplanned Entry
         </h4>
       </div>
 
       <div className="space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
               Account &amp; Activity
             </label>
             <div className="flex gap-2">
@@ -97,7 +97,7 @@ export function AddUnplannedForm({
                 onChange={(e) =>
                   setPayload({ ...payload, activity_type: e.target.value })
                 }
-                className="bg-gray-1 border border-gray-4 rounded-lg px-2 py-2 text-xs font-bold outline-none cursor-pointer"
+                className="bg-card border border-border rounded-xl px-2 py-2 text-[10px] font-black outline-none cursor-pointer text-foreground focus:border-indigo-400 transition-colors"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>
@@ -114,12 +114,12 @@ export function AddUnplannedForm({
                 onChange={(e) =>
                   setPayload({ ...payload, account_name: e.target.value })
                 }
-                className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-sm font-bold text-gray-12 outline-none focus:border-primary transition-colors"
+                className="flex-1 bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
               />
             </div>
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Contact Person
             </label>
             <input
@@ -128,11 +128,11 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, contact_person: e.target.value })
               }
-              className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
             />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Contact Number
             </label>
             <input
@@ -141,11 +141,11 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, contact_number: e.target.value })
               }
-              className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Email Address
             </label>
             <input
@@ -154,11 +154,11 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, email_address: e.target.value })
               }
-              className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
               Address
             </label>
             <input
@@ -167,15 +167,13 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, address: e.target.value })
               }
-              className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider block mb-1 flex items-center gap-1 w-full justify-between">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] flex items-center gap-1 w-full justify-between mb-1.5">
               Execution Details
-              <span className="text-[9px] font-medium text-gray-8 italic lowercase">
-                (optional remarks)
-              </span>
+              <span className="text-[9px] font-medium text-muted-foreground italic lowercase">(optional remarks)</span>
             </label>
             <textarea
               placeholder="What occurred?"
@@ -183,13 +181,13 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, details_daily: e.target.value })
               }
-              className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-primary transition-colors resize-none h-16"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-none h-16"
             />
           </div>
         </div>
 
-        <div className="border-t border-gray-4 pt-3 mt-1 sm:col-span-2">
-          <label className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block mb-2">
+        <div className="border-t border-border pt-4 mt-2 sm:col-span-2">
+          <label className="text-[10px] font-black text-[color:var(--amber-10)] uppercase tracking-[0.2em] block mb-2.5">
             Fund Request &amp; Reference
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -200,7 +198,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, reference_number: e.target.value })
               }
-              className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs text-gray-12 outline-none focus:border-amber-500 placeholder:text-gray-7"
+              className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
             />
             <input
               type="number"
@@ -213,7 +211,7 @@ export function AddUnplannedForm({
                     e.target.value === "" ? "" : Number(e.target.value),
                 })
               }
-              className="w-full bg-gray-1 border border-gray-4 rounded-lg px-3 py-1.5 text-xs text-gray-12 outline-none focus:border-amber-500 placeholder:text-gray-7"
+              className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
               min="0"
               step="0.01"
             />
@@ -221,12 +219,12 @@ export function AddUnplannedForm({
         </div>
 
         {/* --- IMAGE ATTACHMENTS --- */}
-        <div className="border-t border-gray-4 pt-3 mt-1">
-          <label className="text-[10px] font-bold text-gray-9 uppercase tracking-widest block mb-1">
+        <div className="border-t border-border pt-4 mt-2">
+          <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-2">
             Proof of Execution
           </label>
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-black uppercase bg-gray-1 hover:bg-white text-gray-9 hover:text-primary px-3 py-2 rounded-lg border border-gray-4 cursor-pointer transition-all flex items-center gap-2">
+            <label className="text-[10px] font-black uppercase bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground px-3 py-2 rounded-xl border border-border cursor-pointer transition-all flex items-center gap-2 hover:border-indigo-300">
               <ImageIcon size={14} />
               {selectedImages.length > 0
                 ? `${selectedImages.length} Photo(s) Selected`
@@ -242,7 +240,7 @@ export function AddUnplannedForm({
             {selectedImages.length > 0 && !isUploading && (
               <button
                 onClick={() => setSelectedImages([])}
-                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                 title="Clear selection"
               >
                 <X size={16} />
@@ -255,22 +253,24 @@ export function AddUnplannedForm({
         </div>
       </div>
 
-      <div className="flex gap-2 pt-3 border-t border-gray-4 mt-4">
+      <div className="flex gap-3 pt-4 border-t border-border mt-2">
         <button
           onClick={() => setIsOpen(false)}
-          className="flex-1 py-2 text-xs font-bold text-gray-9 hover:text-gray-12 bg-gray-2 rounded-lg border border-gray-4 transition-colors"
+          className="flex-1 py-2.5 text-[10px] font-black text-muted-foreground hover:text-foreground bg-muted rounded-xl border border-border transition-colors uppercase tracking-widest"
         >
           Cancel
         </button>
         <button
           disabled={!payload.account_name || isUploading}
           onClick={handleSave}
-          className="flex-[2] py-2 rounded-lg bg-primary text-white text-xs font-bold shadow-lg shadow-red-a3 disabled:opacity-50 transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+          className="flex-[2] py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           {isUploading && <Loader2 size={14} className="animate-spin" />}
           {isUploading ? "Uploading..." : "Add Item"}
         </button>
       </div>
+
+
     </div>
   );
 }

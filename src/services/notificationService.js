@@ -55,6 +55,33 @@ export const notificationService = {
   },
 
   /**
+   * Mark a single notification as unread
+   */
+  async markAsUnread(notificationId) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: false })
+      .eq('id', notificationId)
+      .select()
+      .single();
+      
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  /**
+   * Delete a notification
+   */
+  async deleteNotification(notificationId) {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId);
+      
+    if (error) throw new Error(error.message);
+  },
+
+  /**
    * Mark all unread notifications for a specific user as read
    */
   async markAllAsRead(userId) {
@@ -64,6 +91,19 @@ export const notificationService = {
       .update({ is_read: true })
       .eq('recipient_id', userId)
       .eq('is_read', false);
+      
+    if (error) throw new Error(error.message);
+  },
+
+  /**
+   * Mark all notifications for a specific user as unread
+   */
+  async markAllAsUnread(userId) {
+    if (!userId) return;
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: false })
+      .eq('recipient_id', userId);
       
     if (error) throw new Error(error.message);
   },

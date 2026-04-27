@@ -1,7 +1,22 @@
-import React from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+﻿import React, { useState } from "react";
+import {
+  Search,
+  Filter,
+  Users,
+  Calendar as CalendarIcon,
+  SlidersHorizontal,
+  ChevronDown,
+  Activity,
+  FileText,
+  CheckCircle2,
+} from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Dropdown from "./ui/Dropdown";
+
+import { FilterTrigger, FilterOptionList } from "./ui/FilterDropdown";
 
 export default function SalesFilters({
   activeTab = "ACTIVITIES",
@@ -22,177 +37,358 @@ export default function SalesFilters({
   user,
   uniqueEmployees = [],
   isVerificationEnforced = false,
-  showDateFilter = null, // Can explicitly pass a boolean to override viewMode check
+  showDateFilter = null,
   filterRecordType = "ALL",
-  setFilterRecordType = () => {},
+  setFilterRecordType = () => { },
   sortBy,
   setSortBy,
 }) {
+  const [showAdvanced, setShowAdvanced] = useState(
+    (canViewAllSales ? filterEmp !== "ALL" : filterEmp !== user?.id) ||
+    filterStatus !== "ALL" ||
+    (activeTab === "ACTIVITIES" && filterType !== "ALL") ||
+    (activeTab === "REVENUE" && filterRecordType !== "ALL")
+  );
+
   const shouldShowDateFilter =
-    showDateFilter !== null ? showDateFilter : (viewMode === "BOARD" || activeTab === "REVENUE");
+    showDateFilter !== null
+      ? showDateFilter
+      : viewMode === "BOARD" || activeTab === "REVENUE";
+
+  const isAnyFilterActive =
+    (canViewAllSales ? filterEmp !== "ALL" : filterEmp !== user?.id) ||
+    filterStatus !== "ALL" ||
+    (activeTab === "ACTIVITIES" && filterType !== "ALL") ||
+    (activeTab === "REVENUE" && filterRecordType !== "ALL") ||
+    selectedDateFilter !== "" ||
+    searchTerm !== "";
+
+  const handleClearAll = () => {
+    setSearchTerm("");
+    setSelectedDateFilter("");
+    if (canViewAllSales) setFilterEmp("ALL");
+    setFilterStatus("ALL");
+    if (activeTab === "ACTIVITIES") setFilterType("ALL");
+    if (activeTab === "REVENUE") setFilterRecordType("ALL");
+  };
+
+  const timeframeOptions = [
+    { value: "DAILY", label: "Daily" },
+    { value: "WEEKLY", label: "Weekly" },
+    { value: "MONTHLY", label: "Monthly" },
+    { value: "YEARLY", label: "Yearly" },
+  ];
+
+  const empOptions = [
+    ...(canViewAllSales ? [{ value: "ALL", label: "All Representatives" }] : [{ value: user?.id, label: "My Records" }]),
+    ...(canViewAllSales ? uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name })) : []),
+  ];
+
+  const statusOptions =
+    activeTab === "ACTIVITIES"
+      ? [
+        { value: "ALL", label: "All Statuses" },
+        { value: "INCOMPLETE", label: "Planned / Incomplete" },
+        { value: "APPROVED", label: "Approved / Completed" },
+        { value: "PENDING", label: "Pending Expense Approval" },
+      ]
+      : [
+        { value: "ALL", label: "All Statuses" },
+        { value: "APPROVED", label: "Completed" },
+        { value: "INCOMPLETE", label: "Lost" },
+        ...(isVerificationEnforced
+          ? [{ value: "UNVERIFIED", label: "Pending Verification" }]
+          : []),
+      ];
+
+  const typeOptions = [
+    { value: "ALL", label: "All Activity Types" },
+    { value: "Sales Call", label: "Sales Call" },
+    { value: "In-House", label: "In-House" },
+    { value: "None", label: "Blank / None" },
+  ];
+
+  const recordTypeOptions = [
+    { value: "ALL", label: "All Record Types" },
+    { value: "SALES_ORDER", label: "Sales Orders" },
+    { value: "SALES_QUOTATION", label: "Quotations" },
+  ];
+
+  const sortOptions = [
+    { value: "NEWEST", label: "Newest first" },
+    { value: "OLDEST", label: "Oldest first" },
+    { value: "NAME", label: "By name" },
+  ];
+
+  const currentEmpLabel = empOptions.find((o) => o.value === (canViewAllSales ? filterEmp : user?.id))?.label || "All Representatives";
+  const currentStatusLabel = statusOptions.find((o) => o.value === filterStatus)?.label || "All Statuses";
+  const currentTypeLabel = typeOptions.find((o) => o.value === filterType)?.label || "All Activity Types";
+  const currentRecordTypeLabel = recordTypeOptions.find((o) => o.value === filterRecordType)?.label || "All Record Types";
+  const currentSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Newest first";
+  const currentTimeframeLabel = timeframeOptions.find((o) => o.value === timeframe)?.label || "Daily";
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4">
-      <div className="flex-1 relative">
-        <Search
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-9"
-        />
-        <input
-          type="text"
-          placeholder={
-            activeTab === "ACTIVITIES"
-              ? "Search accounts, names, or remarks..."
-              : "Search accounts, products, or reps..."
-          }
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-gray-2 border border-gray-4 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-12 outline-none focus-within:gray-6 transition-colors"
-        />
+    <div className="grid gap-3 md:gap-4">
+      {/* Row 1: Search & Permanent Filters */}
+      <div className="bg-card border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
+
+        {/* Search */}
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <Input
+            type="text"
+            placeholder={
+              activeTab === "ACTIVITIES"
+                ? "Search accounts, names, or remarks..."
+                : "Search accounts, products, or reps..."
+            }
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 block h-[40px] md:h-[46px]"
+          />
+        </div>
+
+        {/* Action Group */}
+        <div className="flex items-center gap-2 w-full xl:w-auto flex-wrap justify-between xl:justify-start relative z-10">
+          <div className="flex gap-2 items-center flex-wrap">
+
+            {/* DATE PICKER */}
+            {shouldShowDateFilter && (
+              <div
+                className={`bg-card  flex items-center border rounded-lg h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${selectedDateFilter
+                  ? "text-foreground border-primary/20 font-medium"
+                  : "border-border hover:border-border/80 text-foreground"
+                  }`}
+              >
+                {/* Timeframe Dropdown inside DatePicker wrapper */}
+                <Dropdown
+                  usePortal={true}
+                  className="h-full border-r border-border flex-center"
+                  popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-[120px] popover-enter p-1"
+                  trigger={({ isOpen }) => (
+                    <div className="flex items-center px-3 gap-1.5 cursor-pointer hover:bg-muted/60 transition-colors h-full rounded-l-lg">
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-foreground">
+                        {currentTimeframeLabel}
+                      </span>
+                      <ChevronDown
+                        size={10}
+                        className={`text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      />
+                    </div>
+                  )}
+                >
+                  {({ close }) => (
+                    <FilterOptionList
+                      options={timeframeOptions}
+                      value={timeframe}
+                      onChange={(val) => {
+                        setTimeframe(val);
+                        const today = new Date();
+                        const y = today.getFullYear();
+                        const m = String(today.getMonth() + 1).padStart(2, "0");
+                        const d = String(today.getDate()).padStart(2, "0");
+                        if (val === "YEARLY") {
+                          setSelectedDateFilter(`${y}`);
+                        } else if (val === "MONTHLY") {
+                          setSelectedDateFilter(`${y}-${m}`);
+                        } else {
+                          setSelectedDateFilter(`${y}-${m}-${d}`);
+                        }
+                      }}
+                      close={close}
+                    />
+                  )}
+                </Dropdown>
+
+                <div className="relative flex items-center px-2">
+                  <CalendarIcon size={14} className={`${selectedDateFilter ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`} />
+                  <DatePicker
+                    selected={selectedDateFilter ? new Date(selectedDateFilter) : null}
+                    onChange={(date) => {
+                      if (!date) { setSelectedDateFilter(""); return; }
+                      if (timeframe === "YEARLY") {
+                        setSelectedDateFilter(date.getFullYear().toString());
+                      } else if (timeframe === "MONTHLY") {
+                        const m = String(date.getMonth() + 1).padStart(2, "0");
+                        setSelectedDateFilter(`${date.getFullYear()}-${m}`);
+                      } else {
+                        const y = date.getFullYear();
+                        const m = String(date.getMonth() + 1).padStart(2, "0");
+                        const d = String(date.getDate()).padStart(2, "0");
+                        setSelectedDateFilter(`${y}-${m}-${d}`);
+                      }
+                    }}
+                    showMonthYearPicker={timeframe === "MONTHLY"}
+                    showYearPicker={timeframe === "YEARLY"}
+                    dateFormat={
+                      timeframe === "YEARLY" ? "yyyy" : timeframe === "MONTHLY" ? "MMMM yyyy" : "MMM d, yyyy"
+                    }
+                    isClearable={true}
+                    portalId="root"
+                    placeholderText={
+                      timeframe === "YEARLY" ? "Select Year" : timeframe === "MONTHLY" ? "Select Month" : "Select Date"
+                    }
+                    className={`bg-transparent outline-none w-[110px] text-[13px] cursor-pointer ${selectedDateFilter ? "text-foreground placeholder:text-muted-foreground font-medium" : "text-foreground placeholder:text-muted-foreground"
+                      }`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* SORTING */}
+            {sortBy !== undefined && setSortBy && (
+              <Dropdown
+                usePortal={true}
+                className="min-w-[150px] shrink-0"
+                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={currentSortLabel}
+                    isActive={sortBy !== "NEWEST"}
+                    isOpen={isOpen}
+                    icon={SlidersHorizontal}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={sortOptions}
+                    value={sortBy}
+                    onChange={setSortBy}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
+            )}
+
+            <Button
+              variant={showAdvanced ? "secondary" : "outline"}
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className={`flex items-center gap-2 h-[40px] md:h-[46px] text-[13px] shrink-0 font-semibold`}
+            >
+              <Filter size={16} />
+              Add Filter
+            </Button>
+          </div>
+
+          {/* CLEAR ALL ESCAPE HATCH */}
+          {isAnyFilterActive && (
+            <button
+              onClick={handleClearAll}
+              className="ml-auto xl:ml-2 text-sm text-muted-foreground hover:text-black font-semibold px-3 py-2 shrink-0 transition-colors"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex gap-2 flex-wrap sm:flex-nowrap">
-        {shouldShowDateFilter && (
-          <div className="flex bg-gray-2 border border-gray-4 rounded-lg overflow-hidden flex-1 sm:flex-none shadow-sm focus-within:gray-6 transition-colors">
-            <select
-              value={timeframe}
-              onChange={(e) => {
-                setTimeframe(e.target.value);
-                setSelectedDateFilter(""); // Reset date when switching granularities
-              }}
-              className="px-3 py-2 text-sm text-gray-12 outline-none font-semibold bg-transparent border-r border-gray-4 cursor-pointer"
-            >
-              <option value="DAILY">Daily</option>
-              <option value="WEEKLY">Weekly</option>
-              <option value="MONTHLY">Monthly</option>
-              <option value="YEARLY">Yearly</option>
-            </select>
-            <DatePicker
-              selected={selectedDateFilter ? new Date(selectedDateFilter) : null}
-              onChange={(date) => {
-                if (!date) {
-                  setSelectedDateFilter("");
-                  return;
-                }
-                if (timeframe === "YEARLY") {
-                  setSelectedDateFilter(date.getFullYear().toString());
-                } else if (timeframe === "MONTHLY") {
-                  const m = String(date.getMonth() + 1).padStart(2, "0");
-                  setSelectedDateFilter(`${date.getFullYear()}-${m}`);
-                } else {
-                  const y = date.getFullYear();
-                  const m = String(date.getMonth() + 1).padStart(2, "0");
-                  const d = String(date.getDate()).padStart(2, "0");
-                  setSelectedDateFilter(`${y}-${m}-${d}`);
-                }
-              }}
-              showMonthYearPicker={timeframe === "MONTHLY"}
-              showYearPicker={timeframe === "YEARLY"}
-              dateFormat={
-                timeframe === "YEARLY"
-                  ? "yyyy"
-                  : timeframe === "MONTHLY"
-                  ? "MMMM yyyy"
-                  : "MMM d, yyyy"
-              }
-              isClearable={true}
-              placeholderText={
-                timeframe === "YEARLY"
-                  ? "Select Year..."
-                  : timeframe === "MONTHLY"
-                  ? "Select Month..."
-                  : "Select Date..."
-              }
-              className="px-3 py-2 text-sm text-gray-12 outline-none font-bold bg-transparent w-full min-w-[140px] cursor-pointer"
-            />
-          </div>
-        )}
+      {/* Row 2: Advanced Filters */}
+      {showAdvanced && (
+        <div className="bg-mauve-2 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
 
-        <select
-          value={canViewAllSales ? filterEmp : user?.id}
-          onChange={(e) => setFilterEmp(e.target.value)}
-          disabled={!canViewAllSales}
-          className={`bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus:border-gray-6 font-semibold flex-1 sm:flex-none ${!canViewAllSales ? "opacity-70 cursor-not-allowed" : ""}`}
-        >
-          {canViewAllSales ? (
-            <option value="ALL">All Representatives</option>
-          ) : (
-            <option value={user?.id}>My Records</option>
-          )}
-          {canViewAllSales &&
-            uniqueEmployees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name}
-              </option>
-            ))}
-        </select>
+          {/* Status Filter */}
+          <Dropdown
+            className="flex-1 min-w-[170px]"
+            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+            trigger={({ isOpen }) => (
+              <FilterTrigger
+                label={currentStatusLabel}
+                isActive={filterStatus !== "ALL"}
+                isOpen={isOpen}
+                icon={CheckCircle2}
+              />
+            )}
+          >
+            {({ close }) => (
+              <FilterOptionList
+                options={statusOptions}
+                value={filterStatus}
+                onChange={setFilterStatus}
+                close={close}
+              />
+            )}
+          </Dropdown>
 
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus-within:border-gray-6 font-semibold flex-1 sm:flex-none cursor-pointer"
-        >
-          <option value="ALL">All Statuses</option>
-          {activeTab === "ACTIVITIES" ? (
-            <>
-              <option value="INCOMPLETE">Planned / Incomplete</option>
-              <option value="APPROVED">Approved / Completed</option>
-              <option value="PENDING">Pending Expense Approval</option>
-            </>
-          ) : (
-            <>
-              <option value="APPROVED">Completed</option>
-              <option value="INCOMPLETE">Lost</option>
-              {isVerificationEnforced && (
-                <option value="UNVERIFIED">Pending Verification</option>
+          {/* Employee Filter */}
+          <Dropdown
+            className="flex-1 min-w-[180px]"
+            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
+            disabled={!canViewAllSales}
+            trigger={({ isOpen, disabled }) => (
+              <div className={disabled ? 'opacity-50 pointer-events-none' : ''}>
+                <FilterTrigger
+                  label={currentEmpLabel}
+                  isActive={canViewAllSales && filterEmp !== "ALL"}
+                  isOpen={isOpen}
+                  icon={Users}
+                />
+              </div>
+            )}
+          >
+            {({ close }) =>
+              canViewAllSales ? (
+                <FilterOptionList
+                  options={empOptions}
+                  value={filterEmp}
+                  onChange={setFilterEmp}
+                  close={close}
+                />
+              ) : null
+            }
+          </Dropdown>
+
+          {/* Activity Type Filter */}
+          {activeTab === "ACTIVITIES" && (
+            <Dropdown
+              className="flex-1 min-w-[170px]"
+              popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+              trigger={({ isOpen }) => (
+                <FilterTrigger
+                  label={currentTypeLabel}
+                  isActive={filterType !== "ALL"}
+                  isOpen={isOpen}
+                  icon={Activity}
+                />
               )}
-            </>
-          )}
-        </select>
-
-        {activeTab === "ACTIVITIES" && (
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus-within:border-gray-6 font-semibold flex-1 sm:flex-none cursor-pointer"
-          >
-            <option value="ALL">All Activity Types</option>
-            <option value="Sales Call">Sales Call</option>
-            <option value="In-House">In-House</option>
-            <option value="None">Blank / None</option>
-          </select>
-        )}
-
-        {activeTab === "REVENUE" && (
-          <select
-            value={filterRecordType}
-            onChange={(e) => setFilterRecordType(e.target.value)}
-            className="bg-gray-2 border border-gray-4 rounded-lg px-3 py-2 text-sm text-gray-12 outline-none focus-within:border-gray-6 font-semibold flex-1 sm:flex-none cursor-pointer"
-          >
-            <option value="ALL">All Record Types</option>
-            <option value="SALES_ORDER">Sales Orders</option>
-            <option value="SALES_QUOTATION">Quotations</option>
-          </select>
-        )}
-
-        {sortBy !== undefined && setSortBy && (
-          <div className="relative flex-1 sm:flex-none min-w-[130px]">
-            <SlidersHorizontal
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-8"
-              size={14}
-            />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full appearance-none bg-gray-2 border border-gray-4 rounded-lg pl-8 pr-4 py-2 text-sm text-gray-12 outline-none focus-within:border-gray-6 font-semibold cursor-pointer"
             >
-              <option value="NEWEST">Newest first</option>
-              <option value="OLDEST">Oldest first</option>
-              <option value="NAME">By name</option>
-            </select>
-          </div>
-        )}
-      </div>
+              {({ close }) => (
+                <FilterOptionList
+                  options={typeOptions}
+                  value={filterType}
+                  onChange={setFilterType}
+                  close={close}
+                />
+              )}
+            </Dropdown>
+          )}
+
+          {/* Record Type Filter */}
+          {activeTab === "REVENUE" && (
+            <Dropdown
+              className="flex-1 min-w-[170px]"
+              popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+              trigger={({ isOpen }) => (
+                <FilterTrigger
+                  label={currentRecordTypeLabel}
+                  isActive={filterRecordType !== "ALL"}
+                  isOpen={isOpen}
+                  icon={FileText}
+                />
+              )}
+            >
+              {({ close }) => (
+                <FilterOptionList
+                  options={recordTypeOptions}
+                  value={filterRecordType}
+                  onChange={setFilterRecordType}
+                  close={close}
+                />
+              )}
+            </Dropdown>
+          )}
+        </div>
+      )}
     </div>
   );
 }

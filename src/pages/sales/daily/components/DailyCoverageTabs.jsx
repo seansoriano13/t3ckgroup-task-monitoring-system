@@ -1,4 +1,4 @@
-export function DailyCoverageTabs({
+﻿export function DailyCoverageTabs({
   weekDates,
   selectedDate,
   setSelectedDate,
@@ -11,6 +11,7 @@ export function DailyCoverageTabs({
         const todaysTasks = weeklyActivities.filter(
           (a) =>
             a.scheduled_date === wd.dateStr &&
+            !a.is_deleted &&
             (a.activity_type !== "None" ||
               (a.account_name && a.account_name.trim() !== "")),
         );
@@ -30,19 +31,21 @@ export function DailyCoverageTabs({
             onClick={() => setSelectedDate(wd.dateStr)}
             className={`flex flex-col items-center justify-center min-w-[64px] h-16 rounded-2xl border transition-all ${
               selectedDate === wd.dateStr
-                ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
+                ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
                 : allTasksDone
-                  ? "bg-green-500/10 border-green-500/30 text-green-700 hover:bg-green-500/20 shadow-sm"
-                  : "bg-gray-1 border-gray-4 text-gray-10 hover:border-gray-6"
+                  ? "bg-green-2 border-green-6 text-green-11 hover:bg-green-3 shadow-sm"
+                  : "bg-card border-border text-muted-foreground hover:border-mauve-5 hover:bg-muted/50"
             }`}
           >
             <span
-              className={`text-[10px] items-center justify-center flex font-bold uppercase tracking-widest ${selectedDate === wd.dateStr ? "text-white/80" : allTasksDone ? "text-green-600/80" : "text-gray-8"}`}
+              className={`text-[10px] items-center justify-center flex font-black uppercase tracking-widest ${
+                selectedDate === wd.dateStr ? "text-primary-foreground/80" : allTasksDone ? "text-green-10/80" : "text-muted-foreground"
+              }`}
             >
               {wd.label}{" "}
               {hasTasks && !allTasksDone && (
                 <div
-                  className={`w-1.5 h-1.5 rounded-full ${isGreen ? "bg-green-500" : "bg-yellow-500 shadow-yellow-500/50"} inline-block mb-1 ml-1 shadow-sm`}
+                  className={`w-1.5 h-1.5 rounded-full ${isGreen ? "bg-green-9" : "bg-[color:var(--yellow-9)] shadow-yellow-500/50"} inline-block mb-1 ml-1 shadow-sm`}
                 />
               )}
             </span>

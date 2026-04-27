@@ -21,8 +21,9 @@ const ManagementSection = ({
   const canEditAssignee = isHr || isHead;
 
   return (
-    <div className="grid grid-cols-2 gap-4 bg-gray-3/50 p-4 rounded-xl border border-gray-4 border-dashed">
-      <div className="col-span-2 text-xs font-bold uppercase tracking-wider mb-[-8px]">
+    <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
+      <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
         Management Details
       </div>
 
@@ -33,7 +34,7 @@ const ManagementSection = ({
             value={formData.department}
             onChange={handleDeptChange}
             disabled={!canEditOrg}
-            className="w-full bg-transparent px-3 py-2 outline-none text-sm text-gray-12 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="" disabled>
               Select...
@@ -45,7 +46,7 @@ const ManagementSection = ({
             ))}
           </select>
         ) : (
-          <p className="px-3 text-sm font-semibold text-gray-12">
+          <p className="px-3 text-sm font-semibold text-foreground">
             {formData.department || "N/A"}
           </p>
         )}
@@ -58,7 +59,7 @@ const ManagementSection = ({
             value={formData.subDepartment}
             onChange={handleSubDeptChange}
             disabled={!canEditOrg || !formData.department}
-            className="w-full bg-transparent px-3 py-2 outline-none text-sm text-gray-12 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="" disabled>
               Select...
@@ -70,7 +71,7 @@ const ManagementSection = ({
             ))}
           </select>
         ) : (
-          <p className="px-3 text-sm font-semibold text-gray-12">
+          <p className="px-3 text-sm font-semibold text-foreground">
             {formData.subDepartment || "N/A"}
           </p>
         )}
@@ -85,7 +86,7 @@ const ManagementSection = ({
               value={formData.loggedById}
               onChange={handleAssigneeChange}
               disabled={!canEditAssignee || (!formData.subDepartment && isHr)}
-              className="w-full bg-transparent px-3 py-2 outline-none text-sm text-gray-12 font-bold cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground font-bold cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="" disabled>
                 Select Employee...
@@ -97,7 +98,7 @@ const ManagementSection = ({
               ))}
             </select>
           ) : (
-            <p className="px-3 text-sm font-bold text-gray-12">
+            <p className="px-3 text-sm font-bold text-foreground">
               {taskLoggedByName}
             </p>
           )}
@@ -106,10 +107,10 @@ const ManagementSection = ({
 
       {/* 4. Reported To (Head) — Read-only display */}
       {!isEditing && reportedToName && (
-        <div className="col-span-2 pt-2 border-t border-gray-4 border-dashed">
+        <div className="col-span-2 pt-2 border-t border-border mt-1">
           <FieldBox label="Reported To (Head)" isEditing={false}>
-            <p className="px-3 text-sm font-bold text-amber-400 flex items-center gap-2">
-              <ClipboardList size={14} className="text-amber-500/60" />
+            <p className="px-3 text-sm font-bold text-[color:var(--violet-10)] flex items-center gap-2">
+              <ClipboardList size={14} className="text-[color:var(--violet-8)]" />
               {reportedToName}
             </p>
           </FieldBox>

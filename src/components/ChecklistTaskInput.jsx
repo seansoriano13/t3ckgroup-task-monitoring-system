@@ -120,8 +120,7 @@ export default function ChecklistTaskInput({
   };
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-lg p-3 space-y-4">
-
+    <>
       <div className="space-y-2">
         {items.map((item, index) => (
           <div
@@ -130,14 +129,12 @@ export default function ChecklistTaskInput({
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e)}
             onDrop={(e) => handleDrop(e, index)}
-            className={`flex items-center gap-2 group transition-all rounded p-1 ${
-              draggedIndex === index ? "opacity-50" : "hover:bg-gray-2"
-            }`}
+            className={`flex items-center gap-3 group transition-all rounded-xl p-2.5 bg-muted/30 border border-transparent hover:border-border hover:bg-muted/50 ${draggedIndex === index ? "opacity-50" : ""}`}
           >
-            <span className="text-gray-6 cursor-grab active:cursor-grabbing opacity-50 group-hover:opacity-100 flex-shrink-0 p-1 hover:bg-gray-4 rounded">
+            <span className="text-muted-foreground cursor-grab active:cursor-grabbing opacity-50 group-hover:opacity-100 flex-shrink-0 p-1 hover:bg-muted rounded-md transition-all">
               <GripVertical size={16} />
             </span>
-            <div className="w-4 h-4 border border-gray-5 rounded-sm flex-shrink-0 bg-gray-2" />
+            <div className="w-5 h-5 border border-border rounded-md flex-shrink-0 bg-card shadow-sm" />
             <input
               type="text"
               value={item.text}
@@ -154,18 +151,31 @@ export default function ChecklistTaskInput({
                   emitChange(newItems);
                   // Focus the newly created input on next render
                   setTimeout(() => {
-                    const inputs = e.target.closest(".space-y-2")?.querySelectorAll('input[type="text"]');
+                    const inputs = e.target
+                      .closest(".space-y-2")
+                      ?.querySelectorAll('input[type="text"]');
                     inputs?.[index + 1]?.focus();
                   }, 0);
+                } else if (e.key === "Backspace" && e.target.value === "") {
+                  e.preventDefault();
+                  if (items.length > 1) {
+                    const newItems = items.filter((_, i) => i !== index);
+                    setItems(newItems);
+                    emitChange(newItems);
+                    setTimeout(() => {
+                      const inputs = e.target.closest(".space-y-2")?.querySelectorAll('input[type="text"]');
+                      inputs?.[Math.max(0, index - 1)]?.focus();
+                    }, 0);
+                  }
                 }
               }}
-              placeholder="Task detail..."
-              className="flex-1 bg-transparent border-b border-transparent focus:border-red-9 outline-none text-gray-12 text-sm py-1 transition-colors"
+              placeholder="List detailed requirement..."
+              className="flex-1 bg-transparent border-none outline-none text-foreground font-medium text-sm py-1 placeholder:text-muted-foreground transition-all"
             />
             <button
               type="button"
               onClick={() => removeItem(index)}
-              className="text-gray-6 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-gray-3"
+              className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 p-1.5 rounded-lg hover:bg-destructive/10"
             >
               <X size={16} />
             </button>
@@ -173,20 +183,20 @@ export default function ChecklistTaskInput({
         ))}
       </div>
 
-      <div className="pt-2 border-t border-gray-3">
+      <div className="pt-3 border-t border-border">
         <div className="flex justify-between items-center">
           <button
             type="button"
             onClick={addItem}
-            className="flex items-center gap-1.5 text-xs font-bold text-gray-9 hover:text-primary transition-colors py-1 px-2 rounded hover:bg-gray-2"
+            className="flex items-center gap-2 text-xs font-bold text-[color:var(--violet-10)] hover:text-[color:var(--violet-11)] transition-all py-2 px-3 rounded-lg hover:bg-[color:var(--violet-2)]"
           >
-            <Plus size={14} /> Add Item
+            <Plus size={16} /> Add Item
           </button>
-          <span className="text-[10px] text-gray-8 italic pr-2">
-            Tip: Standard paste or Drag-and-drop support enabled.
+          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest bg-muted px-2 py-1 rounded-md">
+            Checklist Mode Enabled
           </span>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,10 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ShieldAlert, Star, Users, TrendingUp, Search, X, List, LayoutGrid, Rows3 } from "lucide-react";
+import {
+  Activity,
+  ShieldAlert,
+  Star,
+  Users,
+  TrendingUp,
+  Search,
+  X,
+  List,
+  LayoutGrid,
+  Rows3,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status";
+import Avatar from "./Avatar";
 
 export default function EmployeePipelineMatrix({ selectedRange }) {
   const navigate = useNavigate();
@@ -26,8 +38,12 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
   const employeeStats = useMemo(() => {
     if (!rawTasks.length) return [];
 
-    const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
-    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T23:59:59.999`) : new Date();
+    const rangeStart = selectedRange?.startDate
+      ? new Date(`${selectedRange.startDate}T00:00:00`)
+      : new Date(0);
+    const rangeEnd = selectedRange?.endDate
+      ? new Date(`${selectedRange.endDate}T23:59:59.999`)
+      : new Date();
 
     const empMap = {};
 
@@ -74,7 +90,8 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
       // Bucket Logic
       if (task.status === TASK_STATUS.INCOMPLETE) emp.draft++;
       if (task.status === TASK_STATUS.NOT_APPROVED) emp.rejected++;
-      if (task.status === TASK_STATUS.COMPLETE && !task.hrVerified) emp.pendingHr++;
+      if (task.status === TASK_STATUS.COMPLETE && !task.hrVerified)
+        emp.pendingHr++;
       if (task.hrVerified) emp.verified++;
 
       // Grade Logic
@@ -109,186 +126,333 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
   const filteredStats = useMemo(() => {
     if (!searchTerm.trim()) return employeeStats;
     const lower = searchTerm.toLowerCase();
-    return employeeStats.filter(e => 
-      e.name.toLowerCase().includes(lower) || 
-      e.subDept.toLowerCase().includes(lower) ||
-      e.dept.toLowerCase().includes(lower)
+    return employeeStats.filter(
+      (e) =>
+        e.name.toLowerCase().includes(lower) ||
+        e.subDept.toLowerCase().includes(lower) ||
+        e.dept.toLowerCase().includes(lower),
     );
   }, [employeeStats, searchTerm]);
 
   if (isLoading || employeeStats.length === 0) return null;
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl shadow-sm p-5 overflow-hidden">
+    <div className="bg-card border border-border rounded-2xl shadow-sm p-5 overflow-hidden">
       <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
         <div>
-          <h2 className="text-lg font-black text-gray-12 flex items-center gap-2 tracking-tight">
-            <Activity className="text-primary" size={20} /> Team Pipeline Radar
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 tracking-tight">
+            <div className="w-10 h-10 rounded-xl bg-mauve-2 flex items-center justify-center text-mauve-11 shadow-sm border border-mauve-4">
+              <Activity size={18} />
+            </div>
+            Team Pipeline Radar
           </h2>
-          <p className="text-sm text-gray-9 mt-0.5 font-medium">
-            {isHr
-              ? "Organization-wide metrics for: "
-              : "Performance metrics for: "}
-            <span className="font-bold text-gray-11">{selectedRange?.label || "This Range"}</span>
+          <p className="text-sm text-mauve-10  mt-0.5">
+            {isHr ? "Organization-wide metrics" : "Performance metrics"} •{" "}
+            <span className="font-semibold text-foreground">
+              {selectedRange?.label || "This Range"}
+            </span>
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-gray-2 border border-gray-4 rounded-lg px-3 py-1.5 min-w-[200px]">
-            <Search size={14} className="text-gray-9" />
+          <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1.5 min-w-[200px]">
+            <Search size={14} className="text-[#9CA3AF]" />
             <input
               type="text"
               placeholder="Search employee..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs text-gray-12 placeholder-gray-8 w-full"
+              className="bg-transparent border-none outline-none text-xs text-foreground placeholder-[#9CA3AF] w-full"
             />
             {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="text-gray-9 hover:text-gray-12">
+              <button
+                onClick={() => setSearchTerm("")}
+                className="text-[#9CA3AF] hover:text-foreground"
+              >
                 <X size={12} />
               </button>
             )}
           </div>
-          
-          <div className="flex items-center gap-1.5 bg-gray-2 border border-gray-4 p-1 rounded-lg h-full">
+
+          <div className="flex items-center gap-1.5 bg-mauve-2 border border-mauve-5 p-1 rounded-lg">
             <button
               onClick={() => setLayoutMode("row")}
-              className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-white shadow-sm text-primary" : "text-gray-9 hover:text-gray-12"}`}
+              className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
               title="Single Row"
             >
               <List size={16} />
             </button>
             <button
               onClick={() => setLayoutMode("stack")}
-              className={`p-1 rounded transition-all ${layoutMode === "stack" ? "bg-white shadow-sm text-primary" : "text-gray-9 hover:text-gray-12"}`}
+              className={`p-1 rounded transition-all ${layoutMode === "stack" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
               title="3-Row Stack"
             >
               <Rows3 size={16} />
             </button>
             <button
               onClick={() => setLayoutMode("grid")}
-              className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-white shadow-sm text-primary" : "text-gray-9 hover:text-gray-12"}`}
+              className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
               title="Full Grid"
             >
               <LayoutGrid size={16} />
             </button>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 bg-gray-2 border border-gray-4 px-3 py-1.5 rounded-lg h-full">
-            <Users size={14} className="text-gray-10" />
-            <span className="text-xs font-bold text-gray-11 tracking-wider uppercase">
-              {employeeStats.length} Members Active
+          <div className="hidden sm:flex items-center gap-1.5 bg-card border border-border px-3 py-1.5 rounded-lg h-full">
+            <Users size={14} className="text-[#9CA3AF]" />
+            <span className="text-xs text-[#6B7280]">
+              {employeeStats.length} members
             </span>
           </div>
         </div>
       </div>
 
       {/* DYNAMIC PIPELINE GRID */}
-      <div className={`
-        ${layoutMode === "row" ? "flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
-        ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
-        ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 px-0.5" : ""}
-      `}>
+      <div
+        className={`
+        ${layoutMode === "row" ? "flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+        ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+        ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4" : ""}
+      `}
+      >
         {filteredStats.map((emp) => (
           <div
             key={emp.id}
-            onClick={() => navigate("/tasks", { state: { filterEmployeeId: emp.id } })}
-            className={`cursor-pointer bg-gray-2 border border-gray-4 rounded-xl p-4 flex flex-col gap-4 transition-colors hover:border-gray-5 ${
-              layoutMode === "grid" ? "w-full" : "min-w-[280px] sm:min-w-[320px] snap-start"
+            onClick={() =>
+              navigate("/tasks", { state: { filterEmployeeId: emp.id } })
+            }
+            className={`cursor-pointer flex flex-col transition-colors hover:bg-mauve-3 hover:border-mauve-5 ${
+              layoutMode === "grid"
+                ? "w-full"
+                : "min-w-[260px] sm:min-w-[290px] snap-start"
             }`}
+            style={{
+              border: "1px solid #E5E7EB",
+              borderRadius: "8px",
+              padding: "16px",
+              boxShadow: "none",
+            }}
           >
             {/* Header: Avatar & Name */}
-            <div className="flex justify-between items-start gap-3">
-              <div className="flex gap-3 items-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-red-9 flex items-center justify-center text-white font-black shadow-md shrink-0">
-                  {emp.name.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-12 text-sm line-clamp-1">
+            <div className="flex justify-between items-center gap-2">
+              <div className="flex gap-2.5 items-center min-w-0">
+                <Avatar
+                  className="bg-white"
+                  size="sm"
+                  name={emp.name.charAt(0)}
+                />
+                <div className="min-w-0">
+                  <h3
+                    className="line-clamp-1"
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#111827",
+                    }}
+                  >
                     {emp.name}
                   </h3>
-                  <p className="text-[10px] font-bold text-gray-8 uppercase tracking-wider line-clamp-1">
+                  <p
+                    className="line-clamp-1"
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 400,
+                      color: "#6B7280",
+                    }}
+                  >
                     {emp.subDept}
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col items-end">
-                <div className="flex items-center gap-1 text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
-                  <Star size={12} className="fill-current" />
-                  <span className="text-xs font-black">{emp.avgGrade}</span>
-                </div>
+              <div
+                className="flex items-center gap-1 shrink-0"
+                style={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "9999px",
+                  padding: "2px 8px",
+                  background: "transparent",
+                }}
+              >
+                <Star size={11} className="text-mauve-6 fill-gray-6" />
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "#111827",
+                  }}
+                >
+                  {emp.avgGrade}
+                </span>
               </div>
             </div>
 
             {/* Segmented Pipeline Bar */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-9">
+            <div style={{ marginTop: "14px" }}>
+              <div
+                className="flex justify-between"
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "#9CA3AF",
+                  marginBottom: "6px",
+                }}
+              >
                 <span>Task Pipeline</span>
-                <span className="text-gray-11">{emp.total} Total</span>
+                <span style={{ color: "#374151" }}>{emp.total} Total</span>
               </div>
 
-              {/* The Visual Bar */}
-              <div className="h-3 w-full bg-gray-3 rounded-full overflow-hidden flex shadow-inner">
+              <div
+                className="w-full overflow-hidden flex"
+                style={{
+                  height: "7px",
+                  borderRadius: "2px",
+                  background: "#F3F4F6",
+                }}
+              >
                 {emp.draft > 0 && (
                   <div
-                    style={{ width: `${(emp.draft / emp.total) * 100}%` }}
-                    className="bg-blue-500 border-r border-gray-1"
-                    title={`${emp.draft} Drafts`}
+                    className="bg-orange-a7"
+                    style={{
+                      width: `${(emp.draft / emp.total) * 100}%`,
+                    }}
+                    title={`${emp.draft} Incomplete`}
                   />
                 )}
                 {emp.rejected > 0 && (
                   <div
-                    style={{ width: `${(emp.rejected / emp.total) * 100}%` }}
-                    className="bg-red-500 border-r border-gray-1"
+                    className="bg-red-a7"
+                    style={{
+                      width: `${(emp.rejected / emp.total) * 100}%`,
+                    }}
                     title={`${emp.rejected} Rejected`}
                   />
                 )}
                 {emp.pendingHr > 0 && (
                   <div
-                    style={{ width: `${(emp.pendingHr / emp.total) * 100}%` }}
-                    className="bg-amber-500 border-r border-gray-1"
+                    className="bg-blue-a7"
+                    style={{
+                      width: `${(emp.pendingHr / emp.total) * 100}%`,
+                    }}
                     title={`${emp.pendingHr} Pending HR`}
                   />
                 )}
                 {emp.verified > 0 && (
                   <div
-                    style={{ width: `${(emp.verified / emp.total) * 100}%` }}
-                    className="bg-green-500"
+                    className="bg-green-a7"
+                    style={{
+                      width: `${(emp.verified / emp.total) * 100}%`,
+                    }}
                     title={`${emp.verified} Verified`}
                   />
                 )}
               </div>
 
-              {/* Legend / Breakdown */}
-              <div className="flex justify-between text-[10px] font-semibold text-gray-8 pt-1">
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  {emp.draft} Incomplete
+              {/* Legend – ultra-clean: dot + number only */}
+              <div
+                className="flex items-center gap-3"
+                style={{ paddingTop: "8px" }}
+              >
+                <span
+                  className="flex items-center gap-1"
+                  style={{ fontSize: "12px", color: "#6B7280" }}
+                >
+                  <span
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: "#F59E0B",
+                      display: "inline-block",
+                    }}
+                  />
+                  {emp.draft}
+                  <span>Inc</span>
                 </span>
                 {emp.rejected > 0 && (
-                  <span className="flex items-center gap-1 text-red-500">
-                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                    {emp.rejected} Rej
+                  <span
+                    className="flex items-center gap-1"
+                    style={{ fontSize: "12px", color: "#6B7280" }}
+                  >
+                    <span
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "#EF4444",
+                        display: "inline-block",
+                      }}
+                    />
+                    {emp.rejected}
+                    <span>Rej</span>
                   </span>
                 )}
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                  {emp.pendingHr} HR
+                <span
+                  className="flex items-center gap-1"
+                  style={{ fontSize: "12px", color: "#6B7280" }}
+                >
+                  <span
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: "#3B82F6",
+                      display: "inline-block",
+                    }}
+                  />
+                  {emp.pendingHr}
+                  <span>Hr</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  {emp.verified} Ver
+                <span
+                  className="flex items-center gap-1"
+                  style={{ fontSize: "12px", color: "#6B7280" }}
+                >
+                  <span
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: "#22C55E",
+                      display: "inline-block",
+                    }}
+                  />
+                  {emp.verified}
+                  <span>Ver</span>
                 </span>
               </div>
             </div>
 
             {/* Completion Rate Footer */}
-            <div className="pt-3 border-t border-gray-4 flex justify-between items-center mt-auto">
-              <span className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+            <div
+              className="flex justify-between items-center mt-auto"
+              style={{
+                paddingTop: "12px",
+                marginTop: "14px",
+                borderTop: "1px solid #E5E7EB",
+              }}
+            >
+              <span
+                style={{ fontSize: "12px", fontWeight: 500, color: "#6B7280" }}
+              >
                 Completion Rate
               </span>
-              <span className="text-sm font-black text-green-500 flex items-center gap-1">
-                {emp.completionRate}% <TrendingUp size={14} />
+              <span
+                className="flex items-center gap-1"
+                style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}
+              >
+                {emp.completionRate}%
+                <TrendingUp
+                  size={13}
+                  style={{
+                    color:
+                      emp.completionRate >= 80
+                        ? "#22C55E"
+                        : emp.completionRate >= 50
+                          ? "#F59E0B"
+                          : "#EF4444",
+                  }}
+                />
               </span>
             </div>
           </div>

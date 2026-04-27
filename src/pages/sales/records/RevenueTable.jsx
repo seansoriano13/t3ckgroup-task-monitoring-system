@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+﻿import { useNavigate } from "react-router";
 import {
   AlertCircle,
   Briefcase,
@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Pagination from "./Pagination";
 import { REVENUE_STATUS, SALES_PLAN_STATUS } from "../../../constants/status";
+import { confirmDeleteToast } from "../../../components/ui/CustomToast";
 
 /**
  * Full Revenue tab: record-type sub-filter tabs + table + pagination.
@@ -28,16 +29,16 @@ export default function RevenueTable({
   return (
     <div className="space-y-4">
       {/* Record Type Sub-filter */}
-      <div className="flex gap-2 bg-gray-2 p-1 rounded-lg border border-gray-4 shadow-inner overflow-x-auto w-max mb-2">
+      <div className="flex gap-2 bg-mauve-2 p-1 rounded-lg border border-mauve-4 shadow-inner overflow-x-auto w-max mb-2">
         {["ALL", "SALES_ORDER", "SALES_QUOTATION"].map((type) => (
           <button
             key={type}
             onClick={() => setFilterRecordType(type)}
             className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${filterRecordType === type
               ? type === "SALES_QUOTATION"
-                ? "bg-blue-600 text-white shadow"
-                : "bg-gray-12 text-gray-1 shadow"
-              : "text-gray-9 hover:text-gray-12 hover:bg-gray-3"
+                ? "bg-blue-600 text-primary-foreground shadow"
+                : "bg-foreground text-mauve-1 shadow"
+              : "text-muted-foreground hover:text-foreground hover:bg-mauve-3"
               }`}
           >
             {type === "ALL"
@@ -49,40 +50,40 @@ export default function RevenueTable({
         ))}
       </div>
 
-      <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-mauve-1 border border-mauve-4 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-2 border-b border-gray-4">
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">Date</th>
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">Sales Rep</th>
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">Account</th>
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">Product Sold</th>
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">Type</th>
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider">Record #</th>
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-right">
+              <tr className="bg-mauve-2 border-b border-mauve-4">
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider">Date</th>
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider">Sales Rep</th>
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider">Account</th>
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider">Product Sold</th>
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider">Type</th>
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider">Record #</th>
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider text-right">
                   {filterRecordType === "SALES_ORDER"
                     ? "Revenue (₱)"
                     : filterRecordType === "SALES_QUOTATION"
                       ? "Quotation (₱)"
                       : "Value (₱)"}
                 </th>
-                <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center">Status</th>
+                <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider text-center">Status</th>
                 {user?.isSuperAdmin && (
-                  <th className="p-4 text-xs font-bold text-gray-10 uppercase tracking-wider text-center w-12"></th>
+                  <th className="p-4 text-xs font-bold text-mauve-10 uppercase tracking-wider text-center w-12"></th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-4">
               {isLoading ? (
                 <tr>
-                  <td colSpan="9" className="p-10 text-center text-gray-9 font-bold">
+                  <td colSpan="9" className="p-10 text-center text-muted-foreground font-bold">
                     Loading Revenue Logs...
                   </td>
                 </tr>
               ) : filteredRevenue.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="p-10 text-center text-gray-9 font-bold flex justify-center gap-2 items-center">
+                  <td colSpan="9" className="p-10 text-center text-muted-foreground font-bold flex justify-center gap-2 items-center">
                     <AlertCircle /> No log entries match the filters.
                   </td>
                 </tr>
@@ -93,30 +94,30 @@ export default function RevenueTable({
                     <tr
                       key={log.id}
                       onClick={() => onRowClick(log)}
-                      className="hover:bg-gray-3/50 cursor-pointer transition-colors"
+                      className="hover:bg-mauve-3/50 cursor-pointer transition-colors"
                     >
                       <td className="p-4">
-                        <span className="font-mono text-sm font-bold text-gray-12">{log.date}</span>
+                        <span className="font-mono text-sm font-bold text-foreground">{log.date}</span>
                       </td>
                       <td className="p-4 text-sm">
-                        <p className="font-bold text-gray-12">{log.employees?.name || "Unknown"}</p>
-                        <p className="text-[10px] font-bold text-gray-9 uppercase">
+                        <p className="font-bold text-foreground">{log.employees?.name || "Unknown"}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">
                           {log.employees?.sub_department || log.employees?.department || "No Dept"}
                         </p>
                       </td>
-                      <td className="p-4 font-bold text-sm text-gray-12">{log.account}</td>
-                      <td className="p-4 text-xs font-semibold text-gray-11">{log.product_item_sold}</td>
+                      <td className="p-4 font-bold text-sm text-foreground">{log.account}</td>
+                      <td className="p-4 text-xs font-semibold text-mauve-11">{log.product_item_sold}</td>
                       <td className="p-4 text-center">
                         <RecordTypeBadge recordType={log.record_type} />
                       </td>
                       <td className="">
-                        <p className="text-[10px] font-black text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
+                        <p className="text-[10px] font-black text-[color:var(--amber-10)] bg-warning/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
                           {log.record_type === "SALES_QUOTATION"
                             ? (log.quotation_number || "—")
                             : (log.so_number || "—")}
                         </p>
                       </td>
-                      <td className={`p-4 text-right font-black ${log.record_type === "SALES_QUOTATION" ? "text-blue-600" : "text-green-600"}`}>
+                      <td className={`p-4 text-right font-black ${log.record_type === "SALES_QUOTATION" ? "text-[color:var(--blue-10)]" : "text-green-10"}`}>
                         ₱{log.revenue_amount?.toLocaleString() || "0"}
                       </td>
                       <td className="p-4 text-center">
@@ -142,7 +143,7 @@ export default function RevenueTable({
                                 },
                               });
                             }}
-                            className="flex-center gap-1 p-1.5 rounded-lg text-blue-600 hover:bg-blue-500/10 transition-colors"
+                            className="flex-center gap-1 p-1.5 rounded-lg text-[color:var(--blue-10)] hover:bg-[color:var(--blue-9)]/10 transition-colors"
                           >
                             <p className="font-bold text-sm uppercase">Convert</p>{" "}
                             <Briefcase size={14} />
@@ -156,15 +157,13 @@ export default function RevenueTable({
                             disabled={deleteRevenueMutation.isPending}
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (
-                                window.confirm(
-                                  `Delete this ${log.record_type === "SALES_QUOTATION" ? "quotation" : "sales order"} (₱${Number(log.revenue_amount).toLocaleString()} – ${log.account})? This is a soft-delete and can be recovered from the database if needed.`,
-                                )
-                              ) {
-                                deleteRevenueMutation.mutate(log.id);
-                              }
+                              confirmDeleteToast(
+                                `Delete ${log.record_type === "SALES_QUOTATION" ? "Quotation" : "Sales Order"}?`,
+                                `₱${Number(log.revenue_amount).toLocaleString()} – ${log.account}. This is a soft-delete and can be recovered from the database.`,
+                                () => deleteRevenueMutation.mutate(log.id)
+                              );
                             }}
-                            className="p-1.5 rounded-lg transition-colors text-gray-8 hover:text-red-500 hover:bg-red-500/10"
+                            className="p-1.5 rounded-lg transition-colors text-mauve-8 hover:text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -194,7 +193,7 @@ function RecordTypeBadge({ recordType }) {
   if (recordType === "SALES_QUOTATION") {
     return (
       <span
-        className="bg-blue-500/10 text-blue-600 border border-blue-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
+        className="bg-[color:var(--blue-9)]/10 text-[color:var(--blue-10)] border border-blue-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
         title="Sales Quotation"
       >
         QN
@@ -203,7 +202,7 @@ function RecordTypeBadge({ recordType }) {
   }
   return (
     <span
-      className="bg-green-500/10 text-green-600 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
+      className="bg-green-9/10 text-green-10 border border-green-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
       title="Sales Order"
     >
       SO
@@ -218,7 +217,7 @@ function RevenueStatusBadge({ log, isVerificationEnforced }) {
     log.is_verified === false
   ) {
     return (
-      <span className="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+      <span className="bg-orange-500/10 text-[color:var(--amber-10)] border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
         PENDING
       </span>
     );
@@ -231,7 +230,7 @@ function RevenueStatusBadge({ log, isVerificationEnforced }) {
   ) {
     return (
       <span
-        className={`${log.record_type === "SALES_QUOTATION" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-green-500/10 text-green-500 border-green-500/20"} border px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest`}
+        className={`${log.record_type === "SALES_QUOTATION" ? "bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] border-blue-500/20" : "bg-green-9/10 text-green-9 border-green-500/20"} border px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest`}
       >
         {log.record_type === "SALES_QUOTATION" ? "SUBMITTED" : "COMPLETED"}
       </span>
@@ -239,7 +238,7 @@ function RevenueStatusBadge({ log, isVerificationEnforced }) {
   }
 
   return (
-    <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+    <span className="bg-destructive/10 text-destructive border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
       LOST
     </span>
   );

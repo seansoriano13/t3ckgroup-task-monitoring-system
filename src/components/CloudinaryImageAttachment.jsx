@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+﻿import { useState, useRef, useEffect, useCallback } from "react";
 import { X, ImagePlus, Loader2, Maximize2, ClipboardPaste } from "lucide-react";
 import { storageService } from "../services/storageService";
 import toast from "react-hot-toast";
@@ -105,7 +105,7 @@ export default function CloudinaryImageAttachment({
       {attachments.length > 0 && (
          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {attachments.map((url, index) => (
-              <div key={url} className="relative group rounded-lg overflow-hidden border border-gray-4 bg-gray-2 aspect-square flex-center">
+              <div key={url} className="relative group rounded-lg overflow-hidden border border-mauve-4 bg-mauve-2 aspect-square flex-center">
                   <img 
                     src={url} 
                     alt={`Attachment ${index + 1}`} 
@@ -116,14 +116,14 @@ export default function CloudinaryImageAttachment({
                   <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                         onClick={(e) => { e.stopPropagation(); setFullscreenImage(url); }}
-                        className="bg-black/60 hover:bg-black/80 text-white p-1 rounded backdrop-blur-sm"
+                        className="bg-black/60 hover:bg-mauve-12/80 text-primary-foreground p-1 rounded backdrop-blur-sm"
                     >
                         <Maximize2 size={12} />
                     </button>
                     {!readOnly && (
                       <button 
                           onClick={(e) => { e.stopPropagation(); handleDelete(url); }}
-                          className="bg-red-500/80 hover:bg-red-600 text-white p-1 rounded backdrop-blur-sm"
+                          className="bg-destructive/80 hover:bg-destructive text-primary-foreground p-1 rounded backdrop-blur-sm"
                       >
                           <X size={12} />
                       </button>
@@ -141,7 +141,7 @@ export default function CloudinaryImageAttachment({
              type="button"
              onClick={() => fileInputRef.current?.click()}
              disabled={isUploading || activityId === "NEW"}
-             className="w-full py-4 border-2 border-dashed border-gray-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-gray-9 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+             className="w-full py-4 border-2 border-dashed border-mauve-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
            >
              {isUploading ? (
                 <>
@@ -156,7 +156,7 @@ export default function CloudinaryImageAttachment({
              )}
            </button>
            {activityId !== "NEW" && !isUploading && (
-             <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-7 font-medium">
+             <p className="flex items-center justify-center gap-1.5 text-[11px] text-mauve-7 font-medium">
                <ClipboardPaste size={12} />
                Or paste a screenshot directly (Ctrl+V)
              </p>
@@ -171,7 +171,7 @@ export default function CloudinaryImageAttachment({
            onClick={() => setFullscreenImage(null)}
          >
            <button 
-             className="absolute top-6 right-6 text-white hover:text-red-500 transition-colors bg-black/50 p-2 rounded-full"
+             className="absolute top-6 right-6 text-primary-foreground hover:text-destructive transition-colors bg-black/50 p-2 rounded-full"
              onClick={() => setFullscreenImage(null)}
            >
              <X size={24} />

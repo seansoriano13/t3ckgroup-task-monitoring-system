@@ -25,6 +25,7 @@ export const activeChatService = {
     if (!userId || !entityType || !entityId) return;
 
     // Upsert the read receipt. Convert entityId to string to match the DB schema (TEXT)
+    // Add 1000ms strictly to overwrite any clock-skew and ensure it lands after created_at
     const { error } = await supabase
       .from("chat_read_receipts")
       .upsert(
@@ -32,7 +33,7 @@ export const activeChatService = {
           user_id: userId,
           entity_type: entityType,
           entity_id: String(entityId),
-          last_read_at: new Date().toISOString(),
+          last_read_at: new Date(Date.now() + 1000).toISOString(),
         },
         { onConflict: "user_id,entity_type,entity_id" } // Upsert condition
       );
@@ -41,4 +42,44 @@ export const activeChatService = {
        console.error("Failed to mark chat as read:", error);
     }
   },
+
+  /**
+   * Bulk archive chats
+   */
+  async archiveChats(userId, chats) {
+    if (!userId || !chats || chats.length === 0) return;
+    
+    const payload = chats.map(c => ({
+      user_id: userId,
+      entity_type: c.entityType || c.entity_type,
+      entity_id: String(c.entityId || c.entity_id),
+      archived_at: new Date().toISOString()
+    }));
+
+    const { error } = await supabase
+      .from("chat_user_archives")
+      .upsert(payload, { onConflict: "user_id,entity_type,entity_id" });
+
+    if (error) throw new Error(error.message);
+  },
+
+  /**
+   * Bulk unarchive chats
+   */
+  async unarchiveChats(userId, chats) {
+    if (!userId || !chats || chats.length === 0) return;
+    
+    const promises = chats.map(c => 
+      supabase.from("chat_user_archives")
+        .delete()
+        .eq("user_id", userId)
+        .eq("entity_type", c.entityType || c.entity_type)
+        .eq("entity_id", String(c.entityId || c.entity_id))
+    );
+    
+    const results = await Promise.all(promises);
+    for (const res of results) {
+      if (res.error) throw new Error(res.error.message);
+    }
+  }
 };

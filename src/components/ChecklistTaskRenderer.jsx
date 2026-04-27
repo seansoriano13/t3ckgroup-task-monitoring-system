@@ -75,24 +75,26 @@ export default function ChecklistTaskRenderer({
 
   if (!isJson) {
     return (
-      <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
+      <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground leading-relaxed text-[15px] whitespace-pre-wrap shadow-sm">
         {description}
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-1 p-4 rounded-xl border border-gray-4 text-gray-12 text-sm leading-relaxed whitespace-pre-wrap space-y-3 shadow-inner">
+    <>
       {title && (
-        <div className="pb-2 border-b border-gray-3 mb-2">
-          <h4 className="font-bold text-gray-12">{title}</h4>
+        <div className="pb-3 border-b border-border/50 mb-3">
+          <h4 className="font-extrabold text-foreground uppercase tracking-wider text-[11px]">
+            {title}
+          </h4>
         </div>
       )}
-      <div className="space-y-1">
+      <div className="space-y-2">
         {items.map((item, i) => (
           <div
             key={i}
-            className={`flex items-start gap-3 py-1.5 transition-opacity ${item.checked ? "opacity-60 hover:opacity-100" : ""}`}
+            className={`flex items-center gap-3 py-2 px-4 rounded-xl transition-all duration-300 border ${item.checked ? "bg-muted/20 opacity-60 border-transparent" : "bg-card shadow-sm border-border/40 hover:border-border"}`}
           >
             <button
               onClick={(e) => {
@@ -100,25 +102,24 @@ export default function ChecklistTaskRenderer({
                 handleCheck(i);
               }}
               disabled={disabled || !isOwner}
-              className={`mt-0.5 shrink-0 transition-transform active:scale-75 disabled:cursor-not-allowed`}
+              className={`shrink-0 transition-all duration-300 active:scale-75 disabled:cursor-not-allowed flex items-center justify-center`}
             >
               {item.checked ? (
-                <CheckCircle2 size={18} className="text-green-500" />
+                <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center shadow-lg shadow-green-5">
+                  <CheckCircle2 size={12} className="text-primary-foreground" />
+                </div>
               ) : (
-                <Circle
-                  size={18}
-                  className="text-gray-6 hover:text-gray-8 transition-colors hover:scale-110"
-                />
+                <div className="w-5 h-5 rounded-full border-2 border-mauve-5 bg-card hover:border-indigo-400 hover:scale-110 transition-all" />
               )}
             </button>
             <span
-              className={`flex-1 min-w-0 ${item.checked ? "line-through text-gray-8" : "text-gray-12 font-medium"}`}
+              className={`flex-1 min-w-0 font-medium text-[13px] leading-tight ${item.checked ? "line-through text-muted-foreground" : "text-foreground"}`}
             >
               {item.text}
             </span>
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

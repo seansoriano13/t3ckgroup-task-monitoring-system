@@ -10,6 +10,7 @@ import {
   Undo2,
 } from "lucide-react";
 import { TASK_STATUS } from "../constants/status.js";
+import { Button } from "@/components/ui/button";
 
 const TaskFooter = ({ actions, permissions, state }) => {
   const {
@@ -30,30 +31,31 @@ const TaskFooter = ({ actions, permissions, state }) => {
   const { isEditing, isSubmitting, task, formIsValid } = state;
 
   return (
-    <div className="p-4 border-t border-gray-4 bg-gray-1 flex justify-between items-center shrink-0 rounded-b-xl">
+    <div className="px-5 py-3 border-t border-border bg-card flex justify-between items-center shrink-0 rounded-b-xl">
       {/* ========================================= */}
       {/* LEFT: CANCEL / CLOSE & DELETE ZONE          */}
       {/* ========================================= */}
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant="ghost"
           onClick={isEditing ? onCancel : onClose}
-          className="text-sm font-bold text-gray-10 hover:text-gray-12 px-4 py-2 rounded-lg hover:bg-gray-3 transition-colors"
+          className="text-sm font-bold text-muted-foreground hover:text-foreground"
         >
           {isEditing ? "Cancel" : "Close"}
-        </button>
+        </Button>
 
         {!isEditing &&
           (isManagement || (isOwner && task.status === TASK_STATUS.INCOMPLETE)) && (
-            <button
+            <Button
+              variant="outline"
               onClick={onDelete}
               disabled={isSubmitting}
-              className="text-sm font-bold text-gray-9 hover:text-red-11 hover:bg-red-a3 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="text-sm font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-none shadow-none"
               title="Delete Task"
             >
               <Trash2 size={16} />
-              <span className="hidden sm:inline">Delete</span>{" "}
-              {/* Hides text on tiny screens */}
-            </button>
+              <span className="hidden sm:inline">Delete</span>
+            </Button>
           )}
       </div>
 
@@ -63,10 +65,10 @@ const TaskFooter = ({ actions, permissions, state }) => {
       <div className="flex items-center gap-2.5">
         {/* --- EDITING STATE --- */}
         {isEditing ? (
-          <button
+          <Button
             onClick={onSave}
             disabled={!formIsValid || isSubmitting}
-            className="bg-primary hover:bg-primary-hover text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-all shadow-md shadow-red-a3 active:scale-95 disabled:opacity-50 flex items-center gap-2"
+            className="font-bold px-6 h-9 text-sm"
           >
             {isSubmitting ? (
               <Loader2 size={16} className="animate-spin" />
@@ -74,17 +76,18 @@ const TaskFooter = ({ actions, permissions, state }) => {
               <CheckCircle size={16} />
             )}
             {isSubmitting ? "Saving..." : "Save"}
-          </button>
+          </Button>
         ) : (
           <>
             {/* --- AUTHOR ACTION --- */}
             {canEdit && (
-              <button
+              <Button
+                variant="outline"
                 onClick={onToggleEdit}
-                className="bg-gray-3 hover:bg-gray-4 border border-gray-4 text-gray-12 text-sm font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2 active:scale-95"
+                className="font-bold flex items-center gap-2 h-9 text-sm"
               >
                 <Edit3 size={16} /> Edit
-              </button>
+              </Button>
             )}
 
             {/* --- SUBMIT FOR REVIEW (Marketing always / All when setting enabled) --- */}
@@ -92,14 +95,14 @@ const TaskFooter = ({ actions, permissions, state }) => {
               isOwner &&
               (task.status === TASK_STATUS.INCOMPLETE ||
                 task.status === TASK_STATUS.NOT_APPROVED) && (
-                <button
+                <Button
                   onClick={onSubmitApproval}
                   disabled={
                     isSubmitting ||
                     (state.isMarketing && !state.hasAttachments) ||
                     state.task.status === TASK_STATUS.AWAITING_APPROVAL
                   }
-                  className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
                 >
                   {isSubmitting ? (
                     <Loader2 size={16} className="animate-spin" />
@@ -107,38 +110,40 @@ const TaskFooter = ({ actions, permissions, state }) => {
                     <CheckCircle size={16} />
                   )}
                   {state.isMarketing ? "Mark as Done" : "Submit for Review"}
-                </button>
+                </Button>
               )}
 
             {(state.isMarketing || state.universalTaskSubmission) &&
               isOwner &&
               task.status === TASK_STATUS.AWAITING_APPROVAL && (
-                <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-3">
                   {state.isDelayed && state.enableSelfVerification && (
-                    <button
+                    <Button
+                      variant="secondary"
                       onClick={onSelfVerify}
-                      className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-2"
+                      className="bg-purple-600 hover:bg-purple-700 text-primary-foreground font-bold h-9 px-4"
                       title="Bypass unresponsive head approval"
                     >
                       <ShieldCheck size={14} /> Self-Verify
-                    </button>
+                    </Button>
                   )}
 
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={onRecallTask}
                     disabled={isSubmitting}
-                    className="bg-gray-3 border border-gray-4 hover:border-orange-500 hover:text-orange-500 text-gray-11 text-xs font-bold px-3 py-2 rounded-lg transition-colors active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                    className="h-9 px-4 font-bold border-border hover:border-orange-500 hover:text-orange-600"
                     title="Recall this task to make edits"
                   >
                     <Undo2 size={14} /> Recall
-                  </button>
+                  </Button>
 
-                  <div className="text-xs font-bold text-blue-500 flex items-center gap-1.5 px-1">
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-[color:var(--blue-10)] flex items-center gap-1.5 px-2">
                     <Clock size={16} />
                     {state.isDelayed && state.enableVisualShaming ? (
-                      <span className="text-red-500 animate-pulse">DELAYED (Pending Review)</span>
+                      <span className="text-destructive animate-pulse">DELAYED</span>
                     ) : (
-                      "Waiting for Review"
+                      "Pending Review"
                     )}
                   </div>
                 </div>
@@ -148,19 +153,20 @@ const TaskFooter = ({ actions, permissions, state }) => {
             {canEvaluate &&
               (task.status === TASK_STATUS.INCOMPLETE ||
                 task.status === TASK_STATUS.AWAITING_APPROVAL) && (
-                <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:ml-1 sm:border-l border-gray-4">
-                  <button
+                 <div className="flex items-center gap-3 pl-3 ml-1 border-l border-border">
+                  <Button
+                    variant="outline"
                     onClick={onHeadReject}
                     disabled={isSubmitting}
-                    className="bg-gray-2 border border-gray-4 text-gray-11 hover:text-red-11 hover:border-red-a5 text-sm font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-sm font-bold text-muted-foreground hover:text-destructive hover:border-destructive/30 h-9"
                   >
                     <XCircle size={16} /> Not Approve
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     onClick={onMarkComplete}
                     disabled={isSubmitting || !state.canApprove}
-                    className="bg-green-600 hover:bg-green-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-green-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-green-9 hover:bg-green-9 text-primary-foreground font-bold px-5 h-9 text-sm shadow-green-900/10"
                   >
                     {isSubmitting ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -168,16 +174,16 @@ const TaskFooter = ({ actions, permissions, state }) => {
                       <CheckCircle size={16} />
                     )}
                     Approve
-                  </button>
+                  </Button>
                 </div>
               )}
 
             {/* --- HR ACTIONS (VERIFICATION) --- */}
             {isHr && task.status === TASK_STATUS.COMPLETE && !task.hrVerified && (
-              <button
+              <Button
                 onClick={onHrVerify}
                 disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors shadow-md shadow-blue-900/20 active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
               >
                 {isSubmitting ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -185,14 +191,15 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   <ShieldCheck size={16} />
                 )}
                 Verify & Sign
-              </button>
+              </Button>
             )}
 
             {isHr && task.hrVerified && (
-              <button
+              <Button
+                variant="outline"
                 onClick={onUndoVerify}
                 disabled={isSubmitting}
-                className="bg-gray-3 border border-gray-4 hover:border-orange-500 hover:text-orange-500 text-gray-11 text-sm font-bold px-4 py-2.5 rounded-lg transition-colors active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                className="font-bold px-4 h-9 text-sm"
               >
                 {isSubmitting ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -200,7 +207,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   <RotateCcw size={16} />
                 )}
                 Undo
-              </button>
+              </Button>
             )}
           </>
         )}

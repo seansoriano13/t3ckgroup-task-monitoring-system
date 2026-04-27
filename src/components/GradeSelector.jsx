@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GradeSelector — Extracted from ManagerEvaluation.
  * Renders the 1-5 grade buttons for head task evaluation.
  *
@@ -11,25 +11,18 @@ export default function GradeSelector({
   onSelect,
   canEvaluate = false,
   finalized = false,
+  compact = false,
 }) {
   const activeColorMap = {
-    1: "bg-red-500 text-gray-1 border-red-500 shadow-red-500/40",
-    2: "bg-orange-500 text-gray-1 border-orange-500 shadow-orange-500/40",
-    3: "bg-yellow-500 text-gray-1 border-yellow-500 shadow-yellow-500/40",
-    4: "bg-lime-500 text-gray-1 border-lime-500 shadow-lime-500/40",
-    5: "bg-green-500 text-gray-1 border-green-500 shadow-green-500/40",
-  };
-
-  const hoverColorMap = {
-    1: "hover:bg-red-600",
-    2: "hover:bg-orange-600",
-    3: "hover:bg-yellow-600",
-    4: "hover:bg-lime-600",
-    5: "hover:bg-green-600",
+    1: "bg-destructive text-primary-foreground border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]",
+    2: "bg-orange-500 text-primary-foreground border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]",
+    3: "bg-amber-500 text-primary-foreground border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]",
+    4: "bg-lime-500 text-primary-foreground border-lime-500 shadow-[0_0_15px_rgba(132,204,22,0.3)]",
+    5: "bg-green-9 text-primary-foreground border-green-9 shadow-[0_0_15px_rgba(16,185,129,0.3)]",
   };
 
   return (
-    <div className="flex gap-2">
+    <div className={`flex ${compact ? "gap-1" : "gap-2"}`}>
       {[1, 2, 3, 4, 5].map((num) => {
         const isSelected = grade === num;
 
@@ -37,10 +30,12 @@ export default function GradeSelector({
           return (
             <div
               key={num}
-              className={`flex-1 py-2.5 rounded-lg font-black border text-sm text-center transition-all ${
+              className={`flex items-center justify-center rounded-lg font-black border transition-all ${
+                compact ? "w-6 h-7 text-[10px]" : "flex-1 py-3 text-sm"
+              } ${
                 isSelected
-                  ? `${activeColorMap[num]} shadow-md scale-[1.05]`
-                  : "bg-gray-2 text-gray-10 border-gray-4 opacity-40"
+                  ? `${activeColorMap[num]} scale-105 z-10`
+                  : "bg-muted/10 text-muted-foreground/30 border-transparent"
               }`}
             >
               {num}
@@ -54,14 +49,14 @@ export default function GradeSelector({
             type="button"
             disabled={!canEvaluate}
             onClick={() => onSelect?.(num)}
-            className={`flex-1 py-2.5 rounded-lg font-bold transition-all border ${
+            className={`flex-1 py-3 rounded-xl font-bold transition-all border ${
               !canEvaluate ? "opacity-50 cursor-not-allowed" : ""
             } ${
               isSelected
-                ? `${activeColorMap[num]} ${hoverColorMap[num]} shadow-lg scale-[1.02]`
-                : `bg-gray-2 text-gray-10 border-gray-4 ${
+                ? `${activeColorMap[num]} shadow-xl scale-[1.05]`
+                : `bg-card text-muted-foreground border-border ${
                     canEvaluate
-                      ? "hover:border-gray-6 hover:bg-gray-3"
+                      ? "hover:border-primary/30 hover:bg-muted/50"
                       : ""
                   }`
             }`}

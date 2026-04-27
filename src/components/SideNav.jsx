@@ -1,38 +1,56 @@
-import { Plus, Bell, MessageCircle } from "lucide-react";
+import {
+  Plus,
+  Bell,
+  MessageCircle,
+  LayoutList,
+  UserRound,
+  ListCheck,
+  Bolt,
+  ShieldCheck,
+  Users,
+  Crown,
+  CalendarDays,
+  CheckSquare,
+  DollarSign,
+  X,
+  ClipboardList,
+  ChevronDown,
+  PanelLeft,
+  PanelRight,
+  SquarePen,
+  Megaphone,
+  UsersRound,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { notificationService } from "../services/notificationService";
 import { activeChatService } from "../services/tasks/activeChatService";
 import NotificationDrawer from "./NotificationDrawer";
-import ActiveChatsDrawer from "./ActiveChatsDrawer";
-import PrimaryButton from "./PrimaryButton";
-import { Notebook } from "lucide-react";
-import { LayoutList } from "lucide-react";
-import { UserRound } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router";
-import { ListCheck } from "lucide-react";
-import { Bolt } from "lucide-react";
-import { ShieldCheck } from "lucide-react";
-import { Database } from "lucide-react";
-import { Users } from "lucide-react";
-import { Crown } from "lucide-react";
-import { CalendarDays } from "lucide-react";
-import { CheckSquare } from "lucide-react";
-import { DollarSign } from "lucide-react";
+import ComprehensiveChatModal from "./ComprehensiveChatModal";
+import BroadcastDrawer from "./BroadcastDrawer";
+import GlobalDetailManager from "./GlobalDetailManager";
+import { useLocation, Link, useNavigate, NavLink } from "react-router";
+import Avatar from "./Avatar";
 import { useState } from "react";
-import { X } from "lucide-react";
-import { Eye } from "lucide-react";
-import { ClipboardList } from "lucide-react";
+import LogTaskModal from "./LogTaskModal";
+import CreateCommitteeTaskModal from "../pages/committee/components/CreateCommitteeTaskModal";
+import Dropdown from "./ui/Dropdown";
+import { committeeTaskService } from "../services/committeeTaskService";
+import { employeeService } from "../services/employeeService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
-export default function SideNav({ onOpenAddTask }) {
+export default function SideNav() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // 🔥 The Hover State
-  const [isExpanded, setIsExpanded] = useState(false);
-  const toggleSidebar = () => setIsExpanded((prev) => !prev);
+  // Mobile Toggle State
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isLogTaskOpen, setIsLogTaskOpen] = useState(false);
+  const [isCreateCommitteeOpen, setIsCreateCommitteeOpen] = useState(false);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
 
-  // 🔥 Notification State
+  // Notification State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications", user?.id],
@@ -41,7 +59,7 @@ export default function SideNav({ onOpenAddTask }) {
   });
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // 🔥 Active Chats State
+  // Active Chats State
   const [isChatsOpen, setIsChatsOpen] = useState(false);
   const { data: activeChats = [] } = useQuery({
     queryKey: ["activeChats", user?.id],
@@ -50,40 +68,65 @@ export default function SideNav({ onOpenAddTask }) {
   });
   const unreadChatsCount = activeChats.filter((c) => c.is_unread).length;
 
-  const isSales =
-    user?.department?.toLowerCase().includes("sales") ||
-    user?.subDepartment?.toLowerCase().includes("sales");
+  const queryClient = useQueryClient();
 
-  // 1. Regular Employees Links
+  const isSuperAdmin =
+    user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isHead = user?.is_head === true || user?.isHead === true;
+  const canManage = isHead || isSuperAdmin;
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ["employees"],
+    queryFn: () => employeeService.getAllEmployees(),
+    enabled: !!user?.id && canManage,
+  });
+
+  const createCommitteeMutation = useMutation({
+    mutationFn: (payload) => committeeTaskService.createCommitteeTask(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
+      toast.success("Committee Task created!");
+      setIsCreateCommitteeOpen(false);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const hasSales = user?.has_sales_flow;
+  const hasTask = user?.has_task_flow;
+
+  // Nav mapping logic mapped similarly to original implementation
   let navLinks = [];
 
   if (user?.isSuperAdmin) {
-    // STRICT SUPER ADMIN LAYOUT
     navLinks = [
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
-      { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
-      {
-        label: "Sales Approval",
-        link: "/approvals/sales",
-        icon: ShieldCheck,
-      },
+      { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
+      { label: "Task Verification", link: "/approvals/hr-verification", icon: ShieldCheck },
+      { label: "Committee Tasks", link: "/committee", icon: UsersRound },
+      { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
+      { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
-      { label: "Employee Mgmt", link: "/hr/employee-management", icon: Users },
+      { label: "HR Management", link: "/hr/management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
-      { label: "Activity Log", link: "/super-admin/activity-log", icon: ClipboardList },
-      { label: "Profile", link: "/profile", icon: UserRound },
-      { label: "Settings", link: "/settings", icon: Bolt },
+      {
+        label: "Activity Log",
+        link: "/super-admin/activity-log",
+        icon: ClipboardList,
+      },
     ];
   } else {
-    // STANDARD & SALES LAYOUT
     navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
 
-    if (!isSales) {
-      navLinks.push({ label: "Tasks", link: "/tasks", icon: ListCheck });
-    } else {
+    if (hasTask) {
       navLinks.push(
         { label: "Tasks", link: "/tasks", icon: ListCheck },
+        { label: "Committee Tasks", link: "/committee", icon: UsersRound },
+      );
+    }
+
+    if (hasSales) {
+      navLinks.push(
         { label: "Sales Planner", link: "/sales/schedule", icon: CalendarDays },
         { label: "Daily Execution", link: "/sales/daily", icon: CheckSquare },
         { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
@@ -93,42 +136,49 @@ export default function SideNav({ onOpenAddTask }) {
 
     if (user?.isHead || user?.is_head) {
       const userSubDept = user?.subDepartment || user?.sub_department;
-      const isMasterHead = !userSubDept; // Department head without subdepartment = oversees everything
+      const isMasterHead = !userSubDept;
 
       if (isMasterHead) {
-        // Master heads see both task approvals and sales verification
         navLinks.push(
-          { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
+          { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
           {
             label: "Sales Approval",
             link: "/approvals/sales",
             icon: ShieldCheck,
           },
         );
-      } else if (isSales) {
-        navLinks.push({
-          label: "Sales Approval",
-          link: "/approvals/sales",
-          icon: ShieldCheck,
-        });
       } else {
-        navLinks.push({
-          label: "Task Approval",
-          link: "/approvals",
-          icon: ShieldCheck,
-        });
+        if (hasTask) {
+          navLinks.push({
+            label: "Task Approval",
+            link: "/approvals/tasks",
+            icon: ShieldCheck,
+          });
+        }
+        if (hasSales) {
+          navLinks.push({
+            label: "Sales Approval",
+            link: "/approvals/sales",
+            icon: ShieldCheck,
+          });
+        }
       }
     }
 
     if (user?.isHr) {
       navLinks.push(
         {
-          label: "Employee Mgmt",
-          link: "/hr/employee-management",
+          label: "Task Verification",
+          link: "/approvals/hr-verification",
+          icon: ShieldCheck,
+        },
+        {
+          label: "HR Management",
+          link: "/hr/management",
           icon: Users,
         },
       );
-      if (!isSales) {
+      if (!hasSales) {
         navLinks.push({
           label: "Sales Records",
           link: "/sales/records",
@@ -136,181 +186,236 @@ export default function SideNav({ onOpenAddTask }) {
         });
       }
     }
-
-    // Universal bottom links
-    navLinks.push(
-      { label: "Profile", link: "/profile", icon: UserRound },
-      { label: "Settings", link: "/settings", icon: Bolt },
-    );
   }
 
-  return (
-    // The main wrapper listens for mouse enter and leave
-    <div
-      className="flex h-screen sticky top-0 z-50"
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
-    >
-      {/* Pane 1: The Icon Strip (Always visible) */}
-      <aside className="relative z-50 text-gray-12 bg-gray-3 flex flex-col items-center w-14 md:w-[72px] px-2 md:px-4 py-8 gap-6 border-r border-gray-4 overflow-y-auto scrollbar-hide">
-        <button
-          onClick={toggleSidebar}
-          className="md:hidden p-2 text-gray-10 hover:text-gray-12 hover:bg-gray-4 rounded-xl transition-colors"
-        >
-          {isExpanded ? <X size={24} /> : <LayoutList size={24} />}
-        </button>
-        <img
-          src={user?.picture || "/default-avatar.png"}
-          className="w-10 h-10 rounded-full border border-gray-5 shadow-sm object-cover"
-          alt="Profile"
-          referrerPolicy="no-referrer"
-        />
+  // React Select setup for Profile Dropdown
+  const profileOptions = [
+    { value: "profile", label: "Profile" },
+    { value: "settings", label: "Settings" },
+  ];
 
-        {/* Global Notification Hub Trigger */}
-        <button
-          onClick={() => {
-            setIsNotifOpen(true);
-            setIsExpanded(false);
-          }}
-          className="relative text-gray-10 hover:text-primary transition-colors p-2 rounded-xl hover:bg-red-a3 flex items-center justify-center group"
-          title="Notifications"
-        >
-          <Bell
-            size={24}
-            className="group-hover:scale-110 transition-transform"
-          />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-primary border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
-          )}
-        </button>
-
-        {/* Universal Active Chats Trigger */}
-        <button
-          onClick={() => {
-            setIsChatsOpen(true);
-            setIsExpanded(false);
-          }}
-          className="relative text-gray-10 hover:text-blue-500 transition-colors p-2 rounded-xl hover:bg-blue-500/10 flex items-center justify-center group"
-          title="Active Chats"
-        >
-          <MessageCircle
-            size={24}
-            className="group-hover:scale-110 transition-transform"
-          />
-          {unreadChatsCount > 0 && (
-            <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-blue-500 border-2 border-gray-3 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-          )}
-        </button>
-
-        {user?.isSuperAdmin ? (
-          <div className="flex flex-col gap-2 w-full mt-2">
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                onOpenAddTask();
-              }}
-              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Plus size={20} />}
-              title="Add Task"
-            />
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                navigate("/super-admin");
-              }}
-              className="bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Crown size={20} />}
-              title="Set Quotas"
-            />
-          </div>
-        ) : user?.isHr || user?.isHead || user?.is_head || user?.is_hr ? (
-          <div className="flex flex-col gap-2 w-full mt-2">
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                onOpenAddTask();
-              }}
-              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-              label={<Plus size={20} />}
-              title="Add Task"
-            />
-            {(!isSales || user?.isHr || user?.is_hr) && (
-              <PrimaryButton
-                onClick={() => {
-                  setIsExpanded(false);
-                  navigate("/approvals");
-                }}
-                className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/30 text-white p-2! rounded-xl transition-all flex items-center justify-center w-full"
-                label={<Eye size={20} />}
-                title="Task Approval"
-              />
-            )}
-          </div>
-        ) : (
-          <div className="w-full mt-2 flex flex-col gap-2">
-            <PrimaryButton
-              onClick={() => {
-                setIsExpanded(false);
-                onOpenAddTask();
-              }}
-              className="bg-primary hover:bg-primary-hover shadow-lg shadow-red-a3 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
-              label={<Plus size={20} />}
-              title="Add Task"
-            />
-            {isSales && (
-              <PrimaryButton
-                onClick={() => {
-                  setIsExpanded(false);
-                  navigate("/sales/schedule");
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-900/30 text-white p-2! rounded-xl transition-all w-full flex justify-center items-center"
-                label={<CalendarDays size={20} />}
-                title="Sales Planner"
-              />
-            )}
-          </div>
-        )}
-      </aside>
-
-      {/* Pane 2: The Expanded Menu (Hidden by default, slides out over content) */}
-      <div
-        className={`
-    absolute top-0 h-full bg-gray-1 border-r border-gray-4 shadow-2xl transition-all duration-300 ease-in-out overflow-hidden z-40 
-    
-    /* 🔥 THE FIX: Match these to your Aside's width */
-    left-14 md:left-[72px] 
-
-    ${
-      isExpanded
-        ? "w-[calc(100vw-56px)] md:w-64 opacity-100" // 56px is the width of w-14
-        : "w-0 opacity-0 pointer-events-none"
+  const handleProfileSelect = (selected) => {
+    if (selected) {
+      navigate(`/${selected.value}`);
+      setIsMobileOpen(false);
     }
-  `}
-      >
-        {/* We fix the inner width so the text doesn't wrap weirdly during the animation */}
-        <nav className="w-64 px-6 py-8 flex flex-col gap-8 h-full min-h-0">
-          {/* Header with Close Action */}
-          <div className="flex justify-between items-start">
-            <div className="overflow-hidden">
-              <p className="text-lg font-bold text-gray-12 truncate">
-                {user?.name || "Loading..."}
-              </p>
-              <div className="text-gray-9 text-xs font-bold uppercase tracking-wider mt-1">
-                <p className="truncate">{user?.department || "Employee"}</p>
-              </div>
-            </div>
+  };
 
-            {/* Manual Close Button */}
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="text-gray-9 hover:text-red-9 transition-colors p-1 rounded-full hover:bg-gray-3"
+  return (
+    <>
+      {/* Mobile Drawer Trigger (PanelRight) */}
+      <div className="md:hidden fixed top-3 left-3 z-40">
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="text-sidebar-foreground/80 hover:text-sidebar-foreground bg-sidebar border-r border-sidebar-border/80 backdrop-blur-md border border-sidebar-border p-1.5 rounded-lg shadow-sm transition-colors"
+        >
+          <PanelRight size={18} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Mobile Backdrop Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Merged Single-Pane Sidebar Container */}
+      <aside
+        className={`
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          fixed md:sticky top-0 left-0 h-screen z-50 flex flex-col 
+          bg-sidebar   text-sm font-sans
+          transition-transform duration-300 ease-in-out
+          w-[240px] shrink-0 overflow-y-auto scrollbar-hide
+        `}
+      >
+        {/* Mobile Close Action (PanelLeft) */}
+        <div className="md:hidden absolute top-4 right-4 z-50">
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="text-sidebar-foreground/60 hover:text-sidebar-foreground p-1 bg-sidebar border-r border-sidebar-border rounded-md shadow-sm border border-sidebar-border"
+          >
+            <PanelLeft size={18} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* 1. Header (Profile Dropdown + Quick Actions) */}
+        <div className="px-3 pt-6 pb-2 flex flex-col gap-2.5">
+          {/* Row 1: Profile Selector */}
+          <div className="flex-1 min-w-0">
+            <Dropdown
+              className="flex-1 min-w-0"
+              trigger={({ isOpen }) => (
+                <div
+                  className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg transition-all ${
+                    isOpen ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer transition-opacity">
+                    <Avatar
+                      src={user?.picture}
+                      name={user?.name || "U"}
+                      size="md"
+                      className="rounded-md shadow-sm"
+                    />
+                    <span className="font-semibold text-[14px] truncate text-sidebar-foreground tracking-wide mt-[0.5px]">
+                      {user?.name || "User"}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    className={`text-sidebar-foreground/60 transition-transform duration-200 ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+              )}
             >
-              <X size={18} />
-            </button>
+              {({ close }) => (
+                <div className="p-1.5 min-w-[215px] flex flex-col gap-0.5 bg-sidebar border border-sidebar-border rounded-xl shadow-2xl">
+                  {profileOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        handleProfileSelect(option);
+                        close();
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sidebar-foreground text-sm font-semibold text-foreground hover:bg-sidebar-accent transition-colors text-left"
+                    >
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Dropdown>
           </div>
 
-          {/* The Mapped Navigation Links */}
-          <ul className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
+          {/* Row 2: Action Buttons */}
+          <div className="flex items-center gap-1.5">
+            {/* Broadcast — super admins only */}
+            {user?.isSuperAdmin && (
+              <button
+                onClick={() => {
+                  setIsMobileOpen(false);
+                  setIsBroadcastOpen(true);
+                }}
+                className="flex-1 flex items-center justify-center p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
+                title="Broadcast"
+              >
+                <Megaphone size={15} strokeWidth={2.2} />
+              </button>
+            )}
+
+            {/* Notifications */}
+            <button
+              onClick={() => {
+                setIsNotifOpen(true);
+                setIsMobileOpen(false);
+              }}
+              className={`relative flex-1 flex items-center justify-center p-2 rounded-lg border transition-all ${isNotifOpen ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/30 shadow-sm" : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"}`}
+              title="Notifications"
+            >
+              <Bell size={15} strokeWidth={2.2} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-primary-foreground shadow-sm ring-2 ring-sidebar">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Chats */}
+            <button
+              onClick={() => {
+                setIsChatsOpen(true);
+                setIsMobileOpen(false);
+              }}
+              className={`relative flex-1 flex items-center justify-center p-2 rounded-lg border transition-all ${isChatsOpen ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/30 shadow-sm" : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"}`}
+              title="Chats"
+            >
+              <MessageCircle size={15} strokeWidth={2.2} />
+              {unreadChatsCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-sidebar-primary px-1 text-[9px] font-bold text-primary-foreground shadow-sm ring-2 ring-sidebar">
+                  {unreadChatsCount}
+                </span>
+              )}
+            </button>
+
+            {/* Merged Action Button */}
+            {canManage ? (
+              <Dropdown
+                placement="bottom-end"
+                className="flex-1"
+                usePortal={true}
+                trigger={({ isOpen }) => (
+                  <button
+                    className={`relative flex-1 flex items-center justify-center py-2 px-3 rounded-lg border transition-all ${
+                      isOpen
+                        ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/10 shadow-sm"
+                        : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"
+                    }`}
+                    title="Create new..."
+                  >
+                    <Plus size={15} strokeWidth={2.5} />
+                  </button>
+                )}
+              >
+                {({ close }) => (
+                  <div className="p-1.5 min-w-[180px] flex flex-col gap-0.5 bg-sidebar border border-sidebar-border rounded-xl shadow-2xl">
+                    <button
+                      onClick={() => {
+                        close();
+                        setIsMobileOpen(false);
+                        setIsLogTaskOpen(true);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
+                    >
+                      <SquarePen size={14} />
+                      <span>Task</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        close();
+                        setIsMobileOpen(false);
+                        setIsCreateCommitteeOpen(true);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
+                    >
+                      <UsersRound size={14} />
+                      <span>Committee Task</span>
+                    </button>
+                  </div>
+                )}
+              </Dropdown>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsMobileOpen(false);
+                  setIsLogTaskOpen(true);
+                }}
+                className="flex-1 flex items-center justify-center p-2 rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-primary/80 hover:text-sidebar-primary hover:bg-sidebar-accent/50 hover:border-sidebar-accent transition-all"
+                title="Log new task"
+              >
+                <SquarePen size={15} strokeWidth={2.2} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Combined Workspace Menus */}
+        <div className="px-3 flex-1 flex flex-col text-sidebar-foreground/80 pb-4">
+          <div className="px-3 mt-2 mb-3 flex items-center justify-between text-sidebar-foreground/60 group/header cursor-pointer">
+            <span className="text-[12px] font-medium tracking-wide">
+              Workspace
+            </span>
+            <ChevronDown
+              size={14}
+              className="opacity-0 group-hover/header:opacity-100 transition-opacity"
+            />
+          </div>
+
+          <nav className="flex flex-col gap-1 mb-6">
             {navLinks.map((navLink) => {
               const Icon = navLink.icon;
               return (
@@ -319,38 +424,68 @@ export default function SideNav({ onOpenAddTask }) {
                   to={navLink.link}
                   end={
                     navLink.link === "/" ||
-                    navLink.link === "/approvals" ||
+                    navLink.link === "/approvals/tasks" ||
+                    navLink.link === "/approvals/hr-verification" ||
                     navLink.link === "/super-admin"
                   }
-                  onClick={() => setIsExpanded(false)} // 👈 Closes sidebar upon navigation!
+                  onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex gap-3 items-center px-3 py-3 rounded-lg font-semibold transition-all ${
+                    `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${
                       isActive
-                        ? "text-red-9 bg-red-a3" // Active state styling
-                        : "text-gray-10 hover:text-gray-12 hover:bg-gray-3"
+                        ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
+                        : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
                     }`
                   }
                 >
-                  <Icon size={20} />
-                  <p className="whitespace-nowrap">{navLink.label}</p>
+                  {({ isActive }) => (
+                    <>
+                      <Icon
+                        size={15}
+                        strokeWidth={2.2}
+                        className={`transition-colors ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`}
+                      />
+                      <span
+                        className={`truncate text-[13.5px] mt-[1px] transition-all ${isActive ? "font-bold text-sidebar-primary" : "font-medium"}`}
+                      >
+                        {navLink.label}
+                      </span>
+                    </>
+                  )}
                 </NavLink>
               );
             })}
-          </ul>
-        </nav>
-      </div>
+          </nav>
+        </div>
+      </aside>
 
-      {/* Global Notification Drawer */}
+      {/* Drawers */}
       <NotificationDrawer
         isOpen={isNotifOpen}
         onClose={() => setIsNotifOpen(false)}
       />
-
-      {/* Global Active Chats Drawer */}
-      <ActiveChatsDrawer
+      <ComprehensiveChatModal
         isOpen={isChatsOpen}
         onClose={() => setIsChatsOpen(false)}
       />
-    </div>
+      <GlobalDetailManager />
+      <BroadcastDrawer
+        isOpen={isBroadcastOpen}
+        onClose={() => setIsBroadcastOpen(false)}
+      />
+      <LogTaskModal
+        isOpen={isLogTaskOpen}
+        onClose={() => setIsLogTaskOpen(false)}
+      />
+      {canManage && (
+        <CreateCommitteeTaskModal
+          isOpen={isCreateCommitteeOpen}
+          onClose={() => setIsCreateCommitteeOpen(false)}
+          user={user}
+          employees={employees}
+          onSubmit={(payload) => createCommitteeMutation.mutateAsync(payload)}
+          isSubmitting={createCommitteeMutation.isPending}
+        />
+      )}
+    </>
   );
 }

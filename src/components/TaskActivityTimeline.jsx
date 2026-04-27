@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../services/tasks/taskActivityService";
+import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
 import { useAuth } from "../context/AuthContext";
 import {
   Send,
@@ -10,6 +11,9 @@ import {
   Star,
   AlertTriangle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const formatTime = (isoString) => {
   if (!isoString) return "";
@@ -43,14 +47,14 @@ function ActivityEntry({ entry, currentUserId }) {
   if (entry.type === "SYSTEM") {
     return (
       <div className="flex items-start gap-2.5 py-2 px-1">
-        <div className="w-6 h-6 rounded-full bg-gray-3 border border-gray-4 flex items-center justify-center shrink-0 mt-0.5">
-          <Zap size={12} className="text-gray-8" />
+        <div className="w-6 h-6 rounded-full bg-muted/50 border border-border flex items-center justify-center shrink-0 mt-0.5">
+          <Zap size={12} className="text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-gray-8 leading-relaxed">
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
             {entry.content}
           </p>
-          <p className="text-[9px] text-gray-7 mt-0.5">
+          <p className="text-[9px] text-muted-foreground mt-0.5">
             {formatTime(entry.createdAt)}
           </p>
         </div>
@@ -67,8 +71,8 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`py-3 px-3.5 rounded-xl border ${
           isRejection
-            ? "bg-red-500/5 border-red-500/20"
-            : "bg-green-500/5 border-green-500/20"
+            ? "bg-destructive/5 border-red-500/20"
+            : "bg-green-9/5 border-green-500/20"
         }`}
       >
         <div className="flex items-center justify-between mb-1.5">
@@ -76,33 +80,33 @@ function ActivityEntry({ entry, currentUserId }) {
             <div
               className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
                 isRejection
-                  ? "bg-red-500/20 text-red-400"
-                  : "bg-green-500/20 text-green-400"
+                  ? "bg-destructive/20 text-red-400"
+                  : "bg-green-9/20 text-green-9"
               }`}
             >
               {isRejection ? <AlertTriangle size={12} /> : <Star size={12} />}
             </div>
-            <span className="text-xs font-bold text-gray-11">
+            <span className="text-xs font-bold text-muted-foreground">
               {entry.authorName || "Head"}
             </span>
             {grade !== undefined && grade > 0 && (
               <span
                 className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
                   isRejection
-                    ? "bg-red-500/10 text-red-400 border-red-500/30"
-                    : "bg-green-500/10 text-green-400 border-green-500/30"
+                    ? "bg-destructive/10 text-red-400 border-red-500/30"
+                    : "bg-green-9/10 text-green-9 border-green-500/30"
                 }`}
               >
                 Grade: {grade}
               </span>
             )}
           </div>
-          <span className="text-[9px] text-gray-7">
+          <span className="text-[9px] text-muted-foreground">
             {formatTime(entry.createdAt)}
           </span>
         </div>
         {entry.content && (
-          <p className="text-sm text-gray-11 leading-relaxed pl-8">
+          <p className="text-sm text-muted-foreground leading-relaxed pl-8">
             {entry.content}
           </p>
         )}
@@ -116,43 +120,39 @@ function ActivityEntry({ entry, currentUserId }) {
 
     return (
       <div
-        className={`py-3 px-3.5 rounded-xl border ${
+        className={`py-4 px-4 rounded-2xl border ${
           isVerified
-            ? "bg-blue-500/5 border-blue-500/20"
-            : "bg-red-500/5 border-red-500/20"
+            ? "bg-[color:var(--violet-2)]/50 border-indigo-100"
+            : "bg-destructive/5 border-destructive/20"
         }`}
       >
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2.5">
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+              className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
                 isVerified
-                  ? "bg-blue-500/20 text-blue-400"
-                  : "bg-red-500/20 text-red-400"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-destructive text-primary-foreground"
               }`}
             >
-              <ShieldCheck size={12} />
+              <ShieldCheck size={14} />
             </div>
-            <span className="text-xs font-bold text-gray-11">
-              {entry.authorName || "HR"}
-            </span>
-            <span
-              className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
-                isVerified
-                  ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
-                  : "bg-red-500/10 text-red-400 border-red-500/30"
-              }`}
-            >
-              {isVerified ? "Verified" : "Rejected"}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-foreground">
+                {entry.authorName || "HR Audit"}
+              </span>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-[color:var(--violet-10)]" : "text-destructive"}`}>
+                {isVerified ? "Verification Successful" : "Verification Failed"}
+              </span>
+            </div>
           </div>
-          <span className="text-[9px] text-gray-7">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase">
             {formatTime(entry.createdAt)}
           </span>
         </div>
         {entry.content && entry.content !== "Verified" && (
-          <p className="text-base text-gray-11 leading-relaxed pl-8">
-            {entry.content}
+          <p className="text-sm text-muted-foreground leading-relaxed pl-9 italic font-medium">
+            "{entry.content}"
           </p>
         )}
       </div>
@@ -166,10 +166,10 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
           entry.authorIsHead || entry.authorIsSuperAdmin
-            ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+            ? "bg-warning/15 text-[color:var(--amber-9)] border-amber-500/30"
             : entry.authorIsHr
-              ? "bg-blue-500/15 text-blue-400 border-blue-500/30"
-              : "bg-gray-3 text-gray-10 border-gray-4"
+              ? "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30"
+              : "bg-muted/50 text-mauve-10 border-border"
         }`}
       >
         {entry.authorName
@@ -182,28 +182,28 @@ function ActivityEntry({ entry, currentUserId }) {
       </div>
 
       {/* Bubble */}
-      <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
-        <div className="flex items-center gap-2 mb-0.5">
+      <div className={`max-w-[85%] ${isMe ? "items-end" : "items-start"}`}>
+        <div className="flex items-center gap-2 mb-1 px-1">
           {!isMe && (
-            <span className="text-xs font-bold text-gray-10">
+            <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">
               {entry.authorName}
             </span>
           )}
           {isMe && (
-            <span className="text-xs font-bold text-gray-8 ml-auto">You</span>
+            <span className="text-[10px] font-extrabold text-[color:var(--violet-10)] uppercase tracking-widest ml-auto">You</span>
           )}
         </div>
         <div
-          className={`px-4 py-3 rounded-2xl text-base leading-relaxed ${
+          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-300 ${
             isMe
-              ? "bg-primary/15 text-gray-12 rounded-tr-md border border-primary/20"
-              : "bg-gray-3 text-gray-12 rounded-tl-md border border-gray-4"
+              ? "bg-primary text-primary-foreground rounded-tr-none"
+              : "bg-card text-foreground rounded-tl-none border border-border"
           }`}
         >
           {entry.content}
         </div>
         <p
-          className={`text-[11px] text-gray-7 mt-1.5 ${
+          className={`text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest ${
             isMe ? "text-right" : "text-left"
           } px-1`}
         >
@@ -222,28 +222,28 @@ function LegacyEntries({ remarks, hrRemarks, evaluatedByName, grade }) {
   if (!remarks && !hrRemarks) return null;
 
   return (
-    <div className="space-y-2 pb-3 mb-3 border-b border-gray-4 border-dashed">
-      <p className="text-[9px] font-bold text-gray-7 uppercase tracking-widest px-1">
+    <div className="space-y-2 pb-3 mb-3 border-b border-border border-dashed">
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest px-1">
         Legacy Record
       </p>
       {remarks && (
-        <div className="py-2 px-3 rounded-lg bg-gray-3/50 border border-gray-4">
+        <div className="py-2 px-3 rounded-lg bg-muted/50/50 border border-border">
           <div className="flex items-center gap-2 mb-1">
-            <Star size={10} className="text-amber-400" />
-            <span className="text-[10px] font-bold text-gray-9">
+            <Star size={10} className="text-[color:var(--amber-9)]" />
+            <span className="text-[10px] font-bold text-muted-foreground">
               {evaluatedByName || "Manager"} {grade ? `— Grade: ${grade}` : ""}
             </span>
           </div>
-          <p className="text-xs text-gray-11 leading-relaxed">{remarks}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{remarks}</p>
         </div>
       )}
       {hrRemarks && (
-        <div className="py-2 px-3 rounded-lg bg-blue-500/5 border border-blue-500/15">
+        <div className="py-2 px-3 rounded-lg bg-[color:var(--blue-9)]/5 border border-blue-500/15">
           <div className="flex items-center gap-2 mb-1">
-            <ShieldCheck size={10} className="text-blue-400" />
-            <span className="text-[10px] font-bold text-gray-9">HR Notes</span>
+            <ShieldCheck size={10} className="text-[color:var(--blue-9)]" />
+            <span className="text-[10px] font-bold text-muted-foreground">HR Notes</span>
           </div>
-          <p className="text-xs text-gray-11 leading-relaxed">{hrRemarks}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{hrRemarks}</p>
         </div>
       )}
     </div>
@@ -256,6 +256,7 @@ function LegacyEntries({ remarks, hrRemarks, evaluatedByName, grade }) {
  */
 export default function TaskActivityTimeline({
   taskId,
+  entityType = "TASK",
   legacyRemarks,
   legacyHrRemarks,
   evaluatedByName,
@@ -269,10 +270,16 @@ export default function TaskActivityTimeline({
   const inputRef = useRef(null);
   const [message, setMessage] = useState("");
 
+  // Unique suffix per instance to avoid Supabase channel name collisions
+  // when multiple TaskActivityTimeline components target the same task
+  const instanceId = useRef(`-timeline-${Math.random().toString(36).substring(2, 9)}`);
+
   // Fetch activity
   const { data: activity = [], isLoading } = useQuery({
-    queryKey: ["taskActivity", taskId],
-    queryFn: () => taskActivityService.getActivityForTask(taskId),
+    queryKey: ["taskActivity", taskId, entityType],
+    queryFn: () => entityType === "COMMITTEE_TASK" 
+      ? committeeTaskActivityService.getActivityForTask(taskId)
+      : taskActivityService.getActivityForTask(taskId),
     enabled: !!taskId,
     staleTime: 30_000,
   });
@@ -280,9 +287,11 @@ export default function TaskActivityTimeline({
   // Post comment mutation
   const postCommentMutation = useMutation({
     mutationFn: ({ taskId, authorId, content }) =>
-      taskActivityService.addComment(taskId, authorId, content),
+      entityType === "COMMITTEE_TASK"
+        ? committeeTaskActivityService.addComment(taskId, authorId, content)
+        : taskActivityService.addComment(taskId, authorId, content),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
       setMessage("");
     },
   });
@@ -291,15 +300,23 @@ export default function TaskActivityTimeline({
   useEffect(() => {
     if (!taskId) return;
 
-    const channel = taskActivityService.subscribeToActivity(taskId, () => {
-      // Re-fetch on new activity
-      queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId] });
-    });
+    const suffix = instanceId.current;
+    const channel = entityType === "COMMITTEE_TASK"
+      ? committeeTaskActivityService.subscribeToActivity(taskId, () => {
+          queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
+        }, suffix)
+      : taskActivityService.subscribeToActivity(taskId, () => {
+          queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
+        }, suffix);
 
     return () => {
-      taskActivityService.unsubscribeFromActivity(channel);
+      if (entityType === "COMMITTEE_TASK") {
+        committeeTaskActivityService.unsubscribeFromActivity(channel);
+      } else {
+        taskActivityService.unsubscribeFromActivity(channel);
+      }
     };
-  }, [taskId, queryClient]);
+  }, [taskId, entityType, queryClient]);
 
   // Auto-scroll on new entries
   useEffect(() => {
@@ -331,15 +348,15 @@ export default function TaskActivityTimeline({
   const showLegacy = !hasActivityEntries && (legacyRemarks || legacyHrRemarks);
 
   return (
-    <div className="flex flex-col border border-gray-4 rounded-xl overflow-hidden bg-gray-1">
+    <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-card">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-4 bg-gray-2">
-        <MessageCircle size={18} className="text-gray-9" />
-        <span className="text-xs font-bold text-gray-9 uppercase tracking-wider">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted">
+        <MessageCircle size={18} className="text-muted-foreground" />
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
           Task Activity
         </span>
         {activity.length > 0 && (
-          <span className="text-[10px] font-bold text-gray-7 bg-gray-3 px-1.5 py-0.5 rounded-full border border-gray-4 ml-auto">
+          <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full border border-border ml-auto">
             {activity.length}
           </span>
         )}
@@ -353,7 +370,7 @@ export default function TaskActivityTimeline({
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-5 h-5 border-2 border-gray-4 border-t-red-9 rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-border border-t-red-9 rounded-full animate-spin" />
           </div>
         ) : (
           <>
@@ -368,11 +385,11 @@ export default function TaskActivityTimeline({
 
             {activity.length === 0 && !showLegacy && (
               <div className="text-center py-6">
-                <MessageCircle size={24} className="mx-auto text-gray-6 mb-2" />
-                <p className="text-[11px] text-gray-7 font-bold">
+                <MessageCircle size={24} className="mx-auto text-mauve-6 mb-2" />
+                <p className="text-[11px] text-muted-foreground font-bold">
                   No activity yet
                 </p>
-                <p className="text-[10px] text-gray-6 mt-0.5">
+                <p className="text-[10px] text-mauve-6 mt-0.5">
                   System events and comments will appear here.
                 </p>
               </div>
@@ -391,38 +408,39 @@ export default function TaskActivityTimeline({
 
       {/* Input Box */}
       {!disabled && (
-        <div className="px-3 py-2.5 border-t border-gray-4 bg-gray-2">
-          <div className="flex items-center gap-2">
+        <div className="px-4 py-4 border-t border-border bg-muted/30">
+          <div className="flex items-start gap-2">
             {inputType === "textarea" ? (
-              <textarea
+              <Textarea
                 ref={inputRef}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a message... (Shift+Enter for new line)"
+                placeholder="Send a message... (Shift+Enter for new line)"
                 disabled={postCommentMutation.isPending}
-                className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-4 py-2.5 text-base text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50 min-h-[44px] max-h-[120px] resize-y custom-scrollbar"
-                rows={2}
+                className="flex-1 bg-card border-border rounded-xl px-4 py-3 text-sm min-h-[50px] max-h-[150px] shadow-sm"
+                rows={1}
               />
             ) : (
-              <input
+              <Input
                 ref={inputRef}
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a message..."
+                placeholder="Send a message..."
                 disabled={postCommentMutation.isPending}
-                className="flex-1 bg-gray-1 border border-gray-4 rounded-lg px-4 py-2.5 text-base text-gray-12 placeholder:text-gray-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
+                className="flex-1 bg-card border-border rounded-xl px-4 h-11 shadow-sm"
               />
             )}
-            <button
+            <Button
               onClick={handleSend}
               disabled={!message.trim() || postCommentMutation.isPending}
-              className="w-11 h-11 rounded-lg bg-primary hover:bg-primary-hover text-white flex items-center justify-center transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+              className="w-11 h-11 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all shrink-0"
+              size="icon"
             >
               <Send size={18} />
-            </button>
+            </Button>
           </div>
         </div>
       )}

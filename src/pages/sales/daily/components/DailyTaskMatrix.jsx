@@ -1,4 +1,4 @@
-import { ChecklistItem } from "./ChecklistItem";
+﻿import { ChecklistItem } from "./ChecklistItem";
 import { AddUnplannedForm } from "./AddUnplannedForm";
 
 export function DailyTaskMatrix({
@@ -18,21 +18,23 @@ export function DailyTaskMatrix({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
       {/* AM COLUMN */}
-      <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm">
-        <div className="bg-gray-2 p-3 border-b border-gray-4">
-          <h2 className="font-black text-gray-12 uppercase tracking-widest text-sm">
-            AM Block
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-muted/50 px-4 py-3.5 border-b border-border flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-[color:var(--amber-5)]" />
+          <h2 className="font-black text-foreground uppercase tracking-[0.2em] text-xs">
+            Morning Block
           </h2>
         </div>
-        <div className="divide-y divide-gray-3">
+        <div className="divide-y divide-border">
           {plannedAM.length === 0 && unplannedAM.length === 0 && (
-            <p className="p-6 text-center text-sm text-gray-8 italic">
-              No morning tasks
+            <p className="p-8 text-center text-sm text-muted-foreground italic">
+              No morning tasks scheduled.
             </p>
           )}
-          {plannedAM.map((act) => (
+          {plannedAM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}
@@ -42,9 +44,10 @@ export function DailyTaskMatrix({
               onView={onView}
             />
           ))}
-          {unplannedAM.map((act) => (
+          {unplannedAM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={plannedAM.length + idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}
@@ -56,7 +59,7 @@ export function DailyTaskMatrix({
           ))}
         </div>
         {!isLockedUI && (
-          <div className="p-3 bg-gray-2 border-t border-gray-4">
+          <div className="px-4 py-3.5 bg-muted/30 border-t border-border">
             <AddUnplannedForm
               timeOfDay="AM"
               onSave={handleAddUnplanned}
@@ -67,21 +70,23 @@ export function DailyTaskMatrix({
       </div>
 
       {/* PM COLUMN */}
-      <div className="bg-gray-1 border border-gray-4 rounded-2xl overflow-hidden shadow-sm">
-        <div className="bg-gray-2 p-3 border-b border-gray-4">
-          <h2 className="font-black text-gray-12 uppercase tracking-widest text-sm">
-            PM Block
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-muted/50 px-4 py-3.5 border-b border-border flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[color:var(--violet-8)] shadow-sm shadow-primary/20" />
+          <h2 className="font-black text-foreground uppercase tracking-[0.2em] text-xs">
+            Afternoon Block
           </h2>
         </div>
-        <div className="divide-y divide-gray-3">
+        <div className="divide-y divide-border">
           {plannedPM.length === 0 && unplannedPM.length === 0 && (
-            <p className="p-6 text-center text-sm text-gray-8 italic">
-              No afternoon tasks
+            <p className="p-8 text-center text-sm text-muted-foreground italic">
+              No afternoon tasks scheduled.
             </p>
           )}
-          {plannedPM.map((act) => (
+          {plannedPM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}
@@ -91,9 +96,10 @@ export function DailyTaskMatrix({
               onView={onView}
             />
           ))}
-          {unplannedPM.map((act) => (
+          {unplannedPM.map((act, idx) => (
             <ChecklistItem
               key={act.id}
+              index={plannedPM.length + idx + 1}
               data={act}
               settings={appSettings}
               onToggle={handleToggleDone}
@@ -105,7 +111,7 @@ export function DailyTaskMatrix({
           ))}
         </div>
         {!isLockedUI && (
-          <div className="p-3 bg-gray-2 border-t border-gray-4">
+          <div className="px-4 py-3.5 bg-muted/30 border-t border-border">
             <AddUnplannedForm
               timeOfDay="PM"
               onSave={handleAddUnplanned}

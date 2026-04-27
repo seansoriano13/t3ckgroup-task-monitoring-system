@@ -24,6 +24,8 @@ export const employeeService = {
       avatarPath: data.avatar_path || null,
       dashboardBannerPath: data.dashboard_banner_path || null,
       dashboardQuote: data.dashboard_quote || null,
+      has_sales_flow: data.has_sales_flow,
+      has_task_flow: data.has_task_flow,
     };
   },
 
@@ -47,6 +49,8 @@ export const employeeService = {
       avatarPath: employee.avatar_path || null,
       dashboardBannerPath: employee.dashboard_banner_path || null,
       dashboardQuote: employee.dashboard_quote || null,
+      has_sales_flow: employee.has_sales_flow,
+      has_task_flow: employee.has_task_flow,
     }));
   },
 
@@ -132,6 +136,8 @@ export const employeeService = {
           is_head: employeeData.isHead,
           is_hr: employeeData.isHr,
           is_super_admin: employeeData.isSuperAdmin,
+          has_sales_flow: employeeData.has_sales_flow,
+          has_task_flow: employeeData.has_task_flow,
           updated_at: new Date().toISOString(),
           updated_by: employeeData?.updatedBy || null,
         },
@@ -155,6 +161,8 @@ export const employeeService = {
         is_head: employeeData.isHead,
         is_hr: employeeData.isHr,
         is_super_admin: employeeData.isSuperAdmin,
+        has_sales_flow: employeeData.has_sales_flow,
+        has_task_flow: employeeData.has_task_flow,
         updated_at: new Date().toISOString(),
         updated_by: actorId || employeeData?.updatedBy || null,
       })

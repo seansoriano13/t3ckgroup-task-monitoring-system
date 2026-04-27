@@ -38,6 +38,44 @@ export const formatTaskPreview = (description) => {
   return description;
 };
 
+export const formatChecklistToString = (description) => {
+  if (!description) return "";
+  
+  if (typeof description !== 'string') {
+    if (Array.isArray(description)) {
+      return description.map(item => `• ${item.text || 'Task'}`).join('\n');
+    } else if (description && Array.isArray(description.items)) {
+      const prefix = description.title ? `${description.title}\n` : "";
+      return prefix + description.items.map(item => `• ${item.text || 'Task'}`).join('\n');
+    }
+    return String(description);
+  }
+
+  const trimmed = description.trim();
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map(item => `• ${item.text || 'Task'}`).join('\n');
+      }
+    } catch {
+      // Not valid JSON
+    }
+  } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && Array.isArray(parsed.items)) {
+        const prefix = parsed.title ? `${parsed.title}\n` : "";
+        return prefix + parsed.items.map(item => `• ${item.text || 'Task'}`).join('\n');
+      }
+    } catch {
+      // Not valid JSON
+    }
+  }
+
+  return description;
+};
+
 export const extractOthersDetailsFromRemarks = (remarks) => {
   if (!remarks || typeof remarks !== "string") return null;
   const trimmed = remarks.trim();

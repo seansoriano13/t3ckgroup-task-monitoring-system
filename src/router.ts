@@ -8,9 +8,20 @@ export type Path =
   | `/approvals`
   | `/approvals/components/ApprovalHeader`
   | `/approvals/components/ApprovalRow`
+  | `/approvals/components/BulkDeclineModal`
+  | `/approvals/components/BulkGradeModal`
+  | `/approvals/components/CommitteeApprovalSection`
+  | `/approvals/hr-verification`
+  | `/approvals/hr-verification/components/BulkVerifyModal`
   | `/approvals/sales`
+  | `/approvals/tasks`
+  | `/committee`
+  | `/committee/components/CommitteeTaskCard`
+  | `/committee/components/CommitteeTaskDetailModal`
+  | `/committee/components/CreateCommitteeTaskModal`
+  | `/committee/components/RateEmployeesModal`
   | `/hr-master-log`
-  | `/hr/employee-management`
+  | `/hr/management`
   | `/login`
   | `/profile`
   | `/sales/daily`

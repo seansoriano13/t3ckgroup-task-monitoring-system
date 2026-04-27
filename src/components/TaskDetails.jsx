@@ -8,7 +8,7 @@ import GradeSelector from "./GradeSelector";
 import TaskActivityTimeline from "./TaskActivityTimeline";
 import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
 import { isCategoryMetadataRemarks } from "../utils/taskFormatters";
-import { PencilLine, FolderKanban, Receipt } from "lucide-react";
+import { PencilLine, FolderKanban, Receipt, AlertTriangle } from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
 import { TASK_STATUS } from "../constants/status.js";
 import ChecklistTaskInput from "./ChecklistTaskInput";
@@ -17,8 +17,13 @@ import ImageAttachment from "./ImageAttachment";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.js";
 import { toast } from "react-hot-toast";
+import { confirmDeleteToast } from "./ui/CustomToast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
 
 import { activeChatService } from "../services/tasks/activeChatService";
+import { createPortal } from "react-dom";
 
 export default function TaskDetails({
   isOpen,
@@ -69,7 +74,7 @@ export default function TaskDetails({
   useEffect(() => {
     if (isOpen && task) {
       if (user?.id) {
-         activeChatService.markAsRead(user.id, "TASK", task.id);
+        activeChatService.markAsRead(user.id, "TASK", task.id);
       }
 
       const taskDept =
@@ -327,9 +332,9 @@ export default function TaskDetails({
     if (!isOpen || isSubmitting || isEditing) return;
 
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
-        if (e.key !== "Enter") return;
+      if (e.key !== "Enter") return;
     }
-    
+
     if (isFinalized || !canEvaluate) return;
 
     if (!isHr) {
@@ -355,50 +360,29 @@ export default function TaskDetails({
     }
   };
 
-  const handleDelete = async () => {
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-3">
-          <span className="font-bold text-sm text-gray-12">
-            Are you sure you want to delete this task? It will be removed from
-            the active queues.
-          </span>
-          <div className="flex gap-2">
-            <button
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm font-bold transition-colors"
-              onClick={async () => {
-                toast.dismiss(t.id);
-                setIsSubmitting(true);
-                try {
-                  await onDeleteTask({ id: task.id, userId: user.id });
-                  onClose();
-                } catch {
-                  setIsSubmitting(false);
-                }
-              }}
-            >
-              Confirm Delete
-            </button>
-            <button
-              className="bg-gray-3 hover:bg-gray-4 text-gray-11 px-4 py-1.5 rounded text-sm font-bold transition-colors border border-gray-4"
-              onClick={() => toast.dismiss(t.id)}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      {
-        duration: Infinity,
-        id: "delete-confirm",
-      },
+  const handleDelete = () => {
+    confirmDeleteToast(
+      "Delete Task?",
+      "This will permanently remove the task from all active queues and history.",
+      async () => {
+        setIsSubmitting(true);
+        const loadingToast = toast.loading("Purging task from system...");
+        try {
+          await onDeleteTask({ id: task.id, userId: user.id });
+          toast.success("Task deleted successfully.", { id: loadingToast });
+          onClose();
+        } catch {
+          toast.error("Failed to delete task.", { id: loadingToast });
+          setIsSubmitting(false);
+        }
+      }
     );
   };
 
-  return (
+  return createPortal(
     <>
       <div
-        className={`dropdown-backdrop transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`dropdown-backdrop z-[9998] transition-all duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
         onClick={onClose}
       />
 
@@ -406,15 +390,32 @@ export default function TaskDetails({
         ref={modalRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-gray-2 border-l border-gray-4 shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-card border-l border-border shadow-2xl z-[9999] transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <TaskHeader
           isEditing={isEditing}
           isHrVerified={task.hrVerified}
           onClose={onClose}
+          onOpenChat={() => {
+            window.dispatchEvent(new CustomEvent('OPEN_CHAT_MODAL', { 
+              detail: { entityId: task.id, entityType: 'TASK' } 
+            }));
+          }}
         />
 
-        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-gray-2">
+        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-card">
+          {task.status === "DELETED" && (
+            <div className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center gap-3 text-destructive shadow-sm mt-0 -mb-4">
+              <div className="bg-red-100 p-2 rounded-lg">
+                <AlertTriangle size={20} className="text-destructive" />
+              </div>
+              <div>
+                <p className="text-sm font-black uppercase tracking-tight">Task Deleted</p>
+                <p className="text-xs font-bold opacity-80">This task has been soft-deleted and is hidden from regular views.</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <ManagementSection
               isEditing={isEditing}
@@ -443,25 +444,25 @@ export default function TaskDetails({
             {/* --- PROJECT / CAMPAIGN TITLE --- */}
             {(isEditing || formData.projectTitle) && (
               <div className="flex flex-col gap-1.5 pt-2">
-                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                   <FolderKanban size={12} /> Project / Campaign Title
                   {isEditing && (
-                    <span className="font-normal text-gray-7 normal-case tracking-normal">
+                    <span className="font-normal text-muted-foreground normal-case tracking-normal">
                       (optional)
                     </span>
                   )}
                 </label>
                 {isEditing ? (
-                  <input
+                  <Input
                     type="text"
                     name="projectTitle"
                     value={formData.projectTitle}
                     onChange={handleChange}
                     placeholder="e.g. Q2 Brand Awareness Campaign"
-                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
+                    className="h-11 shadow-sm"
                   />
                 ) : (
-                  <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold text-violet-400 flex items-center gap-2">
+                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-[color:var(--violet-10)] flex items-center gap-2 shadow-sm">
                     <FolderKanban size={14} />
                     {formData.projectTitle}
                   </div>
@@ -473,62 +474,61 @@ export default function TaskDetails({
             {((isEditing &&
               taskDept?.toUpperCase() === "ADMIN") ||
               formData.paymentVoucher) && (
-              <div className="flex flex-col gap-1.5 pt-2">
-                <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
-                  <Receipt size={12} /> Payment Voucher
-                  {isEditing && (
-                    <span className="font-normal text-gray-7 normal-case tracking-normal">
-                      (optional)
-                    </span>
+                <div className="flex flex-col gap-1.5 pt-2">
+                  <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Receipt size={12} /> Payment Voucher
+                    {isEditing && (
+                      <span className="font-normal text-muted-foreground normal-case tracking-normal">
+                        (optional)
+                      </span>
+                    )}
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      type="text"
+                      name="paymentVoucher"
+                      value={formData.paymentVoucher || ""}
+                      onChange={handleChange}
+                      placeholder="e.g. PV-2026-001"
+                      className="h-11 shadow-sm"
+                    />
+                  ) : (
+                    <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-foreground flex items-center gap-2 shadow-sm">
+                      <Receipt size={14} />
+                      {formData.paymentVoucher}
+                    </div>
                   )}
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="paymentVoucher"
-                    value={formData.paymentVoucher || ""}
-                    onChange={handleChange}
-                    placeholder="e.g. PV-2026-001"
-                    className="min-h-[44px] w-full bg-gray-1 border border-gray-4 focus:border-violet-500 text-gray-12 rounded-lg px-4 outline-none transition-colors text-sm placeholder:text-gray-7"
-                  />
-                ) : (
-                  <div className="bg-gray-1 px-4 py-3 rounded-xl border border-transparent text-sm font-semibold flex items-center gap-2">
-                    <Receipt size={14} />
-                    {formData.paymentVoucher}
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
             <div className="flex flex-col gap-1.5 pt-2">
               {isEditing ? (
                 <div className="flex items-center justify-between pl-1">
-                  <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                     Task Details
                   </label>
-                  <div className="flex gap-1 bg-gray-3 p-0.5 rounded-lg border border-gray-4">
+                  <div className="flex gap-1 bg-muted/50 p-0.5 rounded-lg border border-border">
                     <button
                       type="button"
                       onClick={() => setDescriptionType("description")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
-                        descriptionType === "description" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
-                      }`}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "description" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-muted-foreground/80"
+                        }`}
                     >
                       Description
                     </button>
                     <button
                       type="button"
                       onClick={() => setDescriptionType("checklist")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
-                        descriptionType === "checklist" ? "bg-gray-1 text-gray-12 shadow-sm" : "text-gray-8 hover:text-gray-10"
-                      }`}
+                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${descriptionType === "checklist" ? "bg-card text-muted-foreground00 shadow-sm" : "text-muted-foreground hover:text-slate-50000"
+                        }`}
                     >
                       Checklist
                     </button>
                   </div>
                 </div>
               ) : (
-                <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] pl-1 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                   Description
                 </label>
               )}
@@ -540,17 +540,17 @@ export default function TaskDetails({
                     onChange={handleChange}
                   />
                 ) : (
-                  <textarea
+                  <Textarea
                     name="taskDescription"
                     value={
                       typeof formData.taskDescription === "string" &&
-                      (formData.taskDescription.trim().startsWith("[") || formData.taskDescription.trim().startsWith("{"))
+                        (formData.taskDescription.trim().startsWith("[") || formData.taskDescription.trim().startsWith("{"))
                         ? ""
                         : formData.taskDescription
                     }
                     onChange={handleChange}
                     required
-                    className="w-full bg-gray-1 border border-gray-4 text-gray-12 rounded-lg p-4 outline-none focus:border-red-9 focus:ring-1 focus:ring-red-9 transition-all h-24 resize-none text-sm shadow-inner"
+                    className="w-full bg-card border border-border text-foreground rounded-xl p-4 outline-none transition-all h-32 resize-none text-[14px] shadow-sm"
                   />
                 )
               ) : isChecklistFormat ? (
@@ -574,15 +574,15 @@ export default function TaskDetails({
                   }}
                 />
               ) : (
-                <div className="bg-gray-1 p-5 rounded-xl border border-transparent text-gray-12 leading-relaxed text-sm whitespace-pre-wrap">
+                <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground leading-relaxed text-[15px] whitespace-pre-wrap shadow-sm">
                   {task.taskDescription}
                 </div>
               )}
             </div>
 
             {/* --- ATTACHMENTS (all tasks, owner only) --- */}
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-4 mt-2">
-              <label className="text-[10px] font-bold text-gray-9 uppercase tracking-wider pl-1">
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-border mt-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                 Attachments
               </label>
               <ImageAttachment
@@ -610,13 +610,12 @@ export default function TaskDetails({
 
             {/* --- GRADE SELECTOR (for evaluation) --- */}
             {!isEditing && (
-              <div className={`p-4 rounded-xl border ${
-                isComplete
-                  ? "bg-gray-3/50 border-gray-4"
-                  : isNotApproved
-                    ? "bg-red-a2 border-red-a5"
-                    : "border-gray-6"
-              }`}>
+              <div className={`p-4 rounded-xl border ${isComplete
+                ? "bg-muted/50/50 border-border"
+                : isNotApproved
+                  ? "bg-destructive/10 border-destructive/20"
+                  : "border-primary/20"
+                }`}>
                 <div className="grid gap-1 mb-3">
                   <div className="text-xs font-bold uppercase tracking-wider">
                     {isFinalized
@@ -627,15 +626,15 @@ export default function TaskDetails({
                   </div>
 
                   {isFinalized && task.evaluatedByName && (
-                    <div className="text-[11px] text-gray-8 flex items-center justify-between">
+                    <div className="text-[11px] text-muted-foreground flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         Evaluated by:{" "}
-                        <span className="font-bold text-gray-11">
+                        <span className="font-bold text-muted-foreground">
                           {task.evaluatedByName}
                         </span>
                       </div>
                       {task.evaluatedById === task.loggedById && (
-                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-purple-500 text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
+                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-[color:var(--plum-9)] text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
                           Self-Verified
                         </span>
                       )}
@@ -653,42 +652,44 @@ export default function TaskDetails({
             )}
 
             {/* --- UNIFIED ACTIVITY TIMELINE --- */}
-            <div className="pt-2 border-t border-gray-4 mt-2">
-              <TaskActivityTimeline
-                taskId={task.id}
-                legacyRemarks={timelineLegacyRemarks}
-                legacyHrRemarks={task.hrRemarks}
-                evaluatedByName={task.evaluatedByName}
-                grade={task.grade}
-                disabled={isEditing || task.status === TASK_STATUS.DELETED}
-              />
-            </div>
+            {!isEditing && (
+              <div className="pt-2 border-t border-border mt-2">
+                <TaskActivityTimeline
+                  taskId={task.id}
+                  legacyRemarks={timelineLegacyRemarks}
+                  legacyHrRemarks={task.hrRemarks}
+                  evaluatedByName={task.evaluatedByName}
+                  grade={task.grade}
+                  disabled={task.status === TASK_STATUS.DELETED}
+                />
+              </div>
+            )}
 
             {!isEditing && task.editedById && (
-              <div className="pt-4 border-t border-gray-4 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-gray-8">
+              <div className="pt-4 border-t border-border flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <p className="flex items-center gap-1.5">
                   <PencilLine size={12} /> Last Modified By{" "}
-                  <span className="text-gray-10">{task.editedByName}</span>
+                  <span className="text-muted-foreground/80">{task.editedByName}</span>
                 </p>
                 <p>{formatDate(task.editedAt)}</p>
               </div>
             )}
-            
+
             {/* KEYBOARD SHORTCUTS HINT */}
             {!isFinalized && !isEditing && canEvaluate && (
               <div className="pt-2 flex justify-center opacity-70 mb-4 pb-4">
-                <p className="text-[10px] text-gray-8 font-bold tracking-widest uppercase flex items-center gap-2">
+                <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase flex items-center gap-2">
                   Shortcuts:
                   {!isHr ? (
                     <>
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">1-5</span> Select Grade
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">Enter</span> Approve
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">1-5</span> Select Grade
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">Enter</span> Approve
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
                     </>
                   ) : (
                     <>
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4">V / Enter</span> Verify
-                      <span className="bg-gray-3 text-gray-12 px-1.5 py-0.5 rounded border border-gray-4 ml-2">X</span> Reject
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">V / Enter</span> Verify
+                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">X</span> Reject
                     </>
                   )}
                 </p>
@@ -779,6 +780,7 @@ export default function TaskDetails({
           }}
         />
       </div>
-    </>
+    </>,
+    document.body
   );
 }

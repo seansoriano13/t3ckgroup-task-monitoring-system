@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
@@ -7,6 +7,7 @@ import { useNavigate, useLocation } from "react-router";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { uxMetricsService } from "../../../services/uxMetricsService";
+import PageContainer from "../../../components/ui/PageContainer";
 
 import { ScheduleHeader } from "./components/ScheduleHeader";
 import { ScheduleTabs } from "./components/ScheduleTabs";
@@ -86,7 +87,7 @@ export default function SalesSchedulePage() {
 
       const newCounts = {};
       Object.entries(bucketCounts).forEach(([k, count]) => {
-        newCounts[k] = Math.max(0, count);
+        newCounts[k] = count;
       });
 
       // Avoid synchronous setState in effect warning
@@ -462,8 +463,8 @@ export default function SalesSchedulePage() {
 
     setSlotCounts((sc) => ({
       ...sc,
-      [`${targetDateStr}-AM`]: Math.max(0, maxAm),
-      [`${targetDateStr}-PM`]: Math.max(0, maxPm),
+      [`${targetDateStr}-AM`]: maxAm,
+      [`${targetDateStr}-PM`]: maxPm,
     }));
   };
 
@@ -519,29 +520,22 @@ export default function SalesSchedulePage() {
       if (isSubmit) {
         let invalid = false;
         weekDates.forEach((d) => {
-          const amCount = activitiesData.filter(
+          const totalCount = activitiesData.filter(
             (a) =>
               a.scheduled_date === d.dateStr &&
-              a.time_of_day === "AM" &&
-              (a.activity_type !== "None" || (a.account_name && a.account_name.trim() !== ""))
-          ).length;
-          const pmCount = activitiesData.filter(
-            (a) =>
-              a.scheduled_date === d.dateStr &&
-              a.time_of_day === "PM" &&
               (a.activity_type !== "None" || (a.account_name && a.account_name.trim() !== ""))
           ).length;
 
-          // Sunday is optional; Mon-Sat still require at least 1 task
+          // Sunday is optional; Mon-Sat require at least 1 activity
           if (d.label !== "Sunday") {
-            if ((amCount + pmCount) < 1) invalid = true;
+            if (totalCount < 1) invalid = true;
           }
         });
 
         if (invalid) {
           uxMetricsService.incrementCounter("salesPlanning.submitValidationErrors");
           toast.error(
-            "You must plan at least 1 task per day for all scheduled days before submitting.",
+            "You must plan at least 1 activity for ALL scheduled days before submitting.",
           );
           throw new Error("Invalid task counts."); // Throw an error to stop the mutation chain
         }
@@ -723,7 +717,7 @@ export default function SalesSchedulePage() {
   }, {});
 
   const allDaysFilled = weekDates.every((d) => {
-    // Sunday is optional
+    // Sunday is optional; Mon-Sat require at least 1 activity
     if (d.label === "Sunday") return true;
     const counts = mapDateToBlockCounts[d.dateStr];
     return counts && (counts.AM + counts.PM) >= 1;
@@ -735,7 +729,7 @@ export default function SalesSchedulePage() {
       ...d,
       amCount: counts.AM,
       pmCount: counts.PM,
-      isReady: d.label === "Sunday" ? true : ((counts.AM + counts.PM) >= 1),
+      isReady: d.label === "Sunday" ? true : (counts.AM + counts.PM) >= 1,
     };
   });
 
@@ -771,7 +765,7 @@ export default function SalesSchedulePage() {
     return (
       <ProtectedRoute excludeSuperAdmin={true}>
         <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-gray-8" size={32} />
+          <Loader2 className="animate-spin text-mauve-8" size={32} />
         </div>
       </ProtectedRoute>
     );
@@ -779,7 +773,7 @@ export default function SalesSchedulePage() {
 
   return (
     <ProtectedRoute excludeSuperAdmin={true}>
-      <div className="max-w-[1600px] mx-auto space-y-6 pb-10 px-2 sm:px-4">
+      <PageContainer maxWidth="full" className="pt-4">
         
         <ScheduleHeader
           compactMode={compactMode}
@@ -856,7 +850,7 @@ export default function SalesSchedulePage() {
           isDeletingId={deleteTemplateMutation.isPending ? deleteTemplateMutation.variables : null}
         />
 
-      </div>
+      </PageContainer>
     </ProtectedRoute>
   );
 }

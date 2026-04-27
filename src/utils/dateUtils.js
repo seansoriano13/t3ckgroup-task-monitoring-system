@@ -40,11 +40,10 @@ export function formatDateToYMD(date) {
  * @returns {{ startDate: string, endDate: string }}
  */
 export function getQuarterBoundaries(year, quarter) {
-  const startMonth = (quarter - 1) * 3 + 1;
-  const startDate = `${year}-${String(startMonth).padStart(2, "0")}-01`;
-  const endMonthDate = new Date(year, startMonth + 2, 1); // first day of month AFTER quarter
-  const endNextDate = new Date(endMonthDate.getFullYear(), endMonthDate.getMonth() + 1, 1);
-  const endDate = `${endNextDate.getFullYear()}-${String(endNextDate.getMonth() + 1).padStart(2, "0")}-01`;
+  const startMonth = (quarter - 1) * 3; // 0, 3, 6, 9
+  const startDate = `${year}-${String(startMonth + 1).padStart(2, "0")}-01`;
+  const endMonthDate = new Date(year, startMonth + 3, 1); // first day of month AFTER quarter
+  const endDate = `${endMonthDate.getFullYear()}-${String(endMonthDate.getMonth() + 1).padStart(2, "0")}-01`;
   return { startDate, endDate };
 }
 

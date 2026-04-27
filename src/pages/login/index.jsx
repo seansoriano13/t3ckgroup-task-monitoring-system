@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate, Navigate } from "react-router";
 import toast from "react-hot-toast";
@@ -9,7 +9,7 @@ import { supabase } from "../../lib/supabase";
 
 // Updated for the dark theme disabled state
 export const INPUT_STYLE =
-  "px-4 py-3 bg-gray-2 border border-gray-4 text-gray-8 rounded-lg outline-none cursor-not-allowed opacity-70 transition-all w-full";
+  "px-4 py-3 bg-mauve-2 border border-mauve-4 text-mauve-8 rounded-lg outline-none cursor-not-allowed opacity-70 transition-all w-full";
 
 export default function Login() {
   const { handleLogin, user, isAuthLoading } = useAuth();
@@ -31,7 +31,32 @@ export default function Login() {
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
-    toast.error("Test login is disabled.");
+    if (!allowTestLogin) {
+      toast.error("Test login is disabled.");
+      return;
+    }
+
+    if (!email || !password) {
+      toast.error("Please enter email and password.");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      const isAuthorized = await handleLogin(data.user.email);
+      if (isAuthorized) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Manual login failed:", error);
+      toast.error(error.message || "Manual login failed");
+    }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -65,16 +90,16 @@ export default function Login() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen bg-gray-1 text-gray-12 font-sans">
+    <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen bg-mauve-1 text-foreground font-sans">
       {/* LEFT: Form Panel */}
       <div className="flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 py-12 relative z-10">
         <div className="max-w-md w-full mx-auto space-y-8">
           {/* Header */}
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-12">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Welcome to <span className="text-primary">T3ckgroup</span>
             </h1>
-            <p className="text-gray-9 mt-2 font-medium">
+            <p className="text-muted-foreground mt-2 font-medium">
               Sign in to access the employee portal.
             </p>
           </div>
@@ -82,10 +107,10 @@ export default function Login() {
           {/* Dummy Form */}
           <div className="grid gap-5">
             <div className="grid gap-2">
-              <label className="text-xs font-bold text-gray-10 uppercase tracking-wider flex justify-between">
+              <label className="text-xs font-bold text-mauve-10 uppercase tracking-wider flex justify-between">
                 Email Address{" "}
                 {!allowTestLogin && (
-                  <span className="text-gray-8 normal-case font-normal">
+                  <span className="text-mauve-8 normal-case font-normal">
                     (Disabled)
                   </span>
                 )}
@@ -101,10 +126,10 @@ export default function Login() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-xs font-bold text-gray-10 uppercase tracking-wider flex justify-between">
+              <label className="text-xs font-bold text-mauve-10 uppercase tracking-wider flex justify-between">
                 Password{" "}
                 {!allowTestLogin && (
-                  <span className="text-gray-8 normal-case font-normal">
+                  <span className="text-mauve-8 normal-case font-normal">
                     (Disabled)
                   </span>
                 )}
@@ -121,8 +146,8 @@ export default function Login() {
           </div>
 
           {/* Action Area */}
-          <div className="pt-6 border-t border-gray-4 mt-8">
-            <p className="text-sm font-bold text-gray-9 mb-4">
+          <div className="pt-6 border-t border-mauve-4 mt-8">
+            <p className="text-sm font-bold text-muted-foreground mb-4">
               Please authenticate using your corporate Google account.
             </p>
 
@@ -130,7 +155,7 @@ export default function Login() {
               {/* Making the custom button look disabled so users know to click Google */}
               <PrimaryButton
                 label="Log In"
-                className={`w-full sm:w-auto ${!allowTestLogin ? "opacity-50 cursor-not-allowed bg-gray-4 text-gray-9 hover:bg-gray-4 shadow-none" : ""}`}
+                className={`w-full sm:w-auto ${!allowTestLogin ? "opacity-50 cursor-not-allowed bg-mauve-4 text-muted-foreground hover:bg-mauve-4 shadow-none" : ""}`}
                 onClick={handleManualLogin}
               />
 
@@ -152,7 +177,7 @@ export default function Login() {
       {/* RIGHT: Cover Image */}
       {/* Hidden on mobile, visible on large screens */}
       <div className="hidden lg:block h-screen p-4 relative">
-        <div className="shadow-2xl h-full w-full flex items-center justify-center rounded-2xl overflow-hidden border border-gray-4 bg-gray-2 relative">
+        <div className="shadow-2xl h-full w-full flex items-center justify-center rounded-2xl overflow-hidden border border-mauve-4 bg-mauve-2 relative">
           {/* Optional: A subtle gradient overlay to make the image fit the dark theme better */}
           <div className="absolute inset-0 z-10 pointer-events-none" />
 

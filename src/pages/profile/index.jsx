@@ -1,4 +1,4 @@
-import {
+﻿import {
   Mail,
   Building2,
   Briefcase,
@@ -17,7 +17,13 @@ import toast from "react-hot-toast";
 import { storageService } from "../../services/storageService";
 import { employeeService } from "../../services/employeeService";
 import { aiService } from "../../services/aiService";
-import { TASK_STATUS, REVENUE_STATUS, SALES_PLAN_STATUS } from "../../constants/status";
+import {
+  TASK_STATUS,
+  REVENUE_STATUS,
+  SALES_PLAN_STATUS,
+} from "../../constants/status";
+import PageHeader from "../../components/ui/PageHeader";
+import PageContainer from "../../components/ui/PageContainer";
 
 const UNSPLASH_BANNER_POOL = [
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80",
@@ -49,7 +55,9 @@ export default function ProfilePage() {
   }, [user?.dashboardQuote]);
 
   useEffect(() => {
-    setBannerUrlInput(isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "");
+    setBannerUrlInput(
+      isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "",
+    );
   }, [user?.dashboardBannerPath]);
 
   useEffect(() => {
@@ -95,7 +103,7 @@ export default function ProfilePage() {
       if (user?.isSuperAdmin) return null;
 
       const userDept = user?.department || "";
-      const isSales = userDept.toLowerCase().includes("sales");
+      const isSales = user?.has_sales_flow;
 
       if (user?.isHr || user?.is_hr) {
         // HR Access
@@ -128,7 +136,10 @@ export default function ProfilePage() {
           const { count: pendingPlans } = await supabase
             .from("sales_weekly_plans")
             .select("*", { count: "exact", head: true })
-            .in("status", [SALES_PLAN_STATUS.SUBMITTED, SALES_PLAN_STATUS.REVISION]);
+            .in("status", [
+              SALES_PLAN_STATUS.SUBMITTED,
+              SALES_PLAN_STATUS.REVISION,
+            ]);
 
           const { count: totalVerifiedSales } = await supabase
             .from("sales_activities")
@@ -214,7 +225,9 @@ export default function ProfilePage() {
 
   const generateQuoteMutation = useMutation({
     mutationFn: async () => {
-      return aiService.getRandomMotivationalQuote(user?.name?.split(" ")?.[0] || "Team");
+      return aiService.getRandomMotivationalQuote(
+        user?.name?.split(" ")?.[0] || "Team",
+      );
     },
     onSuccess: (quote) => {
       setCustomQuote(quote);
@@ -231,13 +244,23 @@ export default function ProfilePage() {
       if (!user?.id) throw new Error("Missing user session.");
 
       let avatarPath = removeAvatar ? null : user?.avatarPath || null;
-      let dashboardBannerPath = removeBanner ? null : user?.dashboardBannerPath || null;
+      let dashboardBannerPath = removeBanner
+        ? null
+        : user?.dashboardBannerPath || null;
 
       if (avatarFile) {
-        avatarPath = await storageService.uploadProfileImage(user.id, "avatar", avatarFile);
+        avatarPath = await storageService.uploadProfileImage(
+          user.id,
+          "avatar",
+          avatarFile,
+        );
       }
       if (bannerFile) {
-        dashboardBannerPath = await storageService.uploadProfileImage(user.id, "banner", bannerFile);
+        dashboardBannerPath = await storageService.uploadProfileImage(
+          user.id,
+          "banner",
+          bannerFile,
+        );
       } else if ((bannerUrlInput || "").trim()) {
         dashboardBannerPath = bannerUrlInput.trim();
       }
@@ -252,14 +275,14 @@ export default function ProfilePage() {
 
       const [picture, dashboardBannerUrl] = await Promise.all([
         updated.avatar_path
-          ? (isHttpUrl(updated.avatar_path)
+          ? isHttpUrl(updated.avatar_path)
             ? updated.avatar_path
-            : storageService.getSignedUrl(updated.avatar_path))
+            : storageService.getSignedUrl(updated.avatar_path)
           : null,
         updated.dashboard_banner_path
-          ? (isHttpUrl(updated.dashboard_banner_path)
+          ? isHttpUrl(updated.dashboard_banner_path)
             ? updated.dashboard_banner_path
-            : storageService.getSignedUrl(updated.dashboard_banner_path))
+            : storageService.getSignedUrl(updated.dashboard_banner_path)
           : null,
       ]);
 
@@ -279,7 +302,9 @@ export default function ProfilePage() {
       setRemoveBanner(false);
       setRemoveQuote(false);
       setBannerUrlInput(
-        isHttpUrl(nextUserValues.dashboardBannerPath) ? nextUserValues.dashboardBannerPath : "",
+        isHttpUrl(nextUserValues.dashboardBannerPath)
+          ? nextUserValues.dashboardBannerPath
+          : "",
       );
       toast.success("Dashboard preferences saved.");
     },
@@ -291,41 +316,41 @@ export default function ProfilePage() {
   const isSaving = savePreferencesMutation.isPending;
   const quoteLength = customQuote.trim().length;
   const hasBannerUrl = (bannerUrlInput || "").trim().length > 0;
-  const isUsingDefaultBanner = removeBanner || (!bannerFile && !hasBannerUrl && !user?.dashboardBannerPath);
-  const isUsingDefaultAvatar = removeAvatar || (!avatarFile && !user?.avatarPath);
+  const isUsingDefaultBanner =
+    removeBanner ||
+    (!bannerFile && !hasBannerUrl && !user?.dashboardBannerPath);
+  const isUsingDefaultAvatar =
+    removeAvatar || (!avatarFile && !user?.avatarPath);
   const isUsingDefaultQuote = removeQuote || quoteLength === 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-12">My Profile</h1>
-        <p className="text-gray-9 mt-1">
-          Manage your employee information and access levels.
-        </p>
-      </div>
+    <PageContainer maxWidth="7xl" className="pt-4">
+      <PageHeader
+        title="My Profile"
+        description="Manage your employee information and access levels."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN: The ID Card */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 flex flex-col gap-2 items-center text-center shadow-lg">
+          <div className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-3 items-center text-center shadow-sm">
             <div className="relative">
               <img
                 src={user?.picture || "/default-avatar.png"}
                 alt="Profile"
-                className="w-24 h-24 rounded-full border-4 border-gray-3 shadow-md mb-4"
+                className="w-24 h-24 rounded-2xl border-4 border-border shadow-md mb-4 object-cover"
                 referrerPolicy="no-referrer"
               />
               {/* Role Badges floating on the avatar */}
               {(user?.isHead || user?.isHr) && (
                 <div className="flex gap-2">
                   {user?.isHead && (
-                    <span className="bg-amber-100 text-amber-600 border border-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-[color:var(--amber-2)] text-[color:var(--amber-11)] border border-[color:var(--amber-6)] text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
                       Head
                     </span>
                   )}
                   {user?.isHr && (
-                    <span className="bg-purple-100 text-purple-600 border border-purple-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <span className="bg-[color:var(--violet-2)] text-[color:var(--violet-11)] border border-mauve-5 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
                       HR
                     </span>
                   )}
@@ -334,64 +359,62 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-bold text-gray-12">
+              <h2 className="text-xl font-black text-foreground">
                 {user?.name || "Employee Name"}
               </h2>
-              <p className="text-gray-9 text-sm mt-1 flex items-center gap-2 justify-center">
-                <Mail size={14} /> {user?.email || "email@t3ckgroup.com"}
+              <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2 justify-center">
+                <Mail size={13} /> {user?.email || "email@t3ckgroup.com"}
               </p>
             </div>
           </div>
-
-        
         </div>
 
         {/* RIGHT COLUMN: Details & Stats */}
         <div className="lg:col-span-2 space-y-6">
           {/* Department Info */}
-          <div className="bg-gray-2 border border-gray-4 rounded-2xl p-6 shadow-lg">
-            <h3 className="text-sm font-bold text-gray-10 uppercase tracking-wider mb-4 border-b border-gray-3 pb-2">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-5 border-b border-border pb-3">
               Organizational Details
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex gap-4 items-start">
-                <div className="p-3 bg-gray-3 rounded-xl">
+                <div className="w-10 h-10 bg-[color:var(--violet-2)] border border-indigo-100 rounded-xl flex items-center justify-center text-[color:var(--violet-9)]">
                   <Building2 size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     Department
                   </p>
-                  <p className="text-gray-12 font-bold mt-0.5">
+                  <p className="text-foreground font-black mt-0.5 text-sm">
                     {user?.department || "Unassigned"}
                   </p>
                 </div>
               </div>
 
               <div className="flex gap-4 items-start">
-                <div className="p-3 bg-gray-3 rounded-xl ">
+                <div className="p-3 bg-mauve-3 rounded-xl ">
                   <Briefcase size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     Sub-Department
                   </p>
-                  <p className="text-gray-12 font-bold mt-0.5">
+                  <p className="text-foreground font-black mt-0.5 text-sm">
                     {user?.subDepartment || "N/A"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start sm:col-span-2 border-t border-gray-3 pt-4 mt-2">
-                <div className="p-3 bg-gray-3 rounded-xl ">
+              <div className="flex gap-4 items-start sm:col-span-2 border-t border-mauve-3 pt-4 mt-2">
+                <div className="p-3 bg-mauve-3 rounded-xl ">
                   <ShieldCheck size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     System ID
                   </p>
-                  <p className="text-gray-10 font-mono text-xs mt-1 break-all">
+                  <p className="text-muted-foreground font-mono text-xs mt-1 break-all select-all">
                     {user?.id || "UUID_PENDING"}
                   </p>
                 </div>
@@ -402,36 +425,36 @@ export default function ProfilePage() {
           {/* Live Dynamic Stats */}
           {!user?.isSuperAdmin && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
-                <div className="p-3 bg-gray-3 rounded-full text-gray-9">
+              <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 bg-[color:var(--violet-2)] border border-indigo-100 rounded-2xl flex items-center justify-center text-[color:var(--violet-9)]">
                   <Hash size={20} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-12">
+                  <p className="text-2xl font-black text-foreground">
                     {isStatsLoading ? (
                       <Loader2 size={16} className="animate-spin mt-1 mb-2" />
                     ) : (
                       stats?.primary
                     )}
                   </p>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     {stats?.primaryLabel || "Metrics"}
                   </p>
                 </div>
               </div>
-              <div className="bg-gray-2 border border-gray-4 rounded-2xl p-5 shadow-lg flex items-center gap-4">
-                <div className="p-3 bg-green-900/20 rounded-full text-green-500">
+              <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-2 border border-green-3 rounded-2xl flex items-center justify-center text-green-9">
                   <ShieldCheck size={20} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-400">
+                  <p className="text-2xl font-black text-green-10">
                     {isStatsLoading ? (
                       <Loader2 size={16} className="animate-spin mt-1 mb-2" />
                     ) : (
                       stats?.secondary
                     )}
                   </p>
-                  <p className="text-xs font-bold text-gray-8 uppercase tracking-wider">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     {stats?.secondaryLabel || "Completed"}
                   </p>
                 </div>
@@ -440,194 +463,213 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="lg:col-span-3 bg-gray-2 border border-gray-4 rounded-2xl p-4 md:p-5 shadow-lg space-y-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-bold text-gray-12">Dashboard personalization</h3>
-                <p className="text-xs text-gray-9 mt-1">
-                  Banner, quote, and avatar apply across all dashboard views.
-                </p>
-              </div>
+        <div className="lg:col-span-3 bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm space-y-5">
+          <div className="flex items-start justify-between gap-3 border-b border-border pb-4">
+            <div>
+              <h3 className="text-base font-black text-foreground">
+                Dashboard Personalization
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Banner, quote, and avatar apply across all dashboard views.
+              </p>
             </div>
+          </div>
 
-            <div className="rounded-xl border border-gray-4 bg-gray-1 p-3 space-y-3">
-              <p className="text-xs font-semibold text-gray-9">Live preview</p>
-              <div className="relative rounded-lg overflow-hidden h-24">
-                <img
-                  src={bannerPreviewUrl || "/leaf-background.jpg"}
-                  alt="Banner preview"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/35" />
-                <div className="absolute left-3 right-3 bottom-2 flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-white/90 font-semibold">Dashboard banner preview</p>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-white/90 border border-white/20">
-                    {isUsingDefaultBanner ? "Default" : "Custom"}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <img
-                  src={avatarPreviewUrl || "/default-avatar.png"}
-                  alt="Avatar preview"
-                  className="w-10 h-10 rounded-full object-cover border border-gray-4"
-                />
-                <span className="text-xs text-gray-9">
-                  Profile photo preview ({isUsingDefaultAvatar ? "Default" : "Custom"})
+          <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+              Live Preview
+            </p>
+            <div className="relative rounded-lg overflow-hidden h-24">
+              <img
+                src={bannerPreviewUrl || "/leaf-background.jpg"}
+                alt="Banner preview"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="absolute left-3 right-3 bottom-2 flex items-center justify-between gap-2">
+                <p className="text-[11px] text-primary-foreground/90 font-semibold">
+                  Dashboard banner preview
+                </p>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-primary-foreground/90 border border-white/20">
+                  {isUsingDefaultBanner ? "Default" : "Custom"}
                 </span>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <img
+                src={avatarPreviewUrl || "/default-avatar.png"}
+                alt="Avatar preview"
+                className="w-10 h-10 rounded-xl object-cover border border-border"
+              />
+              <span className="text-xs text-muted-foreground font-medium">
+                Profile photo preview (
+                {isUsingDefaultAvatar ? "Default" : "Custom"})
+              </span>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 rounded-xl border border-gray-4 p-3">
-                <p className="text-xs font-semibold text-gray-9">Profile photo</p>
-                <button
-                  type="button"
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
-                >
-                  <UploadCloud size={16} /> {avatarFile ? avatarFile.name : "Upload avatar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAvatarFile(null);
-                    setRemoveAvatar(true);
-                  }}
-                  disabled={isUsingDefaultAvatar}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
-                >
-                  Reset to default
-                </button>
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    setAvatarFile(e.target.files?.[0] || null);
-                    setRemoveAvatar(false);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2 rounded-xl border border-gray-4 p-3">
-                <p className="text-xs font-semibold text-gray-9">Dashboard banner</p>
-                <button
-                  type="button"
-                  onClick={() => bannerInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
-                >
-                  <UploadCloud size={16} /> {bannerFile ? bannerFile.name : "Upload banner"}
-                </button>
-                <input
-                  ref={bannerInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    setBannerFile(e.target.files?.[0] || null);
-                    setBannerUrlInput("");
-                    setRemoveBanner(false);
-                  }}
-                />
-                <input
-                  type="url"
-                  value={bannerUrlInput}
-                  onChange={(e) => {
-                    setBannerUrlInput(e.target.value);
-                    setBannerFile(null);
-                    setRemoveBanner(false);
-                  }}
-                  className="w-full rounded-lg border border-gray-4 bg-gray-1 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/60"
-                  placeholder="Paste Unsplash image URL"
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const randomBanner =
-                        UNSPLASH_BANNER_POOL[
-                          Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
-                        ];
-                      setBannerUrlInput(randomBanner);
-                      setBannerFile(null);
-                      setRemoveBanner(false);
-                    }}
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-3 hover:bg-gray-4 text-sm font-semibold transition"
-                  >
-                    Random Unsplash
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBannerFile(null);
-                      setBannerUrlInput("");
-                      setRemoveBanner(true);
-                    }}
-                    disabled={isUsingDefaultBanner}
-                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
-                  >
-                    Reset banner
-                  </button>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                Profile photo
+              </p>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted text-sm font-black transition border border-border uppercase tracking-widest text-xs hover:cursor-pointer hover:bg-mauve-4 hover:text-mauve-8"
+              >
+                <UploadCloud size={16} />{" "}
+                {avatarFile ? avatarFile.name : "Upload avatar"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAvatarFile(null);
+                  setRemoveAvatar(true);
+                }}
+                disabled={isUsingDefaultAvatar}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
+              >
+                Reset to default
+              </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  setAvatarFile(e.target.files?.[0] || null);
+                  setRemoveAvatar(false);
+                }}
+              />
             </div>
 
-            <div className="space-y-2 rounded-xl border border-gray-4 p-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-gray-9">Motivational Quote</p>
-                <span className="text-[11px] text-gray-8">{quoteLength}/72</span>
-              </div>
-              <textarea
-                value={customQuote}
-                maxLength={72}
+            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                Dashboard banner
+              </p>
+              <button
+                type="button"
+                onClick={() => bannerInputRef.current?.click()}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
+              >
+                <UploadCloud size={16} />{" "}
+                {bannerFile ? bannerFile.name : "Upload banner"}
+              </button>
+              <input
+                ref={bannerInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
                 onChange={(e) => {
-                  setCustomQuote(e.target.value);
-                  setRemoveQuote(false);
+                  setBannerFile(e.target.files?.[0] || null);
+                  setBannerUrlInput("");
+                  setRemoveBanner(false);
                 }}
-                className="w-full min-h-[70px] rounded-lg border border-gray-4 bg-gray-1 p-2 text-sm outline-none focus:ring-2 focus:ring-primary/60"
-                placeholder="Write your 7-word motivational quote (all users)..."
+              />
+              <input
+                type="url"
+                value={bannerUrlInput}
+                onChange={(e) => {
+                  setBannerUrlInput(e.target.value);
+                  setBannerFile(null);
+                  setRemoveBanner(false);
+                }}
+                className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all"
+                placeholder="Paste Unsplash image URL"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => generateQuoteMutation.mutate()}
-                  disabled={generateQuoteMutation.isPending}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/90 hover:bg-primary text-white text-sm font-semibold transition disabled:opacity-70"
+                  onClick={() => {
+                    const randomBanner =
+                      UNSPLASH_BANNER_POOL[
+                        Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
+                      ];
+                    setBannerUrlInput(randomBanner);
+                    setBannerFile(null);
+                    setRemoveBanner(false);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
                 >
-                  {generateQuoteMutation.isPending ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={16} />
-                  )}
-                  Random 7-word quote
+                  Random Unsplash
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setCustomQuote("");
-                    setRemoveQuote(true);
+                    setBannerFile(null);
+                    setBannerUrlInput("");
+                    setRemoveBanner(true);
                   }}
-                  disabled={isUsingDefaultQuote}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-4 text-sm font-semibold transition enabled:hover:bg-gray-3 disabled:opacity-50"
+                  disabled={isUsingDefaultBanner}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
                 >
-                  Reset quote
+                  Reset banner
                 </button>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => savePreferencesMutation.mutate()}
-              disabled={isSaving}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gray-12 text-gray-1 text-sm font-bold hover:opacity-90 transition disabled:opacity-70"
-            >
-              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              Save dashboard settings
-            </button>
           </div>
+
+          <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                Motivational Quote
+              </p>
+              <span className="text-[11px] text-mauve-8">{quoteLength}/72</span>
+            </div>
+            <textarea
+              value={customQuote}
+              maxLength={72}
+              onChange={(e) => {
+                setCustomQuote(e.target.value);
+                setRemoveQuote(false);
+              }}
+              className="w-full min-h-[70px] rounded-xl border border-border bg-muted/40 p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all resize-none"
+              placeholder="Write your 7-word motivational quote (all users)..."
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => generateQuoteMutation.mutate()}
+                disabled={generateQuoteMutation.isPending}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest transition disabled:opacity-70 shadow-lg shadow-primary/15"
+              >
+                {generateQuoteMutation.isPending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Sparkles size={16} />
+                )}
+                Random 7-word quote
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomQuote("");
+                  setRemoveQuote(true);
+                }}
+                disabled={isUsingDefaultQuote}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
+              >
+                Reset quote
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => savePreferencesMutation.mutate()}
+            disabled={isSaving}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/15 transition disabled:opacity-70"
+          >
+            {isSaving ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Save size={16} />
+            )}
+            Save dashboard settings
+          </button>
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

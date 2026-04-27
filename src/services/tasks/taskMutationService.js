@@ -153,22 +153,16 @@ export const taskMutationService = {
       }
     }
 
-    // If the caller is attempting to transition workflow state, validate it against the current DB state.
-    const needsTransitionCheck =
-      payload?.status !== undefined || payload?.hrVerified !== undefined;
-
     let current = null;
-    if (needsTransitionCheck) {
-      const { data: cur, error: curErr } = await supabase
-        .from("tasks")
-        .select(
-          "status, hr_verified, evaluated_by, logged_by, reported_to, task_description, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
-        )
-        .eq("id", taskId)
-        .single();
-      if (curErr) throw curErr;
-      current = cur;
-    }
+    const { data: cur, error: curErr } = await supabase
+      .from("tasks")
+      .select(
+        "status, hr_verified, evaluated_by, logged_by, reported_to, task_description, project_title, category_id, priority, start_at, end_at, remarks, grade, payment_voucher, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
+      )
+      .eq("id", taskId)
+      .single();
+    if (curErr) throw curErr;
+    current = cur;
 
     const isHeadApprove =
       payload?.status === TASK_STATUS.COMPLETE &&
@@ -452,6 +446,32 @@ export const taskMutationService = {
           { event: "STATUS_CHANGE", old_status: TASK_STATUS.AWAITING_APPROVAL, new_status: TASK_STATUS.INCOMPLETE },
         );
       }
+
+      // Check for core field edits (only log if we aren't already logging a state transition)
+      if (!isEmployeeSelfComplete && !isHeadApprove && !isHeadReject && !isHrReject && !isRecall && payload.status === undefined) {
+        const edits = [];
+        if (payload.taskDescription !== undefined && payload.taskDescription !== current.task_description) edits.push("description");
+        if (payload.projectTitle !== undefined && payload.projectTitle !== current.project_title) edits.push("project");
+        if (payload.categoryId !== undefined && payload.categoryId !== current.category_id) edits.push("category");
+        if (payload.priority !== undefined && payload.priority !== current.priority) edits.push("priority");
+        if (payload.startAt !== undefined) {
+          const newStart = payload.startAt ? new Date(payload.startAt).toISOString() : null;
+          if (newStart !== current.start_at) edits.push("start date");
+        }
+        if (payload.endAt !== undefined) {
+          const newEnd = payload.endAt ? new Date(payload.endAt).toISOString() : null;
+          if (newEnd !== current.end_at) edits.push("end date");
+        }
+        if (payload.remarks !== undefined && payload.remarks !== current.remarks) edits.push("remarks");
+
+        if (edits.length > 0) {
+          taskActivityService.addSystemEvent(
+            taskId,
+            `Task ${edits.join(", ")} updated by ${editorName}.`,
+            { event: "TASK_EDITED", edits }
+          );
+        }
+      }
     }
 
     // NOTIFICATION TRIGGERS
@@ -645,8 +665,8 @@ export const taskMutationService = {
     return true;
   },
 
-  // 6. BULK APPROVE (Super Admin fallback)
-  async bulkApproveTasks(taskIds, adminId) {
+  // 6. BULK APPROVE
+  async bulkApproveTasks(taskIds, adminId, grade = 3, remarks = "Bulk approved via system bypass") {
     if (!taskIds || taskIds.length === 0) return;
 
     const { data: admin } = await supabase
@@ -663,8 +683,8 @@ export const taskMutationService = {
       .from("tasks")
       .update({
         status: TASK_STATUS.COMPLETE,
-        grade: 3, // Default neutral grade
-        remarks: "Bulk approved via system bypass",
+        grade: grade, // Default neutral grade
+        remarks: remarks,
         evaluated_by: adminId,
         evaluated_at: new Date().toISOString(),
         edited_by: adminId,
@@ -680,13 +700,13 @@ export const taskMutationService = {
       taskActivityService.addApprovalEntry(
         task.id,
         adminId,
-        "Bulk approved via system bypass",
-        { event: "APPROVED", grade: 3, bulk: true },
+        remarks,
+        { event: "APPROVED", grade: grade, bulk: true },
       );
       taskActivityService.addSystemEvent(
         task.id,
-        `Task bulk-approved by ${admin?.name || "Admin"} — Grade: 3`,
-        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.COMPLETE, grade: 3 },
+        `Task bulk-approved by ${admin?.name || "Admin"} — Grade: ${grade}`,
+        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.COMPLETE, grade: grade },
       );
     }
 
@@ -719,5 +739,216 @@ export const taskMutationService = {
     );
 
     return data;
+  },
+
+  async bulkDeclineTasks(taskIds, adminId, remarks = "Bulk rejected by admin") {
+    if (!taskIds || taskIds.length === 0) return;
+
+    const { data: admin } = await supabase
+      .from("employees")
+      .select("is_super_admin, is_head, name")
+      .eq("id", adminId)
+      .single();
+
+    if (!admin?.is_super_admin && !admin?.is_head) {
+      throw new Error("Unauthorized: Only Admins/Heads can bulk reject tasks.");
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        status: TASK_STATUS.NOT_APPROVED,
+        grade: 0,
+        remarks: remarks,
+        evaluated_by: adminId,
+        evaluated_at: new Date().toISOString(),
+        edited_by: adminId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", taskIds)
+      .select("*, creator:employees!tasks_logged_by_fk(name, department, sub_department)");
+
+    if (error) throw error;
+
+    // Log activity for each bulk-rejected task
+    for (const task of data) {
+      taskActivityService.addApprovalEntry(
+        task.id,
+        adminId,
+        remarks,
+        { event: "REJECTED", grade: 0, bulk: true },
+      );
+      taskActivityService.addSystemEvent(
+        task.id,
+        `Task bulk-rejected by ${admin?.name || "Admin"}.`,
+        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.NOT_APPROVED, grade: 0 },
+      );
+    }
+
+    // Notify each affected employee that their task was rejected
+    const byEmployee = {};
+    data.forEach((t) => {
+      if (!byEmployee[t.logged_by]) byEmployee[t.logged_by] = [];
+      byEmployee[t.logged_by].push(t.task_description?.substring(0, 30) || "a task");
+    });
+
+    await Promise.allSettled(
+      Object.entries(byEmployee).map(([empId, descriptions]) =>
+        notificationService.createNotification({
+          recipient_id: empId,
+          sender_id: adminId,
+          type: "TASK_REJECTED",
+          title: "Tasks Rejected",
+          message: `${descriptions.length} task(s) bulk-rejected: ${descriptions.slice(0, 3).join(", ")}${descriptions.length > 3 ? "…" : ""}. Check remarks.`,
+        })
+      )
+    );
+
+    return data;
+  },
+
+  async undoBulkApproval(taskIds, adminId) {
+    if (!taskIds || taskIds.length === 0) return;
+
+    // Reset workflow to AWAITING_APPROVAL 
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        status: TASK_STATUS.AWAITING_APPROVAL,
+        grade: 0,
+        remarks: "",
+        hr_verified: false,
+        hr_verified_at: null,
+        evaluated_by: null,
+        evaluated_at: null,
+        edited_by: adminId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", taskIds)
+      .select();
+
+    if (error) throw error;
+
+    for (const task of data) {
+      taskActivityService.addSystemEvent(
+        task.id,
+        "Bulk approval reverted by Manager.",
+        { event: "STATUS_CHANGE", new_status: TASK_STATUS.AWAITING_APPROVAL }
+      );
+    }
+    return true;
+  },
+
+  // HR BULK VERIFY — sets hr_verified=true only, never touches grade or evaluated_by
+  async bulkVerifyTasks(taskIds, hrId, notes = "") {
+    if (!taskIds || taskIds.length === 0) return;
+
+    const { data: hr } = await supabase
+      .from("employees")
+      .select("is_hr, is_super_admin, name")
+      .eq("id", hrId)
+      .single();
+
+    if (!hr?.is_hr && !hr?.is_super_admin) {
+      throw new Error("Unauthorized: Only HR/Admins can bulk verify tasks.");
+    }
+
+    // Guard: only verify tasks that are COMPLETE + not yet hr_verified + have been evaluated
+    const { data: tasks, error: fetchErr } = await supabase
+      .from("tasks")
+      .select("id, status, hr_verified, evaluated_by")
+      .in("id", taskIds);
+
+    if (fetchErr) throw fetchErr;
+
+    const eligible = tasks.filter(
+      (t) =>
+        t.status === TASK_STATUS.COMPLETE &&
+        t.hr_verified === false &&
+        t.evaluated_by != null,
+    );
+
+    if (eligible.length === 0) {
+      throw new Error(
+        "None of the selected tasks are eligible for HR verification. Tasks must be COMPLETE, graded by a Head, and not yet verified.",
+      );
+    }
+
+    const eligibleIds = eligible.map((t) => t.id);
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        hr_verified: true,
+        hr_verified_at: new Date().toISOString(),
+        hr_remarks: notes || "",
+        edited_by: hrId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", eligibleIds)
+      .select();
+
+    if (error) throw error;
+
+    for (const task of data) {
+      taskActivityService.addHrEntry(
+        task.id,
+        hrId,
+        notes || "Bulk verified by HR",
+        { event: "HR_VERIFIED", bulk: true },
+      );
+      taskActivityService.addSystemEvent(
+        task.id,
+        `Task bulk-verified by HR (${hr?.name || "HR"}).`,
+        { event: "HR_VERIFIED", bulk: true },
+      );
+    }
+
+    // Notify super admin
+    notificationService.broadcastToRole(["SUPER_ADMIN"], {
+      sender_id: hrId,
+      type: "TASK_COMPLETED",
+      title: "Bulk HR Verification Complete",
+      message: `${hr?.name || "HR"} bulk-verified ${data.length} task(s) for payroll.`,
+    }).catch(console.error);
+
+    return data;
+  },
+
+  async bulkUnverifyTasks(taskIds, hrId) {
+    if (!taskIds || taskIds.length === 0) return;
+
+    const { data: hr } = await supabase
+      .from("employees")
+      .select("is_hr, is_super_admin, name")
+      .eq("id", hrId)
+      .single();
+
+    if (!hr?.is_hr && !hr?.is_super_admin) {
+      throw new Error("Unauthorized: Only HR/Admins can unverify tasks.");
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        hr_verified: false,
+        hr_verified_at: null,
+        hr_remarks: "",
+        edited_by: hrId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", taskIds)
+      .select();
+
+    if (error) throw error;
+
+    for (const task of data) {
+      taskActivityService.addSystemEvent(
+        task.id,
+        `HR verification undone by ${hr?.name || "HR"}.`,
+        { event: "HR_UNDO" }
+      );
+    }
+    return true;
   },
 };

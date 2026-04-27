@@ -31,16 +31,16 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   useEffect(() => {
+    let isMounted = true;
 
-    // Shared helper — looks up the employee record from DB and merges Google metadata.
-    // Only called on initial session load or explicit SIGNED_IN — NOT on TOKEN_REFRESHED.
-    // Role changes in the DB only take effect after the user logs out and back in.
     const resolveEmployee = async (sessionUser) => {
-      // If we already have a user and it's the right one, don't re-fetch
+      if (!isMounted) return;
       if (userEmailRef.current === sessionUser.email && initFinished) return;
 
       try {
         const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
+        if (!isMounted) return;
+
         if (employee) {
           const metadata = sessionUser.user_metadata || null;
           const [pictureFromStorage, bannerFromStorage] = await Promise.all([
@@ -53,15 +53,15 @@ export const AuthProvider = ({ children }) => {
             picture: pictureFromStorage || metadata?.avatar_url || metadata?.picture || "",
             dashboardBannerUrl: bannerFromStorage || null,
           };
+          
           setUser(mergedUser);
           localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(mergedUser));
         } else {
-          console.warn("Auth: No employee record found. Clearing session.");
+          console.warn("Auth: No employee record found for", sessionUser.email);
           await logout();
         }
       } catch (err) {
         console.error("Auth: resolveEmployee failed:", err);
-        // Fallback to local cache if DB is unreachable BUT session is valid
         const cached = localStorage.getItem(PROFILE_CACHE_KEY);
         if (cached) {
           const parsed = JSON.parse(cached);
@@ -70,45 +70,46 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } finally {
-        setIsAuthLoading(false);
-        setInitFinished(true);
+        if (isMounted) {
+          setIsAuthLoading(false);
+          setInitFinished(true);
+          settledRef.current = true;
+        }
       }
     };
 
-    // Safety net: if auth never resolves (offline, token deadlock, slow network),
-    // release the loading gate after 10s so the user reaches the login page
-    // instead of being stuck on "Loading Portal..." forever.
     const timeout = setTimeout(() => {
-      if (!settledRef.current) {
+      if (!settledRef.current && isMounted) {
         settledRef.current = true;
-        console.warn("Auth: session resolution timed out — releasing loading gate");
+        console.warn("Auth: Safety gate triggered - session resolution took too long. This usually indicates a Supabase connection issue.");
         setIsAuthLoading(false);
       }
-    }, 10_000);
+    }, 15_000);
 
-    // 🔄 Real-time Session Sync
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth Event:", event);
-      
+
       if (session?.user) {
-        // If we have a session, always try to resolve the employee
         resolveEmployee(session.user);
       } else {
-        // No session -> clear everything
-        setUser(null);
-        localStorage.removeItem(PROFILE_CACHE_KEY);
-        setIsAuthLoading(false);
-        setInitFinished(true);
+        if (isMounted) {
+          setUser(null);
+          localStorage.removeItem(PROFILE_CACHE_KEY);
+          setIsAuthLoading(false);
+          setInitFinished(true);
+          settledRef.current = true;
+        }
       }
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
-  }, [initFinished]);
+  }, []); // Only run once on mount
 
 
 

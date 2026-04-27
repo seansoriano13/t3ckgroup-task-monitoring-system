@@ -1,4 +1,4 @@
-import { Shield, AlertTriangle, Lightbulb, Target } from "lucide-react";
+﻿import { Shield, AlertTriangle, Lightbulb, Target } from "lucide-react";
 
 /**
  * SWOT-inspired strategic insights panel.
@@ -58,9 +58,9 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
     {
       title: "Strengths",
       icon: Shield,
-      color: "text-green-500",
+      color: "text-green-9",
       border: "border-green-500/20",
-      bg: "bg-green-500/5",
+      bg: "bg-green-9/5",
       items: topPerformers.length > 0
         ? topPerformers.map(
             (e) =>
@@ -71,9 +71,9 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
     {
       title: "Weaknesses",
       icon: AlertTriangle,
-      color: "text-red-500",
+      color: "text-destructive",
       border: "border-red-500/20",
-      bg: "bg-red-500/5",
+      bg: "bg-destructive/5",
       items: [
         ...(bottomPerformers.length > 0
           ? bottomPerformers.map(
@@ -89,9 +89,9 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
     {
       title: "Opportunities",
       icon: Lightbulb,
-      color: "text-amber-500",
+      color: "text-[color:var(--amber-9)]",
       border: "border-amber-500/20",
-      bg: "bg-amber-500/5",
+      bg: "bg-warning/5",
       items:
         topProducts.length > 0
           ? topProducts.map(
@@ -103,9 +103,9 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
     {
       title: "Threats",
       icon: Target,
-      color: "text-purple-500",
+      color: "text-[color:var(--plum-9)]",
       border: "border-purple-500/20",
-      bg: "bg-purple-500/5",
+      bg: "bg-[color:var(--plum-9)]/5",
       items: [
         concentrationPct > 50
           ? `⚠ Revenue dependency: Top rep accounts for ${concentrationPct}% of total revenue`
@@ -123,8 +123,8 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
   ];
 
   return (
-    <div className="bg-gray-1 border border-gray-4 rounded-2xl p-6 shadow-lg">
-      <h2 className="text-sm font-black text-gray-12 uppercase tracking-widest mb-6 flex items-center gap-2">
+    <div className="bg-mauve-1 border border-mauve-4 rounded-2xl p-6 shadow-lg">
+      <h2 className="text-sm font-black text-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
         <Shield size={16} className="text-primary" />
         Strategic Insights (SWOT)
       </h2>
@@ -150,9 +150,9 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
                 {q.items.map((item, i) => (
                   <li
                     key={i}
-                    className="text-sm text-gray-11 font-medium leading-relaxed flex gap-2"
+                    className="text-sm text-mauve-11 font-medium leading-relaxed flex gap-2"
                   >
-                    <span className="text-gray-7 shrink-0 mt-0.5">•</span>
+                    <span className="text-mauve-7 shrink-0 mt-0.5">•</span>
                     <span>{item}</span>
                   </li>
                 ))}

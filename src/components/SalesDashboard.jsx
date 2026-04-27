@@ -13,7 +13,9 @@ import {
   RepRevenueChart,
   ProductBreakdownChart,
   WinRateGauge,
+  RevenueTrendChart,
 } from "./sales-dashboard/SalesCharts";
+import PageHeader from "./ui/PageHeader";
 
 export default function SalesDashboard({ globalRange }) {
   const { user } = useAuth();
@@ -32,13 +34,21 @@ export default function SalesDashboard({ globalRange }) {
   const rangeMode = globalRange?.mode || "MONTHLY";
   const monthKeys = globalRange?.monthKeys || [];
   const isMonthly = rangeMode === "MONTHLY";
-  const { data: leaderboard = [], isLoading: isLdrLoading } = useQuery({
+  const { data: leaderboardData, isLoading: isLdrLoading } = useQuery({
     queryKey: ["salesLeaderboard", startDate, endDate, monthKeys],
     queryFn: () =>
       salesService.getLeaderboardData(startDate, endDate, monthKeys),
     enabled: !!startDate && !!endDate,
     refetchInterval: 15000,
   });
+
+  const leaderboard = leaderboardData?.rankings || [];
+  const summary = leaderboardData?.summary || {
+    totalWon: 0,
+    totalLost: 0,
+    companyPct: 0,
+    teamWinRate: null,
+  };
 
   const { data: appSettings } = useQuery({
     queryKey: ["appSettings"],
@@ -72,19 +82,7 @@ export default function SalesDashboard({ globalRange }) {
   // });
 
   // === COMPUTED AGGREGATES ===
-  const totalWon = leaderboard.reduce((acc, l) => acc + l.revenueWon, 0);
-  const totalLost = leaderboard.reduce((acc, l) => acc + l.revenueLost, 0);
-  const totalQuota = leaderboard.reduce((acc, l) => acc + Number(l.quota), 0);
-  const companyPct =
-    totalQuota > 0 ? Math.round((totalWon / totalQuota) * 100) : 0;
-
-  // Team win rate
-  const totalDealsWon = leaderboard.reduce((s, e) => s + e.dealsWon, 0);
-  const totalDealsLost = leaderboard.reduce((s, e) => s + e.dealsLost, 0);
-  const teamWinRate =
-    totalDealsWon + totalDealsLost > 0
-      ? Math.round((totalDealsWon / (totalDealsWon + totalDealsLost)) * 100)
-      : null;
+  const { totalWon, totalLost, companyPct, teamWinRate } = summary;
 
   // Product breakdown
   const productData = useMemo(() => {
@@ -107,27 +105,34 @@ export default function SalesDashboard({ globalRange }) {
   const printReport = () => window.print();
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-10 px-2 sm:px-0">
+    <div className="max-w-7xl mx-auto space-y-4 pb-6 px-2 sm:px-0">
       {/* HEADER */}
-      <div className="flex flex-col gap-4 border-b border-gray-4 pb-4 print:hidden">
+      <div className="flex flex-col gap-4 border-b border-mauve-4 pb-4 print:hidden">
+        <PageHeader
+          title="Sales Accomplishment Report"
+          description="Revenue performance, quota tracking, and strategic analytics."
+        />
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-gray-12 flex items-center uppercase">
+          {/* <div>
+            <h1 className="text-2xl font-black text-foreground flex items-center uppercase">
               Sales Accomplishment Report
               {rangeLabel && (
-                <span className="text-purple-500 ml-2">— {rangeLabel}</span>
+                <span className="text-mauve-11 font-bold px-3 py-1 bg-mauve-2 border border-mauve-4 rounded-xl text-lg ml-3 shadow-sm lowercase">
+                  — {rangeLabel}
+                </span>
               )}
             </h1>
-            <p className="text-gray-9 mt-1 font-medium text-sm">
+            <p className="text-muted-foreground mt-1 font-medium text-sm">
               Revenue performance, quota tracking, and strategic analytics.
             </p>
-          </div>
-          <button
+          </div> */}
+
+          {/* <button
             onClick={printReport}
-            className="bg-red-9 hover:bg-red-10 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm shadow-sm shrink-0 print:hidden"
+            className="bg-card hover:bg-mauve-2 text-foreground font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm border border-mauve-4 shrink-0 print:hidden"
           >
-            <Download size={16} /> Export PDF
-          </button>
+            <Download size={16} className="text-muted-foreground" /> Export PDF
+          </button> */}
         </div>
       </div>
 
@@ -158,15 +163,16 @@ export default function SalesDashboard({ globalRange }) {
 
       {/* CHARTS — visible to admins */}
       {isAdmin && leaderboard.length > 0 && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <RevenueTrendChart revenueLogs={revenueLogs} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <RepRevenueChart leaderboard={leaderboard} />
             <WinRateGauge leaderboard={leaderboard} />
+            {productData.length > 0 && (
+              <ProductBreakdownChart productData={productData} />
+            )}
           </div>
-
-          {productData.length > 0 && (
-            <ProductBreakdownChart productData={productData} />
-          )}
         </div>
       )}
 
@@ -176,11 +182,8 @@ export default function SalesDashboard({ globalRange }) {
       )}
 
       {/* DETAILED PERFORMANCE METRICS (Execution rates, pipelines, financial ROI) */}
-      <div className="mt-8 border-t border-gray-4 pt-8">
-        <SalesPerformanceMetrics
-          selectedMonth={startDate}
-          selectedLabel={rangeLabel}
-        />
+      <div className="mt-8 border-t border-mauve-4 pt-8">
+        <SalesPerformanceMetrics globalRange={globalRange} />
       </div>
     </div>
   );

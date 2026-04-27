@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status.js";
+import { Card } from "@/components/ui/card";
 
 export default function DashboardStats({ selectedRange }) {
   const { user } = useAuth();
@@ -34,8 +35,12 @@ export default function DashboardStats({ selectedRange }) {
 
   const stats = useMemo(() => {
     // 1. Filter tasks for ONLY this date range, EXCLUDING Super Admin
-    const rangeStart = selectedRange?.startDate ? new Date(`${selectedRange.startDate}T00:00:00`) : new Date(0);
-    const rangeEnd = selectedRange?.endDate ? new Date(`${selectedRange.endDate}T23:59:59.999`) : new Date();
+    const rangeStart = selectedRange?.startDate
+      ? new Date(`${selectedRange.startDate}T00:00:00`)
+      : new Date(0);
+    const rangeEnd = selectedRange?.endDate
+      ? new Date(`${selectedRange.endDate}T00:00:00`)
+      : new Date();
 
     const thisMonthTasks = rawTasks.filter((t) => {
       const taskDate = new Date(t.createdAt);
@@ -51,7 +56,7 @@ export default function DashboardStats({ selectedRange }) {
         return false;
       }
 
-      return taskDate >= rangeStart && taskDate <= rangeEnd;
+      return taskDate >= rangeStart && taskDate < rangeEnd;
     });
 
     // 2. Calculate Personal Stats
@@ -118,7 +123,9 @@ export default function DashboardStats({ selectedRange }) {
           t.status === TASK_STATUS.INCOMPLETE ||
           t.status === TASK_STATUS.AWAITING_APPROVAL,
       ).length;
-      teamCompleted = teamTasks.filter((t) => t.status === TASK_STATUS.COMPLETE).length;
+      teamCompleted = teamTasks.filter(
+        (t) => t.status === TASK_STATUS.COMPLETE,
+      ).length;
       teamRejected = teamTasks.filter(
         (t) => t.status === TASK_STATUS.NOT_APPROVED,
       ).length;
@@ -145,12 +152,12 @@ export default function DashboardStats({ selectedRange }) {
 
   if (isLoading) {
     return (
-      <div className="h-24 bg-gray-2 rounded-xl border border-gray-4 animate-pulse"></div>
+      <div className="h-24 bg-muted rounded-xl border border-border animate-pulse"></div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {/* --- EMPLOYEE VIEW --- */}
       {!isManagement && (
         <>
@@ -158,29 +165,29 @@ export default function DashboardStats({ selectedRange }) {
             title="My Pending"
             value={stats.myPending}
             subtitle="Drafting"
-            icon={<Clock size={20} className="text-gray-9" />}
-            borderColor="border-t-gray-500"
+            icon={<Clock size={20} className="text-muted-foreground" />}
+            color="indigo"
           />
           <StatCard
             title="Pending Approval"
             value={stats.myPendingApproval}
             subtitle="Head Review"
-            icon={<Clock size={20} className="text-yellow-500" />}
-            borderColor="border-t-yellow-500"
+            icon={<Clock size={20} className="text-amber-500" />}
+            color="amber"
           />
           <StatCard
             title="Pending HR Verification"
             value={stats.myPendingHr}
             subtitle="HR Verification"
-            icon={<ShieldAlert size={20} className="text-amber-500" />}
-            borderColor="border-t-amber-500"
+            icon={<ShieldAlert size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="My Completed"
             value={stats.myCompleted}
             subtitle="Verified this Month"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
-            borderColor="border-t-green-500"
+            color="emerald"
           />
         </>
       )}
@@ -192,30 +199,29 @@ export default function DashboardStats({ selectedRange }) {
             title="Pending Approval"
             value={stats.teamPendingApprovals}
             subtitle="Requires Review"
-            icon={<AlertCircle size={20} className="text-primary" />}
-            borderColor="border-t-primary"
-            highlight={stats.teamPendingApprovals > 0}
+            icon={<AlertCircle size={20} className="text-foreground" />}
+            color="indigo"
           />
           <StatCard
             title="Rejected Tasks"
             value={stats.teamRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-red-500" />}
-            borderColor="border-t-red-500"
+            icon={<XCircle size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="Pending HR Verification"
             value={stats.teamPendingHr}
             subtitle="Waiting HR Review"
             icon={<Clock size={20} className="text-amber-500" />}
-            borderColor="border-t-amber-500"
+            color="amber"
           />
           <StatCard
             title="Completed Tasks"
             value={stats.teamCompleted}
             subtitle="Completed this Month"
-            icon={<CheckCircle2 size={20} className="text-blue-500" />}
-            borderColor="border-t-blue-500"
+            icon={<CheckCircle2 size={20} className="text-green-500" />}
+            color="emerald"
           />
         </>
       )}
@@ -227,30 +233,29 @@ export default function DashboardStats({ selectedRange }) {
             title="Pending Approval"
             value={stats.hrPendingApprovals}
             subtitle="Head Review"
-            icon={<Clock size={20} className="text-yellow-500" />}
-            borderColor="border-t-yellow-500"
+            icon={<Clock size={20} className="text-amber-500" />}
+            color="amber"
           />
           <StatCard
             title="Pending Verification"
             value={stats.hrPendingVerification}
             subtitle="HR Action Required"
-            icon={<ShieldAlert size={20} className="text-primary" />}
-            borderColor="border-t-primary"
-            highlight={stats.hrPendingVerification > 0}
+            icon={<ShieldAlert size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="Rejected Tasks"
             value={stats.hrRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-red-500" />}
-            borderColor="border-t-red-500"
+            icon={<XCircle size={20} className="text-destructive" />}
+            color="destructive"
           />
           <StatCard
             title="All Tasks"
             value={stats.hrAllTasks}
             subtitle="Org Output this Month"
-            icon={<Database size={20} className="text-blue-500" />}
-            borderColor="border-t-blue-500"
+            icon={<Database size={20} className="text-foreground" />}
+            color="indigo"
           />
         </>
       )}
@@ -259,30 +264,37 @@ export default function DashboardStats({ selectedRange }) {
 }
 
 // Reusable Sub-component for the cards
-function StatCard({ title, value, subtitle, icon, highlight }) {
+function StatCard({ title, value, subtitle, icon, color }) {
+  const colorMap = {
+    indigo: "from-indigo-500/15 to-transparent",
+    amber: "from-amber-500/15 to-transparent",
+    destructive: "from-red-500/15 to-transparent",
+    emerald: "from-green-9/15 to-transparent",
+    slate: "from-slate-500/15 to-transparent",
+  };
+
   return (
-    <div
-      className={`bg-gray-1 rounded-xl p-5 border border-gray-4 shadow-sm relative overflow-hidden transition-all ${highlight ? "bg-primary/5 border-primary/30" : ""}`}
-    >
-      <div className="flex justify-between items-start mb-4">
+    <Card className="p-6 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm">
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
+      />
+
+      <div className="flex justify-between items-start mb-5 relative z-10">
         <div>
-          <p className="text-[10px] font-bold text-gray-9 uppercase tracking-wider">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1">
             {title}
           </p>
-          <h3 className="text-3xl font-black text-gray-12 mt-1">{value}</h3>
+          <h3 className="text-4xl font-extrabold tracking-tight text-foreground">
+            {value}
+          </h3>
         </div>
-        <div className="p-2 bg-gray-2 rounded-lg border border-gray-4">
+        <div className="p-2.5 rounded-xl bg-muted/50 border border-border group-hover:bg-muted transition-colors">
           {icon}
         </div>
       </div>
-      <p className="text-[10px] font-semibold text-gray-9 uppercase tracking-widest">
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest relative z-10">
         {subtitle}
       </p>
-
-      {/* Decorative background glow if highlighted */}
-      {highlight && (
-        <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-primary/20 blur-xl rounded-full pointer-events-none" />
-      )}
-    </div>
+    </Card>
   );
 }
