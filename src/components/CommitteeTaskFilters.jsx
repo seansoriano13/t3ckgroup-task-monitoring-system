@@ -77,7 +77,7 @@ export default function CommitteeTaskFilters({
           {/* Status Dropdown */}
           <Dropdown
             className="flex-1 min-w-[140px]"
-            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full"
+            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
             trigger={({ isOpen }) => (
               <FilterTrigger
                 label={currentStatusLabel}
@@ -100,7 +100,7 @@ export default function CommitteeTaskFilters({
           {/* Creator Dropdown */}
           <Dropdown
             className="flex-1 min-w-[180px]"
-            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full max-h-[300px] overflow-y-auto"
+            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full max-h-[300px] overflow-y-auto popover-enter"
             trigger={({ isOpen }) => (
               <FilterTrigger
                 label={currentCreatorLabel}

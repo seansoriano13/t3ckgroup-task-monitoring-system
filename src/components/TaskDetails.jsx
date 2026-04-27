@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { activeChatService } from "../services/tasks/activeChatService";
 import { createPortal } from "react-dom";
+import HighlightText from "./HighlightText";
 
 export default function TaskDetails({
   isOpen,
@@ -30,6 +31,7 @@ export default function TaskDetails({
   task,
   onUpdateTask,
   onDeleteTask,
+  searchTerm,
 }) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -602,6 +604,7 @@ export default function TaskDetails({
                   description={task.taskDescription}
                   isOwner={isOwner}
                   disabled={!canEdit || !isOwner}
+                  searchTerm={searchTerm}
                   onInlineCheck={(newDesc) => {
                     setFormData((prev) => ({
                       ...prev,
@@ -619,7 +622,10 @@ export default function TaskDetails({
                 />
               ) : (
                 <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground leading-relaxed text-[15px] whitespace-pre-wrap shadow-sm">
-                  {task.taskDescription}
+                  <HighlightText
+                    text={task.taskDescription}
+                    search={searchTerm}
+                  />
                 </div>
               )}
             </div>

@@ -1,14 +1,14 @@
-﻿import {
+import {
   Mail,
   Building2,
   Briefcase,
   Hash,
   ShieldCheck,
-  Loader2,
   UploadCloud,
   Sparkles,
   Save,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
@@ -432,7 +432,7 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-2xl font-black text-foreground">
                     {isStatsLoading ? (
-                      <Loader2 size={16} className="animate-spin mt-1 mb-2" />
+                      <Spinner size="sm" />
                     ) : (
                       stats?.primary
                     )}
@@ -449,7 +449,7 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-2xl font-black text-green-10">
                     {isStatsLoading ? (
-                      <Loader2 size={16} className="animate-spin mt-1 mb-2" />
+                      <Spinner size="sm" />
                     ) : (
                       stats?.secondary
                     )}
@@ -635,7 +635,7 @@ export default function ProfilePage() {
                 className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest transition disabled:opacity-70 shadow-lg shadow-primary/15"
               >
                 {generateQuoteMutation.isPending ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <Sparkles size={16} />
                 )}
@@ -662,7 +662,7 @@ export default function ProfilePage() {
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/15 transition disabled:opacity-70"
           >
             {isSaving ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Spinner size="sm" />
             ) : (
               <Save size={16} />
             )}

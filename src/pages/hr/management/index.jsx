@@ -12,13 +12,13 @@ import {
   Edit,
   Trash2,
   Shield,
-  Loader2,
   XSquare,
   Building2,
   Briefcase,
   ChevronDown,
   Info,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { ListCheck } from "lucide-react";
 import Dropdown from "../../../components/ui/Dropdown";
 import PropertyPill from "../../../components/ui/PropertyPill";
@@ -29,6 +29,8 @@ import { Switch } from "@/components/ui/switch";
 import PageHeader from "../../../components/ui/PageHeader";
 import PageContainer from "../../../components/ui/PageContainer";
 import TabGroup from "../../../components/ui/TabGroup";
+import HighlightText from "../../../components/HighlightText";
+
 
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
@@ -187,10 +189,7 @@ export default function EmployeeManagement() {
                         colSpan="6"
                         className="p-10 text-center text-muted-foreground font-bold"
                       >
-                        <Loader2
-                          size={24}
-                          className="animate-spin mx-auto mb-2 text-[color:var(--violet-9)]"
-                        />
+                        <Spinner size="md" />
                         Loading employees...
                       </td>
                     </tr>
@@ -213,16 +212,18 @@ export default function EmployeeManagement() {
                           />
                           <div className="truncate">
                             <p className="font-black text-foreground">
-                              {emp.name}
+                              <HighlightText text={emp.name} search={searchTerm} />
                             </p>
+
                             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                               {emp.id?.slice(0, 8)}...
                             </p>
                           </div>
                         </td>
                         <td className="p-4 text-sm text-muted-foreground">
-                          {emp.email}
+                          <HighlightText text={emp.email} search={searchTerm} />
                         </td>
+
                         <td className="p-4 text-sm text-muted-foreground">
                           {emp.department || "-"}
                         </td>
@@ -877,7 +878,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
             className="px-10 py-3.5 bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-2xl transition-all shadow-xl shadow-primary/20 disabled:opacity-50 text-[11px] uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2"
           >
             {mutation.isPending ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Spinner size="sm" />
             ) : null}
             {mutation.isPending ? "Saving..." : "Save Employee"}
           </button>

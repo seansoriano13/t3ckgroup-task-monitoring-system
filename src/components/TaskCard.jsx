@@ -12,6 +12,8 @@ import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import { useAuth } from "../context/AuthContext";
 import { TASK_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
+import HighlightText from "./HighlightText";
+
 
 const getRelativeTime = (dateString) => {
   if (!dateString) return "";
@@ -43,7 +45,8 @@ const getRelativeTime = (dateString) => {
   });
 };
 
-const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
+const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
+
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -173,14 +176,15 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
       {/* Row 2: The Core (Action) */}
       <div className="flex-1">
         <h3 className="font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-          {displayTitle}
+          <HighlightText text={displayTitle} search={searchTerm} />
         </h3>
 
         {displaySnippet && !isExpanded && (
           <p className="text-[13px] text-muted-foreground mt-1 line-clamp-2">
-            {displaySnippet}
+            <HighlightText text={displaySnippet} search={searchTerm} />
           </p>
         )}
+
 
         {/* Expanded Checklist */}
         {isChecklistFormat && isExpanded && (
@@ -193,7 +197,9 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
               isOwner={isOwner}
               disabled={!isOwner || task.status === TASK_STATUS.COMPLETE}
               onInlineCheck={handleInlineCheck}
+              searchTerm={searchTerm}
             />
+
           </div>
         )}
       </div>

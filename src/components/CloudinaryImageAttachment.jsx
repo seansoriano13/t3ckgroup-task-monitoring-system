@@ -1,5 +1,6 @@
-﻿import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ImagePlus, Loader2, Maximize2, ClipboardPaste } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { X, ImagePlus, Maximize2, ClipboardPaste } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { storageService } from "../services/storageService";
 import toast from "react-hot-toast";
 
@@ -145,7 +146,7 @@ export default function CloudinaryImageAttachment({
            >
              {isUploading ? (
                 <>
-                   <Loader2 size={18} className="animate-spin" /> Uploading...
+                   <Spinner size="sm" /> Uploading...
                 </>
              ) : activityId === "NEW" ? (
                "Save task first to upload attachments"

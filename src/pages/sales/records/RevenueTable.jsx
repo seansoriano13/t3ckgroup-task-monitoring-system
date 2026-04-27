@@ -1,4 +1,4 @@
-﻿import { useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   AlertCircle,
   Briefcase,
@@ -7,6 +7,8 @@ import {
 import Pagination from "./Pagination";
 import { REVENUE_STATUS, SALES_PLAN_STATUS } from "../../../constants/status";
 import { confirmDeleteToast } from "../../../components/ui/CustomToast";
+import HighlightText from "../../../components/HighlightText";
+
 
 /**
  * Full Revenue tab: record-type sub-filter tabs + table + pagination.
@@ -23,7 +25,9 @@ export default function RevenueTable({
   user,
   isVerificationEnforced,
   deleteRevenueMutation,
+  searchTerm,
 }) {
+
   const navigate = useNavigate();
 
   return (
@@ -100,13 +104,19 @@ export default function RevenueTable({
                         <span className="font-mono text-sm font-bold text-foreground">{log.date}</span>
                       </td>
                       <td className="p-4 text-sm">
-                        <p className="font-bold text-foreground">{log.employees?.name || "Unknown"}</p>
+                        <p className="font-bold text-foreground">
+                          <HighlightText text={log.employees?.name || "Unknown"} search={searchTerm} />
+                        </p>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase">
                           {log.employees?.sub_department || log.employees?.department || "No Dept"}
                         </p>
                       </td>
-                      <td className="p-4 font-bold text-sm text-foreground">{log.account}</td>
-                      <td className="p-4 text-xs font-semibold text-mauve-11">{log.product_item_sold}</td>
+                      <td className="p-4 font-bold text-sm text-foreground">
+                        <HighlightText text={log.account} search={searchTerm} />
+                      </td>
+                      <td className="p-4 text-xs font-semibold text-mauve-11">
+                        <HighlightText text={log.product_item_sold} search={searchTerm} />
+                      </td>
                       <td className="p-4 text-center">
                         <RecordTypeBadge recordType={log.record_type} />
                       </td>

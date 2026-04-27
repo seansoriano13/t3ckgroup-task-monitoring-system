@@ -6,7 +6,6 @@ import { aiService } from "../services/aiService";
 import { useAuth } from "../context/AuthContext";
 import {
   Bot,
-  Loader2,
   Plus,
   Trash2,
   Edit3,
@@ -14,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import { confirmDeleteToast } from "./ui/CustomToast.jsx";
@@ -197,7 +197,7 @@ export default function SystemUpdateManager() {
                 className="flex items-center gap-1.5 text-xs font-bold text-[color:var(--blue-9)] hover:text-[color:var(--blue-10)] bg-[color:var(--blue-9)]/10 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
-                  <Loader2 size={14} className="animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <>
                     <Bot size={14} /> <Github size={14} />
@@ -253,7 +253,7 @@ export default function SystemUpdateManager() {
                   className="bg-purple-600 hover:bg-purple-700 text-primary-foreground px-4 py-1.5 rounded-lg text-sm font-bold shadow-md disabled:bg-mauve-4 disabled:text-mauve-8 transition-colors flex items-center gap-2"
                 >
                   {createMutation.isPending || editMutation.isPending ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <Spinner size="sm" />
                   ) : editingId ? (
                     <Edit3 size={16} />
                   ) : (
@@ -304,7 +304,7 @@ export default function SystemUpdateManager() {
             </div>
             {isLoading ? (
               <div className="flex justify-center p-4">
-                <Loader2 className="animate-spin text-mauve-8" />
+                <Spinner size="sm" />
               </div>
             ) : updates.length === 0 ? (
               <p className="text-sm text-muted-foreground italic pl-1">
@@ -426,7 +426,7 @@ export default function SystemUpdateManager() {
                               className="bg-purple-600 hover:bg-purple-700 text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50"
                             >
                               {editMutation.isPending ? (
-                                <Loader2 size={12} className="animate-spin" />
+                                <Spinner size="sm" />
                               ) : (
                                 "Save"
                               )}

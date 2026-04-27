@@ -83,6 +83,12 @@ export default function TaskApprovalsPage() {
   ]);
 
   useEffect(() => {
+    if (activeTab === "VERIFIED") {
+      setStatusFilter(TASK_STATUS.COMPLETE);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
     if (!isHead && !isSuperAdmin) return;
     const fetchTopology = async () => {
       const { employeeService } = await import("../../../services/employeeService.js");
@@ -259,11 +265,6 @@ export default function TaskApprovalsPage() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      if (variables.status === "NOT APPROVED") {
-        toast.success("Task has been rejected.");
-      } else {
-        toast.success("Task approved successfully.");
-      }
     },
   });
 
@@ -272,7 +273,6 @@ export default function TaskApprovalsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Task deleted successfully");
     },
   });
 
@@ -425,34 +425,33 @@ export default function TaskApprovalsPage() {
           )}
         </div>
 
-        {activeRawData.length > 0 && (
-          <TaskFilters
-            searchTerm={searchQuery}
-            setSearchTerm={setSearchQuery}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            priorityFilter={priorityFilter}
-            setPriorityFilter={setPriorityFilter}
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-            deptFilter={deptFilter}
-            setDeptFilter={setDeptFilter}
-            subDeptFilter={subDeptFilter}
-            setSubDeptFilter={setSubDeptFilter}
-            employeeFilter={employeeFilter}
-            setEmployeeFilter={setEmployeeFilter}
-            isManagement={true}
-            isHr={false}
-            hrViewMode="ALL"
-            disableDeptFilter={false}
-            uniqueDepts={uniqueDepts}
-            uniqueSubDepts={uniqueSubDepts}
-            uniqueEmployees={uniqueEmployees}
-            showStatusFilter={activeTab === "PENDING"}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-          />
-        )}
+        <TaskFilters
+          searchTerm={searchQuery}
+          setSearchTerm={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          priorityFilter={priorityFilter}
+          setPriorityFilter={setPriorityFilter}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          deptFilter={deptFilter}
+          setDeptFilter={setDeptFilter}
+          subDeptFilter={subDeptFilter}
+          setSubDeptFilter={setSubDeptFilter}
+          employeeFilter={employeeFilter}
+          setEmployeeFilter={setEmployeeFilter}
+          isManagement={true}
+          isHr={false}
+          hrViewMode="ALL"
+          disableDeptFilter={false}
+          uniqueDepts={uniqueDepts}
+          uniqueSubDepts={uniqueSubDepts}
+          uniqueEmployees={uniqueEmployees}
+          showStatusFilter={true}
+          disableStatusFilter={activeTab === "VERIFIED"}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+        />
 
         <>
           {activeTab === "PENDING" && (
@@ -482,6 +481,7 @@ export default function TaskApprovalsPage() {
                     appSettings?.enable_bulk_approval ? toggleTaskSelection : undefined
                   }
                   isVerifiedTab={activeTab === "VERIFIED"}
+                  searchTerm={searchQuery}
                 />
               ))}
 

@@ -1,4 +1,5 @@
-import { Bell, Moon, Sun, LogOut, Shield, Loader2 } from "lucide-react";
+import { Bell, Moon, Sun, LogOut, Shield } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -21,7 +22,7 @@ function SettingToggle({ label, description, icon: Icon, checked, onToggle, isPe
         </div>
       </div>
       {isLoading ? (
-        <Loader2 size={16} className="animate-spin text-muted-foreground shrink-0" />
+        <Spinner size="sm" />
       ) : (
         <div
           onClick={!isPending ? onToggle : undefined}

@@ -1,5 +1,6 @@
-﻿import { useState } from "react";
-import { X, Trash2, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { X, Trash2 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 
 export function SaveTemplateModal({ isOpen, onClose, onSave, isSaving }) {
   const [templateName, setTemplateName] = useState("");
@@ -46,7 +47,7 @@ export function SaveTemplateModal({ isOpen, onClose, onSave, isSaving }) {
               disabled={isSaving || !templateName.trim()}
               className="px-4 py-2 text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
             >
-              {isSaving && <Loader2 size={14} className="animate-spin" />}
+              {isSaving && <Spinner size="sm" />}
               SAVE TEMPLATE
             </button>
           </div>
@@ -90,7 +91,7 @@ export function ManageTemplatesModal({ isOpen, onClose, customTemplates, onDelet
                     className="p-2 text-mauve-8 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0 disabled:opacity-50"
                     title="Delete template"
                   >
-                    {isDeletingId === template.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    {isDeletingId === template.id ? <Spinner size="sm" /> : <Trash2 size={16} />}
                   </button>
                 </div>
               ))}

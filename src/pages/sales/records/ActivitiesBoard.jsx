@@ -4,6 +4,8 @@ import { Clock } from "lucide-react";
 import { AlertCircle, Users } from "lucide-react";
 import { REVENUE_STATUS } from "../../../constants/status";
 import Avatar from "../../../components/Avatar";
+import HighlightText from "../../../components/HighlightText";
+
 
 /**
  * Board / Kanban view for Activities — groups by employee then by date.
@@ -13,7 +15,9 @@ export default function ActivitiesBoard({
   timeframe,
   onActivityClick,
   appSettings,
+  searchTerm,
 }) {
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {boardData.length === 0 ? (
@@ -29,8 +33,9 @@ export default function ActivitiesBoard({
           >
             <h2 className="text-xl font-black text-foreground mb-4 border-b border-mauve-4 pb-2 flex items-center gap-2">
               <Avatar name={empGroup.employeeName} size="sm" className="bg-primary/10 text-primary border-primary/20" /> 
-              {empGroup.employeeName}
+              <HighlightText text={empGroup.employeeName} search={searchTerm} />
             </h2>
+
             <div className="flex overflow-x-auto gap-4 sm:gap-6 pb-4 custom-scrollbar snap-x items-start">
               {empGroup.dates.map((dateBlock) => {
                 if (timeframe !== "DAILY") {
@@ -45,7 +50,9 @@ export default function ActivitiesBoard({
                           : dateBlock.dateStr
                       }
                       onActivityClick={onActivityClick}
+                      searchTerm={searchTerm}
                     />
+
                   );
                 }
 
@@ -56,6 +63,7 @@ export default function ActivitiesBoard({
                     timeframe={timeframe}
                     onActivityClick={onActivityClick}
                     appSettings={appSettings}
+                    searchTerm={searchTerm}
                   />
                 );
               })}
@@ -70,7 +78,8 @@ export default function ActivitiesBoard({
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * Daily column card
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function DailyColumn({ dateBlock, timeframe, onActivityClick, appSettings }) {
+function DailyColumn({ dateBlock, timeframe, onActivityClick, appSettings, searchTerm }) {
+
   const allActivities = [...(dateBlock.AM || []), ...(dateBlock.PM || [])];
   const total = allActivities.length;
   const done = allActivities.filter((a) => a.status === REVENUE_STATUS.APPROVED).length;
@@ -121,19 +130,23 @@ function DailyColumn({ dateBlock, timeframe, onActivityClick, appSettings }) {
           activities={dateBlock.AM}
           onActivityClick={onActivityClick}
           appSettings={appSettings}
+          searchTerm={searchTerm}
         />
         <TimeBlock
           label="PM Block"
           activities={dateBlock.PM}
           onActivityClick={onActivityClick}
           appSettings={appSettings}
+          searchTerm={searchTerm}
         />
+
       </div>
     </div>
   );
 }
 
-function TimeBlock({ label, activities, onActivityClick, appSettings }) {
+function TimeBlock({ label, activities, onActivityClick, appSettings, searchTerm }) {
+
   return (
     <div className="flex-1 bg-card dark:bg-mauve-3 rounded-lg border border-mauve-4 p-3 h-full">
       <h4 className="flex items-center gap-2 text-[10px] font-black text-mauve-10 uppercase tracking-widest mb-2 border-b border-mauve-4 pb-1">
@@ -151,7 +164,9 @@ function TimeBlock({ label, activities, onActivityClick, appSettings }) {
             act={act}
             onClick={() => onActivityClick(act)}
             appSettings={appSettings}
+            searchTerm={searchTerm}
           />
+
         ))}
       </div>
     </div>
@@ -161,7 +176,8 @@ function TimeBlock({ label, activities, onActivityClick, appSettings }) {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * Expandable summary card (weekly / monthly / yearly)
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings }) {
+function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings, searchTerm }) {
+
   const [expanded, setExpanded] = useState(false);
   const total = dateBlock.all.length;
   const done = dateBlock.all.filter(
@@ -254,8 +270,9 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
                       </p>
                       <div className="space-y-1.5">
                         {activitiesByDate[d].AM.map((act) => (
-                          <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} appSettings={appSettings} />
+                          <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} appSettings={appSettings} searchTerm={searchTerm} />
                         ))}
+
                       </div>
                     </div>
                   )}
@@ -266,8 +283,9 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
                       </p>
                       <div className="space-y-1.5">
                         {activitiesByDate[d].PM.map((act) => (
-                          <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} appSettings={appSettings} />
+                          <BoardActivityCard key={act.id} act={act} onClick={() => onActivityClick(act)} appSettings={appSettings} searchTerm={searchTerm} />
                         ))}
+
                       </div>
                     </div>
                   )}
@@ -284,7 +302,8 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * Individual activity card used on the board
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-export function BoardActivityCard({ act, onClick, appSettings }) {
+export function BoardActivityCard({ act, onClick, appSettings, searchTerm }) {
+
   const [showMeta, setShowMeta] = useState(false);
   const isDone = act.status === REVENUE_STATUS.APPROVED;
   const isLost = act.sales_outcome === "LOST";
@@ -306,15 +325,16 @@ export function BoardActivityCard({ act, onClick, appSettings }) {
     >
       <p
         className={`text-[13px] font-bold truncate ${isDone ? "text-muted-foreground line-through" : "text-foreground"}`}
-        title={act.account_name}
       >
-        {act.account_name || <span className="text-mauve-8 italic">No Account</span>}
+        <HighlightText text={act.account_name || "No Account Specified"} search={searchTerm} />
       </p>
+
       <div className="flex items-center justify-between mt-1">
         <div className="flex items-center gap-1 overflow-hidden">
           <span className="text-[9px] uppercase font-bold text-mauve-10 truncate max-w-[80px]">
-            {act.activity_type}
+            <HighlightText text={act.activity_type} search={searchTerm} />
           </span>
+
           <CardPlanBadge act={act} isDone={isDone} appSettings={appSettings} />
         </div>
         {isDone ? (

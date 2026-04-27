@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Avatar from "../../../components/Avatar";
 import GradeSelector from "../../../components/GradeSelector.jsx";
+import HighlightText from "../../../components/HighlightText";
+
 
 export function ApprovalRow({
   task,
@@ -23,7 +25,9 @@ export function ApprovalRow({
   isSelected,
   onToggleSelection,
   isVerifiedTab,
+  searchTerm,
 }) {
+
   const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(task.grade || null);
   const [remarks, setRemarks] = useState(task.remarks || "");
@@ -208,17 +212,19 @@ export function ApprovalRow({
           />
           <div className="min-w-0 flex-1 md:flex-none md:w-40 lg:w-56 shrink-0">
             <h3 className="font-bold text-foreground text-xs md:text-sm truncate">
-              {task.loggedByName}
+              <HighlightText text={task.loggedByName} search={searchTerm} />
             </h3>
             <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">
-              {task.categoryId}
+              <HighlightText text={task.categoryId} search={searchTerm} />
             </p>
+
           </div>
 
           <div className="hidden md:flex flex-1 min-w-0 ml-4 pl-4 border-l border-border items-center">
             <p className="text-sm font-semibold text-muted-foreground line-clamp-1 max-w-md">
-              {formatTaskPreview(task.taskDescription)}
+              <HighlightText text={formatTaskPreview(task.taskDescription)} search={searchTerm} />
             </p>
+
           </div>
         </div>
 
@@ -285,12 +291,15 @@ export function ApprovalRow({
                     description={task.taskDescription}
                     isOwner={false}
                     disabled={true}
+                    searchTerm={searchTerm}
                   />
+
                 </div>
               ) : (
                 <div className="bg-card p-3 md:p-4 rounded-lg border border-border text-xs md:text-sm text-foreground whitespace-pre-wrap leading-relaxed shadow-inner">
-                  {formatTaskPreview(task.taskDescription)}
+                  <HighlightText text={formatTaskPreview(task.taskDescription)} search={searchTerm} />
                 </div>
+
               )}
 
               {task.attachments && task.attachments.length > 0 && (
@@ -359,9 +368,10 @@ export function ApprovalRow({
                         Not Approve
                       </Button>
                       <Button
+                        variant="primary"
                         onClick={handleHrVerify}
                         disabled={isSubmitting}
-                        className="order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-primary-foreground"
+                        className="order-1 sm:order-2 bg-green-10 hover:bg-green  -11 text-primary-foreground"
                       >
                         Verify & Sign
                       </Button>

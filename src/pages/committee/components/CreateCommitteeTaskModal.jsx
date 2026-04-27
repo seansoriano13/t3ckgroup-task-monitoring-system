@@ -16,6 +16,7 @@ import ChecklistTaskInput from "../../../components/ChecklistTaskInput";
 import { Button } from "@/components/ui/button";
 import Select from "react-select";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
+import Spinner from "@/components/ui/Spinner";
 
 const COMMITTEE_ROLES = ["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"];
 
@@ -447,7 +448,7 @@ export default function CreateCommitteeTaskModal({
             >
               {isSubmitting ? (
                 <>
-                  <div className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  <Spinner size="sm" className="mr-2" />
                   <span>Creating…</span>
                 </>
               ) : (

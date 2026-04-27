@@ -1,11 +1,12 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { useNavigate, useLocation } from "react-router";
 import toast from "react-hot-toast";
-import { Loader2 } from "lucide-react";
+
+import Spinner from "@/components/ui/Spinner";
 import { uxMetricsService } from "../../../services/uxMetricsService";
 import PageContainer from "../../../components/ui/PageContainer";
 
@@ -765,7 +766,7 @@ export default function SalesSchedulePage() {
     return (
       <ProtectedRoute excludeSuperAdmin={true}>
         <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-mauve-8" size={32} />
+          <Spinner size="lg" />
         </div>
       </ProtectedRoute>
     );

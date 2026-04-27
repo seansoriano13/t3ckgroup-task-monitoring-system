@@ -1,9 +1,8 @@
-﻿import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { salesQuotaService } from "../../services/sales/salesQuotaService";
 import toast from "react-hot-toast";
 import {
-  Loader2,
   CheckCheck,
   PhilippinePeso,
   History,
@@ -14,7 +13,10 @@ import {
   AlertCircle,
   UploadCloud,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import QuotaHistoryModal from "./QuotaHistoryModal";
+import HighlightText from "../../components/HighlightText";
+
 
 export default function QuotaManagementModule({
   salesEmployees = [],
@@ -96,7 +98,7 @@ export default function QuotaManagementModule({
   // Filtering
   const filteredEmployees = useMemo(() => {
     return salesEmployees.filter((emp) => {
-      const q = quotaMap[emp.id];
+    const q = quotaMap[emp.id];
       const matchSearch =
         emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (emp.role &&
@@ -271,7 +273,7 @@ export default function QuotaManagementModule({
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shrink-0 bg-mauve-12 hover:bg-mauve-12 text-primary-foreground disabled:bg-mauve-4 disabled:text-muted-foreground disabled:cursor-not-allowed"
           >
             {isSaving ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Spinner size="sm" />
             ) : (
               <CheckCheck size={14} />
             )}
@@ -284,7 +286,7 @@ export default function QuotaManagementModule({
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shrink-0 bg-primary hover:bg-primary-hover text-primary-foreground shadow-md shadow-primary/15 disabled:bg-mauve-5 disabled:shadow-none disabled:cursor-not-allowed"
           >
             {isPublishing ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Spinner size="sm" />
             ) : (
               <UploadCloud size={14} />
             )}
@@ -325,7 +327,9 @@ export default function QuotaManagementModule({
                       setDraftInputs((prev) => ({ ...prev, [emp.id]: val }))
                     }
                     onViewHistory={() => openHistory(emp.id)}
+                    searchQuery={searchQuery}
                   />
+
                 ))}
               </tbody>
             </table>
@@ -343,7 +347,9 @@ export default function QuotaManagementModule({
                   setDraftInputs((prev) => ({ ...prev, [emp.id]: val }))
                 }
                 onViewHistory={() => openHistory(emp.id)}
+                searchQuery={searchQuery}
               />
+
             ))}
           </div>
         )}
@@ -398,7 +404,9 @@ function QuotaTableRow({
   avatarUrl,
   onChange,
   onViewHistory,
+  searchQuery,
 }) {
+
   const serverValue = quota?.amount_target ?? 0;
   const isDirty = (parseFloat(draftValue) || 0) !== serverValue;
   const status = isDirty ? "UNSAVED" : quota?.status || "MISSING";
@@ -418,11 +426,14 @@ function QuotaTableRow({
             }}
           />
           <div>
-            <p className="font-bold text-foreground">{employee.name}</p>
+            <p className="font-bold text-foreground">
+              <HighlightText text={employee.name} search={searchQuery} />
+            </p>
             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-              {employee.role || "Sales Rep"}
+              <HighlightText text={employee.role || "Sales Rep"} search={searchQuery} />
             </p>
           </div>
+
         </div>
       </td>
       <td className="px-6 py-4">
@@ -454,7 +465,9 @@ function QuotaGridCard({
   avatarUrl,
   onChange,
   onViewHistory,
+  searchQuery,
 }) {
+
   const serverValue = quota?.amount_target ?? 0;
   const isDirty = (parseFloat(draftValue) || 0) !== serverValue;
   const status = isDirty ? "UNSAVED" : quota?.status || "MISSING";
@@ -475,11 +488,12 @@ function QuotaGridCard({
           />
           <div className="min-w-0">
             <p className="font-bold text-foreground text-sm truncate">
-              {employee.name}
+              <HighlightText text={employee.name} search={searchQuery} />
             </p>
             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">
-              {employee.role || "Sales Rep"}
+              <HighlightText text={employee.role || "Sales Rep"} search={searchQuery} />
             </p>
+
           </div>
         </div>
         <button

@@ -1,5 +1,6 @@
-﻿import { CheckCircle2, AlertCircle, Loader2, Info, AlertTriangle } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, AlertTriangle } from "lucide-react";
 import { toast, resolveValue } from "react-hot-toast";
+import Spinner from "@/components/ui/Spinner";
 
 export function CustomToast({ 
   t, 
@@ -48,7 +49,6 @@ export function CustomToast({
       border: "border-red-500/20",
     },
     loading: {
-      icon: Loader2,
       color: "text-[color:var(--violet-9)]",
       bg: "bg-primary/10",
       border: "border-indigo-500/20",
@@ -79,7 +79,11 @@ export function CustomToast({
     >
       <div className="flex items-start gap-4">
         <div className={`${config.bg} p-2.5 rounded-xl border ${config.border} shrink-0`}>
-          <Icon className={`${config.color} ${config.spin ? "animate-spin" : ""}`} size={24} />
+          {config.spin ? (
+            <Spinner size="sm" />
+          ) : (
+            <Icon className={config.color} size={24} />
+          )}
         </div>
         <div className="flex flex-col justify-center min-h-[44px]">
           <span className="font-extrabold text-[15px] text-foreground tracking-tight">

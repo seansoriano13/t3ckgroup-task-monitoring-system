@@ -13,13 +13,13 @@ import {
   Clock,
   PlusCircle,
   Plus,
-  Loader2,
   User,
   Edit3,
   ShieldCheck,
   XCircle,
   AlertTriangle,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import StatusBadge from "../../../components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import ChecklistTaskRenderer from "../../../components/ChecklistTaskRenderer";
@@ -62,7 +62,10 @@ export default function CommitteeTaskDetailModal({
   isVerifying,
   isRejecting,
   onInlineCheck,
+  searchTerm,
 }) {
+
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -313,8 +316,9 @@ export default function CommitteeTaskDetailModal({
               {task.description && (
                 <div className="animate-content-in stagger-1 mb-2">
                   <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
-                    {task.description}
+                    <HighlightText text={task.description} search={searchTerm} />
                   </p>
+
                 </div>
               )}
 
@@ -555,7 +559,9 @@ export default function CommitteeTaskDetailModal({
                                     description={member.task_description}
                                     isOwner={isMe}
                                     disabled={!isMe || member.status === "DONE"}
+                                    searchTerm={searchTerm}
                                     onInlineCheck={(newDesc) => {
+
                                       if (onInlineCheck) {
                                         onInlineCheck(member.id, newDesc);
                                       } else {
@@ -573,8 +579,9 @@ export default function CommitteeTaskDetailModal({
                                 </div>
                               ) : (
                                 <div className="text-[13px] text-foreground bg-muted/20 p-4 rounded-xl border border-border/50 leading-relaxed min-h-[80px] whitespace-pre-wrap">
-                                  {member.task_description}
+                                  <HighlightText text={member.task_description} search={searchTerm} />
                                 </div>
+
                               )}
                             </div>
 
@@ -833,7 +840,7 @@ export default function CommitteeTaskDetailModal({
             <div className="animate-in fade-in space-y-6 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-mauve-4 before:from-transparent before:via-slate-200 before:to-transparent">
               {isLoadingLogs ? (
                 <div className="flex items-center justify-center py-10">
-                  <Loader2 className="animate-spin text-primary" size={24} />
+                  <Spinner size="md" />
                 </div>
               ) : logs.length === 0 ? (
                 <div className="text-center py-10">

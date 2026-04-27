@@ -8,9 +8,12 @@ import { salesActivityLogService } from "../../../services/sales/salesActivityLo
 import { taskService } from "../../../services/taskService";
 import { salesExecutionService } from "../../../services/sales/salesExecutionService";
 import { employeeService } from "../../../services/employeeService";
+import { committeeTaskActivityService } from "../../../services/committeeTaskActivityService";
 import TaskDetails from "../../../components/TaskDetails.jsx";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 import Avatar from "../../../components/Avatar.jsx";
+import HighlightText from "../../../components/HighlightText";
+
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
 import toast from "react-hot-toast";
 import {
@@ -91,7 +94,7 @@ function tryParseChecklist(str) {
 }
 
 // ── ContentDisplay ────────────────────────────────────────────────────────────
-function ContentDisplay({ content }) {
+function ContentDisplay({ content, search }) {
   if (!content) return <span className="italic opacity-70">(no message)</span>;
 
   const parsedChecklist = tryParseChecklist(content);
@@ -121,7 +124,7 @@ function ContentDisplay({ content }) {
             <span
               className={`${item.checked ? "line-through opacity-60" : ""} break-words leading-snug line-clamp-2`}
             >
-              {item.text}
+              <HighlightText text={item.text} search={search} />
             </span>
           </div>
         ))}
@@ -134,8 +137,9 @@ function ContentDisplay({ content }) {
     );
   }
 
-  return <span className="line-clamp-2 leading-relaxed">{content}</span>;
+  return <span className="line-clamp-2 leading-relaxed"><HighlightText text={content} search={search} /></span>;
 }
+
 
 // ── FieldBox — mirrors LogTaskAssignmentBar's label+container pattern ────────
 function FieldBox({ label, children }) {
@@ -183,6 +187,7 @@ export default function SuperAdminActivityLogPage() {
   const [page, setPage] = useState(0);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedSalesActivityId, setSelectedSalesActivityId] = useState(null);
+  const [liveAnim, setLiveAnim] = useState(false);
 
   const [filters, setFilters] = useState({
     type: "ALL",
@@ -213,6 +218,27 @@ export default function SuperAdminActivityLogPage() {
     activeTab,
   ]);
 
+  useEffect(() => {
+    const handleNewEntry = () => {
+      setLiveAnim(true);
+      setTimeout(() => setLiveAnim(false), 2000);
+      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog", activeTab] });
+    };
+
+    let sub;
+    if (activeTab === "TASKS") sub = taskActivityService.subscribeToAllActivity(handleNewEntry);
+    else if (activeTab === "SALES") sub = salesActivityLogService.subscribeToAllActivity(handleNewEntry);
+    else if (activeTab === "COMMITTEE") sub = committeeTaskActivityService.subscribeToAllActivity(handleNewEntry);
+
+    return () => {
+      if (sub) {
+        if (activeTab === "TASKS") taskActivityService.unsubscribeFromActivity(sub);
+        else if (activeTab === "SALES") salesActivityLogService.unsubscribeFromActivity(sub);
+        else if (activeTab === "COMMITTEE") committeeTaskActivityService.unsubscribeFromActivity(sub);
+      }
+    };
+  }, [activeTab, queryClient]);
+
   const { data: employees = [] } = useQuery({
     queryKey: ["allEmployees"],
     queryFn: () => employeeService.getAllEmployees(),
@@ -242,6 +268,9 @@ export default function SuperAdminActivityLogPage() {
 
       if (activeTab === "SALES") {
         return salesActivityLogService.getRecentSalesActivity(params);
+      }
+      if (activeTab === "COMMITTEE") {
+        return committeeTaskActivityService.getRecentCommitteeActivity(params);
       }
       return taskActivityService.getRecentTaskActivity(params);
     },
@@ -301,7 +330,6 @@ export default function SuperAdminActivityLogPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
       queryClient.invalidateQueries({ queryKey: ["taskById", selectedTaskId] });
-      toast.success("Task updated.");
     },
     onError: (err) => toast.error(err?.message || "Failed to update task."),
   });
@@ -309,7 +337,6 @@ export default function SuperAdminActivityLogPage() {
   const deleteTaskMutation = useMutation({
     mutationFn: ({ taskId, userId }) => taskService.deleteTask(taskId, userId),
     onSuccess: () => {
-      toast.success("Task deleted.");
       setSelectedTaskId(null);
       queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
     },
@@ -377,12 +404,27 @@ export default function SuperAdminActivityLogPage() {
               >
                 Sales Logs
               </button>
+              <button
+                onClick={() => setActiveTab("COMMITTEE")}
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                  activeTab === "COMMITTEE"
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Committee Logs
+              </button>
             </div>
           </div>
 
           {/* Pagination — styled like LogTaskFooter action buttons */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all duration-300 ${liveAnim ? 'bg-green-a2 border-green-a4 text-green-11' : 'bg-transparent border-transparent text-muted-foreground/60'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${liveAnim ? 'bg-green-9 shadow-[0_0_8px_var(--green-9)] animate-pulse' : 'bg-muted-foreground/40'}`}></div>
+              <span className="text-[10px] font-bold uppercase tracking-wider">{liveAnim ? 'New Update' : 'Live'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
@@ -403,8 +445,9 @@ export default function SuperAdminActivityLogPage() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* ── Filter Panel — mirrors LogTaskPropertyBar container ─────── */}
+      {/* ── Filter Panel — mirrors LogTaskPropertyBar container ─────── */}
         <div className="bg-card border border-border rounded-2xl shadow-sm">
           {/* Panel top bar — matches LogTaskHeader strip */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30">
@@ -768,9 +811,16 @@ export default function SuperAdminActivityLogPage() {
                     <div className="min-w-0 flex-1">
                       {/* Row 1: type eyebrow + timestamp */}
                       <div className="flex items-center justify-between gap-3 mb-1">
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                          {e.type || "SYSTEM"}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                            {e.type || "SYSTEM"}
+                          </p>
+                          {e.isCommittee && (
+                            <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-[color:var(--violet-3)] text-[color:var(--violet-11)] border border-[color:var(--violet-5)]">
+                              Committee Task
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1 shrink-0 text-muted-foreground/60">
                           <Clock size={10} />
                           <span className="text-[11px] font-bold">
@@ -806,7 +856,7 @@ export default function SuperAdminActivityLogPage() {
                                   <span
                                     className={`${item.checked ? "line-through opacity-60" : ""} line-clamp-1`}
                                   >
-                                    {item.text}
+                                    <HighlightText text={item.text} search={filters.search} />
                                   </span>
                                 </div>
                               ))}
@@ -821,14 +871,14 @@ export default function SuperAdminActivityLogPage() {
                         }
                         return (
                           <p className="text-sm font-bold text-foreground line-clamp-1">
-                            {e.taskDescription || `Task ${e.taskId}`}
+                            <HighlightText text={e.taskDescription || `Task ${e.taskId}`} search={filters.search} />
                           </p>
                         );
                       })()}
 
                       {/* Content — parses checklist JSON if applicable */}
                       <div className="text-xs text-muted-foreground mt-1">
-                        <ContentDisplay content={e.content} />
+                        <ContentDisplay content={e.content} search={filters.search} />
                       </div>
 
                       {/* Footer: author avatar + status pill — matches property-pill style */}

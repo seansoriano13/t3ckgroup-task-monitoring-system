@@ -1,4 +1,5 @@
-﻿import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { Plus, Image as ImageIcon, X } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { storageService } from "../../../../services/storageService";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -247,7 +248,7 @@ export function AddUnplannedForm({
               </button>
             )}
             {isUploading && (
-              <Loader2 size={16} className="animate-spin text-primary" />
+              <Spinner size="sm" />
             )}
           </div>
         </div>
@@ -265,7 +266,7 @@ export function AddUnplannedForm({
           onClick={handleSave}
           className="flex-[2] py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
-          {isUploading && <Loader2 size={14} className="animate-spin" />}
+          {isUploading && <Spinner size="sm" />}
           {isUploading ? "Uploading..." : "Add Item"}
         </button>
       </div>

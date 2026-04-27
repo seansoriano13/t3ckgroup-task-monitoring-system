@@ -1,4 +1,4 @@
-﻿/**
+/**
  * GradeSelector — Extracted from ManagerEvaluation.
  * Renders the 1-5 grade buttons for head task evaluation.
  *
@@ -49,11 +49,11 @@ export default function GradeSelector({
             type="button"
             disabled={!canEvaluate}
             onClick={() => onSelect?.(num)}
-            className={`flex-1 py-3 rounded-xl font-bold transition-all border ${
-              !canEvaluate ? "opacity-50 cursor-not-allowed" : ""
-            } ${
+            className={`flex items-center justify-center font-bold transition-all border ${
+              compact ? "w-6 h-7 rounded-lg text-[10px]" : "flex-1 py-3 rounded-xl text-sm"
+            } ${!canEvaluate ? "opacity-50 cursor-not-allowed" : ""} ${
               isSelected
-                ? `${activeColorMap[num]} shadow-xl scale-[1.05]`
+                ? `${activeColorMap[num]} shadow-xl scale-[1.05] z-10`
                 : `bg-card text-muted-foreground border-border ${
                     canEvaluate
                       ? "hover:border-primary/30 hover:bg-muted/50"

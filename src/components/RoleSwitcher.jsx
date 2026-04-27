@@ -1,8 +1,9 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import { employeeService } from "../services/employeeService";
-import { FlaskConical, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { FlaskConical, ChevronUp, ChevronDown } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 import Select from "react-select";
 import { defaultSelectStyles } from "../styles/selectStyles";
@@ -308,7 +309,7 @@ export default function RoleSwitcher() {
               className="w-full h-11 bg-[#111827] flex items-center justify-center gap-2 hover:bg-mauve-12 text-primary-foreground text-[13px] font-bold rounded-lg transition-all shadow-lg active:scale-[0.97] disabled:opacity-50"
             >
               {switching ? (
-                <Loader2 size={16} className="animate-spin opacity-60" />
+                <Spinner size="sm" />
               ) : (
                 <>
                   <FlaskConical size={16} />

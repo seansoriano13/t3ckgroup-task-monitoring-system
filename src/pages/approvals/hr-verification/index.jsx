@@ -27,6 +27,7 @@ export default function HrVerificationPage() {
   // HR role is DB-driven only — never inherited from super-admin
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isManagement = isHr || isSuperAdmin;
 
   const { data: rawTasks = [], isLoading } = useQuery({
     queryKey: ["dashboardTasks", user?.id, "all"],
@@ -49,6 +50,7 @@ export default function HrVerificationPage() {
   const [sortBy, setSortBy] = useState("OLDEST");
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
+  const [statusFilter] = useState(TASK_STATUS.COMPLETE);
   const [deptFilter, setDeptFilter] = useState("ALL");
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
   const [employeeFilter, setEmployeeFilter] = useState("ALL");
@@ -183,7 +185,6 @@ export default function HrVerificationPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Task verified by HR.");
     },
   });
 
@@ -192,7 +193,6 @@ export default function HrVerificationPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Task deleted successfully");
     },
   });
 
@@ -346,32 +346,33 @@ export default function HrVerificationPage() {
           <CommitteeApprovalSection />
         ) : (
           <>
-            {activeRawData.length > 0 && (
-              <TaskFilters
-                searchTerm={searchQuery}
-                setSearchTerm={setSearchQuery}
-                priorityFilter={priorityFilter}
-                setPriorityFilter={setPriorityFilter}
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                deptFilter={deptFilter}
-                setDeptFilter={setDeptFilter}
-                subDeptFilter={subDeptFilter}
-                setSubDeptFilter={setSubDeptFilter}
-                employeeFilter={employeeFilter}
-                setEmployeeFilter={setEmployeeFilter}
-                isManagement={true}
-                isHr={true}
-                hrViewMode="ALL"
-                disableDeptFilter={false}
-                uniqueDepts={uniqueDepts}
-                uniqueSubDepts={uniqueSubDepts}
-                uniqueEmployees={uniqueEmployees}
-                showStatusFilter={false}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-              />
-            )}
+            <TaskFilters
+              searchTerm={searchQuery}
+              setSearchTerm={setSearchQuery}
+              statusFilter={statusFilter}
+              setStatusFilter={() => {}} 
+              priorityFilter={priorityFilter}
+              setPriorityFilter={setPriorityFilter}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              deptFilter={deptFilter}
+              setDeptFilter={setDeptFilter}
+              subDeptFilter={subDeptFilter}
+              setSubDeptFilter={setSubDeptFilter}
+              employeeFilter={employeeFilter}
+              setEmployeeFilter={setEmployeeFilter}
+              isManagement={isManagement}
+              isHr={isHr}
+              hrViewMode="ALL"
+              disableDeptFilter={false}
+              uniqueDepts={uniqueDepts}
+              uniqueSubDepts={uniqueSubDepts}
+              uniqueEmployees={uniqueEmployees}
+              showStatusFilter={true}
+              disableStatusFilter={true}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+            />
 
             {filteredTasks.length > 0 ? (
               <div className="flex flex-col gap-4">
@@ -397,6 +398,7 @@ export default function HrVerificationPage() {
                       appSettings?.enable_bulk_approval ? toggleTaskSelection : undefined
                     }
                     isVerifiedTab={activeTab === "VERIFIED"}
+                    searchTerm={searchQuery}
                   />
                 ))}
 

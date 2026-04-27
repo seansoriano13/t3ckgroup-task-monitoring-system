@@ -1,11 +1,12 @@
-﻿import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
-import { Loader2, Calendar as CalendarIcon, AlertCircle, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, AlertCircle, Trash2 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 import DayManagementModal from "../../../components/DayManagementModal.jsx";
 import { REVENUE_STATUS } from "../../../constants/status"; // #11 Constant import
@@ -211,7 +212,7 @@ export default function DailyExecutionPage() {
     return (
       <ProtectedRoute excludeSuperAdmin={true}>
         <div className="flex justify-center items-center h-[80vh] text-muted-foreground gap-3 font-bold">
-          <Loader2 className="animate-spin text-[color:var(--violet-9)]" /> Fetching Daily Checklist...
+          <Spinner size="sm" /> Fetching Daily Checklist...
         </div>
       </ProtectedRoute>
     );

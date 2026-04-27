@@ -1,4 +1,5 @@
-﻿import { Calendar as CalendarIcon, Save, Send, Loader2, Trash2, X, HelpCircle, CheckCircle2 } from "lucide-react";
+import { Calendar as CalendarIcon, Save, Send, Trash2, X, HelpCircle, CheckCircle2 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getStartOfWeek, formatDateToYMD } from "../utils";
@@ -65,7 +66,7 @@ export function ScheduleHeader({
                 className="p-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-transparent hover:border-destructive/20"
                 title={plan.status === 'REVISION' ? 'Discard Amendment' : 'Delete Draft'}
               >
-                {deletePlanMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : plan.status === 'REVISION' ? <X size={16} /> : <Trash2 size={16} />}
+                {deletePlanMutation.isPending ? <Spinner size="sm" /> : plan.status === 'REVISION' ? <X size={16} /> : <Trash2 size={16} />}
               </button>
             )}
             
@@ -74,7 +75,7 @@ export function ScheduleHeader({
               disabled={saveMutation.isPending || deletePlanMutation.isPending || submitMutation.isPending}
               className="px-4 py-2 bg-card hover:bg-muted border border-border text-foreground rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm h-10"
             >
-              {saveMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+              {saveMutation.isPending ? <Spinner size="sm" /> : <Save size={16} />} 
               Save Draft
             </button>
 
@@ -84,7 +85,7 @@ export function ScheduleHeader({
                 disabled={submitMutation.isPending || saveMutation.isPending || !allDaysFilled}
                 className={`px-5 py-1.5 ${allDaysFilled ? "bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/20 cursor-pointer" : "bg-muted text-muted-foreground cursor-not-allowed"} rounded-lg font-bold flex items-center gap-2 transition-all h-8`}
               >
-                {submitMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} 
+                {submitMutation.isPending ? <Spinner size="sm" /> : <Send size={16} />} 
                 {plan.status === 'REVISION' ? 'Submit Amendments' : 'Submit Plan'}
               </button>
               <div 

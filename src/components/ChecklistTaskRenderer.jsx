@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
+import HighlightText from "./HighlightText";
 
 export default function ChecklistTaskRenderer({
   description,
   onInlineCheck,
   isOwner,
   disabled,
+  searchTerm,
 }) {
   const [title, setTitle] = useState("");
   const [items, setItems] = useState([]);
@@ -76,7 +78,7 @@ export default function ChecklistTaskRenderer({
   if (!isJson) {
     return (
       <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground leading-relaxed text-[15px] whitespace-pre-wrap shadow-sm">
-        {description}
+        <HighlightText text={description} search={searchTerm} />
       </div>
     );
   }
@@ -86,7 +88,7 @@ export default function ChecklistTaskRenderer({
       {title && (
         <div className="pb-3 border-b border-border/50 mb-3">
           <h4 className="font-extrabold text-foreground uppercase tracking-wider text-[11px]">
-            {title}
+            <HighlightText text={title} search={searchTerm} />
           </h4>
         </div>
       )}
@@ -115,7 +117,7 @@ export default function ChecklistTaskRenderer({
             <span
               className={`flex-1 min-w-0 font-medium text-[13px] leading-tight ${item.checked ? "line-through text-muted-foreground" : "text-foreground"}`}
             >
-              {item.text}
+              <HighlightText text={item.text} search={searchTerm} />
             </span>
           </div>
         ))}

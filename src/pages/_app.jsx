@@ -1,7 +1,8 @@
 import { Outlet, useLocation } from "react-router";
 import SideNav from "../components/SideNav";
 import { useAuth } from "../context/AuthContext";
-import { Loader2 } from "lucide-react";
+
+import Spinner from "@/components/ui/Spinner";
 import RoleSwitcher from "../components/RoleSwitcher";
 
 export default function AppLayout() {
@@ -16,7 +17,7 @@ export default function AppLayout() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-mauve-2">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <Loader2 className="animate-spin" size={28} />
+          <Spinner size="md" />
           <p className="text-sm font-bold uppercase tracking-widest animate-pulse">
             Loading Portal...
           </p>

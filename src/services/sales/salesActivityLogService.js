@@ -289,6 +289,53 @@ export const salesActivityLogService = {
   },
 
   /**
+   * Subscribe to real-time activity updates across ALL sales activities
+   */
+  subscribeToAllActivity(onNewEntry) {
+    const channelName = `sales-activity-all-${Math.random().toString(36).substring(7)}`;
+    return supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "sales_activity_logs",
+        },
+        async (payload) => {
+          try {
+            const { data } = await supabase
+              .from("sales_activity_logs")
+              .select(
+                `*, author:employees!sales_activity_logs_author_id_fkey(name, is_head, is_hr, is_super_admin)`,
+              )
+              .eq("id", payload.new.id)
+              .single();
+
+            if (data) {
+              onNewEntry({
+                id: data.id,
+                salesActivityId: data.sales_activity_id,
+                authorId: data.author_id,
+                authorName: data.author?.name || null,
+                authorIsHead: data.author?.is_head || false,
+                authorIsHr: data.author?.is_hr || false,
+                authorIsSuperAdmin: data.author?.is_super_admin || false,
+                type: data.type,
+                content: data.content,
+                metadata: data.metadata,
+                createdAt: data.created_at,
+              });
+            }
+          } catch (err) {
+            console.error("Failed to hydrate realtime sales activity entry:", err);
+          }
+        },
+      )
+      .subscribe();
+  },
+
+  /**
    * Unsubscribe from real-time activity channel
    */
   unsubscribeFromActivity(channel) {

@@ -7,7 +7,6 @@ import { REVENUE_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
 import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import {
-  Loader2,
   TrendingUp,
   TrendingDown,
   Calculator,
@@ -27,7 +26,13 @@ import {
   Rows3,
   Star,
   Activity,
+  Info,
+  Calendar,
+  Filter,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
+import HighlightText from "./HighlightText";
+
 
 export default function SalesPerformanceMetrics({ globalRange }) {
   const navigate = useNavigate();
@@ -380,7 +385,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
         >
           {loadingAct ? (
             <div className="col-span-full flex flex-col items-center justify-center py-12 text-[#6B7280] gap-3">
-              <Loader2 className="animate-spin" size={32} />
+              <Spinner size="lg" />
               <p className="font-semibold uppercase tracking-widest text-xs">
                 Synchronizing Metrics...
               </p>
@@ -420,12 +425,13 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                     />
                     <div className="min-w-0">
                       <h3 className="text-sm font-semibold text-[#111827] line-clamp-1">
-                        {stat.name}
+                        <HighlightText text={stat.name} search={searchTerm} />
                       </h3>
                       <p className="text-xs text-[#6B7280] line-clamp-1">
-                        {stat.subDept || stat.department}
+                        <HighlightText text={stat.subDept || stat.department} search={searchTerm} />
                       </p>
                     </div>
+
                   </div>
                   <div className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border border-border bg-card">
                     <Star size={11} className="text-mauve-11 fill-mauve-11" />

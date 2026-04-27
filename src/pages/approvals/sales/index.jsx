@@ -29,6 +29,8 @@ import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import TabGroup from "@/components/ui/TabGroup";
 import Avatar from "../../../components/Avatar";
+import HighlightText from "../../../components/HighlightText";
+
 
 export default function SalesHeadApprovalsPage() {
   const { user } = useAuth();
@@ -506,7 +508,7 @@ export default function SalesHeadApprovalsPage() {
           {/* BULK ACTION BAR */}
           {selectedActivities.size > 0 && (
             <div className="flex flex-col sm:flex-row items-center gap-3 animate-in fade-in slide-in-from-right-2 duration-200 w-full lg:w-auto">
-              <span className="text-sm font-bold text-foreground bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10 whitespace-nowrap w-full sm:w-auto text-center sm:text-left">
+              <span className="text-sm font-bold text-foreground bg-mauve-3 px-3 py-1.5 rounded-lg border border-mauve-5 whitespace-nowrap w-full sm:w-auto text-center sm:text-left">
                 {selectedActivities.size} Selected
               </span>
 
@@ -676,7 +678,9 @@ export default function SalesHeadApprovalsPage() {
                 selectedActivities={selectedActivities}
                 onToggleSelection={handleToggleSelection}
                 onToggleDaySelection={handleToggleDaySelection}
+                searchTerm={searchQuery}
               />
+
             ))}
           </div>
         ) : null}
@@ -702,7 +706,9 @@ function EmployeeBlock({
   selectedActivities,
   onToggleSelection,
   onToggleDaySelection,
+  searchTerm,
 }) {
+
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -715,8 +721,9 @@ function EmployeeBlock({
           <Avatar name={empGroup.employeeName} size="lg" className="bg-primary/10 text-primary border-primary/20 shadow-inner" />
           <div>
             <h2 className="text-lg font-bold text-foreground leading-tight">
-              {empGroup.employeeName}
+              <HighlightText text={empGroup.employeeName} search={searchTerm} />
             </h2>
+
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">
               {empGroup.dates.reduce((acc, d) => acc + d.activities.length, 0)}{" "}
               {mode === "PENDING" ? "Items Pending" : "Items Verified"}
@@ -743,7 +750,9 @@ function EmployeeBlock({
               selectedActivities={selectedActivities}
               onToggleSelection={onToggleSelection}
               onToggleDaySelection={onToggleDaySelection}
+              searchTerm={searchTerm}
             />
+
           ))}
         </div>
       )}
@@ -762,7 +771,9 @@ function DateGroupBlock({
   selectedActivities,
   onToggleSelection,
   onToggleDaySelection,
+  searchTerm,
 }) {
+
   const allIds = dateGroup.activities.map((a) => a.id);
   const isAllSelected =
     dateGroup.activities.length > 0 &&
@@ -789,7 +800,7 @@ function DateGroupBlock({
                 if (input) input.indeterminate = isSomeSelected;
               }}
               onChange={handleDaySelectAll}
-              className="w-4 h-4 rounded border-input text-primary transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
+              className="w-4 h-4 rounded border-input text-mauve-9 accent-mauve-9 transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
               title={
                 isAllSelected ? "Deselect all for date" : "Select all for date"
               }
@@ -823,6 +834,7 @@ function DateGroupBlock({
               onViewDetails={onViewDetails}
               isSelected={selectedActivities.has(act.id)}
               onToggleSelection={() => onToggleSelection(act.id)}
+              searchTerm={searchTerm}
             />
           ) : (
             <VerifiedActivityCard
@@ -831,8 +843,10 @@ function DateGroupBlock({
               onViewDetails={onViewDetails}
               isSelected={selectedActivities.has(act.id)}
               onToggleSelection={() => onToggleSelection(act.id)}
+              searchTerm={searchTerm}
             />
           );
+
 
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -896,13 +910,15 @@ function ActivityCard({
   onViewDetails,
   isSelected,
   onToggleSelection,
+  searchTerm,
 }) {
+
   return (
     <div
       className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${
         isSelected
-          ? "border-primary shadow-sm bg-primary/5"
-          : "border-border hover:border-primary/50"
+          ? "border-mauve-8 shadow-sm bg-mauve-2"
+          : "border-border hover:border-mauve-5"
       }`}
     >
       <div className="flex justify-between items-start mb-3">
@@ -912,7 +928,7 @@ function ActivityCard({
               type="checkbox"
               checked={isSelected}
               onChange={onToggleSelection}
-              className="w-4 h-4 rounded border-input text-primary transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
+              className="w-4 h-4 rounded border-input text-mauve-9 accent-mauve-9 transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
           <div>
@@ -920,11 +936,13 @@ function ActivityCard({
               className="text-sm font-bold text-foreground line-clamp-1"
               title={activity.account_name}
             >
-              {activity.account_name || "No Account Specify"}
+              <HighlightText text={activity.account_name || "No Account Specified"} search={searchTerm} />
             </h4>
+
             <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
-              {activity.activity_type}
+              <HighlightText text={activity.activity_type} search={searchTerm} />
             </span>
+
           </div>
         </div>
         <div className="flex gap-2 text-[10px] font-black tracking-widest uppercase items-center">
@@ -954,8 +972,9 @@ function ActivityCard({
         title={activity.details_daily}
       >
         <span className="font-bold text-foreground">Details:</span>{" "}
-        {activity.details_daily || "-"}
+        <HighlightText text={activity.details_daily || "-"} search={searchTerm} />
       </p>
+
     </div>
   );
 }
@@ -965,7 +984,9 @@ function VerifiedActivityCard({
   onViewDetails,
   isSelected,
   onToggleSelection,
+  searchTerm,
 }) {
+
   const verifiedAtFormatted = activity.head_verified_at
     ? new Date(activity.head_verified_at).toLocaleString("en-US", {
         month: "short",
@@ -980,8 +1001,8 @@ function VerifiedActivityCard({
     <div
       className={`bg-card border rounded-xl p-4 flex flex-col hover:shadow-md transition-all group ${
         isSelected
-          ? "border-primary shadow-sm bg-primary/5"
-          : "border-border hover:border-primary/50"
+          ? "border-mauve-8 shadow-sm bg-mauve-2"
+          : "border-border hover:border-mauve-5"
       }`}
     >
       <div className="flex justify-between items-start mb-3">
@@ -991,7 +1012,7 @@ function VerifiedActivityCard({
               type="checkbox"
               checked={isSelected}
               onChange={onToggleSelection}
-              className="w-4 h-4 rounded border-input text-primary transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
+              className="w-4 h-4 rounded border-input text-mauve-9 accent-mauve-9 transition-all cursor-pointer shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
           <div>
@@ -999,11 +1020,13 @@ function VerifiedActivityCard({
               className="text-sm font-bold text-foreground line-clamp-1"
               title={activity.account_name}
             >
-              {activity.account_name || "No Account Specify"}
+              <HighlightText text={activity.account_name || "No Account Specified"} search={searchTerm} />
             </h4>
+
             <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">
-              {activity.activity_type}
+              <HighlightText text={activity.activity_type} search={searchTerm} />
             </span>
+
           </div>
         </div>
         <div className="flex gap-2 text-[10px] font-black tracking-widest uppercase items-center">
@@ -1033,8 +1056,9 @@ function VerifiedActivityCard({
         title={activity.details_daily}
       >
         <span className="font-bold text-foreground">Details:</span>{" "}
-        {activity.details_daily || "-"}
+        <HighlightText text={activity.details_daily || "-"} search={searchTerm} />
       </p>
+
 
       {/* Verification metadata */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[10px]">

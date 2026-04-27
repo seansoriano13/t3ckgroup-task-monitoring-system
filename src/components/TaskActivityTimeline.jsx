@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../services/tasks/taskActivityService";
 import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import Spinner from "@/components/ui/Spinner";
 
 const formatTime = (isoString) => {
   if (!isoString) return "";
@@ -370,7 +371,7 @@ export default function TaskActivityTimeline({
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-5 h-5 border-2 border-border border-t-red-9 rounded-full animate-spin" />
+            <Spinner size="md" />
           </div>
         ) : (
           <>

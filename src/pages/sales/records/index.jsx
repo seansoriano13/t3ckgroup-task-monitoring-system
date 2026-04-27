@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { useAuth } from "../../../context/AuthContext";
@@ -202,7 +202,9 @@ export default function SalesRecordsPage() {
             itemsPerPage={itemsPerPage}
             onActivityClick={setSelectedActivity}
             appSettings={appSettings}
+            searchTerm={searchTerm}
           />
+
         )}
 
         {activeTab === "ACTIVITIES" && viewMode === "BOARD" && (
@@ -211,7 +213,9 @@ export default function SalesRecordsPage() {
             timeframe={timeframe}
             onActivityClick={setSelectedActivity}
             appSettings={appSettings}
+            searchTerm={searchTerm}
           />
+
         )}
 
         {/* REVENUE VIEW */}
@@ -228,7 +232,9 @@ export default function SalesRecordsPage() {
             user={user}
             isVerificationEnforced={isVerificationEnforced}
             deleteRevenueMutation={deleteRevenueMutation}
+            searchTerm={revSearchTerm}
           />
+
         )}
 
         {employeeInsights.length > 0 && (

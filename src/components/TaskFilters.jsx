@@ -40,6 +40,7 @@ export default function TaskFilters({
   uniqueSubDepts = [],
   uniqueEmployees = [],
   showStatusFilter = true,
+  disableStatusFilter = false,
   disableDeptFilter,
   sortBy,
   setSortBy,
@@ -48,6 +49,8 @@ export default function TaskFilters({
 }) {
   const [startDate, endDate] = dateRange || [null, null];
   const [showAdvanced, setShowAdvancedRaw] = useState(forceAdvancedOpen || !!employeeFilter);
+
+  const isFiltersReadOnly = !isManagement || (isHr && hrViewMode === "PERSONAL");
 
   const setShowAdvanced = (val) => {
     setShowAdvancedRaw(val);
@@ -229,14 +232,16 @@ export default function TaskFilters({
           {/* Status Filter */}
           {showStatusFilter && (
             <Dropdown
+              disabled={disableStatusFilter}
               className="flex-1 min-w-[170px]"
               popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
-              trigger={({ isOpen }) => (
+              trigger={({ isOpen, disabled }) => (
                 <FilterTrigger
                   label={currentStatusLabel}
                   isActive={statusFilter !== "ALL"}
                   isOpen={isOpen}
                   icon={Filter}
+                  disabled={disabled}
                 />
               )}
             >
@@ -291,13 +296,10 @@ export default function TaskFilters({
             }}
           />
 
-          {/* Management specific */}
-          {isManagement && (!isHr || hrViewMode === "ALL") && (
-            <>
               {/* Dept */}
               <Dropdown
                 disabled={
-                  disableDeptFilter !== undefined ? disableDeptFilter : !isHr
+                  disableDeptFilter !== undefined ? disableDeptFilter : (!isHr || isFiltersReadOnly)
                 }
                 className="flex-1 min-w-[180px]"
                 popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
@@ -326,7 +328,7 @@ export default function TaskFilters({
 
               {/* Sub-Dept */}
               <Dropdown
-                disabled={deptFilter === "ALL"}
+                disabled={deptFilter === "ALL" || isFiltersReadOnly}
                 className="flex-1 min-w-[180px]"
                 popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
                 trigger={({ isOpen, disabled }) => (
@@ -351,14 +353,16 @@ export default function TaskFilters({
 
               {/* Employees */}
               <Dropdown
+                disabled={isFiltersReadOnly}
                 className="flex-1 min-w-[180px]"
                 popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto w-[250px]"
-                trigger={({ isOpen }) => (
+                trigger={({ isOpen, disabled }) => (
                   <FilterTrigger
                     label={currentEmployeeLabel}
                     isActive={employeeFilter !== "ALL"}
                     isOpen={isOpen}
                     icon={Users}
+                    disabled={disabled}
                   />
                 )}
               >
@@ -371,8 +375,6 @@ export default function TaskFilters({
                   />
                 )}
               </Dropdown>
-            </>
-          )}
         </div>
       )}
     </div>

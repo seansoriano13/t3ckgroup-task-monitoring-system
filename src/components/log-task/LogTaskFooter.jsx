@@ -1,5 +1,6 @@
-﻿import { Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Spinner from "@/components/ui/Spinner";
 
 export default function LogTaskFooter({
   createMore,
@@ -68,7 +69,7 @@ export default function LogTaskFooter({
         >
           {isSubmitting ? (
             <>
-              <div className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <Spinner size="sm" />
               <span>Logging…</span>
             </>
           ) : (

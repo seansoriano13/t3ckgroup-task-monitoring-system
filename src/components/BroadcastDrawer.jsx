@@ -12,7 +12,6 @@ import {
   Wrench,
   Bot,
   Github,
-  Loader2,
   Plus,
   Edit3,
   Trash2,
@@ -24,6 +23,7 @@ import {
   Radio,
   Check,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import { confirmDeleteToast } from "./ui/CustomToast";
@@ -253,7 +253,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
                 className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 bg-indigo-500/10 hover:bg-indigo-500/15 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
-                  <Loader2 size={12} className="animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <>
                     <Bot size={12} />
@@ -353,10 +353,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
               <div className="space-y-2">
                 {isLoading ? (
                   <div className="flex justify-center py-6">
-                    <Loader2
-                      size={18}
-                      className="animate-spin text-muted-foreground"
-                    />
+                    <Spinner size="sm" />
                   </div>
                 ) : updates.length === 0 ? (
                   <div className="py-6 text-center">
@@ -532,10 +529,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
                                     className="px-3 py-1.5 rounded-lg text-[10px] font-black bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-1 disabled:opacity-50"
                                   >
                                     {editMutation.isPending ? (
-                                      <Loader2
-                                        size={10}
-                                        className="animate-spin"
-                                      />
+                                      <Spinner size="sm" />
                                     ) : (
                                       <Check size={10} />
                                     )}
@@ -643,7 +637,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
             >
               {isPosting ? (
                 <>
-                  <Loader2 size={14} className="animate-spin" />
+                  <Spinner size="sm" />
                   <span>{editingId ? "Saving…" : "Sending…"}</span>
                 </>
               ) : (

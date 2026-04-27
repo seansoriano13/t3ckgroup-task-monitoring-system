@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ImagePlus, Loader2, Maximize2, ClipboardPaste } from "lucide-react";
+import { X, ImagePlus, Maximize2, ClipboardPaste } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { storageService } from "../services/storageService";
 import toast from "react-hot-toast";
 
@@ -16,7 +17,7 @@ export default function ImageAttachment({
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Core upload logic — shared by file picker and paste handler
+  // Core upload logic  shared by file picker and paste handler
   const uploadFiles = useCallback(async (files) => {
     if (!files || files.length === 0) return;
 
@@ -51,7 +52,7 @@ export default function ImageAttachment({
     }
   }, [attachments, taskId, userId, onChange]);
 
-  // Clipboard paste handler — intercepts Ctrl+V screenshots
+  // Clipboard paste handler  intercepts Ctrl+V screenshots
   useEffect(() => {
     if (readOnly || taskId === "NEW") return;
 
@@ -61,7 +62,7 @@ export default function ImageAttachment({
       if (imageItems.length === 0) return;
 
       e.preventDefault();
-      toast("Screenshot detected — uploading...", { icon: "??" });
+      toast("Screenshot detected  uploading...", { icon: "??" });
       const files = imageItems.map((item) => {
         const blob = item.getAsFile();
         return new File([blob], `paste_${Date.now()}.png`, { type: blob.type });
@@ -136,7 +137,7 @@ export default function ImageAttachment({
             {signedUrls.map((item, index) => (
               <div key={item.path} className="relative group rounded-lg overflow-hidden border border-mauve-4 bg-mauve-2 aspect-video flex items-center justify-center">
                  {isLoadingUrls ? (
-                    <Loader2 size={16} className="animate-spin text-mauve-8" />
+                    <Spinner size="sm" />
                  ) : (
                    <>
                      <img 
@@ -180,7 +181,7 @@ export default function ImageAttachment({
            >
              {isUploading ? (
                 <>
-                   <Loader2 size={18} className="animate-spin" /> Uploading...
+                   <Spinner size="sm" /> Uploading...
                 </>
              ) : taskId === "NEW" ? (
                "Save task first to upload attachments"

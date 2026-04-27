@@ -4,13 +4,13 @@ import {
   Trash2,
   ShieldCheck,
   CheckCircle,
-  Loader2,
   XCircle,
   Clock,
   Undo2,
 } from "lucide-react";
 import { TASK_STATUS } from "../constants/status.js";
 import { Button } from "@/components/ui/button";
+import Spinner from "@/components/ui/Spinner";
 
 const TaskFooter = ({ actions, permissions, state }) => {
   const {
@@ -71,7 +71,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
             className="font-bold px-6 h-9 text-sm"
           >
             {isSubmitting ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Spinner size="sm" />
             ) : (
               <CheckCircle size={16} />
             )}
@@ -105,7 +105,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
                 >
                   {isSubmitting ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <Spinner size="sm" />
                   ) : (
                     <CheckCircle size={16} />
                   )}
@@ -169,7 +169,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                     className="bg-green-9 hover:bg-green-9 text-primary-foreground font-bold px-5 h-9 text-sm shadow-green-900/10"
                   >
                     {isSubmitting ? (
-                      <Loader2 size={16} className="animate-spin" />
+                      <Spinner size="sm" />
                     ) : (
                       <CheckCircle size={16} />
                     )}
@@ -186,7 +186,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
               >
                 {isSubmitting ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <ShieldCheck size={16} />
                 )}
@@ -202,7 +202,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 className="font-bold px-4 h-9 text-sm"
               >
                 {isSubmitting ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <RotateCcw size={16} />
                 )}

@@ -1,7 +1,8 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Edit, Trash2, Loader2, XSquare, Building2, Info, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, XSquare, Building2, Info, ChevronDown } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { employeeService } from "../services/employeeService";
 import { useAuth } from "../context/AuthContext";
 import { confirmDeleteToast } from "./ui/CustomToast";
@@ -202,7 +203,7 @@ export default function HRCategoriesConfig() {
       <div className="bg-mauve-2 border border-mauve-4 rounded-xl shadow-lg overflow-x-auto">
         {isLoading ? (
           <div className="py-10 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="animate-spin" size={26} />
+            <Spinner size="md" />
             <p className="text-muted-foreground font-bold">Loading categories...</p>
           </div>
         ) : isError ? (

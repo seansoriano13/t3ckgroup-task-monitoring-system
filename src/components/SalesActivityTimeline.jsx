@@ -1,7 +1,8 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesActivityLogService } from "../services/sales/salesActivityLogService";
 import { useAuth } from "../context/AuthContext";
+import Spinner from "@/components/ui/Spinner";
 import {
   Send,
   Zap,
@@ -287,7 +288,7 @@ export default function SalesActivityTimeline({
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-5 h-5 border-2 border-mauve-4 border-t-red-9 rounded-full animate-spin" />
+            <Spinner size="md" />
           </div>
         ) : (
           <>

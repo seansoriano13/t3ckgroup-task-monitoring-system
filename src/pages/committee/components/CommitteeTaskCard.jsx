@@ -6,13 +6,17 @@ import Avatar from "../../../components/Avatar";
 import AvatarGroup from "../../../components/AvatarGroup";
 import { formatDueDate } from "../../../utils/formatDate";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
+import HighlightText from "../../../components/HighlightText";
+
 
 export default function CommitteeTaskCard({
   task,
   onView,
   currentUserId,
   isSuperAdmin,
+  searchTerm,
 }) {
+
   const members = task.members || [];
   const totalMembers = members.length;
   const completedMembers = members.filter((m) => m.status === "DONE").length;
@@ -42,8 +46,9 @@ export default function CommitteeTaskCard({
     >
       <div className="flex justify-between items-start gap-4 mb-3">
         <h3 className="font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-          {task.title}
+          <HighlightText text={task.title} search={searchTerm} />
         </h3>
+
         <div className="shrink-0 flex items-center gap-1.5">
           <StatusBadge
             status={isHrPending || isHrVerified ? "COMPLETED" : task.status}
@@ -65,8 +70,9 @@ export default function CommitteeTaskCard({
       </div>
 
       <p className="text-[11px] font-bold text-muted-foreground line-clamp-2 mb-4 flex-1 uppercase tracking-wider opacity-60">
-        {task.description || "No description provided."}
+        <HighlightText text={task.description || "No description provided."} search={searchTerm} />
       </p>
+
 
       {/* Progress Bar (Visible to Heads or Admins) */}
       {(isCreator || isSuperAdmin) && task.status !== "CANCELLED" && (
@@ -93,8 +99,9 @@ export default function CommitteeTaskCard({
             My Task
           </div>
           <p className="text-sm font-bold text-foreground line-clamp-2 mb-3 leading-tight">
-            {formatChecklistToString(myMember.task_description)}
+            <HighlightText text={formatChecklistToString(myMember.task_description)} search={searchTerm} />
           </p>
+
           <div className="flex items-center justify-between mt-2">
             <span
               className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${

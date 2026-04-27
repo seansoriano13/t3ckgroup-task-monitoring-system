@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import Spinner from "@/components/ui/Spinner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { activeChatService } from "../services/tasks/activeChatService";
 import Avatar from "./Avatar";
@@ -834,7 +835,7 @@ export default function ComprehensiveChatModal({
                   >
                     {isDetailsLoading ? (
                       <>
-                        <Clock size={12} className="animate-spin" /> Loading
+                        <Spinner size="sm" /> Loading
                       </>
                     ) : (
                       <>
@@ -891,7 +892,7 @@ export default function ComprehensiveChatModal({
               >
                 {isLoadingMessages ? (
                   <div className="flex items-center justify-center h-full gap-2 text-muted-foreground italic text-xs">
-                    <Clock size={14} className="animate-spin" /> Fetching
+                    <Spinner size="sm" /> Fetching
                     history...
                   </div>
                 ) : messages.length === 0 ? (

@@ -1,17 +1,17 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../../services/salesService";
 import toast from "react-hot-toast";
 import {
   CheckCircle2,
   Circle,
-  Loader2,
   Clock,
   ThumbsUp,
   Image as ImageIcon,
   X,
   Maximize2,
 } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { storageService } from "../../../../services/storageService";
 
 export function ChecklistItem({
@@ -128,7 +128,7 @@ export function ChecklistItem({
         className="mt-1 shrink-0 transition-transform active:scale-75 disabled:cursor-not-allowed"
       >
         {isUploading ? (
-          <Loader2 size={24} className="text-primary animate-spin" />
+          <Spinner size="md" />
         ) : isDone ? (
           <CheckCircle2
             key={justChecked ? "pop" : "idle"}
@@ -225,7 +225,7 @@ export function ChecklistItem({
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-green-9/10 hover:bg-green-9/20 text-green-10 rounded-lg text-xs font-bold transition-all border border-green-9/20 shadow-sm disabled:opacity-50"
               >
                 {selfApproveMutation.isPending ? (
-                  <Loader2 size={14} className="animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <ThumbsUp size={14} />
                 )}
@@ -255,7 +255,7 @@ export function ChecklistItem({
               <option value="LOST"> LOST</option>
             </select>
             {outcomeMutation.isPending && (
-              <Loader2 size={12} className="animate-spin text-muted-foreground" />
+              <Spinner size="sm" />
             )}
           </div>
         )}

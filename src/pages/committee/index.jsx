@@ -8,6 +8,7 @@ import { employeeService } from "../../services/employeeService";
 import toast from "react-hot-toast";
 import { Users, Plus, Search } from "lucide-react";
 import TabGroup from "../../components/ui/TabGroup";
+import Spinner from "@/components/ui/Spinner";
 
 import CommitteeTaskCard from "./components/CommitteeTaskCard";
 import CreateCommitteeTaskModal from "./components/CreateCommitteeTaskModal";
@@ -195,7 +196,7 @@ export default function CommitteeTasksPage() {
   if (isLoading) {
     return (
       <div className="py-20 flex flex-col items-center justify-center text-muted-foreground h-[60vh]">
-        <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4"></div>
+        <Spinner size="md" />
         <p className="font-bold animate-pulse tracking-wider uppercase text-sm">
           Loading Committees...
         </p>
@@ -239,6 +240,7 @@ export default function CommitteeTasksPage() {
               currentUserId={user?.id}
               isSuperAdmin={isSuperAdmin}
               onView={() => setSelectedTask(task)}
+              searchTerm={searchTerm}
             />
           ))}
         </div>
@@ -294,7 +296,9 @@ export default function CommitteeTasksPage() {
         isRemovingMember={removeMemberMutation.isPending}
         isVerifying={verifyMutation.isPending}
         isRejecting={rejectMutation.isPending}
+        searchTerm={searchTerm}
       />
+
 
       {selectedTask && canManage && (
         <RateEmployeesModal

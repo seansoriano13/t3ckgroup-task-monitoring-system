@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { salesQuotaService } from "../../services/sales/salesQuotaService";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-import { Loader2, PlusCircle, Edit3, CheckCircle2, User } from "lucide-react";
+import { PlusCircle, Edit3, CheckCircle2, User } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 
 export default function QuotaHistoryModal({
   isOpen,
@@ -33,7 +34,7 @@ export default function QuotaHistoryModal({
         <div className="p-5 max-h-[60vh] overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="animate-spin text-foreground" size={24} />
+              <Spinner size="md" />
             </div>
           ) : logs.length === 0 ? (
             <div className="text-center py-10">

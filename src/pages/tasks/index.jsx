@@ -18,6 +18,7 @@ import { useMemo } from "react";
 import PageHeader from "../../components/ui/PageHeader";
 import PageContainer from "../../components/ui/PageContainer";
 import TabGroup from "../../components/ui/TabGroup";
+import Spinner from "@/components/ui/Spinner";
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -73,7 +74,7 @@ export default function TasksPage() {
         : userSubDept || "ALL",
   );
   const [employeeFilter, setEmployeeFilter] = useState(
-    location.state?.filterEmployeeId || "ALL",
+    location.state?.filterEmployeeId || (!isManagement ? user?.id : "ALL"),
   );
 
   useEffect(() => {
@@ -90,6 +91,19 @@ export default function TasksPage() {
     }
   }, [location.state, navigate, location.pathname]);
 
+  // Sync filters for non-management or HR-personal mode
+  useEffect(() => {
+    if (!isManagement || (isHr && hrViewMode === "PERSONAL")) {
+      setDeptFilter(userDept || "ALL");
+      setSubDeptFilter(userSubDept || "ALL");
+      setEmployeeFilter(user?.id || "ALL");
+    } else if (isManagement && hrViewMode === "ALL") {
+      // Optional: reset to ALL when going back to Company view if they were just in personal mode
+      // But maybe they want to keep their previous filters? 
+      // Usually, switching from Personal -> Company should probably reset if it was forced.
+    }
+  }, [isManagement, hrViewMode, isHr, userDept, userSubDept, user?.id]);
+
   // --- DB DATA STATES FOR DROPDOWNS ---
   const [allEmployees, setAllEmployees] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
@@ -101,17 +115,16 @@ export default function TasksPage() {
     mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      toast.success("Task deleted.");
     },
   });
 
   // Fetch all employees and categories
   useEffect(() => {
-    if (!isManagement) return;
-
     const fetchTopology = async () => {
-      const employees = await employeeService.getAllEmployees();
-      if (employees) setAllEmployees(employees);
+      if (isManagement) {
+        const employees = await employeeService.getAllEmployees();
+        if (employees) setAllEmployees(employees);
+      }
 
       const categories = await employeeService.getAllCategories();
       if (categories) setAllCategories(categories);
@@ -162,7 +175,6 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      toast.success("Task updated successfully!");
     },
     onError: (error) => {
       console.error("Failed to update task:", error);
@@ -188,14 +200,16 @@ export default function TasksPage() {
   }, [allCategories, deptFilter]);
 
   const uniqueEmployees = useMemo(() => {
-    if (!isManagement) return [];
+    if (!isManagement) {
+      return user ? [{ id: user.id, name: user.name }] : [];
+    }
     let pool = allEmployees.filter((e) => !e.is_super_admin);
     if (deptFilter !== "ALL")
       pool = pool.filter((e) => e.department === deptFilter);
     if (subDeptFilter !== "ALL")
       pool = pool.filter((e) => e.subDepartment === subDeptFilter);
     return pool.sort((a, b) => a.name.localeCompare(b.name));
-  }, [allEmployees, deptFilter, subDeptFilter, isManagement]);
+  }, [allEmployees, deptFilter, subDeptFilter, isManagement, user]);
 
   // --- THE MASTER FILTER ENGINE ---
   const filteredEmployeesForFilters =
@@ -236,7 +250,7 @@ export default function TasksPage() {
   if (isLoading) {
     return (
       <div className="py-20 flex flex-col items-center justify-center text-muted-foreground h-[60vh]">
-        <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4"></div>
+        <Spinner size="md" />
         <p className="font-bold animate-pulse tracking-wider uppercase text-sm">
           Fetching Directory...
         </p>
@@ -390,6 +404,7 @@ export default function TasksPage() {
                   <TaskCard
                     key={task.id}
                     task={task}
+                    searchTerm={searchTerm}
                     onView={() => setViewTask(task)}
                     onSilentUpdate={(payload) =>
                       editTaskMutation.mutateAsync(payload)
@@ -498,7 +513,9 @@ export default function TasksPage() {
           editTaskMutation.mutateAsync(updatedTask)
         }
         onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
+        searchTerm={searchTerm}
       />
+
     </PageContainer>
   );
 }

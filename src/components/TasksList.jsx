@@ -187,7 +187,6 @@ export default function TasksList({ selectedRange }) {
     mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
-      toast.success("Task deleted.");
     },
   });
 

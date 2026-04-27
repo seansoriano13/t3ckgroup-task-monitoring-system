@@ -1,13 +1,16 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
 import { useLocation } from "react-router";
 import toast from "react-hot-toast";
-import { CheckCircle2, DollarSign, XCircle, MapPin, Loader2, Clock, CheckSquare, Square, Search, X } from "lucide-react";
+import { CheckCircle2, DollarSign, XCircle, MapPin, Clock, CheckSquare, Square, Search, X } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { confirmDeleteToast } from "./ui/CustomToast";
+import HighlightText from "./HighlightText";
+
 
 export default function ExpenseApprovalQueue({ isSuperAdmin }) {
   const { user } = useAuth();
@@ -133,7 +136,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
 
   if (isLoading) return (
     <div className="p-6 text-center text-muted-foreground text-sm font-medium flex items-center justify-center gap-2 bg-card border border-border rounded-2xl mb-6">
-      <Loader2 size={16} className="animate-spin" /> Loading expense queue...
+      <Spinner size="sm" /> Loading expense queue...
     </div>
   );
 
@@ -190,7 +193,7 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
                 size="sm"
                 className="flex items-center shadow-sm bg-green-10 hover:bg-green-11 text-primary-foreground"
               >
-                {bulkApproveMutation.isPending ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <CheckCircle2 size={14} className="mr-1.5" />}
+                {bulkApproveMutation.isPending ? <Spinner size="sm" /> : <CheckCircle2 size={14} className="mr-1.5" />}
                 Approve {selected.size === pendingExpenses.length ? "All" : `${selected.size} Selected`}
               </Button>
               <Button
@@ -259,19 +262,23 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-xs font-semibold text-muted-foreground/80">{task.employees?.name}</span>
+                  <span className="text-xs font-semibold text-muted-foreground/80">
+                    <HighlightText text={task.employees?.name} search={search} />
+                  </span>
                   <span className="text-mauve-7 text-xs">·</span>
+
                   <span className="text-xs text-muted-foreground">
                     {new Date(task.scheduled_date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
                 </div>
 
                 <p className="text-sm font-bold text-foreground truncate">
-                  {task.account_name}
+                  <HighlightText text={task.account_name} search={search} />
                   <span className="ml-2 text-[10px] font-semibold text-muted-foreground/80 uppercase tracking-wider border border-border rounded px-1.5 py-0.5 align-middle bg-muted">
-                    {task.activity_type}
+                    <HighlightText text={task.activity_type} search={search} />
                   </span>
                 </p>
+
 
                 {task.address && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 truncate">
@@ -286,9 +293,10 @@ export default function ExpenseApprovalQueue({ isSuperAdmin }) {
                   </div>
                   {task.reference_number && (
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-lg">
-                      Ref: <span className="text-foreground">{task.reference_number}</span>
+                      Ref: <span className="text-foreground"><HighlightText text={task.reference_number} search={search} /></span>
                     </div>
                   )}
+
                 </div>
               </div>
 
