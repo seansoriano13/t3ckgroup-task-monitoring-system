@@ -8,14 +8,18 @@ import {
   ShieldAlert,
   XCircle,
   Database,
+  UserCheck,
+  TriangleAlert,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status.js";
 import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router";
 
 export default function DashboardStats({ selectedRange }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const isHr = user?.is_hr || user?.isHr;
   const isHead = user?.is_head || user?.isHead;
@@ -83,16 +87,30 @@ export default function DashboardStats({ selectedRange }) {
     let teamPendingHr = 0;
     let teamRejected = 0;
 
-    let hrPendingApprovals = 0;
+    let hrInProgress = 0;
+    let hrOverdueUnsubmitted = 0;
+    let hrAwaitingHead = 0;
     let hrPendingVerification = 0;
     let hrRejected = 0;
     let hrAllTasks = 0;
 
+    const now = new Date();
+
     if (isHr) {
-      hrPendingApprovals = thisMonthTasks.filter(
+      // INCOMPLETE + no end_at → actively being logged, nothing to act on
+      hrInProgress = thisMonthTasks.filter(
+        (t) => t.status === TASK_STATUS.INCOMPLETE && !t.endAt,
+      ).length;
+      // INCOMPLETE + end_at in the past → employee hasn't submitted yet
+      hrOverdueUnsubmitted = thisMonthTasks.filter(
         (t) =>
-          t.status === TASK_STATUS.INCOMPLETE ||
-          t.status === TASK_STATUS.AWAITING_APPROVAL,
+          t.status === TASK_STATUS.INCOMPLETE &&
+          t.endAt &&
+          new Date(t.endAt) < now,
+      ).length;
+      // AWAITING APPROVAL → employee submitted, Head hasn't reviewed
+      hrAwaitingHead = thisMonthTasks.filter(
+        (t) => t.status === TASK_STATUS.AWAITING_APPROVAL,
       ).length;
       hrPendingVerification = thisMonthTasks.filter(
         (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
@@ -143,7 +161,9 @@ export default function DashboardStats({ selectedRange }) {
       teamCompleted,
       teamRejected,
       teamPendingHr,
-      hrPendingApprovals,
+      hrInProgress,
+      hrOverdueUnsubmitted,
+      hrAwaitingHead,
       hrPendingVerification,
       hrRejected,
       hrAllTasks,
@@ -157,7 +177,7 @@ export default function DashboardStats({ selectedRange }) {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    <div className={`grid gap-4 md:gap-6 ${isHr ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-4"}`}>
       {/* --- EMPLOYEE VIEW --- */}
       {!isManagement && (
         <>
@@ -174,6 +194,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Head Review"
             icon={<Clock size={20} className="text-amber-500" />}
             color="amber"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL } } })}
           />
           <StatCard
             title="Pending HR Verification"
@@ -181,6 +202,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="HR Verification"
             icon={<ShieldAlert size={20} className="text-destructive" />}
             color="destructive"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
           />
           <StatCard
             title="My Completed"
@@ -188,6 +210,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Verified this Month"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
           />
         </>
       )}
@@ -201,6 +224,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Requires Review"
             icon={<AlertCircle size={20} className="text-foreground" />}
             color="indigo"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL } } })}
           />
           <StatCard
             title="Rejected Tasks"
@@ -208,6 +232,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Needs Fixing"
             icon={<XCircle size={20} className="text-destructive" />}
             color="destructive"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.NOT_APPROVED } } })}
           />
           <StatCard
             title="Pending HR Verification"
@@ -215,6 +240,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Waiting HR Review"
             icon={<Clock size={20} className="text-amber-500" />}
             color="amber"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
           />
           <StatCard
             title="Completed Tasks"
@@ -222,6 +248,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Completed this Month"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
           />
         </>
       )}
@@ -229,12 +256,30 @@ export default function DashboardStats({ selectedRange }) {
       {/* --- HR VIEW --- */}
       {isHr && (
         <>
+          {/* Row 1: Pipeline health */}
           <StatCard
-            title="Pending Approval"
-            value={stats.hrPendingApprovals}
-            subtitle="Head Review"
-            icon={<Clock size={20} className="text-amber-500" />}
+            title="In Progress"
+            value={stats.hrInProgress}
+            subtitle="Actively being logged"
+            icon={<Activity size={20} className="text-muted-foreground" />}
+            color="slate"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } } })}
+          />
+          <StatCard
+            title="Overdue — Not Submitted"
+            value={stats.hrOverdueUnsubmitted}
+            subtitle="Employee action needed"
+            icon={<TriangleAlert size={20} className="text-amber-500" />}
             color="amber"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } } })}
+          />
+          <StatCard
+            title="Awaiting Head Review"
+            value={stats.hrAwaitingHead}
+            subtitle="Head action needed"
+            icon={<UserCheck size={20} className="text-indigo-400" />}
+            color="indigo"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL } } })}
           />
           <StatCard
             title="Pending Verification"
@@ -242,6 +287,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="HR Action Required"
             icon={<ShieldAlert size={20} className="text-destructive" />}
             color="destructive"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
           />
           <StatCard
             title="Rejected Tasks"
@@ -249,6 +295,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Needs Fixing"
             icon={<XCircle size={20} className="text-destructive" />}
             color="destructive"
+            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.NOT_APPROVED } } })}
           />
           <StatCard
             title="All Tasks"
@@ -256,6 +303,7 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Org Output this Month"
             icon={<Database size={20} className="text-foreground" />}
             color="indigo"
+            onClick={() => navigate("/tasks")}
           />
         </>
       )}
@@ -264,7 +312,7 @@ export default function DashboardStats({ selectedRange }) {
 }
 
 // Reusable Sub-component for the cards
-function StatCard({ title, value, subtitle, icon, color }) {
+function StatCard({ title, value, subtitle, icon, color, onClick }) {
   const colorMap = {
     indigo: "from-indigo-500/15 to-transparent",
     amber: "from-amber-500/15 to-transparent",
@@ -274,7 +322,12 @@ function StatCard({ title, value, subtitle, icon, color }) {
   };
 
   return (
-    <Card className="p-6 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm">
+    <Card
+      onClick={onClick}
+      className={`p-6 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm ${
+        onClick ? "cursor-pointer hover:-translate-y-0.5 active:scale-[0.98]" : ""
+      }`}
+    >
       <div
         className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
       />
@@ -295,6 +348,11 @@ function StatCard({ title, value, subtitle, icon, color }) {
       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest relative z-10">
         {subtitle}
       </p>
+      {onClick && (
+        <span className="absolute bottom-3 right-4 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest group-hover:text-muted-foreground/70 transition-colors">
+          View →
+        </span>
+      )}
     </Card>
   );
 }

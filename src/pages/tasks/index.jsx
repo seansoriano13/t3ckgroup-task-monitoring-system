@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { TASK_STATUS } from "../../constants/status.js";
 import TaskDetails from "../../components/TaskDetails.jsx";
@@ -45,9 +45,16 @@ export default function TasksPage() {
 
   // 1. Filter State (Standard)
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  // Read preset filter from nav state (e.g. from DashboardStats card click)
+  const [statusFilter, setStatusFilter] = useState(
+    location.state?.presetFilter?.status || "ALL",
+  );
   const [priorityFilter, setPriorityFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("NEWEST");
+  // Track if advanced filter panel should be open (auto-open when preset active)
+  const [advancedOpen, setAdvancedOpen] = useState(
+    !!location.state?.presetFilter,
+  );
 
   // Date Picker State ([startDate, endDate])
   const [dateRange, setDateRange] = useState([null, null]);
@@ -73,6 +80,12 @@ export default function TasksPage() {
     if (location.state?.filterEmployeeId) {
       const newState = { ...location.state };
       delete newState.filterEmployeeId;
+      navigate(location.pathname, { replace: true, state: newState });
+    }
+    // Clear the presetFilter from history so back-nav doesn't re-apply it
+    if (location.state?.presetFilter) {
+      const newState = { ...location.state };
+      delete newState.presetFilter;
       navigate(location.pathname, { replace: true, state: newState });
     }
   }, [location.state, navigate, location.pathname]);
@@ -299,6 +312,8 @@ export default function TasksPage() {
         uniqueEmployees={uniqueEmployees}
         sortBy={sortBy}
         setSortBy={wrapFilter(setSortBy)}
+        forceAdvancedOpen={advancedOpen}
+        onAdvancedOpenChange={setAdvancedOpen}
       />
 
       {/* THE CATEGORIZED GRID — each group has its own pagination */}

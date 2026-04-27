@@ -3,9 +3,9 @@ import {
   ChevronDown,
   ChevronUp,
   FolderKanban,
-  User,
   Clock,
   CheckCircle2,
+  TriangleAlert,
 } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
@@ -54,6 +54,14 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
     user?.isSuperAdmin === true;
   const isHead = user?.is_head === true || user?.isHead === true;
   const isManagement = isHr || isHead;
+
+  // Overdue nudge: INCOMPLETE task whose deadline has passed, shown only to owner
+  const isOwnerOverdue =
+    !isManagement &&
+    task.status === TASK_STATUS.INCOMPLETE &&
+    task.endAt &&
+    new Date(task.endAt) < new Date() &&
+    user?.id === task.loggedById;
 
   let isChecklistFormat = false;
   let totalItems = 0;
@@ -127,7 +135,11 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
   return (
     <div
       onClick={onView}
-      className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer relative"
+      className={`bg-card p-5 rounded-2xl border shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer relative ${
+        isOwnerOverdue
+          ? "border-amber-500/40 ring-1 ring-amber-500/20"
+          : "border-border"
+      }`}
     >
       {/* Row 1: The Eyebrow (Context) */}
       <div className="flex justify-between items-start gap-3 mb-3">
@@ -283,6 +295,15 @@ const TaskCard = memo(({ task, onView, onSilentUpdate }) => {
           </button>
         )}
       </div>
+      {/* Overdue nudge strip — only for the task owner */}
+      {isOwnerOverdue && (
+        <div className="mt-4 -mx-5 -mb-5 px-4 py-2.5 bg-amber-500/10 border-t border-amber-500/25 rounded-b-2xl flex items-center gap-2">
+          <TriangleAlert size={12} className="text-amber-500 shrink-0" />
+          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+            Overdue — mark as done to submit for review
+          </span>
+        </div>
+      )}
     </div>
   );
 });

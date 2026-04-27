@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   Search,
   Filter,
@@ -43,9 +43,16 @@ export default function TaskFilters({
   disableDeptFilter,
   sortBy,
   setSortBy,
+  forceAdvancedOpen = false,
+  onAdvancedOpenChange,
 }) {
   const [startDate, endDate] = dateRange || [null, null];
-  const [showAdvanced, setShowAdvanced] = useState(employeeFilter);
+  const [showAdvanced, setShowAdvancedRaw] = useState(forceAdvancedOpen || !!employeeFilter);
+
+  const setShowAdvanced = (val) => {
+    setShowAdvancedRaw(val);
+    if (onAdvancedOpenChange) onAdvancedOpenChange(val);
+  };
 
   const isAnyFilterActive =
     statusFilter !== "ALL" ||
