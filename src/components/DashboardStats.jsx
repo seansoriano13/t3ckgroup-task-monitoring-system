@@ -177,7 +177,9 @@ export default function DashboardStats({ selectedRange }) {
   }
 
   return (
-    <div className={`grid gap-4 md:gap-6 ${isHr ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-4"}`}>
+    <div
+      className={`grid gap-4 md:gap-6 ${isHr ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-4"}`}
+    >
       {/* --- EMPLOYEE VIEW --- */}
       {!isManagement && (
         <>
@@ -194,7 +196,13 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Head Review"
             icon={<Clock size={20} className="text-amber-500" />}
             color="amber"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: {
+                  presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL },
+                },
+              })
+            }
           />
           <StatCard
             title="Pending HR Verification"
@@ -202,7 +210,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="HR Verification"
             icon={<ShieldAlert size={20} className="text-destructive" />}
             color="destructive"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
+              })
+            }
           />
           <StatCard
             title="My Completed"
@@ -210,7 +222,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Verified this Month"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
+              })
+            }
           />
         </>
       )}
@@ -224,7 +240,13 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Requires Review"
             icon={<AlertCircle size={20} className="text-foreground" />}
             color="indigo"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: {
+                  presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL },
+                },
+              })
+            }
           />
           <StatCard
             title="Rejected Tasks"
@@ -232,7 +254,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Needs Fixing"
             icon={<XCircle size={20} className="text-destructive" />}
             color="destructive"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.NOT_APPROVED } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.NOT_APPROVED } },
+              })
+            }
           />
           <StatCard
             title="Pending HR Verification"
@@ -240,7 +266,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Waiting HR Review"
             icon={<Clock size={20} className="text-amber-500" />}
             color="amber"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
+              })
+            }
           />
           <StatCard
             title="Completed Tasks"
@@ -248,7 +278,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Completed this Month"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
+              })
+            }
           />
         </>
       )}
@@ -263,7 +297,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Actively being logged"
             icon={<Activity size={20} className="text-muted-foreground" />}
             color="slate"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } },
+              })
+            }
           />
           <StatCard
             title="Overdue — Not Submitted"
@@ -271,7 +309,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Employee action needed"
             icon={<TriangleAlert size={20} className="text-amber-500" />}
             color="amber"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } },
+              })
+            }
           />
           <StatCard
             title="Awaiting Head Review"
@@ -279,7 +321,13 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Head action needed"
             icon={<UserCheck size={20} className="text-indigo-400" />}
             color="indigo"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: {
+                  presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL },
+                },
+              })
+            }
           />
           <StatCard
             title="Pending Verification"
@@ -287,7 +335,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="HR Action Required"
             icon={<ShieldAlert size={20} className="text-destructive" />}
             color="destructive"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.COMPLETE } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
+              })
+            }
           />
           <StatCard
             title="Rejected Tasks"
@@ -295,7 +347,11 @@ export default function DashboardStats({ selectedRange }) {
             subtitle="Needs Fixing"
             icon={<XCircle size={20} className="text-destructive" />}
             color="destructive"
-            onClick={() => navigate("/tasks", { state: { presetFilter: { status: TASK_STATUS.NOT_APPROVED } } })}
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.NOT_APPROVED } },
+              })
+            }
           />
           <StatCard
             title="All Tasks"
@@ -325,11 +381,13 @@ function StatCard({ title, value, subtitle, icon, color, onClick }) {
     <Card
       onClick={onClick}
       className={`p-6 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm ${
-        onClick ? "cursor-pointer hover:-translate-y-0.5 active:scale-[0.98]" : ""
+        onClick
+          ? "cursor-pointer hover:-translate-y-0.5 active:scale-[0.98]"
+          : ""
       }`}
     >
       <div
-        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
+        className={`absolute top-0 right-0 w-32 h-32 bg-linear-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
       />
 
       <div className="flex justify-between items-start mb-5 relative z-10">

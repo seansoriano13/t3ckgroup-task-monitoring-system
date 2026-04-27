@@ -125,9 +125,9 @@ function MessageBubble({ entry, currentUserId }) {
         className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black uppercase border",
           entry.authorIsHead || entry.authorIsSuperAdmin
-            ? "bg-[color:var(--amber-3)] text-[color:var(--amber-10)] border-[color:var(--amber-6)]"
+            ? "bg-amber-3 text-amber-10 border-amber-6"
             : entry.authorIsHr
-              ? "bg-[color:var(--blue-3)] text-[color:var(--blue-10)] border-[color:var(--blue-6)]"
+              ? "bg-blue-3 text-blue-10 border-blue-6"
               : "bg-muted text-muted-foreground border-border",
         )}
       >
@@ -144,12 +144,12 @@ function MessageBubble({ entry, currentUserId }) {
             {isMe ? "You" : entry.authorName}
           </span>
           {entry.authorIsHead && (
-            <span className="text-[8px] bg-warning/10 text-[color:var(--amber-10)] px-1 rounded font-black uppercase">
+            <span className="text-[8px] bg-warning/10 text-amber-10 px-1 rounded font-black uppercase">
               Head
             </span>
           )}
           {entry.authorIsHr && (
-            <span className="text-[8px] bg-[color:var(--blue-9)]/10 text-[color:var(--blue-10)] px-1 rounded font-black uppercase">
+            <span className="text-[8px] bg-blue-9/10 text-blue-10 px-1 rounded font-black uppercase">
               HR
             </span>
           )}
@@ -574,7 +574,7 @@ export default function ComprehensiveChatModal({
     >
       <DialogContent
         showCloseButton={false}
-        className="p-0 gap-0 z-[100] bg-card border-border shadow-2xl w-[calc(100%-2rem)] sm:max-w-[90vw] md:max-w-5xl h-[90vh] md:h-[85vh] rounded-2xl overflow-hidden flex flex-row border-none ring-0 outline-none"
+        className="p-0 gap-0 z-100 bg-card border-border shadow-2xl w-[calc(100%-2rem)] sm:max-w-[90vw] md:max-w-5xl h-[90vh] md:h-[85vh] rounded-2xl overflow-hidden flex flex-row border-none ring-0 outline-none"
       >
         {/* SIDEBAR: Conversation List */}
         <div
@@ -600,7 +600,7 @@ export default function ComprehensiveChatModal({
                   className={cn(
                     "h-8 px-2 text-xs font-bold",
                     selectionMode &&
-                      "bg-muted text-foreground hover:bg-[color:var(--violet-4)]",
+                      "bg-muted text-foreground hover:bg-violet-4",
                   )}
                 >
                   {selectionMode ? "Cancel" : "Select"}
@@ -864,7 +864,7 @@ export default function ComprehensiveChatModal({
                   </div>
                 </div>
               ) : isEntityPendingWipe ? (
-                <div className="bg-warning/10 border-b border-amber-500/20 text-[color:var(--amber-10)] px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
+                <div className="bg-warning/10 border-b border-amber-500/20 text-amber-10 px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
                   <AlertTriangle
                     size={14}
                     className="mt-0.5 sm:mt-0 shrink-0"

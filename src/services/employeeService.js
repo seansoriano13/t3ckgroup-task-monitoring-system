@@ -174,6 +174,15 @@ export const employeeService = {
     return data;
   },
 
+  async getEmployeeAvatarPaths() {
+    const { data, error } = await supabase
+      .from("employees")
+      .select("id, avatar_path")
+      .neq("is_deleted", true);
+    if (error) throw error;
+    return data; // [{ id, avatar_path }]
+  },
+
   async deleteEmployee(id, actorId = null) {
     const { error } = await supabase
       .from("employees")

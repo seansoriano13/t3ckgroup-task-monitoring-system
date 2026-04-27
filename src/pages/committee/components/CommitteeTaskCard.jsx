@@ -1,9 +1,11 @@
-import { CheckCircle2, Users, Calendar, Clock } from "lucide-react";
+import { CheckCircle2, Calendar, Clock } from "lucide-react";
 import StatusBadge from "../../../components/StatusBadge";
 import { formatChecklistToString } from "../../../utils/taskFormatters";
 import GradeSelector from "../../../components/GradeSelector";
 import Avatar from "../../../components/Avatar";
+import AvatarGroup from "../../../components/AvatarGroup";
 import { formatDueDate } from "../../../utils/formatDate";
+import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 
 export default function CommitteeTaskCard({
   task,
@@ -16,6 +18,15 @@ export default function CommitteeTaskCard({
   const completedMembers = members.filter((m) => m.status === "DONE").length;
   const progressPercent =
     totalMembers > 0 ? Math.round((completedMembers / totalMembers) * 100) : 0;
+
+  const avatarMap = useEmployeeAvatarMap();
+
+  // Build people array for AvatarGroup from members (employee sub-join has avatar_path)
+  const memberPeople = members.map((m) => ({
+    id: m.employee_id,
+    name: m.employee?.name || "Member",
+    picture: avatarMap.get(m.employee_id) ?? null,
+  }));
 
   // Determine user's specific subtask if they are a member
   const myMember = members.find((m) => m.employee_id === currentUserId);
@@ -101,20 +112,26 @@ export default function CommitteeTaskCard({
         </div>
       )}
 
-      <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground font-medium">
-        <div className="flex items-center gap-1.5" title="Head/Creator">
+      <div className="mt-auto pt-4 border-t border-border flex items-center justify-between gap-2 text-xs text-muted-foreground font-medium">
+        <div className="flex items-center gap-1.5 min-w-0" title="Head/Creator">
           <Avatar
             name={task.creator?.name || "Unknown"}
             size="xs"
-            className="shadow-inner bg-mauve-2 text-mauve-10 border-mauve-4"
+            src={avatarMap.get(task.created_by) ?? undefined}
+            className="shadow-inner bg-mauve-2 text-mauve-10 border-mauve-4 shrink-0"
           />
-          <span className="truncate max-w-[100px] text-foreground/80 font-semibold">
+          <span className="truncate max-w-[80px] text-foreground/80 font-semibold">
             {task.creator?.name || "Unknown"}
           </span>
         </div>
 
+        {/* Member stacked avatars */}
+        {memberPeople.length > 0 && (
+          <AvatarGroup people={memberPeople} max={4} size="xs" />
+        )}
+
         {task.due_date && (
-          <div className="flex items-center gap-1.5" title="Due Date">
+          <div className="flex items-center gap-1.5 shrink-0" title="Due Date">
             <Calendar
               size={14}
               className={
@@ -135,6 +152,7 @@ export default function CommitteeTaskCard({
           </div>
         )}
       </div>
+
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
 import { REVENUE_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import {
   Loader2,
   TrendingUp,
@@ -43,6 +44,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [layoutMode, setLayoutMode] = useState("stack"); // "row" | "stack" | "grid"
+  const avatarMap = useEmployeeAvatarMap();
 
   // Real-world reference for "Due" logic
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -414,6 +416,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                       className="bg-white shadow-sm"
                       size="sm"
                       name={stat.name}
+                      src={avatarMap.get(stat.id) ?? undefined}
                     />
                     <div className="min-w-0">
                       <h3 className="text-sm font-semibold text-[#111827] line-clamp-1">

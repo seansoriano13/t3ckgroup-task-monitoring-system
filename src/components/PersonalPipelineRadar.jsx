@@ -1,9 +1,10 @@
-﻿import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import { Activity, TrendingUp, Star, Clock, CheckCircle2 } from "lucide-react";
 import { TASK_STATUS } from "../constants/status";
+import Avatar from "./Avatar";
 
 export default function PersonalPipelineRadar({ selectedMonth }) {
   const { user } = useAuth();
@@ -92,19 +93,30 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
       <div className="p-6 sm:p-8 relative z-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
           <div>
-            <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-              <Activity className="text-primary" size={20} /> My Pipeline Radar
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1 font-medium italic">
-              Visual performance tracking for{" "}
-              {selectedMonth
-                ? new Date(selectedMonth).toLocaleString("default", {
-                  month: "long",
-                  year: "numeric",
-                })
-                : "this month"}
-            </p>
+            <div className="flex items-center gap-3">
+              <Avatar
+                name={user?.name}
+                src={user?.picture ?? undefined}
+                size="lg"
+                className="ring-2 ring-primary/20 shadow-lg shrink-0"
+              />
+              <div>
+                <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+                  <Activity className="text-primary" size={20} /> My Pipeline Radar
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1 font-medium italic">
+                  Visual performance tracking for{" "}
+                  {selectedMonth
+                    ? new Date(selectedMonth).toLocaleString("default", {
+                      month: "long",
+                      year: "numeric",
+                    })
+                    : "this month"}
+                </p>
+              </div>
+            </div>
           </div>
+
 
           <div className="flex gap-4">
             <div className="bg-muted border border-border rounded-2xl px-5 py-3 text-center">

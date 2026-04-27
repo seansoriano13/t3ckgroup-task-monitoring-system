@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 
 export default function EmployeePipelineMatrix({ selectedRange }) {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
   const userDepartment = user?.department;
   const [searchTerm, setSearchTerm] = useState("");
   const [layoutMode, setLayoutMode] = useState("stack"); // "row" | "stack" | "grid"
+  const avatarMap = useEmployeeAvatarMap();
 
   // Fetch ALL tasks (we will filter them down for Heads)
   const { data: rawTasks = [], isLoading } = useQuery({
@@ -239,7 +241,8 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                 <Avatar
                   className="bg-white"
                   size="sm"
-                  name={emp.name.charAt(0)}
+                  name={emp.name}
+                  src={avatarMap.get(emp.id) ?? undefined}
                 />
                 <div className="min-w-0">
                   <h3

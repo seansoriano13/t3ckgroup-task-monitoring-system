@@ -1,6 +1,7 @@
 import { useState } from "react";
 import TaskCard from "./TaskCard";
 import Avatar from "./Avatar";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import TaskDetails from "./TaskDetails";
 import { useAuth } from "../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -58,6 +59,7 @@ export default function TasksList({ selectedRange }) {
   const isHr = user?.is_hr || user?.isHr;
   const isHead = user?.is_head || user?.isHead;
   const isManagement = isHr || isHead;
+  const avatarMap = useEmployeeAvatarMap();
   const userSubDept = user?.sub_department || user?.subDepartment;
   const userDept = user?.department;
 
@@ -349,6 +351,7 @@ export default function TasksList({ selectedRange }) {
                         <Avatar
                           name={task.loggedByName}
                           size="md"
+                          src={avatarMap.get(task.loggedById) ?? undefined}
                           className="group-hover:bg-card group-hover:shadow-sm group-hover:text-green-11"
                         />
                         {/* Main text block */}

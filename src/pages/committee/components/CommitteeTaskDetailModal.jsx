@@ -32,7 +32,7 @@ import { activeChatService } from "../../../services/tasks/activeChatService";
 import { useQuery } from "@tanstack/react-query";
 import Select from "react-select";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
-import { formatDate, formatDueDate } from "@/utils/formatDate";
+import { formatDueDate } from "@/utils/formatDate";
 
 const COMMITTEE_ROLES = ["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"];
 
