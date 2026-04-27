@@ -1,4 +1,4 @@
-﻿import { CheckCircle2, Clock, CheckSquare, XSquare, Undo2 } from "lucide-react";
+import { CheckCircle2, Clock, CheckSquare, XSquare, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "../../../components/ui/PageHeader";
 
@@ -15,17 +15,20 @@ export function ApprovalHeader({
   handleBulkDecline,
   handleUndoBulk,
   isVerifiedTab,
+  pageTitle,
+  pageDescription,
 }) {
-  const title = isSuperAdmin
+  const title = pageTitle ?? (isSuperAdmin
     ? "Verification Queue"
     : isHr
       ? "HR Queue"
-      : "Manager Queue";
-  const description = isSuperAdmin
+      : "Manager Queue");
+  const description = pageDescription ?? (isSuperAdmin
     ? "Review and verify all tasks system-wide."
     : isHr
       ? "Audit and verify graded tasks for payroll accuracy."
-      : "Review and grade pending tasks from your team.";
+      : "Review and grade pending tasks from your team.");
+
 
   return (
     <PageHeader title={title} description={description}>

@@ -101,7 +101,8 @@ export default function SideNav() {
     navLinks = [
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
-      { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
+      { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
+      { label: "Task Verification", link: "/approvals/hr-verification", icon: ShieldCheck },
       { label: "Committee Tasks", link: "/committee", icon: UsersRound },
       { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
       { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
@@ -139,7 +140,7 @@ export default function SideNav() {
 
       if (isMasterHead) {
         navLinks.push(
-          { label: "Task Approval", link: "/approvals", icon: ShieldCheck },
+          { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
           {
             label: "Sales Approval",
             link: "/approvals/sales",
@@ -150,7 +151,7 @@ export default function SideNav() {
         if (hasTask) {
           navLinks.push({
             label: "Task Approval",
-            link: "/approvals",
+            link: "/approvals/tasks",
             icon: ShieldCheck,
           });
         }
@@ -165,11 +166,18 @@ export default function SideNav() {
     }
 
     if (user?.isHr) {
-      navLinks.push({
-        label: "HR Management",
-        link: "/hr/management",
-        icon: Users,
-      });
+      navLinks.push(
+        {
+          label: "Task Verification",
+          link: "/approvals/hr-verification",
+          icon: ShieldCheck,
+        },
+        {
+          label: "HR Management",
+          link: "/hr/management",
+          icon: Users,
+        },
+      );
       if (!hasSales) {
         navLinks.push({
           label: "Sales Records",
@@ -416,7 +424,8 @@ export default function SideNav() {
                   to={navLink.link}
                   end={
                     navLink.link === "/" ||
-                    navLink.link === "/approvals" ||
+                    navLink.link === "/approvals/tasks" ||
+                    navLink.link === "/approvals/hr-verification" ||
                     navLink.link === "/super-admin"
                   }
                   onClick={() => setIsMobileOpen(false)}

@@ -209,13 +209,23 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         }),
       );
     } else if (notif.type.includes("TASK")) {
-      // Route to Approvals or Tasks depending on role
-      if ((user?.isHead || user?.isHr) && !user?.isSuperAdmin) {
-        navigate("/approvals", { state: { openTaskId: notif.reference_id } });
-      } else if (user?.isSuperAdmin) {
-        navigate("/tasks", { state: { openTaskId: notif.reference_id } });
+      // Route to the correct approval queue based on role
+      const isHrUser = user?.isHr || user?.is_hr;
+      const isHeadUser = user?.isHead || user?.is_head;
+      const isSA = user?.isSuperAdmin || user?.is_super_admin;
+
+      if (notif.type === "TASK_APPROVED_BY_HEAD" && isHrUser) {
+        // HR got notified that a Head approved — send to HR verification queue
+        navigate("/approvals/hr-verification", { state: { openTaskId: notif.reference_id } });
+      } else if (isHeadUser || isSA) {
+        // Head or SuperAdmin: task approval queue
+        navigate("/approvals/tasks", { state: { openTaskId: notif.reference_id } });
+      } else if (isHrUser) {
+        // HR-only: task verification queue
+        navigate("/approvals/hr-verification", { state: { openTaskId: notif.reference_id } });
       } else {
-        navigate("/", { state: { openTaskId: notif.reference_id } });
+        // Employee: their own task page
+        navigate("/tasks", { state: { openTaskId: notif.reference_id } });
       }
     } else if (notif.type === "SALES_PLAN_SUBMITTED") {
       // Manager/Head: Go to sales approvals page
@@ -291,7 +301,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
           state: { highlightActivityId: notif.reference_id },
         });
       } else {
-        navigate("/approvals", {
+        navigate("/approvals/tasks", {
           state: { highlightExpenseId: notif.reference_id },
         });
       }

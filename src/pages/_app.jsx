@@ -12,9 +12,6 @@ export default function AppLayout() {
     return <Outlet />;
   }
 
-  // 🔑 CRITICAL: Don't render child pages until auth is resolved.
-  // Without this gate, useQuery's `enabled: !!user?.id` fires as `false`
-  // at mount time and the query is registered as permanently disabled.
   if (isAuthLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-mauve-2">

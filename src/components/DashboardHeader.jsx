@@ -1,4 +1,4 @@
-﻿import { useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { Search, AlertCircle, ArrowRight } from "lucide-react";
 import { INPUT_STYLE } from "../pages/login";
 import { useAuth } from "../context/AuthContext";
@@ -15,8 +15,10 @@ function DashboardHeader() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // isHr is DB-driven only — no super-admin bypass (mirrors approvals/tasks logic)
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isHead = user?.is_head === true || user?.isHead === true;
+  const approvalsLink = isHr && !isHead ? "/approvals/hr-verification" : "/approvals/tasks";
   const isManagement = isHr || isHead;
   const userSubDept = user?.sub_department || user?.subDepartment;
   const userDept = user?.department;
@@ -123,10 +125,10 @@ function DashboardHeader() {
             </div>
           </div>
           <Link
-            to="/approvals"
+            to={approvalsLink}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-primary/20"
           >
-            Go to Approvals <ArrowRight size={16} />
+            {isHr && !isHead ? "Go to Verification" : "Go to Approvals"} <ArrowRight size={16} />
           </Link>
         </div>
       )}

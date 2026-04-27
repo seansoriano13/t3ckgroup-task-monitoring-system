@@ -49,7 +49,7 @@ export default function Dashboard() {
           {/* PIPELINE SECTION */}
           <div className="relative">
             <PageHeader
-              title="Task Accomplishment Report"
+               title="Task Accomplishment Report"
               description="Executive Task & Performance Governance"
             >
               {globalRange?.label && (
@@ -66,8 +66,8 @@ export default function Dashboard() {
             <div className="grid gap-8 relative mt-10">
               <DashboardStats selectedRange={globalRange} />
               <EmployeePipelineMatrix selectedRange={globalRange} />
-              <TasksList selectedRange={globalRange} />
               <CommitteeTasksList selectedRange={globalRange} />
+              <TasksList selectedRange={globalRange} />
             </div>
           </div>
 
@@ -140,9 +140,9 @@ export default function Dashboard() {
             <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
           )}
 
-          <TasksList selectedRange={globalRange} />
-
           <CommitteeTasksList selectedRange={globalRange} />
+
+          <TasksList selectedRange={globalRange} />
 
           {(user?.is_head || user?.isHead) && (
             <div className="mt-12 space-y-6">

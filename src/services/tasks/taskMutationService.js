@@ -839,6 +839,82 @@ export const taskMutationService = {
     return true;
   },
 
+  // HR BULK VERIFY — sets hr_verified=true only, never touches grade or evaluated_by
+  async bulkVerifyTasks(taskIds, hrId, notes = "") {
+    if (!taskIds || taskIds.length === 0) return;
+
+    const { data: hr } = await supabase
+      .from("employees")
+      .select("is_hr, is_super_admin, name")
+      .eq("id", hrId)
+      .single();
+
+    if (!hr?.is_hr && !hr?.is_super_admin) {
+      throw new Error("Unauthorized: Only HR/Admins can bulk verify tasks.");
+    }
+
+    // Guard: only verify tasks that are COMPLETE + not yet hr_verified + have been evaluated
+    const { data: tasks, error: fetchErr } = await supabase
+      .from("tasks")
+      .select("id, status, hr_verified, evaluated_by")
+      .in("id", taskIds);
+
+    if (fetchErr) throw fetchErr;
+
+    const eligible = tasks.filter(
+      (t) =>
+        t.status === TASK_STATUS.COMPLETE &&
+        t.hr_verified === false &&
+        t.evaluated_by != null,
+    );
+
+    if (eligible.length === 0) {
+      throw new Error(
+        "None of the selected tasks are eligible for HR verification. Tasks must be COMPLETE, graded by a Head, and not yet verified.",
+      );
+    }
+
+    const eligibleIds = eligible.map((t) => t.id);
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        hr_verified: true,
+        hr_verified_at: new Date().toISOString(),
+        hr_remarks: notes || "",
+        edited_by: hrId,
+        edited_at: new Date().toISOString(),
+      })
+      .in("id", eligibleIds)
+      .select();
+
+    if (error) throw error;
+
+    for (const task of data) {
+      taskActivityService.addHrEntry(
+        task.id,
+        hrId,
+        notes || "Bulk verified by HR",
+        { event: "HR_VERIFIED", bulk: true },
+      );
+      taskActivityService.addSystemEvent(
+        task.id,
+        `Task bulk-verified by HR (${hr?.name || "HR"}).`,
+        { event: "HR_VERIFIED", bulk: true },
+      );
+    }
+
+    // Notify super admin
+    notificationService.broadcastToRole(["SUPER_ADMIN"], {
+      sender_id: hrId,
+      type: "TASK_COMPLETED",
+      title: "Bulk HR Verification Complete",
+      message: `${hr?.name || "HR"} bulk-verified ${data.length} task(s) for payroll.`,
+    }).catch(console.error);
+
+    return data;
+  },
+
   async bulkUnverifyTasks(taskIds, hrId) {
     if (!taskIds || taskIds.length === 0) return;
 
