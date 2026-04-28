@@ -30,66 +30,63 @@ export const AuthProvider = ({ children }) => {
     userEmailRef.current = user?.email;
   }, [user]);
 
-  useEffect(() => {
-    let isMounted = true;
+  const resolveEmployee = async (sessionUser, isMounted) => {
+    if (!isMounted) return;
+    // Skip if we already resolved this user and initialization is finished
+    if (userEmailRef.current === sessionUser.email && initFinished) return;
 
-    const resolveEmployee = async (sessionUser) => {
+    try {
+      const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
       if (!isMounted) return;
-      if (userEmailRef.current === sessionUser.email && initFinished) return;
 
-      try {
-        const employee = await employeeService.getEmployeeByEmail(sessionUser.email);
-        if (!isMounted) return;
+      if (employee) {
+        const metadata = sessionUser.user_metadata || null;
+        const [pictureFromStorage, bannerFromStorage] = await Promise.all([
+          resolveProfileMediaUrl(employee.avatarPath),
+          resolveProfileMediaUrl(employee.dashboardBannerPath),
+        ]);
 
-        if (employee) {
-          const metadata = sessionUser.user_metadata || null;
-          const [pictureFromStorage, bannerFromStorage] = await Promise.all([
-            resolveProfileMediaUrl(employee.avatarPath),
-            resolveProfileMediaUrl(employee.dashboardBannerPath),
-          ]);
+        const googleFallback = employee.avatarPath
+          ? ""
+          : metadata?.avatar_url || metadata?.picture || "";
 
-          // Only fall back to Google's OAuth avatar when the employee has no
-          // custom avatar_path saved. If they do have one, use the storage URL
-          // (or nothing). This prevents Google's photo from overwriting a
-          // custom upload on every reload.
-          const googleFallback = employee.avatarPath
-            ? ""
-            : metadata?.avatar_url || metadata?.picture || "";
-
-          const mergedUser = {
-            ...employee,
-            picture: pictureFromStorage || googleFallback,
-            dashboardBannerUrl: bannerFromStorage || null,
-          };
-          
-          setUser(mergedUser);
-          localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(mergedUser));
-        } else {
-          console.warn("Auth: No employee record found for", sessionUser.email);
-          await logout();
-        }
-      } catch (err) {
-        console.error("Auth: resolveEmployee failed:", err);
-        const cached = localStorage.getItem(PROFILE_CACHE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed.email === sessionUser.email) {
-            setUser(parsed);
-          }
-        }
-      } finally {
-        if (isMounted) {
-          setIsAuthLoading(false);
-          setInitFinished(true);
-          settledRef.current = true;
+        const mergedUser = {
+          ...employee,
+          picture: pictureFromStorage || googleFallback,
+          dashboardBannerUrl: bannerFromStorage || null,
+        };
+        
+        setUser(mergedUser);
+        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(mergedUser));
+      } else {
+        console.warn("Auth: No employee record found for", sessionUser.email);
+        await logout();
+      }
+    } catch (err) {
+      console.error("Auth: resolveEmployee failed:", err);
+      const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.email === sessionUser.email) {
+          setUser(parsed);
         }
       }
-    };
+    } finally {
+      if (isMounted) {
+        setIsAuthLoading(false);
+        setInitFinished(true);
+        settledRef.current = true;
+      }
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
 
     const timeout = setTimeout(() => {
       if (!settledRef.current && isMounted) {
         settledRef.current = true;
-        console.warn("Auth: Safety gate triggered - session resolution took too long. This usually indicates a Supabase connection issue.");
+        console.warn("Auth: Safety gate triggered - session resolution took too long. This usually indicates a Supabase connection issue or heavy network load.");
         setIsAuthLoading(false);
       }
     }, 15_000);
@@ -97,10 +94,10 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth Event:", event);
+      console.log(`[AuthContext] onAuthStateChange event: ${event}`);
 
       if (session?.user) {
-        resolveEmployee(session.user);
+        resolveEmployee(session.user, isMounted);
       } else {
         if (isMounted) {
           setUser(null);
@@ -112,12 +109,28 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
+    // Re-verify session when user returns to the tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("[AuthContext] Tab became visible, verifying session...");
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user && isMounted) {
+            resolveEmployee(session.user, isMounted);
+          }
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
       clearTimeout(timeout);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []); // Only run once on mount
+
 
 
 
