@@ -85,6 +85,7 @@ export default function GlobalDetailManager() {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["globalTask", activeItem?.id] });
+      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
       toast.success("Task updated.");
     },
   });
@@ -93,6 +94,7 @@ export default function GlobalDetailManager() {
     mutationFn: ({ id, userId }) => taskService.deleteTask(id, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
       setActiveItem(null);
       toast.success("Task deleted.");
     },
@@ -102,6 +104,7 @@ export default function GlobalDetailManager() {
   const invalidateCommittee = () => {
     queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
     queryClient.invalidateQueries({ queryKey: ["globalCommitteeTask", activeItem?.id] });
+    queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
   };
 
   const deleteCommitteeTaskMutation = useMutation({

@@ -30,6 +30,8 @@ import PageHeader from "../../../components/ui/PageHeader";
 import PageContainer from "../../../components/ui/PageContainer";
 import TabGroup from "../../../components/ui/TabGroup";
 import HighlightText from "../../../components/HighlightText";
+import Avatar from "@/components/Avatar";
+import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 
 
 export default function EmployeeManagement() {
@@ -39,9 +41,8 @@ export default function EmployeeManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [resolvedAvatars, setResolvedAvatars] = useState({});
-
-  const HTTP_URL_RE = /^https?:\/\//i;
+  const avatarMap = useEmployeeAvatarMap();
+  const resolvedAvatars = useMemo(() => Object.fromEntries(avatarMap), [avatarMap]);
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ["allEmployees"],
@@ -55,46 +56,6 @@ export default function EmployeeManagement() {
         emp.email?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [employees, searchTerm]);
-
-  // Resolve avatars to signed URLs in batch
-  useEffect(() => {
-    if (employees.length === 0) return;
-
-    const resolveAvatars = async () => {
-      const supabasePaths = [];
-      const newResolved = { ...resolvedAvatars };
-
-      employees.forEach((emp) => {
-        if (emp.avatarPath) {
-          if (HTTP_URL_RE.test(emp.avatarPath)) {
-            newResolved[emp.id] = emp.avatarPath;
-          } else {
-            supabasePaths.push(emp.avatarPath);
-          }
-        }
-      });
-
-      if (supabasePaths.length > 0) {
-        try {
-          const signedResults =
-            await storageService.getSignedUrls(supabasePaths);
-          signedResults.forEach((res) => {
-            const emp = employees.find((e) => e.avatarPath === res.path);
-            if (emp) {
-              newResolved[emp.id] = res.signedUrl;
-            }
-          });
-        } catch (error) {
-          console.error("Failed to batch resolve avatars:", error);
-        }
-      }
-
-      setResolvedAvatars(newResolved);
-    };
-
-    resolveAvatars();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employees]);
 
   const deleteMutation = useMutation({
     mutationFn: (id) => employeeService.deleteEmployee(id, user?.id || null),
@@ -200,15 +161,11 @@ export default function EmployeeManagement() {
                         className="hover:bg-muted/30 transition-colors"
                       >
                         <td className="p-4 text-sm font-bold text-foreground flex items-center gap-3">
-                          <img
-                            src={
-                              resolvedAvatars[emp.id] || "/default-avatar.png"
-                            }
-                            alt={emp.name}
-                            className="w-9 h-9 rounded-xl border border-border object-cover shadow-sm shrink-0"
-                            onError={(e) => {
-                              e.target.src = "/default-avatar.png";
-                            }}
+                          <Avatar
+                            src={resolvedAvatars[emp.id]}
+                            name={emp.name}
+                            size="md"
+                            className="w-9 h-9"
                           />
                           <div className="truncate">
                             <p className="font-black text-foreground">

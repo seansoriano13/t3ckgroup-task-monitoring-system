@@ -26,13 +26,15 @@ import ChecklistTaskRenderer from "../../../components/ChecklistTaskRenderer";
 import ChecklistTaskInput from "../../../components/ChecklistTaskInput";
 import GradeSelector from "../../../components/GradeSelector";
 import { confirmDeleteToast } from "../../../components/ui/CustomToast";
-import { committeeTaskService } from "../../../services/committeeTaskService";
-import { MessageCircle } from "lucide-react";
 import { activeChatService } from "../../../services/tasks/activeChatService";
-import { useQuery } from "@tanstack/react-query";
 import Select from "react-select";
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
 import { formatDueDate } from "@/utils/formatDate";
+import { useQuery } from "@tanstack/react-query";
+import { committeeTaskActivityService } from "@/services/committeeTaskActivityService";
+import { committeeTaskService } from "@/services/committeeTaskService";
+import { MessageCircle } from "lucide-react";
+import HistoryTimeline from "@/components/HistoryTimeline";
 
 const COMMITTEE_ROLES = ["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"];
 
@@ -64,8 +66,6 @@ export default function CommitteeTaskDetailModal({
   onInlineCheck,
   searchTerm,
 }) {
-
-
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -128,7 +128,8 @@ export default function CommitteeTaskDetailModal({
 
   const { data: logs = [], isLoading: isLoadingLogs } = useQuery({
     queryKey: ["committeeHistory", task?.id],
-    queryFn: () => committeeTaskService.getCommitteeTaskHistory(task.id),
+    queryFn: () =>
+      committeeTaskService.getCommitteeTaskHistory(task.id),
     enabled: !!task?.id && isOpen && activeTab === "history",
   });
 
@@ -316,9 +317,11 @@ export default function CommitteeTaskDetailModal({
               {task.description && (
                 <div className="animate-content-in stagger-1 mb-2">
                   <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
-                    <HighlightText text={task.description} search={searchTerm} />
+                    <HighlightText
+                      text={task.description}
+                      search={searchTerm}
+                    />
                   </p>
-
                 </div>
               )}
 
@@ -561,7 +564,6 @@ export default function CommitteeTaskDetailModal({
                                     disabled={!isMe || member.status === "DONE"}
                                     searchTerm={searchTerm}
                                     onInlineCheck={(newDesc) => {
-
                                       if (onInlineCheck) {
                                         onInlineCheck(member.id, newDesc);
                                       } else {
@@ -579,9 +581,11 @@ export default function CommitteeTaskDetailModal({
                                 </div>
                               ) : (
                                 <div className="text-[13px] text-foreground bg-muted/20 p-4 rounded-xl border border-border/50 leading-relaxed min-h-[80px] whitespace-pre-wrap">
-                                  <HighlightText text={member.task_description} search={searchTerm} />
+                                  <HighlightText
+                                    text={member.task_description}
+                                    search={searchTerm}
+                                  />
                                 </div>
-
                               )}
                             </div>
 
@@ -628,7 +632,7 @@ export default function CommitteeTaskDetailModal({
                                     <CheckCircle2 size={16} />
                                     {isMarkingDone
                                       ? "Marking..."
-                                      : "Submit for Approval"}
+                                      : "Submit for Review"}
                                   </button>
                                 )}
 
@@ -837,306 +841,55 @@ export default function CommitteeTaskDetailModal({
               )}
             </>
           ) : (
-            <div className="animate-in fade-in space-y-6 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-mauve-4 before:from-transparent before:via-slate-200 before:to-transparent">
-              {isLoadingLogs ? (
-                <div className="flex items-center justify-center py-10">
-                  <Spinner size="md" />
-                </div>
-              ) : logs.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-muted-foreground text-sm font-medium">
-                    No history available for this task.
-                  </p>
-                </div>
-              ) : (
-                logs.map((log) => {
-                  let Icon = Edit3;
-                  let colorClass =
-                    "bg-blue-3 text-blue-10 border-blue-6";
+            <div className="p-0">
+              <HistoryTimeline
+                logs={(logs || []).map((log) => {
+                  // Pre-filter ratings based on visibility rules
+                  const rawRatings = log.details?.ratings;
+                  const visibleRatings = Array.isArray(rawRatings)
+                    ? rawRatings
+                        .filter((r) => {
+                          if (isCreator || isSuperAdmin) return true;
+                          const member = task.members?.find(
+                            (m) => m.id === r.memberId,
+                          );
+                          return member?.employee_id === currentUserId;
+                        })
+                        .map((r) => {
+                          const member = task.members?.find(
+                            (m) => m.id === r.memberId,
+                          );
+                          return {
+                            ...r,
+                            memberName: resolveEmployeeName(
+                              member?.employee_id,
+                            ),
+                          };
+                        })
+                    : [];
 
-                  if (
-                    log.action === "CREATED" ||
-                    log.action === "MEMBER_ADDED"
-                  ) {
-                    Icon = log.action === "CREATED" ? PlusCircle : Plus;
-                    colorClass = "bg-green-100 text-green-10 border-green-200";
-                  } else if (
-                    log.action === "MEMBER_DONE" ||
-                    log.action === "COMPLETED" ||
-                    log.action === "HR_VERIFIED"
-                  ) {
-                    Icon = CheckCircle2;
-                    colorClass =
-                      "bg-violet-3 text-violet-10 border-mauve-5";
-                  } else if (log.action === "MEMBER_PENDING") {
-                    Icon = Clock;
-                    colorClass =
-                      "bg-amber-3 text-amber-10 border-amber-6";
-                  } else if (log.action === "HR_REJECTED") {
-                    Icon = X;
-                    colorClass =
-                      "bg-red-100 text-destructive border-destructive/30";
-                  } else if (log.action === "RATED") {
-                    Icon = Star;
-                    colorClass =
-                      "bg-amber-3 text-amber-10 border-amber-6";
-                  }
+                  const rawMembers = log.details?.members;
+                  const formattedMembers = Array.isArray(rawMembers)
+                    ? rawMembers.map((m) => ({
+                        ...m,
+                        name: resolveEmployeeName(m.employee_id),
+                      }))
+                    : [];
 
-                  return (
-                    <div
-                      key={log.id}
-                      className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
-                    >
-                      <div
-                        className={`flex items-center justify-center w-8 h-8 rounded-full border-2 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm ${colorClass} bg-card z-10`}
-                      >
-                        <Icon size={14} />
-                      </div>
-
-                      <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between mb-2">
-                          <span
-                            className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                              log.action === "CREATED" ||
-                              log.action === "MEMBER_ADDED"
-                                ? "bg-green-50 text-green-10"
-                                : log.action === "MEMBER_DONE" ||
-                                    log.action === "COMPLETED" ||
-                                    log.action === "HR_VERIFIED"
-                                  ? "bg-violet-2 text-violet-10"
-                                  : log.action === "MEMBER_PENDING"
-                                    ? "bg-amber-2 text-amber-10"
-                                    : log.action === "HR_REJECTED"
-                                      ? "bg-destructive/5 text-destructive"
-                                      : "bg-blue-2 text-blue-10"
-                            }`}
-                          >
-                            {log.action.replace("_", " ")}
-                          </span>
-                          <time className="text-xs text-muted-foreground font-semibold">
-                            {new Date(log.created_at).toLocaleString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
-                          </time>
-                        </div>
-
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground overflow-hidden shrink-0">
-                            {log.actor?.avatar_path ? (
-                              <img
-                                src={log.actor.avatar_path}
-                                alt="avatar"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <User size={12} />
-                            )}
-                          </div>
-                          <span className="text-xs font-semibold text-foreground">
-                            {log.actor?.name || "System"}
-                          </span>
-                        </div>
-
-                        {log.details && Object.keys(log.details).length > 0 && (
-                          <div className="text-xs text-mauve-11 dark:text-muted-foreground mt-2 bg-muted/30 p-3 rounded-lg border border-border/50 flex flex-col gap-1.5">
-                            {log.details.title && (
-                              <div>
-                                <strong className="text-foreground">
-                                  Title:
-                                </strong>{" "}
-                                {log.details.title}
-                              </div>
-                            )}
-                            {log.details.remarks && (
-                              <div>
-                                <strong className="text-foreground">
-                                  Remarks:
-                                </strong>{" "}
-                                {log.details.remarks}
-                              </div>
-                            )}
-                            {log.details.role && (
-                              <div>
-                                <strong className="text-foreground">
-                                  Role:
-                                </strong>{" "}
-                                {log.details.role}
-                              </div>
-                            )}
-
-                            {(() => {
-                              const empId =
-                                log.details.employeeId ||
-                                log.details.addedEmployeeId;
-                              if (empId) {
-                                const empName = resolveEmployeeName(empId);
-                                if (empName !== (log.actor?.name || "System")) {
-                                  return (
-                                    <div>
-                                      <strong className="text-foreground">
-                                        Employee:
-                                      </strong>{" "}
-                                      {empName}
-                                    </div>
-                                  );
-                                }
-                              }
-                              return null;
-                            })()}
-
-                            {(() => {
-                              if (
-                                log.details.memberId &&
-                                !log.details.employeeId
-                              ) {
-                                const member = task.members?.find(
-                                  (m) => m.id === log.details.memberId,
-                                );
-                                const empName = resolveEmployeeName(
-                                  member?.employee_id,
-                                );
-                                if (
-                                  empName &&
-                                  empName !== (log.actor?.name || "System")
-                                ) {
-                                  return (
-                                    <div>
-                                      <strong className="text-foreground">
-                                        Member:
-                                      </strong>{" "}
-                                      {empName}
-                                    </div>
-                                  );
-                                }
-                              }
-                              return null;
-                            })()}
-
-                            {log.details.taskDescription && (
-                              <div className="mt-1 bg-card rounded-lg border border-border overflow-hidden">
-                                <div className="px-3 py-1.5 bg-muted/50 border-b border-border/50 flex justify-between items-center">
-                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                    Task Snapshot
-                                  </span>
-                                </div>
-                                <div className="p-3 text-xs max-h-32 overflow-y-auto custom-scrollbar">
-                                  {(() => {
-                                    try {
-                                      const parsed = JSON.parse(
-                                        log.details.taskDescription,
-                                      );
-                                      const items = Array.isArray(parsed)
-                                        ? parsed
-                                        : Array.isArray(parsed?.items)
-                                          ? parsed.items
-                                          : null;
-                                      if (items) {
-                                        return (
-                                          <ul className="space-y-1.5">
-                                            {items.map((item, i) => (
-                                              <li
-                                                key={i}
-                                                className="flex items-start gap-2"
-                                              >
-                                                <div className="mt-0.5 shrink-0">
-                                                  {item.checked ? (
-                                                    <CheckCircle2
-                                                      size={14}
-                                                      className="text-green-9"
-                                                    />
-                                                  ) : (
-                                                    <div className="w-3.5 h-3.5 rounded-full border border-mauve-5" />
-                                                  )}
-                                                </div>
-                                                <span
-                                                  className={`leading-snug ${item.checked ? "text-muted-foreground line-through" : "text-foreground"}`}
-                                                >
-                                                  {item.text}
-                                                </span>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        );
-                                      }
-                                    } catch (e) {}
-                                    return (
-                                      <div className="whitespace-pre-wrap text-foreground">
-                                        {log.details.taskDescription}
-                                      </div>
-                                    );
-                                  })()}
-                                </div>
-                              </div>
-                            )}
-
-                            {(() => {
-                              if (
-                                !log.details.ratings ||
-                                !Array.isArray(log.details.ratings)
-                              )
-                                return null;
-
-                              // Only creator, super admin, or the member themselves can see their rating
-                              const visibleRatings = log.details.ratings.filter(
-                                (r) => {
-                                  if (isCreator || isSuperAdmin) return true;
-                                  const member = task.members?.find(
-                                    (m) => m.id === r.memberId,
-                                  );
-                                  return member?.employee_id === currentUserId;
-                                },
-                              );
-
-                              if (visibleRatings.length === 0) return null;
-
-                              return (
-                                <div className="mt-1 animate-in fade-in">
-                                  <strong className="text-foreground block mb-1.5">
-                                    Evaluations:
-                                  </strong>
-                                  <div className="flex flex-col gap-1.5 pl-3 border-l-2 border-primary/20">
-                                    {visibleRatings.map((r, idx) => {
-                                      const member = task.members?.find(
-                                        (m) => m.id === r.memberId,
-                                      );
-                                      const empName = resolveEmployeeName(
-                                        member?.employee_id,
-                                      );
-                                      return (
-                                        <div
-                                          key={idx}
-                                          className="flex items-center justify-between gap-3 bg-card px-2.5 py-1.5 rounded-md border border-border/50"
-                                        >
-                                          <span
-                                            className="truncate text-foreground dark:text-muted-foreground font-medium"
-                                            title={empName}
-                                          >
-                                            {empName}
-                                          </span>
-                                          <span className="font-bold text-primary shrink-0 bg-primary/10 px-2 py-0.5 rounded text-xs">
-                                            {r.grade}{" "}
-                                            <span className="text-[10px] text-primary/70">
-                                              / 5
-                                            </span>
-                                          </span>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                  return {
+                    ...log,
+                    details: {
+                      ...log.details,
+                      ratings:
+                        visibleRatings.length > 0 ? visibleRatings : null,
+                      members:
+                        formattedMembers.length > 0 ? formattedMembers : null,
+                    },
+                  };
+                })}
+                isLoading={isLoadingLogs}
+                type="COMMITTEE"
+              />
             </div>
           )}
         </div>

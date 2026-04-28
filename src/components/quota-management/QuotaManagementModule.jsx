@@ -16,6 +16,7 @@ import {
 import Spinner from "@/components/ui/Spinner";
 import QuotaHistoryModal from "./QuotaHistoryModal";
 import HighlightText from "../../components/HighlightText";
+import Avatar from "@/components/Avatar";
 
 export default function QuotaManagementModule({
   salesEmployees = [],
@@ -418,13 +419,10 @@ function QuotaTableRow({
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <img
-            src={avatarUrl || "/default-avatar.png"}
-            alt={employee.name}
-            className="w-8 h-8 rounded-full border border-mauve-4 object-cover bg-mauve-3"
-            onError={(e) => {
-              e.target.src = "/default-avatar.png";
-            }}
+          <Avatar
+            src={avatarUrl}
+            name={employee.name}
+            size="md"
           />
           <div>
             <p className="font-bold text-foreground">
@@ -480,13 +478,11 @@ function QuotaGridCard({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <img
-            src={avatarUrl || "/default-avatar.png"}
-            alt={employee.name}
-            className="w-10 h-10 rounded-xl border border-mauve-4 object-cover shadow-sm bg-mauve-3 shrink-0"
-            onError={(e) => {
-              e.target.src = "/default-avatar.png";
-            }}
+          <Avatar
+            src={avatarUrl}
+            name={employee.name}
+            size="lg"
+            className="rounded-xl shadow-sm"
           />
           <div className="min-w-0">
             <p className="font-bold text-foreground text-sm truncate">

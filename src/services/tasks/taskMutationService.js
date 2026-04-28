@@ -51,30 +51,28 @@ export const taskMutationService = {
     const taskId = data[0].id;
 
     // Log system activity: Task created
-    taskActivityService.addSystemEvent(
-      taskId,
-      `Task submitted by ${payload.submittedByName || "an employee"}.`,
-      {
-        event: "TASK_CREATED",
-        submittedById: payload.submittedById || payload.loggedById || null,
-        submittedByName: payload.submittedByName || null,
-      },
-    );
-
+    let logMsg = `Task submitted by ${payload.submittedByName || "an employee"}.`;
     if (payload.reportedTo) {
-      // Fetch head name for the activity log
       const { data: head } = await supabase
         .from("employees")
         .select("name")
         .eq("id", payload.reportedTo)
         .single();
-
-      taskActivityService.addSystemEvent(
-        taskId,
-        `Reported to: ${head?.name || "a Head"}.`,
-        { event: "REPORTED_TO_ASSIGNED", headId: payload.reportedTo },
-      );
+      if (head?.name) {
+        logMsg += ` Reported to: ${head.name}.`;
+      }
     }
+
+    taskActivityService.addSystemEvent(
+      taskId,
+      logMsg,
+      {
+        event: "TASK_CREATED",
+        submittedById: payload.submittedById || payload.loggedById || null,
+        submittedByName: payload.submittedByName || null,
+        reportedToId: payload.reportedTo || null,
+      },
+    );
 
     // Trigger Notification: New Task Submitted -> Head
     const { data: creator } = await supabase
@@ -496,11 +494,61 @@ export const taskMutationService = {
 
         // Task description
         if (payload.taskDescription !== undefined && payload.taskDescription !== current.task_description) {
-          taskActivityService.addSystemEvent(
-            taskId,
-            `${editorName} changed the task description.\n  From: "${truncate(current.task_description)}"\n  To: "${truncate(payload.taskDescription)}"`,
-            { event: "TASK_EDITED", field: "task_description", old: current.task_description, new: payload.taskDescription }
-          );
+          const isChecklist = (val) => {
+            if (typeof val !== "string") return false;
+            const trimmed = val.trim();
+            return (trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"));
+          };
+
+          if (isChecklist(current.task_description) && isChecklist(payload.taskDescription)) {
+            let oldItems = [];
+            let newItems = [];
+            try {
+              const parsedOld = JSON.parse(current.task_description);
+              oldItems = Array.isArray(parsedOld) ? parsedOld : (parsedOld.items || []);
+              
+              const parsedNew = JSON.parse(payload.taskDescription);
+              newItems = Array.isArray(parsedNew) ? parsedNew : (parsedNew.items || []);
+            } catch (e) {}
+
+            let checkedItemText = "";
+            let uncheckedItemText = "";
+            let editedItemText = "";
+
+            for (let i = 0; i < Math.max(oldItems.length, newItems.length); i++) {
+               const oldItem = oldItems[i];
+               const newItem = newItems[i];
+               
+               if (oldItem && newItem) {
+                 if (!oldItem.checked && newItem.checked) {
+                   checkedItemText = newItem.text;
+                 } else if (oldItem.checked && !newItem.checked) {
+                   uncheckedItemText = newItem.text;
+                 } else if (oldItem.text !== newItem.text) {
+                   editedItemText = newItem.text;
+                 }
+               }
+            }
+
+            let msg = `${editorName} updated the task checklist.`;
+            if (checkedItemText) msg = `${editorName} completed a checklist item: "${truncate(checkedItemText)}"`;
+            else if (uncheckedItemText) msg = `${editorName} unchecked a checklist item: "${truncate(uncheckedItemText)}"`;
+            else if (editedItemText) msg = `${editorName} edited a checklist item: "${truncate(editedItemText)}"`;
+            else if (newItems.length > oldItems.length) msg = `${editorName} added items to the checklist.`;
+            else if (newItems.length < oldItems.length) msg = `${editorName} removed items from the checklist.`;
+
+            taskActivityService.upsertChecklistEvent(
+              taskId,
+              msg,
+              { event: "CHECKLIST_UPDATED", field: "task_description", old: current.task_description, new: payload.taskDescription }
+            );
+          } else {
+            taskActivityService.addSystemEvent(
+              taskId,
+              `${editorName} changed the task description.\n  From: "${truncate(current.task_description)}"\n  To: "${truncate(payload.taskDescription)}"`,
+              { event: "TASK_EDITED", field: "task_description", old: current.task_description, new: payload.taskDescription }
+            );
+          }
         }
 
         // Project title

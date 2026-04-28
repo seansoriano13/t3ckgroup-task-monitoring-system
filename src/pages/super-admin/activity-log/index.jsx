@@ -6,18 +6,12 @@ import "react-datepicker/dist/react-datepicker.css";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { taskActivityService } from "../../../services/tasks/taskActivityService";
 import { salesActivityLogService } from "../../../services/sales/salesActivityLogService";
-import { taskService } from "../../../services/taskService";
-import { salesExecutionService } from "../../../services/sales/salesExecutionService";
 import { employeeService } from "../../../services/employeeService";
 import { committeeTaskActivityService } from "../../../services/committeeTaskActivityService";
-import TaskDetails from "../../../components/TaskDetails.jsx";
-import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 import Avatar from "../../../components/Avatar.jsx";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import HighlightText from "../../../components/HighlightText";
 
-import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
-import toast from "react-hot-toast";
 import {
   activityLogClassNames,
   portalStyles,
@@ -139,9 +133,12 @@ function ContentDisplay({ content, search }) {
     );
   }
 
-  return <span className="line-clamp-2 leading-relaxed"><HighlightText text={content} search={search} /></span>;
+  return (
+    <span className="line-clamp-2 leading-relaxed">
+      <HighlightText text={content} search={search} />
+    </span>
+  );
 }
-
 
 // ── FieldBox — mirrors LogTaskAssignmentBar's label+container pattern ────────
 function FieldBox({ label, children }) {
@@ -187,8 +184,6 @@ export default function SuperAdminActivityLogPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("TASKS");
   const [page, setPage] = useState(0);
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [selectedSalesActivityId, setSelectedSalesActivityId] = useState(null);
   const [liveAnim, setLiveAnim] = useState(false);
   const avatarMap = useEmployeeAvatarMap();
 
@@ -225,19 +220,27 @@ export default function SuperAdminActivityLogPage() {
     const handleNewEntry = () => {
       setLiveAnim(true);
       setTimeout(() => setLiveAnim(false), 2000);
-      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog", activeTab] });
+      queryClient.invalidateQueries({
+        queryKey: ["superAdminActivityLog", activeTab],
+      });
     };
 
     let sub;
-    if (activeTab === "TASKS") sub = taskActivityService.subscribeToAllActivity(handleNewEntry);
-    else if (activeTab === "SALES") sub = salesActivityLogService.subscribeToAllActivity(handleNewEntry);
-    else if (activeTab === "COMMITTEE") sub = committeeTaskActivityService.subscribeToAllActivity(handleNewEntry);
+    if (activeTab === "TASKS")
+      sub = taskActivityService.subscribeToAllActivity(handleNewEntry);
+    else if (activeTab === "SALES")
+      sub = salesActivityLogService.subscribeToAllActivity(handleNewEntry);
+    else if (activeTab === "COMMITTEE")
+      sub = committeeTaskActivityService.subscribeToAllActivity(handleNewEntry);
 
     return () => {
       if (sub) {
-        if (activeTab === "TASKS") taskActivityService.unsubscribeFromActivity(sub);
-        else if (activeTab === "SALES") salesActivityLogService.unsubscribeFromActivity(sub);
-        else if (activeTab === "COMMITTEE") committeeTaskActivityService.unsubscribeFromActivity(sub);
+        if (activeTab === "TASKS")
+          taskActivityService.unsubscribeFromActivity(sub);
+        else if (activeTab === "SALES")
+          salesActivityLogService.unsubscribeFromActivity(sub);
+        else if (activeTab === "COMMITTEE")
+          committeeTaskActivityService.unsubscribeFromActivity(sub);
       }
     };
   }, [activeTab, queryClient]);
@@ -281,7 +284,7 @@ export default function SuperAdminActivityLogPage() {
   });
 
   const filteredEntries = useMemo(() => {
-    return entries.filter((e) => {
+    const raw = entries.filter((e) => {
       if (filters.dept !== "ALL" && (e.taskCreatorDept || "") !== filters.dept)
         return false;
       if (
@@ -291,6 +294,32 @@ export default function SuperAdminActivityLogPage() {
         return false;
       return true;
     });
+
+    // Consolidate TaskSubmitted and Reported To to lessen noise
+    const consolidated = [];
+    for (let i = 0; i < raw.length; i++) {
+      const current = raw[i];
+      const next = raw[i + 1];
+
+      // Since logs are ORDERED BY created_at DESC:
+      // 'Reported to:' (logged later) appears BEFORE 'Task submitted' (logged earlier).
+      if (
+        next &&
+        current.taskId === next.taskId &&
+        current.content?.startsWith("Reported to:") &&
+        next.content?.startsWith("Task submitted")
+      ) {
+        consolidated.push({
+          ...next,
+          content: `${next.content} ${current.content}`,
+        });
+        i++; // Skip the next entry as it's now merged
+      } else {
+        consolidated.push(current);
+      }
+    }
+
+    return consolidated;
   }, [entries, filters.dept, filters.subDept]);
 
   const uniqueDepts = useMemo(() => {
@@ -314,37 +343,6 @@ export default function SuperAdminActivityLogPage() {
     });
     return Array.from(s).sort();
   }, [employees, filters.dept]);
-
-  const { data: selectedTask } = useQuery({
-    queryKey: ["taskById", selectedTaskId],
-    queryFn: () => taskService.getTaskById(selectedTaskId),
-    enabled: !!selectedTaskId && activeTab === "TASKS",
-  });
-
-  const { data: selectedSalesActivity } = useQuery({
-    queryKey: ["salesActivityById", selectedSalesActivityId],
-    queryFn: () =>
-      salesExecutionService.getSalesActivityById(selectedSalesActivityId),
-    enabled: !!selectedSalesActivityId && activeTab === "SALES",
-  });
-
-  const updateTaskMutation = useMutation({
-    mutationFn: (payload) => taskService.updateTask(payload.id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
-      queryClient.invalidateQueries({ queryKey: ["taskById", selectedTaskId] });
-    },
-    onError: (err) => toast.error(err?.message || "Failed to update task."),
-  });
-
-  const deleteTaskMutation = useMutation({
-    mutationFn: ({ taskId, userId }) => taskService.deleteTask(taskId, userId),
-    onSuccess: () => {
-      setSelectedTaskId(null);
-      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
-    },
-    onError: (err) => toast.error(err?.message || "Failed to delete task."),
-  });
 
   const hasActiveFilters =
     filters.type !== "ALL" ||
@@ -422,39 +420,47 @@ export default function SuperAdminActivityLogPage() {
 
           {/* Pagination — styled like LogTaskFooter action buttons */}
           <div className="flex flex-col items-end gap-3 shrink-0">
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all duration-300 ${liveAnim ? 'bg-green-a2 border-green-a4 text-green-11' : 'bg-transparent border-transparent text-muted-foreground/60'}`}>
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all duration-300 ${liveAnim ? "bg-green-a2 border-green-a4 text-green-11" : "bg-transparent border-transparent text-muted-foreground/60"}`}
+            >
               <Dot
                 size="w-1.5 h-1.5"
-                color={liveAnim ? 'bg-green-9 shadow-[0_0_8px_var(--green-9)]' : 'bg-muted-foreground/40'}
-                className={liveAnim ? 'animate-pulse' : ''}
+                color={
+                  liveAnim
+                    ? "bg-green-9 shadow-[0_0_8px_var(--green-9)]"
+                    : "bg-muted-foreground/40"
+                }
+                className={liveAnim ? "animate-pulse" : ""}
               />
-              <span className="text-[10px] font-bold uppercase tracking-wider">{liveAnim ? 'New Update' : 'Live'}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">
+                {liveAnim ? "New Update" : "Live"}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <ChevronLeft size={14} /> Newer
-            </button>
-            {page > 0 && (
-              <span className="text-[11px] font-bold text-muted-foreground px-1">
-                Page {page + 1}
-              </span>
-            )}
-            <button
-              onClick={() => setPage((p) => p + 1)}
-              disabled={entries.length < PAGE_SIZE}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
-            >
-              Older <ChevronRight size={14} />
-            </button>
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <ChevronLeft size={14} /> Newer
+              </button>
+              {page > 0 && (
+                <span className="text-[11px] font-bold text-muted-foreground px-1">
+                  Page {page + 1}
+                </span>
+              )}
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={entries.length < PAGE_SIZE}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted hover:text-foreground transition-colors"
+              >
+                Older <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Filter Panel — mirrors LogTaskPropertyBar container ─────── */}
+        {/* ── Filter Panel — mirrors LogTaskPropertyBar container ─────── */}
         <div className="bg-card border border-border rounded-2xl shadow-sm">
           {/* Panel top bar — matches LogTaskHeader strip */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30">
@@ -801,11 +807,19 @@ export default function SuperAdminActivityLogPage() {
                   key={e.id}
                   type="button"
                   onClick={() => {
-                    if (activeTab === "TASKS") {
-                      setSelectedTaskId(e.taskId);
-                    } else if (activeTab === "SALES") {
-                      setSelectedSalesActivityId(e.taskId);
-                    }
+                    const typeMap = {
+                      TASKS: "TASK",
+                      SALES: "SALES",
+                      COMMITTEE: "COMMITTEE_TASK",
+                    };
+                    window.dispatchEvent(
+                      new CustomEvent("OPEN_ENTITY_DETAILS", {
+                        detail: {
+                          id: e.taskId,
+                          type: typeMap[activeTab],
+                        },
+                      }),
+                    );
                   }}
                   className={`w-full text-left bg-card border border-border rounded-xl p-4 transition-all duration-150 animate-content-in group hover:border-mauve-6 hover:bg-muted/40 cursor-pointer`}
                 >
@@ -863,7 +877,10 @@ export default function SuperAdminActivityLogPage() {
                                   <span
                                     className={`${item.checked ? "line-through opacity-60" : ""} line-clamp-1`}
                                   >
-                                    <HighlightText text={item.text} search={filters.search} />
+                                    <HighlightText
+                                      text={item.text}
+                                      search={filters.search}
+                                    />
                                   </span>
                                 </div>
                               ))}
@@ -878,14 +895,20 @@ export default function SuperAdminActivityLogPage() {
                         }
                         return (
                           <p className="text-sm font-bold text-foreground line-clamp-1">
-                            <HighlightText text={e.taskDescription || `Task ${e.taskId}`} search={filters.search} />
+                            <HighlightText
+                              text={e.taskDescription || `Task ${e.taskId}`}
+                              search={filters.search}
+                            />
                           </p>
                         );
                       })()}
 
                       {/* Content — parses checklist JSON if applicable */}
                       <div className="text-xs text-muted-foreground mt-1">
-                        <ContentDisplay content={e.content} search={filters.search} />
+                        <ContentDisplay
+                          content={e.content}
+                          search={filters.search}
+                        />
                       </div>
 
                       {/* Footer: author avatar + status pill — matches property-pill style */}
@@ -937,24 +960,6 @@ export default function SuperAdminActivityLogPage() {
           </div>
         )}
       </div>
-
-      {/* Task detail modal */}
-      <TaskDetails
-        isOpen={!!selectedTaskId}
-        onClose={() => setSelectedTaskId(null)}
-        task={selectedTask}
-        onUpdateTask={(payload) => updateTaskMutation.mutate(payload)}
-        onDeleteTask={(taskId, userId) =>
-          deleteTaskMutation.mutate({ taskId, userId })
-        }
-      />
-
-      <SalesTaskDetailsModal
-        isOpen={!!selectedSalesActivityId}
-        onClose={() => setSelectedSalesActivityId(null)}
-        activity={selectedSalesActivity}
-        appSettings={{}}
-      />
     </ProtectedRoute>
   );
 }

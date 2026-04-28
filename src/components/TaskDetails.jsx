@@ -8,7 +8,7 @@ import GradeSelector from "./GradeSelector";
 import TaskActivityTimeline from "./TaskActivityTimeline";
 import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
 import { isCategoryMetadataRemarks } from "../utils/taskFormatters";
-import { PencilLine, FolderKanban, Receipt, AlertTriangle } from "lucide-react";
+import { PencilLine, FolderKanban, Receipt, AlertTriangle, MessageCircle, Clock } from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
 import { TASK_STATUS } from "../constants/status.js";
 import ChecklistTaskInput from "./ChecklistTaskInput";
@@ -852,6 +852,7 @@ export default function TaskDetails({
               appSettings?.universal_task_submission === true,
             hasAttachments:
               formData.attachments && formData.attachments.length > 0,
+            hasUncheckedItems,
             isHrRejected,
             isDelayed,
             enableSelfVerification:

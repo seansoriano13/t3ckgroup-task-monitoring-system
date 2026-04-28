@@ -232,6 +232,46 @@ export const taskActivityService = {
   },
 
   /**
+   * Upsert a checklist event to prevent noise (keeps only one cumulative log)
+   */
+  async upsertChecklistEvent(taskId, content, metadata = null) {
+    if (!taskId) return;
+    try {
+      const { data: existingLogs } = await supabase
+        .from("task_activity")
+        .select("id, metadata")
+        .eq("task_id", taskId)
+        .eq("type", "SYSTEM")
+        .eq("metadata->>event", "CHECKLIST_UPDATED")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (existingLogs && existingLogs.length > 0) {
+        const existingLog = existingLogs[0];
+        const newMetadata = {
+          ...metadata,
+          old: existingLog.metadata?.old || metadata.old,
+          new: metadata.new,
+        };
+        await supabase
+          .from("task_activity")
+          .update({ content, metadata: newMetadata, created_at: new Date().toISOString() })
+          .eq("id", existingLog.id);
+      } else {
+        await supabase.from("task_activity").insert({
+          task_id: taskId,
+          author_id: null,
+          type: "SYSTEM",
+          content,
+          metadata,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to upsert checklist event:", err);
+    }
+  },
+
+  /**
    * Add a head approval/rejection entry
    */
   async addApprovalEntry(taskId, authorId, content, metadata = null) {

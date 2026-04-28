@@ -34,6 +34,7 @@ export default function Avatar({
   const defaultBg =
     !hasBg && !isSelected ? "bg-muted text-muted-foreground border-border" : "";
 
+  const [imgError, setImgError] = React.useState(false);
   const initials = name
     ? name
         .split(" ")
@@ -51,12 +52,13 @@ export default function Avatar({
       className={`relative shrink-0 flex items-center justify-center font-bold uppercase transition-all duration-300 border overflow-hidden ${sizeClasses[size] || sizeClasses.md} ${isSelectedClasses} ${defaultBg} ${cursorClass} ${className}`}
       {...props}
     >
-      {src && !isSelected ? (
+      {src && !isSelected && !imgError ? (
         <img
           src={src}
           alt={name || "Avatar"}
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
+          onError={() => setImgError(true)}
         />
       ) : (
         <>

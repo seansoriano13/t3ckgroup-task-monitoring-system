@@ -15,6 +15,40 @@ const logCommitteeTaskActivity = async (committeeTaskId, action, details = {}, a
   }
 };
 
+const upsertCommitteeChecklistActivity = async (committeeTaskId, memberId, taskDescription, actorId = null) => {
+  try {
+    const { data: existingLogs } = await supabase
+      .from("committee_task_logs")
+      .select("id, details")
+      .eq("committee_task_id", committeeTaskId)
+      .eq("action", "CHECKLIST_UPDATED")
+      .eq("details->>memberId", memberId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (existingLogs && existingLogs.length > 0) {
+      const existingLog = existingLogs[0];
+      const newDetails = {
+        ...existingLog.details,
+        taskDescription,
+      };
+      await supabase
+        .from("committee_task_logs")
+        .update({ details: newDetails, created_at: new Date().toISOString() })
+        .eq("id", existingLog.id);
+    } else {
+      await supabase.from("committee_task_logs").insert({
+        committee_task_id: committeeTaskId,
+        action: "CHECKLIST_UPDATED",
+        details: { memberId, taskDescription },
+        actor_id: actorId,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to upsert committee task activity", err);
+  }
+};
+
 export const committeeTaskService = {
   // CREATE
   async createCommitteeTask(payload) {
@@ -257,10 +291,10 @@ export const committeeTaskService = {
     if (error) throw error;
 
     if (committeeTaskId && actorId) {
-      await logCommitteeTaskActivity(
+      await upsertCommitteeChecklistActivity(
         committeeTaskId,
-        "CHECKLIST_UPDATED",
-        { memberId, taskDescription },
+        memberId,
+        taskDescription,
         actorId
       );
     }

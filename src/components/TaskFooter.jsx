@@ -85,9 +85,9 @@ const TaskFooter = ({ actions, permissions, state }) => {
             {!isEditing && isOwner && isHrRejected && (
               <Button
                 onClick={onResubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || state.hasUncheckedItems}
                 className="bg-violet-9 hover:bg-violet-10 text-white font-bold px-5 h-9 text-sm"
-                title="Reset this task back to the head review queue"
+                title={state.hasUncheckedItems ? "Check all items first" : "Reset this task back to the head review queue"}
               >
                 {isSubmitting ? (
                   <Spinner size="sm" />
@@ -116,7 +116,8 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 task.status === TASK_STATUS.NOT_APPROVED) && (
                 <Button
                   onClick={onSubmitApproval}
-                  disabled={isSubmitting || state.task.status === TASK_STATUS.AWAITING_APPROVAL}
+                  disabled={isSubmitting || state.task.status === TASK_STATUS.AWAITING_APPROVAL || state.hasUncheckedItems}
+                  title={state.hasUncheckedItems ? "Check all items first" : ""}
                   className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
                 >
                   {isSubmitting ? (
@@ -124,7 +125,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   ) : (
                     <CheckCircle size={16} />
                   )}
-                  Submit for Approval
+                  Submit for Review
                 </Button>
               )}
 

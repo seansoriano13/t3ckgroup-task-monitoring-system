@@ -11,12 +11,15 @@ import {
   ShieldCheck,
   Star,
   AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Spinner from "@/components/ui/Spinner";
 import Avatar from "./Avatar";
+import TabGroup from "./ui/TabGroup";
+import HistoryTimeline from "./HistoryTimeline";
 
 const formatTime = (isoString) => {
   if (!isoString) return "";
@@ -36,124 +39,6 @@ const formatTime = (isoString) => {
  */
 function ActivityEntry({ entry, currentUserId, avatarMap }) {
   const isMe = entry.authorId === currentUserId;
-
-  // --- SYSTEM event ---
-  if (entry.type === "SYSTEM") {
-    return (
-      <div className="flex items-start gap-2.5 py-2 px-1">
-        <div className="w-6 h-6 rounded-full bg-muted/50 border border-border flex items-center justify-center shrink-0 mt-0.5">
-          <Zap size={12} className="text-muted-foreground" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            {entry.content}
-          </p>
-          <p className="text-[9px] text-muted-foreground mt-0.5">
-            {formatTime(entry.createdAt)}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // --- APPROVAL event ---
-  if (entry.type === "APPROVAL") {
-    const grade = entry.metadata?.grade;
-    const isRejection = entry.metadata?.event === "REJECTED";
-
-    return (
-      <div
-        className={`py-3 px-3.5 rounded-xl border ${
-          isRejection
-            ? "bg-destructive/5 border-red-500/20"
-            : "bg-green-9/5 border-green-500/20"
-        }`}
-      >
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
-                isRejection
-                  ? "bg-destructive/20 text-red-400"
-                  : "bg-green-9/20 text-green-9"
-              }`}
-            >
-              {isRejection ? <AlertTriangle size={12} /> : <Star size={12} />}
-            </div>
-            <span className="text-xs font-bold text-muted-foreground">
-              {entry.authorName || "Head"}
-            </span>
-            {grade !== undefined && grade > 0 && (
-              <span
-                className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
-                  isRejection
-                    ? "bg-destructive/10 text-red-400 border-red-500/30"
-                    : "bg-green-9/10 text-green-9 border-green-500/30"
-                }`}
-              >
-                Grade: {grade}
-              </span>
-            )}
-          </div>
-          <span className="text-[9px] text-muted-foreground">
-            {formatTime(entry.createdAt)}
-          </span>
-        </div>
-        {entry.content && (
-          <p className="text-sm text-muted-foreground leading-relaxed pl-8">
-            {entry.content}
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  // --- HR_NOTE event ---
-  if (entry.type === "HR_NOTE") {
-    const isVerified = entry.metadata?.event === "HR_VERIFIED";
-
-    return (
-      <div
-        className={`py-4 px-4 rounded-2xl border ${
-          isVerified
-            ? "bg-violet-2/50 border-mauve-3"
-            : "bg-destructive/5 border-destructive/20"
-        }`}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2.5">
-            <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
-                isVerified
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-destructive text-primary-foreground"
-              }`}
-            >
-              <ShieldCheck size={14} />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-foreground">
-                {entry.authorName || "HR Audit"}
-              </span>
-              <span
-                className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-violet-10" : "text-destructive"}`}
-              >
-                {isVerified ? "Verification Successful" : "Verification Failed"}
-              </span>
-            </div>
-          </div>
-          <span className="text-[10px] font-bold text-muted-foreground uppercase">
-            {formatTime(entry.createdAt)}
-          </span>
-        </div>
-        {entry.content && entry.content !== "Verified" && (
-          <p className="text-sm text-muted-foreground leading-relaxed pl-9 italic font-medium">
-            "{entry.content}"
-          </p>
-        )}
-      </div>
-    );
-  }
 
   // --- COMMENT (Human message) ---
   return (
@@ -268,9 +153,8 @@ export default function TaskActivityTimeline({
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
   const [message, setMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("ACTIVITY");
 
-  // Unique suffix per instance to avoid Supabase channel name collisions
-  // when multiple TaskActivityTimeline components target the same task
   const instanceId = useRef(
     `-timeline-${Math.random().toString(36).substring(2, 9)}`,
   );
@@ -285,6 +169,9 @@ export default function TaskActivityTimeline({
     enabled: !!taskId,
     staleTime: 30_000,
   });
+
+  const comments = activity.filter(e => e.type === "COMMENT");
+  const history = activity.filter(e => e.type !== "COMMENT");
 
   // Post comment mutation
   const postCommentMutation = useMutation({
@@ -337,10 +224,10 @@ export default function TaskActivityTimeline({
 
   // Auto-scroll on new entries
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && activeTab === "ACTIVITY") {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [activity]);
+  }, [activity, activeTab]);
 
   const handleSend = () => {
     const trimmed = message.trim();
@@ -360,37 +247,33 @@ export default function TaskActivityTimeline({
     }
   };
 
-  // Check if legacy entries should be shown (only if no activity entries exist yet)
-  const hasActivityEntries = activity.length > 0;
-  const showLegacy = !hasActivityEntries && (legacyRemarks || legacyHrRemarks);
+  const showLegacy = comments.length === 0 && (legacyRemarks || legacyHrRemarks);
 
   return (
-    <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-card">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted">
-        <MessageCircle size={18} className="text-muted-foreground" />
-        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          Task Activity
-        </span>
-        {activity.length > 0 && (
-          <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full border border-border ml-auto">
-            {activity.length}
-          </span>
-        )}
+    <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-card mt-4">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/50">
+        <TabGroup
+          variant="pill"
+          tabs={[
+            { value: "ACTIVITY", label: "Activity", icon: MessageCircle, badge: comments.length },
+            { value: "HISTORY", label: "History", icon: Clock },
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
       </div>
 
-      {/* Activity Feed */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-4"
-        style={{ maxHeight: "500px", minHeight: "150px" }}
+        className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4"
+        style={{ maxHeight: "500px", minHeight: "200px" }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Spinner size="md" />
           </div>
-        ) : (
-          <>
+        ) : activeTab === "ACTIVITY" ? (
+          <div className="space-y-4">
             {showLegacy && (
               <LegacyEntries
                 remarks={legacyRemarks}
@@ -400,22 +283,14 @@ export default function TaskActivityTimeline({
               />
             )}
 
-            {activity.length === 0 && !showLegacy && (
-              <div className="text-center py-6">
-                <MessageCircle
-                  size={24}
-                  className="mx-auto text-mauve-6 mb-2"
-                />
-                <p className="text-[11px] text-muted-foreground font-bold">
-                  No activity yet
-                </p>
-                <p className="text-[10px] text-mauve-6 mt-0.5">
-                  System events and comments will appear here.
-                </p>
+            {comments.length === 0 && !showLegacy && (
+              <div className="text-center py-10">
+                <MessageCircle size={24} className="mx-auto text-muted-foreground/30 mb-2" />
+                <p className="text-xs text-muted-foreground font-medium">No comments yet</p>
               </div>
             )}
 
-            {activity.map((entry) => (
+            {comments.map((entry) => (
               <ActivityEntry
                 key={entry.id}
                 entry={entry}
@@ -423,12 +298,13 @@ export default function TaskActivityTimeline({
                 avatarMap={avatarMap}
               />
             ))}
-          </>
+          </div>
+        ) : (
+          <HistoryTimeline logs={history} type="TASK" />
         )}
       </div>
 
-      {/* Input Box */}
-      {!disabled && (
+      {activeTab === "ACTIVITY" && !disabled && (
         <div className="px-4 py-4 border-t border-border bg-muted/30">
           <div className="flex items-start gap-2">
             {inputType === "textarea" ? (

@@ -18,7 +18,7 @@ const extractSubmittedByName = (activityLogs = [], fallbackName = null) => {
   }
 
   const content = createdLog?.content || "";
-  const match = content.match(/^Task submitted by (.+?)\.$/);
+  const match = content.match(/^Task submitted by (.+?)\.(?:\s+Reported to:.*)?$/);
   return match?.[1] || fallbackName;
 };
 

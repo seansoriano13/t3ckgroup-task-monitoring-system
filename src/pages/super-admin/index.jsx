@@ -15,6 +15,8 @@ import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.js
 import QuotaManagementModule from "../../components/quota-management/QuotaManagementModule.jsx";
 import PageHeader from "../../components/ui/PageHeader";
 import PageContainer from "../../components/ui/PageContainer";
+import { useEmployeeAvatarMap } from "../../hooks/useEmployeeAvatarMap";
+import { useMemo } from "react";
 
 const EMPTY_ARRAY = [];
 
@@ -38,9 +40,11 @@ export default function SuperAdminDashboard() {
     monthKeys: [currentMonthYear],
   });
 
-  const [resolvedAvatars, setResolvedAvatars] = useState({});
-
-  const HTTP_URL_RE = /^https?:\/\//i;
+  const avatarMap = useEmployeeAvatarMap();
+  const resolvedAvatars = useMemo(
+    () => Object.fromEntries(avatarMap),
+    [avatarMap],
+  );
 
   // 1. Fetch Sales Employees
   const { data: salesEmployees = EMPTY_ARRAY, isLoading: loadingEmps } =
@@ -62,45 +66,6 @@ export default function SuperAdminDashboard() {
         : salesService.getQuotasByMonth(selectedRange.startDate);
     },
   });
-
-  // Batch resolve avatars
-  useEffect(() => {
-    if (salesEmployees.length === 0) return;
-
-    const resolveAvatars = async () => {
-      const supabasePaths = [];
-      const newResolved = { ...resolvedAvatars };
-
-      salesEmployees.forEach((emp) => {
-        if (emp.avatarPath) {
-          if (HTTP_URL_RE.test(emp.avatarPath)) {
-            newResolved[emp.id] = emp.avatarPath;
-          } else {
-            supabasePaths.push(emp.avatarPath);
-          }
-        }
-      });
-
-      if (supabasePaths.length > 0) {
-        try {
-          const signedResults =
-            await storageService.getSignedUrls(supabasePaths);
-          signedResults.forEach((res) => {
-            const emp = salesEmployees.find((e) => e.avatarPath === res.path);
-            if (emp) {
-              newResolved[emp.id] = res.signedUrl;
-            }
-          });
-        } catch (error) {
-          console.error("Failed to batch resolve avatars:", error);
-        }
-      }
-
-      setResolvedAvatars(newResolved);
-    };
-
-    resolveAvatars();
-  }, [salesEmployees]);
 
   return (
     <ProtectedRoute requireSuperAdmin={true}>

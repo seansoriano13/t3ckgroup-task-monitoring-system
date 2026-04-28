@@ -56,6 +56,7 @@ export default function SalesTaskDetailsModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
       queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
       toast.success("Outcome saved!");
     },
     onError: (err) => toast.error(err.message),
@@ -304,6 +305,9 @@ export default function SalesTaskDetailsModal({
                       });
                       queryClient.invalidateQueries({
                         queryKey: ["allSalesActivities"],
+                      });
+                      queryClient.invalidateQueries({
+                        queryKey: ["superAdminActivityLog"],
                       });
                       toast.success("Attachments updated!");
                     })

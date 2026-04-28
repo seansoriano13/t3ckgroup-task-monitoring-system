@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import { AlertCircle, TrendingUp } from "lucide-react";
 
 export function EmployeeRankingsTable({
@@ -9,7 +9,6 @@ export function EmployeeRankingsTable({
   showQuota,
 }) {
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
-
 
   // Collect unique sub-departments for filter chips
   const subDepts = useMemo(() => {
@@ -23,16 +22,16 @@ export function EmployeeRankingsTable({
 
   const filtered = useMemo(() => {
     if (subDeptFilter === "ALL") return leaderboard;
-    return leaderboard.filter((e) => (e.sub_department || e.department) === subDeptFilter);
+    return leaderboard.filter(
+      (e) => (e.sub_department || e.department) === subDeptFilter,
+    );
   }, [leaderboard, subDeptFilter]);
 
   if (leaderboard.length === 0 && !isLoading) {
     return (
       <div className="p-10 text-center text-muted-foreground flex flex-col items-center bg-mauve-1 border border-mauve-4 rounded-2xl mt-6">
         <AlertCircle size={32} className="mb-2 opacity-50" />
-        <p className="font-medium">
-          No sales data available for this period.
-        </p>
+        <p className="font-medium">No sales data available for this period.</p>
       </div>
     );
   }
@@ -58,10 +57,11 @@ export function EmployeeRankingsTable({
               <button
                 key={sd}
                 onClick={() => setSubDeptFilter(sd)}
-                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${subDeptFilter === sd
-                  ? "bg-mauve-3 text-foreground border border-mauve-4"
-                  : "text-muted-foreground hover:text-mauve-11 bg-transparent border border-transparent"
-                  }`}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+                  subDeptFilter === sd
+                    ? "bg-mauve-3 text-foreground border border-mauve-4"
+                    : "text-muted-foreground hover:text-mauve-11 bg-transparent border border-transparent"
+                }`}
               >
                 {sd === "ALL" ? "All Teams" : sd}
               </button>
@@ -75,9 +75,7 @@ export function EmployeeRankingsTable({
             <tr className="bg-mauve-2 text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-mauve-4">
               <th className="p-4 w-12 text-center">Rank</th>
               <th className="p-4">Employee</th>
-              {showQuota && (
-                <th className="p-4 text-right">Quota Target</th>
-              )}
+              {showQuota && <th className="p-4 text-right">Quota Target</th>}
               <th className="p-4 text-right">Completed Sales</th>
               <th className="p-4 text-right">Lost Sales</th>
               <th className="p-4 text-center">Win Rate</th>
@@ -97,7 +95,6 @@ export function EmployeeRankingsTable({
                 isSelf;
               const totalDeals = emp.dealsWon + emp.dealsLost;
 
-
               return (
                 <tr
                   key={emp.employee_id}
@@ -105,7 +102,9 @@ export function EmployeeRankingsTable({
                 >
                   <td className="p-4 text-center font-black">
                     {isTop ? (
-                      <span className="font-black text-foreground text-sm">#1</span>
+                      <span className="font-black text-foreground text-sm">
+                        #1
+                      </span>
                     ) : (
                       <span className="text-muted-foreground">#{idx + 1}</span>
                     )}
@@ -126,7 +125,7 @@ export function EmployeeRankingsTable({
                   {showQuota && (
                     <td className="p-4 text-right font-mono text-mauve-11 text-sm">
                       {canSeeNumbers ? (
-                        `?${Number(emp.quota).toLocaleString()}`
+                        `₱${Number(emp.quota).toLocaleString()}`
                       ) : (
                         <span className="text-mauve-8 italic font-sans">
                           {pct}% Quota
@@ -136,7 +135,7 @@ export function EmployeeRankingsTable({
                   )}
                   <td className="p-4 text-right font-mono text-foreground font-semibold text-sm tabular-nums">
                     {canSeeNumbers ? (
-                      `?${emp.revenueWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      `₱${emp.revenueWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     ) : (
                       <span className="text-muted-foreground font-sans">
                         {pct}% Achieved
@@ -145,7 +144,7 @@ export function EmployeeRankingsTable({
                   </td>
                   <td className="p-4 text-right font-mono text-foreground font-semibold text-sm tabular-nums">
                     {canSeeNumbers ? (
-                      `?${emp.revenueLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      `₱${emp.revenueLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     ) : (
                       <span className="text-muted-foreground italic font-sans">
                         N/A
@@ -155,18 +154,19 @@ export function EmployeeRankingsTable({
                   <td className="p-4 text-center">
                     {emp.winRate !== null ? (
                       <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${emp.winRate >= 70
-                          ? "border-green-300 text-green-11"
-                          : emp.winRate >= 40
-                            ? "border-amber-300 text-amber-11"
-                            : "border-red-300 text-destructive"
-                          }`}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
+                          emp.winRate >= 70
+                            ? "border-green-300 text-green-11"
+                            : emp.winRate >= 40
+                              ? "border-amber-300 text-amber-11"
+                              : "border-red-300 text-destructive"
+                        }`}
                       >
                         {emp.winRate}%
                       </span>
                     ) : (
                       <span className="text-[10px] text-muted-foreground italic">
-                        {totalDeals === 0 ? "No deals" : "�"}
+                        {totalDeals === 0 ? "No deals" : "—"}
                       </span>
                     )}
                   </td>
@@ -175,12 +175,13 @@ export function EmployeeRankingsTable({
                       <div className="flex items-center justify-center gap-2 w-max mx-auto">
                         <div className="w-20 h-1 bg-mauve-4 rounded-full overflow-hidden flex-shrink-0">
                           <div
-                            className={`h-full ${pct >= 100
-                              ? "bg-green-9"
-                              : pct >= 50
-                                ? "bg-amber-400"
-                                : "bg-red-400"
-                              } transition-all duration-700`}
+                            className={`h-full ${
+                              pct >= 100
+                                ? "bg-green-9"
+                                : pct >= 50
+                                  ? "bg-amber-400"
+                                  : "bg-red-400"
+                            } transition-all duration-700`}
                             style={{
                               width: `${Math.min(pct, 100)}%`,
                             }}
