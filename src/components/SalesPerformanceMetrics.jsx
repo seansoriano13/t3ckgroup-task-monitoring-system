@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import Dot from "./ui/Dot";
 import { useNavigate } from "react-router";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
@@ -722,10 +723,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
 function LegendItem({ color, count, label }) {
   return (
     <span className="flex items-center gap-1 text-[11px] text-[#6B7280]">
-      <span
-        className="w-1.5 h-1.5 rounded-full"
-        style={{ background: color }}
-      />
+      <Dot size="w-1.5 h-1.5" style={{ background: color }} />
       <span className="font-bold text-[#374151]">{count}</span>
       <span>{label}</span>
     </span>

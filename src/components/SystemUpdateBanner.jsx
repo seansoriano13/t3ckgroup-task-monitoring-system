@@ -22,8 +22,8 @@ const TYPE_OPTIONS = [
     value: "feature",
     label: "New Feature",
     icon: Rocket,
-    color: "text-indigo-600",
-    bg: "bg-indigo-50 border-indigo-200",
+    color: "text-violet-10",
+    bg: "bg-violet-2 border-mauve-3",
   },
   {
     value: "fix",

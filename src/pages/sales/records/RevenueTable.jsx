@@ -40,7 +40,7 @@ export default function RevenueTable({
             onClick={() => setFilterRecordType(type)}
             className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all whitespace-nowrap ${filterRecordType === type
               ? type === "SALES_QUOTATION"
-                ? "bg-blue-600 text-primary-foreground shadow"
+                ? "bg-violet-9 text-primary-foreground shadow"
                 : "bg-foreground text-mauve-1 shadow"
               : "text-muted-foreground hover:text-foreground hover:bg-mauve-3"
               }`}
@@ -121,13 +121,13 @@ export default function RevenueTable({
                         <RecordTypeBadge recordType={log.record_type} />
                       </td>
                       <td className="">
-                        <p className="text-[10px] font-black text-[color:var(--amber-10)] bg-warning/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
+                        <p className="text-[10px] font-black text-amber-11 bg-amber-3/50 border border-amber-6/20 px-2 py-0.5 rounded-full w-max">
                           {log.record_type === "SALES_QUOTATION"
                             ? (log.quotation_number || "—")
                             : (log.so_number || "—")}
                         </p>
                       </td>
-                      <td className={`p-4 text-right font-black ${log.record_type === "SALES_QUOTATION" ? "text-[color:var(--blue-10)]" : "text-green-10"}`}>
+                      <td className={`p-4 text-right font-black ${log.record_type === "SALES_QUOTATION" ? "text-violet-10" : "text-green-10"}`}>
                         ₱{log.revenue_amount?.toLocaleString() || "0"}
                       </td>
                       <td className="p-4 text-center">
@@ -153,7 +153,7 @@ export default function RevenueTable({
                                 },
                               });
                             }}
-                            className="flex-center gap-1 p-1.5 rounded-lg text-[color:var(--blue-10)] hover:bg-[color:var(--blue-9)]/10 transition-colors"
+                            className="flex-center gap-1 p-1.5 rounded-lg text-violet-10 hover:bg-violet-3/50 transition-colors"
                           >
                             <p className="font-bold text-sm uppercase">Convert</p>{" "}
                             <Briefcase size={14} />
@@ -203,7 +203,7 @@ function RecordTypeBadge({ recordType }) {
   if (recordType === "SALES_QUOTATION") {
     return (
       <span
-        className="bg-[color:var(--blue-9)]/10 text-[color:var(--blue-10)] border border-blue-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
+        className="bg-violet-3/50 text-violet-11 border border-violet-6/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
         title="Sales Quotation"
       >
         QN
@@ -227,7 +227,7 @@ function RevenueStatusBadge({ log, isVerificationEnforced }) {
     log.is_verified === false
   ) {
     return (
-      <span className="bg-orange-500/10 text-[color:var(--amber-10)] border border-orange-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+      <span className="bg-amber-3/50 text-amber-11 border border-amber-6/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
         PENDING
       </span>
     );
@@ -240,7 +240,7 @@ function RevenueStatusBadge({ log, isVerificationEnforced }) {
   ) {
     return (
       <span
-        className={`${log.record_type === "SALES_QUOTATION" ? "bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] border-blue-500/20" : "bg-green-9/10 text-green-9 border-green-500/20"} border px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest`}
+        className={`${log.record_type === "SALES_QUOTATION" ? "bg-violet-3/50 text-violet-11 border-violet-6/20" : "bg-green-3/50 text-green-11 border-green-6/20"} border px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest`}
       >
         {log.record_type === "SALES_QUOTATION" ? "SUBMITTED" : "COMPLETED"}
       </span>

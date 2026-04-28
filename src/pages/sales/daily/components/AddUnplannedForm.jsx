@@ -98,7 +98,7 @@ export function AddUnplannedForm({
                 onChange={(e) =>
                   setPayload({ ...payload, activity_type: e.target.value })
                 }
-                className="bg-card border border-border rounded-xl px-2 py-2 text-[10px] font-black outline-none cursor-pointer text-foreground focus:border-indigo-400 transition-colors"
+                className="bg-card border border-border rounded-xl px-2 py-2 text-[10px] font-black outline-none cursor-pointer text-foreground focus:border-mauve-8 transition-colors"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>
@@ -115,7 +115,7 @@ export function AddUnplannedForm({
                 onChange={(e) =>
                   setPayload({ ...payload, account_name: e.target.value })
                 }
-                className="flex-1 bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                className="flex-1 bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm font-bold text-foreground outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
               />
             </div>
           </div>
@@ -129,7 +129,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, contact_person: e.target.value })
               }
-              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
             />
           </div>
           <div>
@@ -142,7 +142,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, contact_number: e.target.value })
               }
-              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
             />
           </div>
           <div className="sm:col-span-2">
@@ -155,7 +155,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, email_address: e.target.value })
               }
-              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
             />
           </div>
           <div className="sm:col-span-2">
@@ -168,7 +168,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, address: e.target.value })
               }
-              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
             />
           </div>
           <div className="sm:col-span-2">
@@ -182,7 +182,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, details_daily: e.target.value })
               }
-              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-none h-16"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all resize-none h-16"
             />
           </div>
         </div>
@@ -225,7 +225,7 @@ export function AddUnplannedForm({
             Proof of Execution
           </label>
           <div className="flex items-center gap-2">
-            <label className="text-[10px] font-black uppercase bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground px-3 py-2 rounded-xl border border-border cursor-pointer transition-all flex items-center gap-2 hover:border-indigo-300">
+            <label className="text-[10px] font-black uppercase bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground px-3 py-2 rounded-xl border border-border cursor-pointer transition-all flex items-center gap-2 hover:border-mauve-6">
               <ImageIcon size={14} />
               {selectedImages.length > 0
                 ? `${selectedImages.length} Photo(s) Selected`

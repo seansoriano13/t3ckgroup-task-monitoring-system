@@ -87,10 +87,10 @@ function DailyColumn({ dateBlock, timeframe, onActivityClick, appSettings, searc
 
   const pctColor =
     pct >= 80
-      ? "text-green-10 bg-green-9/10 border-green-500/20"
+      ? "text-green-11 bg-green-3/50 border-green-6/20"
       : pct >= 50
-        ? "text-yellow-600 bg-[color:var(--yellow-9)]/10 border-yellow-500/20"
-        : "text-destructive bg-destructive/10 border-red-500/20";
+        ? "text-amber-11 bg-amber-3/50 border-amber-6/20"
+        : "text-red-11 bg-red-3/50 border-red-6/20";
 
   const barColor =
     pct >= 80 ? "bg-green-9" : pct >= 50 ? "bg-yellow-400" : "bg-red-400";
@@ -190,10 +190,10 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings,
 
   const pctColor =
     pct >= 80
-      ? "text-green-10 bg-green-9/10 border-green-500/20"
+      ? "text-green-11 bg-green-3/50 border-green-6/20"
       : pct >= 50
-        ? "text-yellow-600 bg-[color:var(--yellow-9)]/10 border-yellow-500/20"
-        : "text-destructive bg-destructive/10 border-red-500/20";
+        ? "text-amber-11 bg-amber-3/50 border-amber-6/20"
+        : "text-red-11 bg-red-3/50 border-red-6/20";
 
   const activitiesByDate = useMemo(() => {
     return dateBlock.all.reduce((acc, act) => {
@@ -225,7 +225,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings,
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {pending > 0 && (
-            <span className="text-[10px] font-bold text-[color:var(--amber-10)] bg-warning/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-bold text-amber-11 bg-amber-3/50 border border-amber-6/20 px-2 py-0.5 rounded-full">
               {pending} pending
             </span>
           )}
@@ -265,7 +265,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings,
                 <div className="space-y-3">
                   {activitiesByDate[d].AM.length > 0 && (
                     <div>
-                      <p className="text-[9px] font-black text-[color:var(--blue-9)] uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                      <p className="text-[9px] font-black text-blue-11 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                         <Clock size={10} /> AM Block
                       </p>
                       <div className="space-y-1.5">
@@ -278,7 +278,7 @@ function ExpandableSummaryCard({ dateBlock, label, onActivityClick, appSettings,
                   )}
                   {activitiesByDate[d].PM.length > 0 && (
                     <div>
-                      <p className="text-[9px] font-black text-[color:var(--plum-9)] uppercase tracking-widest mb-1.5 flex items-center gap-1.5 mt-2">
+                      <p className="text-[9px] font-black text-violet-11 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 mt-2">
                         <Clock size={10} /> PM Block
                       </p>
                       <div className="space-y-1.5">
@@ -359,7 +359,7 @@ export function BoardActivityCard({ act, onClick, appSettings, searchTerm }) {
           {showMeta && (
             <div className="flex flex-wrap gap-1 mt-1">
               {act.reference_number && (
-                <span className="text-[8px] font-black text-[color:var(--amber-10)] bg-warning/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 truncate max-w-[80px]">
+                <span className="text-[8px] font-black text-amber-11 bg-amber-3/50 px-1.5 py-0.5 rounded-full border border-amber-6/20 truncate max-w-[80px]">
                   {act.reference_number}
                 </span>
               )}
@@ -388,7 +388,7 @@ function CardPlanBadge({ act, isDone, appSettings }) {
 
   if (isUnplanned) {
     return (
-      <span className="shrink-0 text-[8px] bg-[color:var(--blue-9)]/10 text-[color:var(--blue-10)] px-1 py-0.5 rounded uppercase tracking-widest font-black">
+      <span className="shrink-0 text-[8px] bg-blue-3/50 text-blue-11 px-1 py-0.5 rounded uppercase tracking-widest font-black">
         UNPLANNED
       </span>
     );
@@ -398,7 +398,7 @@ function CardPlanBadge({ act, isDone, appSettings }) {
   if (!shouldShow) return null;
 
   const config = {
-    DRAFT: { bg: "bg-[color:var(--yellow-9)]/10 text-yellow-600", label: "DRAFT" },
+    DRAFT: { bg: "bg-amber-3/50 text-amber-11", label: "DRAFT" },
     SUBMITTED: { bg: "bg-green-9/10 text-green-10", label: "SUBMITTED" },
     APPROVED: { bg: "bg-green-9/10 text-green-10", label: "APPROVED" },
   };

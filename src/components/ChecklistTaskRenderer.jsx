@@ -111,7 +111,7 @@ export default function ChecklistTaskRenderer({
                   <CheckCircle2 size={12} className="text-primary-foreground" />
                 </div>
               ) : (
-                <div className="w-5 h-5 rounded-full border-2 border-mauve-5 bg-card hover:border-indigo-400 hover:scale-110 transition-all" />
+                <div className="w-5 h-5 rounded-full border-2 border-mauve-5 bg-card hover:border-mauve-8 hover:scale-110 transition-all" />
               )}
             </button>
             <span

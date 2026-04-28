@@ -1,9 +1,5 @@
-import {
-  DollarSign,
-  AlertTriangle,
-  Trash2,
-  Tag,
-} from "lucide-react";
+import { DollarSign, AlertTriangle, Trash2, Tag } from "lucide-react";
+import Dot from "./ui/Dot";
 import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +12,12 @@ import CloudinaryImageAttachment from "./CloudinaryImageAttachment";
 import SalesHeader from "./SalesHeader";
 import { FieldBox } from "./FieldBox";
 
-export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSettings }) {
+export default function SalesTaskDetailsModal({
+  isOpen,
+  onClose,
+  activity,
+  appSettings,
+}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const modalRef = useRef(null);
@@ -98,8 +99,6 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
 
         {/* Scrollable Body */}
         <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-card">
-
-
           {/* Deletion banner */}
           {activity?.is_deleted && (
             <div className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center gap-3 text-destructive shadow-sm">
@@ -107,9 +106,12 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                 <Trash2 size={20} className="text-destructive" />
               </div>
               <div>
-                <p className="text-sm font-black uppercase tracking-tight">Activity Deleted</p>
+                <p className="text-sm font-black uppercase tracking-tight">
+                  Activity Deleted
+                </p>
                 <p className="text-xs font-bold opacity-80">
-                  This activity has been soft-deleted and is hidden from regular views.
+                  This activity has been soft-deleted and is hidden from regular
+                  views.
                 </p>
               </div>
             </div>
@@ -119,12 +121,18 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
           {!activity?.is_deleted && activity?.delete_requested_by && (
             <div className="bg-[color:var(--amber-2)] border border-[color:var(--amber-6)] rounded-xl p-4 flex items-center gap-3 text-[color:var(--amber-11)] shadow-sm transition-all duration-300 animate-pulse">
               <div className="bg-[color:var(--amber-3)] p-2 rounded-lg">
-                <AlertTriangle size={20} className="text-[color:var(--amber-10)]" />
+                <AlertTriangle
+                  size={20}
+                  className="text-[color:var(--amber-10)]"
+                />
               </div>
               <div>
-                <p className="text-sm font-black uppercase tracking-tight">Pending Wipe Request</p>
+                <p className="text-sm font-black uppercase tracking-tight">
+                  Pending Wipe Request
+                </p>
                 <p className="text-xs font-bold opacity-80">
-                  A deletion request has been submitted for this activity and is awaiting approval.
+                  A deletion request has been submitted for this activity and is
+                  awaiting approval.
                 </p>
               </div>
             </div>
@@ -133,7 +141,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
           {/* ── Representative ─────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
             <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <Dot />
               Representative
             </div>
 
@@ -153,7 +161,8 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
               <div className="px-3 flex items-center gap-1.5 flex-wrap">
                 <span
                   className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
-                    activity?.status === "DONE" || activity?.status === "APPROVED"
+                    activity?.status === "DONE" ||
+                    activity?.status === "APPROVED"
                       ? "bg-green-9/10 text-green-9"
                       : activity?.status === "PENDING"
                         ? "bg-warning/10 text-[color:var(--amber-9)]"
@@ -167,7 +176,8 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                       ? "DONE"
                       : activity?.status}
                 </span>
-                {(activity?.is_unplanned || !activity?.sales_weekly_plans?.status) && (
+                {(activity?.is_unplanned ||
+                  !activity?.sales_weekly_plans?.status) && (
                   <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] border border-blue-500/30">
                     UNPLANNED
                   </span>
@@ -197,7 +207,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
           {/* ── Client & Prospect Info ──────────────────────── */}
           <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
             <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <Dot />
               Client &amp; Prospect Info
             </div>
 
@@ -241,7 +251,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
           {/* ── Execution Remarks ───────────────────────────── */}
           <div className="grid grid-cols-1 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
             <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <Dot />
               Execution Remarks
             </div>
 
@@ -281,8 +291,12 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                   salesService
                     .updateActivityAttachments(activity.id, newUrls)
                     .then(() => {
-                      queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
-                      queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
+                      queryClient.invalidateQueries({
+                        queryKey: ["dailyActivities"],
+                      });
+                      queryClient.invalidateQueries({
+                        queryKey: ["allSalesActivities"],
+                      });
                       toast.success("Attachments updated!");
                     })
                     .catch((e) =>
@@ -305,7 +319,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
             activity?.expense_amount) && (
             <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
               <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <Dot />
                 Fund Request &amp; Reference
               </div>
 
@@ -335,13 +349,13 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                 <FieldBox label="Est. Expense (₱)" isEditing={false}>
                   <p className="px-3 text-sm font-black text-green-10 flex items-center gap-2">
                     <DollarSign size={13} className="shrink-0" />
-                    {activity?.expense_amount
-                      ? `₱ ${Number(activity?.expense_amount).toLocaleString()}`
-                      : (
-                        <span className="text-muted-foreground italic font-normal text-xs">
-                          No amount declared
-                        </span>
-                      )}
+                    {activity?.expense_amount ? (
+                      `₱ ${Number(activity?.expense_amount).toLocaleString()}`
+                    ) : (
+                      <span className="text-muted-foreground italic font-normal text-xs">
+                        No amount declared
+                      </span>
+                    )}
                   </p>
                 </FieldBox>
               </div>
@@ -352,7 +366,7 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
           <div className="flex flex-col gap-1.5 pt-2">
             <div className="flex items-center justify-between pl-1">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <Dot />
                 Sales Outcome
               </label>
               {activity.is_deleted || activity.delete_requested_by ? (
@@ -387,22 +401,26 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
                     activity.is_deleted
                       ? "Task is deleted"
                       : activity.delete_requested_by
-                      ? "Wipe request pending"
-                      : !isActivityCompleted
-                      ? "Activity must be completed first"
-                      : undefined
+                        ? "Wipe request pending"
+                        : !isActivityCompleted
+                          ? "Activity must be completed first"
+                          : undefined
                   }
                   className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border transition-all ${
                     localOutcome === opt
                       ? opt === "COMPLETED"
                         ? "bg-green-9 text-primary-foreground border-green-500 shadow-green-500/25 shadow-lg"
                         : opt === "LOST"
-                        ? "bg-destructive text-primary-foreground border-red-500 shadow-red-500/25 shadow-lg"
-                        : "bg-muted text-foreground border-border"
+                          ? "bg-destructive text-primary-foreground border-red-500 shadow-red-500/25 shadow-lg"
+                          : "bg-muted text-foreground border-border"
                       : "bg-card text-muted-foreground border-border"
                   } disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
-                  {opt === "" ? "Pending" : opt === "COMPLETED" ? "WON" : "LOST"}
+                  {opt === ""
+                    ? "Pending"
+                    : opt === "COMPLETED"
+                      ? "WON"
+                      : "LOST"}
                 </button>
               ))}
             </div>
@@ -417,7 +435,6 @@ export default function SalesTaskDetailsModal({ isOpen, onClose, activity, appSe
               disabled={!activity?.id}
             />
           </div>
-
         </div>
       </div>
     </>,

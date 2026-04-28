@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../../../services/salesService";
 import { REVENUE_STATUS } from "../../../constants/status";
@@ -140,13 +140,13 @@ export default function EditRevenueModal({
 
         <div className="overflow-y-auto p-6 space-y-4 custom-scrollbar">
           {canEditDirectly && hasPendingRequest && (
-            <div className="bg-[color:var(--blue-9)]/10 border border-blue-500/30 rounded-xl p-4 shadow-sm mb-2">
+            <div className="bg-violet-3/50 border border-violet-6/20 rounded-xl p-4 shadow-sm mb-2">
               <div className="flex items-start gap-3">
-                <div className="bg-[color:var(--blue-9)]/20 p-2 rounded-lg text-[color:var(--blue-9)] mt-0.5">
+                <div className="bg-violet-4/50 p-2 rounded-lg text-violet-11 mt-0.5">
                   <MessageSquare size={16} />
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-xs font-black text-[color:var(--blue-10)] uppercase tracking-widest mb-1">
+                  <h4 className="text-xs font-black text-violet-11 uppercase tracking-widest mb-1">
                     Edit Request Pending
                   </h4>
                   <p className="text-sm text-foreground bg-card dark:bg-mauve-3 p-2 rounded-lg border border-mauve-4 font-medium italic my-2">
@@ -156,7 +156,7 @@ export default function EditRevenueModal({
                     <span className="text-[10px] uppercase font-bold text-muted-foreground">
                       Proposed Override:
                     </span>
-                    <span className="text-sm font-black text-[color:var(--blue-10)] line-through opacity-60">
+                    <span className="text-sm font-black text-violet-11 line-through opacity-60">
                       ₱{Number(log.revenue_amount).toLocaleString()}
                     </span>
                     <span className="text-xs font-black text-muted-foreground">→</span>
@@ -177,7 +177,7 @@ export default function EditRevenueModal({
                 <button
                   onClick={() => resolveMutation.mutate({ isApproved: true })}
                   disabled={resolveMutation.isPending}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-primary-foreground font-black text-xs py-2 rounded-lg shadow-md transition-colors"
+                  className="flex-1 bg-violet-9 hover:bg-violet-10 text-primary-foreground font-black text-xs py-2 rounded-lg shadow-md transition-colors"
                 >
                   Approve & Apply Overlay
                 </button>
@@ -206,7 +206,7 @@ export default function EditRevenueModal({
 
           {isVerifiedAndLocked && hasPendingRequest && (
             <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 text-center mb-6">
-              <Clock size={28} className="mx-auto text-[color:var(--amber-10)] mb-2 opacity-80" />
+              <Clock size={28} className="mx-auto text-amber-11 mb-2 opacity-80" />
               <p className="text-sm font-bold text-orange-600">
                 Edit Request Pending Review...
               </p>
@@ -223,10 +223,10 @@ export default function EditRevenueModal({
           {isVerifiedAndLocked && requestMode && (
             <form
               onSubmit={handleRequestSubmit}
-              className="bg-mauve-2 border border-blue-500/30 rounded-xl p-5 mb-6 animate-in fade-in zoom-in-95 duration-200"
+              className="bg-mauve-2 border border-violet-6/20 rounded-xl p-5 mb-6 animate-in fade-in zoom-in-95 duration-200"
             >
               <div className="flex items-center justify-between mb-4 border-b border-mauve-4 pb-2">
-                <h4 className="text-xs font-black text-[color:var(--blue-10)] uppercase tracking-widest flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-violet-11 uppercase tracking-widest flex items-center gap-1.5">
                   <MessageSquare size={14} /> Submit Request
                 </h4>
                 <button
@@ -259,7 +259,7 @@ export default function EditRevenueModal({
                           amount: e.target.value,
                         })
                       }
-                      className="w-full bg-card dark:bg-mauve-3 border border-blue-500/40 rounded-lg pl-8 pr-3 py-2 text-sm font-black text-[color:var(--blue-10)] outline-none focus:border-blue-500 shadow-inner"
+                      className="w-full bg-card dark:bg-mauve-3 border border-violet-6/20 rounded-lg pl-8 pr-3 py-2 text-sm font-black text-violet-11 outline-none focus:border-violet-8 shadow-inner"
                     />
                   </div>
                 </div>
@@ -274,13 +274,13 @@ export default function EditRevenueModal({
                     onChange={(e) =>
                       setRequestData({ ...requestData, reason: e.target.value })
                     }
-                    className="w-full bg-card dark:bg-mauve-3 border border-mauve-4 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-blue-500 resize-none h-20"
+                    className="w-full bg-card dark:bg-mauve-3 border border-mauve-4 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-violet-8 resize-none h-20"
                   />
                 </div>
                 <button
                   disabled={requestMutation.isPending}
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-primary-foreground font-black py-2.5 text-sm rounded-lg shadow-md transition-colors disabled:opacity-50"
+                  className="w-full bg-violet-9 hover:bg-violet-10 text-primary-foreground font-black py-2.5 text-sm rounded-lg shadow-md transition-colors disabled:opacity-50"
                 >
                   {requestMutation.isPending
                     ? "Submitting..."
@@ -348,7 +348,7 @@ export default function EditRevenueModal({
                   onChange={(e) =>
                     setFormData({ ...formData, quotation_number: e.target.value })
                   }
-                  className="w-full bg-mauve-2 border border-blue-500/30 rounded-lg px-3 py-2 text-sm font-mono text-foreground outline-none focus:border-blue-500"
+                  className="w-full bg-mauve-2 border border-violet-6/20 rounded-lg px-3 py-2 text-sm font-mono text-foreground outline-none focus:border-violet-8"
                 />
               </div>
             ) : (
@@ -431,7 +431,7 @@ export default function EditRevenueModal({
                 >
                   <div>
                     <p
-                      className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${formData.is_verified ? "text-green-10" : "text-[color:var(--amber-10)]"}`}
+                      className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${formData.is_verified ? "text-green-10" : "text-amber-11"}`}
                     >
                       {formData.is_verified
                         ? "Audit Complete"
@@ -470,7 +470,7 @@ export default function EditRevenueModal({
                     onClick={() =>
                       setFormData({ ...formData, is_verified: false })
                     }
-                    className="px-3 py-1.5 font-bold text-[10px] uppercase tracking-widest rounded-md bg-mauve-3 hover:bg-orange-500/20 hover:text-[color:var(--amber-10)] text-mauve-11 transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 font-bold text-[10px] uppercase tracking-widest rounded-md bg-mauve-3 hover:bg-orange-500/20 hover:text-amber-11 text-mauve-11 transition-colors flex items-center gap-1"
                   >
                     <Unlock size={12} /> Unverify
                   </button>

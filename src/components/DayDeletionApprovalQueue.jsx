@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { salesService } from "../services/salesService";
@@ -15,6 +15,7 @@ import {
   Clock,
 } from "lucide-react";
 import SalesTaskDetailsModal from "./SalesTaskDetailsModal";
+import Dot from "./ui/Dot";
 
 export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
   const { user } = useAuth();
@@ -163,7 +164,10 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <div className={`w-1.5 h-1.5 rounded-full ${activity.activity_type === 'SALES CALL' ? 'bg-green-8' : 'bg-blue-400'}`} />
+                            <Dot
+                              size="w-1.5 h-1.5"
+                              color={activity.activity_type === 'SALES CALL' ? 'bg-green-8' : 'bg-blue-400'}
+                            />
                             <p className="text-[11px] font-black text-foreground truncate" title={activity.account_name}>
                               {activity.account_name}
                             </p>

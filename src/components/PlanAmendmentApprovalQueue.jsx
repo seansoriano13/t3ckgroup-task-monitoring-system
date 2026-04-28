@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+import { useState } from "react";
+import Dot from "./ui/Dot";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { salesService } from "../services/salesService";
@@ -164,7 +165,7 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div className="bg-green-9/5 border border-green-500/10 rounded-xl p-4">
                            <h4 className="text-[10px] font-black text-green-11 uppercase tracking-widest mb-3 flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-9" />
+                              <Dot color="bg-green-9" />
                               Added ({changes.added.length})
                            </h4>
                            <div className="space-y-2">
@@ -179,7 +180,7 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
                         
                         <div className="bg-destructive/5 border border-red-500/10 rounded-xl p-4">
                            <h4 className="text-[10px] font-black text-destructive uppercase tracking-widest mb-3 flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                              <Dot color="bg-destructive" />
                               Removed ({changes.removed.length})
                            </h4>
                            <div className="space-y-2">
@@ -194,7 +195,7 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
 
                         <div className="bg-[color:var(--blue-9)]/5 border border-blue-500/10 rounded-xl p-4">
                            <h4 className="text-[10px] font-black text-[color:var(--blue-11)] uppercase tracking-widest mb-3 flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-[color:var(--blue-9)]" />
+                              <Dot color="bg-[color:var(--blue-9)]" />
                               Modified ({changes.modified.length})
                            </h4>
                            <div className="space-y-2">

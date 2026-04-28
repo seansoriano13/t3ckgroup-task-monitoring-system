@@ -123,7 +123,7 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`py-4 px-4 rounded-2xl border ${
           isVerified
-            ? "bg-[color:var(--violet-2)]/50 border-indigo-100"
+            ? "bg-violet-2/50 border-mauve-3"
             : "bg-destructive/5 border-destructive/20"
         }`}
       >

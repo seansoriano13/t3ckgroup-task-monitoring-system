@@ -45,8 +45,8 @@ export function SummaryMetrics({
           title="Team Win Rate"
           value={`${winRate}%`}
           subtitle="Conversion Ratio"
-          icon={<Target size={20} className="text-indigo-500" />}
-          color="indigo"
+          icon={<Target size={20} className="text-violet-9" />}
+          color="violet"
         />
       )}
     </div>
@@ -56,7 +56,7 @@ export function SummaryMetrics({
 // Reusable Sub-component for the cards (copied design from DashboardStats.jsx)
 function StatCard({ title, value, subtitle, icon, color }) {
   const colorMap = {
-    indigo: "from-indigo-500/15 to-transparent",
+    violet: "from-violet-500/15 to-transparent",
     amber: "from-amber-500/15 to-transparent",
     destructive: "from-red-500/15 to-transparent",
     emerald: "from-green-9/15 to-transparent",

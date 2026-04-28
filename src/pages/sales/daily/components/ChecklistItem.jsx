@@ -112,7 +112,7 @@ export function ChecklistItem({
       ref={itemRef}
       className={`p-4 flex gap-4 border-l-4 transition-all duration-500 ${justChecked ? "animate-check-flash" : ""} ${
         isHighlighted
-          ? "border-l-indigo-500 bg-[color:var(--violet-2)]/60"
+          ? "border-l-violet-9 bg-violet-2/60"
           : isLost
             ? "border-l-destructive/60"
             : isWon
@@ -248,7 +248,7 @@ export function ChecklistItem({
                 })
               }
               disabled={outcomeMutation.isPending}
-              className="text-[10px] font-black uppercase bg-card border border-border rounded-lg px-2 py-1 outline-none focus:border-indigo-400 cursor-pointer disabled:opacity-50 transition-colors"
+              className="text-[10px] font-black uppercase bg-card border border-border rounded-lg px-2 py-1 outline-none focus:border-mauve-8 cursor-pointer disabled:opacity-50 transition-colors"
             >
               <option value="">Pending</option>
               <option value="COMPLETED"> WON</option>
@@ -268,7 +268,7 @@ export function ChecklistItem({
                 placeholder="Optional execution remarks..."
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                className="flex-1 bg-muted/40 border border-border rounded-xl p-2 text-xs text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                className="flex-1 bg-muted/40 border border-border rounded-xl p-2 text-xs text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
                 autoFocus
               />
               <button 
@@ -280,7 +280,7 @@ export function ChecklistItem({
             </div>
             {/* Attachment Uploader */}
             <div className="flex items-center gap-2">
-              <label className="text-[10px] font-black text-muted-foreground hover:text-foreground bg-muted px-3 py-1.5 rounded-xl cursor-pointer border border-border flex items-center gap-1.5 transition-all hover:border-indigo-300">
+              <label className="text-[10px] font-black text-muted-foreground hover:text-foreground bg-muted px-3 py-1.5 rounded-xl cursor-pointer border border-border flex items-center gap-1.5 transition-all hover:border-mauve-6">
                 <ImageIcon size={12} /> {selectedImages.length > 0 ? `${selectedImages.length} Photo(s)` : 'Attach Photos'}
                 <input 
                   type="file" 

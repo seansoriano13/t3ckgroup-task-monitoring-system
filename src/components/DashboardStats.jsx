@@ -186,7 +186,7 @@ export default function DashboardStats({ selectedRange }) {
             value={stats.myPending}
             subtitle="Drafting"
             icon={<Clock size={20} className="text-muted-foreground" />}
-            color="indigo"
+            color="mauve"
           />
           <StatCard
             title="Pending Approval"
@@ -315,8 +315,8 @@ export default function DashboardStats({ selectedRange }) {
             title="Awaiting Head Review"
             value={stats.hrAwaitingHead}
             subtitle="Head action needed"
-            icon={<UserCheck size={20} className="text-indigo-400" />}
-            color="indigo"
+            icon={<UserCheck size={20} className="text-mauve-9" />}
+            color="mauve"
             onClick={() =>
               navigate("/tasks", {
                 state: {
@@ -354,7 +354,7 @@ export default function DashboardStats({ selectedRange }) {
             value={stats.hrAllTasks}
             subtitle="Org Output this Month"
             icon={<Database size={20} className="text-foreground" />}
-            color="indigo"
+            color="mauve"
             onClick={() => navigate("/tasks")}
           />
         </>
@@ -366,7 +366,7 @@ export default function DashboardStats({ selectedRange }) {
 // Reusable Sub-component for the cards
 function StatCard({ title, value, subtitle, icon, color, onClick }) {
   const colorMap = {
-    indigo: "from-indigo-500/15 to-transparent",
+    mauve: "from-mauve-9/15 to-transparent",
     amber: "from-amber-500/15 to-transparent",
     destructive: "from-red-500/15 to-transparent",
     emerald: "from-green-9/15 to-transparent",

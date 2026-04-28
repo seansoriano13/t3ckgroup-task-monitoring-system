@@ -158,7 +158,7 @@ export default function EmployeeManagement() {
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-muted/40 border border-border text-foreground rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[color:var(--mauve-8)] focus:ring-2 focus:ring-[color:var(--mauve-4)] transition-all text-sm"
+                  className="w-full bg-muted/40 border border-border text-foreground rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-4 transition-all text-sm"
                 />
               </div>
               <button
@@ -234,18 +234,18 @@ export default function EmployeeManagement() {
                           {emp.role || "-"}
                         </td>
                         <td className="p-4 text-xs flex gap-1">
-                          {emp.isSuperAdmin && (
-                            <span className="bg-[color:var(--violet-2)] text-[color:var(--violet-11)] border border-mauve-5 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
+                           {emp.isSuperAdmin && (
+                            <span className="bg-violet-2 text-violet-11 border border-mauve-5 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
                               <Shield size={11} /> Super Admin
                             </span>
                           )}
                           {emp.isHr && (
-                            <span className="bg-[color:var(--blue-2)] text-[color:var(--blue-11)] border border-[color:var(--blue-6)] px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
+                            <span className="bg-blue-2 text-blue-11 border border-blue-6 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
                               HR
                             </span>
                           )}
                           {emp.isHead && (
-                            <span className="bg-[color:var(--amber-2)] text-[color:var(--amber-11)] border border-[color:var(--amber-6)] px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
+                            <span className="bg-amber-2 text-amber-11 border border-amber-6 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider">
                               Head
                             </span>
                           )}
@@ -447,9 +447,9 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
           <div>
             <h2 className="text-xl font-black text-foreground flex items-center gap-2">
               {isEditing ? (
-                <Edit size={20} className="text-[color:var(--violet-9)]" />
+                <Edit size={20} className="text-violet-9" />
               ) : (
-                <UserPlus size={20} className="text-[color:var(--violet-9)]" />
+                <UserPlus size={20} className="text-violet-9" />
               )}
               {isEditing ? "Edit Employee" : "Add Employee"}
             </h2>
@@ -488,7 +488,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-[color:var(--mauve-8)] focus:ring-4 focus:ring-[color:var(--mauve-4)] transition-all text-foreground font-medium"
+                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-4 transition-all text-foreground font-medium"
                   />
                 </div>
               </div>
@@ -506,7 +506,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-[color:var(--mauve-8)] focus:ring-4 focus:ring-[color:var(--mauve-4)] transition-all text-foreground font-medium"
+                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-4 transition-all text-foreground font-medium"
                   />
                 </div>
               </div>
@@ -527,7 +527,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                       setFormData({ ...formData, role: e.target.value })
                     }
                     placeholder="e.g. MARKETING ASSISTANT"
-                    className="w-full bg-muted/40 border border-border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-[color:var(--mauve-8)] focus:ring-4 focus:ring-[color:var(--mauve-4)] transition-all text-foreground font-medium"
+                    className="w-full bg-muted/40 border border-border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-4 transition-all text-foreground font-medium"
                   />
                 </div>
               </div>
@@ -583,7 +583,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                         });
                         close();
                       }}
-                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
+                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-violet-10 hover:bg-violet-2 transition-colors uppercase tracking-wider"
                     >
                       + Add New Department
                     </button>
@@ -639,7 +639,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                         setFormData({ ...formData, subDepartment: "" });
                         close();
                       }}
-                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
+                      className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-violet-10 hover:bg-violet-2 transition-colors uppercase tracking-wider"
                     >
                       + Add New Sub-Dept
                     </button>
@@ -650,9 +650,9 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
 
             {/* Managed Mode Inputs (Fallback) */}
             {(isNewDept || isNewSubDept) && (
-              <div className="bg-[color:var(--violet-2)]/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
+              <div className="bg-violet-2/50 border border-mauve-3 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
                 <div className="flex items-center gap-2 mb-1">
-                  <Info size={14} className="text-[color:var(--violet-10)]" />
+                  <Info size={14} className="text-violet-10" />
                   <p className="text-[11px] font-black text-foreground uppercase tracking-widest">
                     Manual Entry Mode
                   </p>
@@ -674,7 +674,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                           department: e.target.value.toUpperCase(),
                         })
                       }
-                      className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-[color:var(--mauve-8)] transition-all font-bold"
+                      className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-mauve-8 transition-all font-bold"
                     />
                   </div>
                 )}
@@ -695,7 +695,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                           subDepartment: e.target.value.toUpperCase(),
                         })
                       }
-                      className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-[color:var(--mauve-8)] transition-all font-bold"
+                      className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-mauve-8 transition-all font-bold"
                     />
                   </div>
                 )}
@@ -710,7 +710,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                       subDepartment: "",
                     });
                   }}
-                  className="text-[10px] font-bold text-[color:var(--violet-10)] hover:underline"
+                  className="text-[10px] font-bold text-violet-10 hover:underline"
                 >
                   Cancel manual entry
                 </button>
@@ -725,7 +725,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHead ? "bg-[color:var(--amber-3)] text-[color:var(--amber-10)]" : "bg-muted text-muted-foreground group-hover:bg-[color:var(--amber-2)]"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHead ? "bg-amber-3 text-amber-10" : "bg-muted text-muted-foreground group-hover:bg-amber-2"}`}
                     >
                       <Shield size={18} />
                     </div>
@@ -750,7 +750,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHr ? "bg-[color:var(--blue-3)] text-[color:var(--blue-10)]" : "bg-muted text-muted-foreground group-hover:bg-[color:var(--blue-2)]"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isHr ? "bg-blue-3 text-blue-10" : "bg-muted text-muted-foreground group-hover:bg-blue-2"}`}
                     >
                       <Users size={18} />
                     </div>
@@ -775,7 +775,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 <label className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/30 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isSuperAdmin ? "bg-[color:var(--violet-3)] text-[color:var(--violet-10)]" : "bg-muted text-muted-foreground group-hover:bg-[color:var(--violet-2)]"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${formData.isSuperAdmin ? "bg-violet-3 text-violet-10" : "bg-muted text-muted-foreground group-hover:bg-violet-2"}`}
                     >
                       <Shield size={18} strokeWidth={2.5} />
                     </div>

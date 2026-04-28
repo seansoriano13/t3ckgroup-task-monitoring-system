@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { activeChatService } from "../services/tasks/activeChatService";
 import { createPortal } from "react-dom";
 import HighlightText from "./HighlightText";
+import Dot from "./ui/Dot";
 
 export default function TaskDetails({
   isOpen,
@@ -573,7 +574,7 @@ export default function TaskDetails({
                 </div>
               ) : (
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] pl-1 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  <Dot />
                   Description
                 </label>
               )}

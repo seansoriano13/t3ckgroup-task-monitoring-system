@@ -95,7 +95,7 @@ export default function LogSalesPage() {
           lastWordColor={
             isOrder
               ? "text-green-9"
-              : "text-[color:var(--violet-9)]"
+              : "text-violet-9"
           }
           title={isOrder ? "Sales Order" : "Sales Quotation"}
           description={
@@ -113,7 +113,7 @@ export default function LogSalesPage() {
             ) : (
               <FileText
                 size={32}
-                className="text-[color:var(--violet-9)] bg-[color:var(--violet-2)] p-1.5 rounded-xl border border-indigo-100"
+                className="text-violet-9 bg-violet-2 p-1.5 rounded-xl border border-mauve-3"
               />
             )}
           </div>
@@ -171,7 +171,7 @@ export default function LogSalesPage() {
                 className={`w-full bg-muted/40 border text-foreground rounded-xl p-3 outline-none font-bold transition-all cursor-pointer ${
                   isOrder
                     ? "border-border focus:border-green-8 focus:ring-2 focus:ring-green-3"
-                    : "border-border focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    : "border-border focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
                 }`}
               />
             </div>
@@ -215,7 +215,7 @@ export default function LogSalesPage() {
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
                     ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
-                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    : "focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
                 }`}
               />
             </div>
@@ -238,7 +238,7 @@ export default function LogSalesPage() {
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
                     ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
-                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    : "focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
                 }`}
               />
             </div>
@@ -267,20 +267,20 @@ export default function LogSalesPage() {
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
                     ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
-                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    : "focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
                 }`}
               />
             </div>
 
             <div className="sm:col-span-1">
               <label
-                className={`text-xs font-bold uppercase block mb-1 ${isOrder ? "text-green-10" : "text-indigo-600"}`}
+                className={`text-xs font-bold uppercase block mb-1 ${isOrder ? "text-green-10" : "text-mauve-11"}`}
               >
                 {isOrder ? "Revenue Amount (PHP)" : "Quotation Amount (PHP)"}
               </label>
               <div className="relative">
                 <span
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${isOrder ? "text-green-10" : "text-indigo-600"}`}
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${isOrder ? "text-green-10" : "text-mauve-11"}`}
                 >
                   ₱
                 </span>
@@ -299,7 +299,7 @@ export default function LogSalesPage() {
                   className={`w-full bg-muted/40 border font-black text-2xl rounded-xl pl-10 pr-4 py-3 outline-none shadow-inner transition-all ${
                     isOrder
                       ? "border-green-6 text-green-10 focus:border-green-8 focus:ring-2 focus:ring-green-3"
-                      : "border-mauve-5 text-[color:var(--violet-10)] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                      : "border-mauve-5 text-violet-10 focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
                   }`}
                 />
               </div>
@@ -322,7 +322,7 @@ export default function LogSalesPage() {
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none transition-all ${
                   isOrder
                     ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
-                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    : "focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
                 }`}
               />
             </div>
@@ -340,7 +340,7 @@ export default function LogSalesPage() {
                 className={`w-full bg-muted/40 border border-border text-foreground rounded-xl p-3 outline-none resize-none h-24 transition-all ${
                   isOrder
                     ? "focus:border-green-8 focus:ring-2 focus:ring-green-3"
-                    : "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    : "focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
                 }`}
               />
             </div>

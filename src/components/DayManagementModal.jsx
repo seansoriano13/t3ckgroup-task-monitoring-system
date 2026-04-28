@@ -1,4 +1,5 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import Dot from "./ui/Dot";
 import { createPortal } from "react-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
@@ -104,7 +105,7 @@ export default function DayManagementModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl bg-card border border-border rounded-[2rem] shadow-2xl shadow-indigo-500/10 overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-2xl bg-card border border-border rounded-[2rem] shadow-2xl shadow-mauve-8/10 overflow-hidden animate-in zoom-in-95 duration-300">
         
         {/* Header */}
         <div className="p-8 border-b border-border bg-muted/30">
@@ -152,7 +153,7 @@ export default function DayManagementModal({
                       onClick={() => canSelect && toggleDateSelection(wd.dateStr)}
                       className={`group flex flex-col p-4 rounded-2xl border transition-all ${
                         isSelected 
-                          ? "bg-[color:var(--violet-2)] border-mauve-5 ring-2 ring-indigo-500/10 shadow-sm"
+                          ? "bg-violet-2 border-mauve-5 ring-2 ring-mauve-6/10 shadow-sm"
                           : stats.isRequested
                             ? "bg-mauve-2 border-mauve-5 opacity-60 cursor-not-allowed"
                             : canSelect
@@ -165,7 +166,7 @@ export default function DayManagementModal({
                           <div className={`w-5 h-5 rounded-md border transition-all flex items-center justify-center ${
                             isSelected 
                               ? "bg-primary border-primary text-primary-foreground" 
-                              : "bg-card border-border group-hover:border-indigo-300"
+                              : "bg-card border-border group-hover:border-mauve-6"
                           }`}>
                             {isSelected && <CheckCircle2 size={14} strokeWidth={3} />}
                           </div>
@@ -207,10 +208,13 @@ export default function DayManagementModal({
                           {stats.activities.map((a, idx) => (
                             <div 
                               key={idx} 
-                              className="px-2 py-0.5 bg-card border border-indigo-100 rounded-md text-[9px] font-bold text-[color:var(--violet-10)] flex items-center gap-1 max-w-[120px] truncate"
+                              className="px-2 py-0.5 bg-card border border-mauve-3 rounded-md text-[9px] font-bold text-violet-10 flex items-center gap-1 max-w-[120px] truncate"
                               title={a.account_name}
                             >
-                              <div className={`w-1 h-1 rounded-full ${a.activity_type === 'SALES CALL' ? 'bg-green-8' : 'bg-blue-400'}`} />
+                              <Dot
+                                size="w-1 h-1"
+                                color={a.activity_type === 'SALES CALL' ? 'bg-green-8' : 'bg-blue-400'}
+                              />
                               <span className="truncate">{a.account_name || "Untitled"}</span>
                             </div>
                           ))}
@@ -258,7 +262,7 @@ export default function DayManagementModal({
                     value={wipeReason}
                     onChange={(e) => setWipeReason(e.target.value)}
                     placeholder="Provide a valid internal reason for management audit..."
-                    className="w-full bg-muted/30 border border-border rounded-2xl p-5 text-foreground placeholder:text-muted-foreground outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 transition-all text-sm font-medium h-32 resize-none"
+                    className="w-full bg-muted/30 border border-border rounded-2xl p-5 text-foreground placeholder:text-muted-foreground outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-3/5 transition-all text-sm font-medium h-32 resize-none"
                   />
                </div>
 

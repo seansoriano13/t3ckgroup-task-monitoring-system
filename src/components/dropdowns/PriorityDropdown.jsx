@@ -1,6 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import Dropdown from "../ui/Dropdown";
 import { ChevronDown } from "lucide-react";
+import Dot from "../ui/Dot";
 import { PRIORITY_OPTIONS } from "../../constants/task";
 
 export default function PriorityDropdown({
@@ -29,9 +30,7 @@ export default function PriorityDropdown({
               triggerClassName || `property-pill ${isOpen ? "active" : ""}`
             }
           >
-            <span
-              className={`inline-block w-2 h-2 rounded-full ${currentPriority.dot}`}
-            />
+            <Dot size="w-2 h-2" color={currentPriority.dot} />
             <span className="text-muted-foreground font-medium">
               {currentPriority.label}
             </span>
@@ -57,7 +56,7 @@ export default function PriorityDropdown({
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
+              <Dot size="w-2 h-2" color={opt.dot} />
               {opt.label}
             </button>
           ))}

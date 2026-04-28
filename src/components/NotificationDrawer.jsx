@@ -29,6 +29,7 @@ import toast from "react-hot-toast";
 import TabGroup from "./ui/TabGroup";
 import Avatar from "./Avatar";
 import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
+import Dot from "./ui/Dot";
 
 export default function NotificationDrawer({ isOpen, onClose }) {
   const { user } = useAuth();
@@ -150,11 +151,11 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       case "DAY_DELETE_RESULT":
         return <Trash2 size={18} className="text-foreground" />;
       case "COMMITTEE_ASSIGNED":
-        return <Briefcase size={18} className="text-indigo-500" />;
+        return <Briefcase size={18} className="text-violet-9" />;
       case "COMMITTEE_TASK_COMMENT":
-        return <MessageCircle size={18} className="text-indigo-500" />;
+        return <MessageCircle size={18} className="text-violet-9" />;
       case "COMMITTEE_TASK_READY_FOR_HR":
-        return <CheckCircle2 size={18} className="text-indigo-600" />;
+        return <CheckCircle2 size={18} className="text-violet-10" />;
       case "SALES_QUOTA_PUBLISHED":
         return <Target size={18} className="text-green-9" />;
       case "PLAN_AMENDMENT_REQUESTED":
@@ -540,7 +541,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
                       )}
                     </Dropdown>
                     {!notif.is_read && (
-                      <div className="w-2 h-2 rounded-full bg-primary/100 mr-1.5 mt-1" />
+                      <Dot size="w-2 h-2" color="bg-primary/100" className="mr-1.5 mt-1" />
                     )}
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import { AlertCircle } from "lucide-react";
+import Dot from "./ui/Dot";
 import { formatDate } from "../utils/formatDate";
 import { extractOthersDetailsFromRemarks } from "../utils/taskFormatters";
 import { FieldBox } from "./FieldBox";
@@ -83,7 +84,7 @@ const StandardDetailsSection = ({
               customTrigger={({ isOpen, currentPriority }) => (
                 <div className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-colors ${isOpen ? 'bg-muted/50' : 'hover:bg-muted/30'} cursor-pointer`}>
                   <div className={`flex items-center gap-2 ${currentPriority.value === 'HIGH' ? 'text-destructive' : currentPriority.value === 'MEDIUM' ? 'text-[color:var(--amber-10)]' : 'text-muted-foreground'}`}>
-                    <div className={`w-2 h-2 rounded-full ${currentPriority.dot}`} />
+                    <Dot size="w-2 h-2" color={currentPriority.dot} />
                     <span className="font-bold">{currentPriority.label}</span>
                   </div>
                   <ChevronDown size={14} className="text-muted-foreground" />
@@ -94,7 +95,23 @@ const StandardDetailsSection = ({
             <div
               className={`px-3 text-sm font-bold flex items-center gap-2 ${task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-[color:var(--amber-10)]" : "text-muted-foreground"}`}
             >
-              <div className={`w-2 h-2 rounded-full ${task.priority === "HIGH" ? "bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.4)]" : task.priority === "MEDIUM" ? "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-mauve-6"} shrink-0`} />
+              <Dot
+                size="w-2 h-2"
+                color={
+                  task.priority === "HIGH"
+                    ? "bg-destructive"
+                    : task.priority === "MEDIUM"
+                      ? "bg-warning"
+                      : "bg-mauve-6"
+                }
+                className={
+                  task.priority === "HIGH"
+                    ? "shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+                    : task.priority === "MEDIUM"
+                      ? "shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+                      : ""
+                }
+              />
               {task.priority || "LOW"}
             </div>
           )}

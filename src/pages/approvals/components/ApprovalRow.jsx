@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import Avatar from "../../../components/Avatar";
 import GradeSelector from "../../../components/GradeSelector.jsx";
 import HighlightText from "../../../components/HighlightText";
+import Dot from "../../../components/ui/Dot";
 
 
 export function ApprovalRow({
@@ -254,7 +255,11 @@ export function ApprovalRow({
               <span className="hidden sm:block px-2 py-1 rounded bg-red-a3 text-red-11 text-[10px] font-black uppercase tracking-widest border border-red-a5">
                 High Priority
               </span>
-              <div className="sm:hidden w-2 h-2 rounded-full bg-red-9 shadow-[0_0_8px_rgba(229,72,77,0.5)]" />
+              <Dot
+                size="w-2 h-2"
+                color="bg-red-9"
+                className="sm:hidden shadow-[0_0_8px_rgba(229,72,77,0.5)]"
+              />
             </>
           )}
 

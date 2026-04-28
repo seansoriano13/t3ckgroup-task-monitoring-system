@@ -1,4 +1,6 @@
-﻿export function ScheduleTabs({
+import Dot from "../../../../components/ui/Dot";
+
+export function ScheduleTabs({
   weekDates,
   dayProgress,
   activeTab,
@@ -28,9 +30,11 @@
           >
             {d.label}{" "}
             {hasTasks && (
-              <span
-                className={`w-2 h-2 rounded-full ${isGreen ? "bg-green-9" : "bg-[color:var(--yellow-9)]"} inline-block ml-1 mb-0.5 shadow-sm`}
-              ></span>
+              <Dot
+                size="w-2 h-2"
+                color={isGreen ? "bg-green-9" : "bg-[color:var(--yellow-9)]"}
+                className="inline-block ml-1 mb-0.5 shadow-sm"
+              />
             )}
               <span className={`text-[10px] font-bold text-muted-foreground block mt-0.5`}>{d.dateStr}</span>
             {dayStats && (

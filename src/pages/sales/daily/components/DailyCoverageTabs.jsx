@@ -1,4 +1,6 @@
-﻿export function DailyCoverageTabs({
+import Dot from "../../../../components/ui/Dot";
+
+export function DailyCoverageTabs({
   weekDates,
   selectedDate,
   setSelectedDate,
@@ -44,8 +46,10 @@
             >
               {wd.label}{" "}
               {hasTasks && !allTasksDone && (
-                <div
-                  className={`w-1.5 h-1.5 rounded-full ${isGreen ? "bg-green-9" : "bg-[color:var(--yellow-9)] shadow-yellow-500/50"} inline-block mb-1 ml-1 shadow-sm`}
+                <Dot
+                  size="w-1.5 h-1.5"
+                  color={isGreen ? "bg-green-9" : "bg-[color:var(--yellow-9)] shadow-yellow-500/50"}
+                  className="inline-block mb-1 ml-1 shadow-sm"
                 />
               )}
             </span>

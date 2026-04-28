@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Trash2, ChevronDown, Wand2, MoreVertical } from "lucide-react";
 import Select from "react-select";
 import { inlineSelectStyles } from "../../../../styles/selectStyles";
@@ -113,7 +113,7 @@ export function ScheduleActivityRow({
         className={`p-3 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors rounded-xl ${disabled && "cursor-not-allowed opacity-80"}`}
       >
         <div className="flex gap-3 items-center flex-1 max-w-[65%] pr-2">
-          <span className={`${isFilled ? "bg-[color:var(--violet-3)] text-[color:var(--violet-10)]" : "bg-muted text-muted-foreground"} font-black w-6 h-6 flex items-center justify-center rounded-full text-[10px] shrink-0 transition-colors`}>
+          <span className={`${isFilled ? "bg-violet-3 text-violet-10" : "bg-muted text-muted-foreground"} font-black w-6 h-6 flex items-center justify-center rounded-full text-[10px] shrink-0 transition-colors`}>
             {slotNum}
           </span>
           <div className="max-w-[170px] w-full shrink-0">
@@ -146,7 +146,7 @@ export function ScheduleActivityRow({
                 e.stopPropagation();
                 onUseSmartSuggestion();
               }}
-              className="p-1.5 text-muted-foreground hover:text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] rounded-lg transition-all"
+              className="p-1.5 text-muted-foreground hover:text-violet-10 hover:bg-violet-2 rounded-lg transition-all"
               title="Smart Fill (Use previous entry)"
             >
               <Wand2 size={16} />
@@ -215,7 +215,7 @@ export function ScheduleActivityRow({
               disabled={disabled}
               value={data.account_name}
               onChange={(e) => onChange("account_name", e.target.value)}
-              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
             />
           </div>
           <div className="sm:col-span-2">
@@ -226,7 +226,7 @@ export function ScheduleActivityRow({
               disabled={disabled}
               value={data.remarks_plan}
               onChange={(e) => onChange("remarks_plan", e.target.value)}
-              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-none h-20"
+              className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all resize-none h-20"
             />
           </div>
 
@@ -247,28 +247,28 @@ export function ScheduleActivityRow({
               <div>
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Contact Person</label>
                 <input type="text" disabled={disabled} value={data.contact_person} onChange={(e) => onChange("contact_person", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
               </div>
               <div>
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Contact Number</label>
                 <input type="text" disabled={disabled} value={data.contact_number} onChange={(e) => onChange("contact_number", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
               </div>
               <div className="sm:col-span-2">
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Email Address</label>
                 <input type="email" disabled={disabled} value={data.email_address} onChange={(e) => onChange("email_address", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
               </div>
               <div className="sm:col-span-2">
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Address</label>
                 <input type="text" disabled={disabled} value={data.address} onChange={(e) => onChange("address", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" />
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
               </div>
             </>
           )}
           {/* === EXPENSE & REFERENCE FIELDS === */}
           <div className="sm:col-span-2 border-t border-border pt-4 mt-2">
-            <p className="text-[10px] font-black text-[color:var(--amber-10)] uppercase tracking-[0.2em] mb-3 flex items-center gap-1.5">
+            <p className="text-[10px] font-black text-amber-10 uppercase tracking-[0.2em] mb-3 flex items-center gap-1.5">
               Fund Request &amp; Reference
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -276,14 +276,14 @@ export function ScheduleActivityRow({
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Reference No. (SQ/TRM)</label>
                 <input type="text" disabled={disabled} value={data.reference_number || ""} onChange={(e) => onChange("reference_number", e.target.value)}
                   placeholder="e.g. SQ-2026-001"
-                  className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground" />
+                  className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground" />
               </div>
               <div>
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Est. Expense (₱)</label>
                 <input type="number" disabled={disabled} value={data.expense_amount || ""}
                   onChange={(e) => onChange("expense_amount", e.target.value === "" ? "" : Number(e.target.value))}
                   placeholder="0.00" min="0" step="0.01"
-                  className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground" />
+                  className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground" />
               </div>
             </div>
           </div>

@@ -51,14 +51,14 @@ export function CustomToast({
     loading: {
       color: "text-[color:var(--violet-9)]",
       bg: "bg-primary/10",
-      border: "border-indigo-500/20",
+      border: "border-violet-9/20",
       spin: true,
     },
     info: {
       icon: Info,
       color: "text-[color:var(--violet-9)]",
       bg: "bg-primary/10",
-      border: "border-indigo-500/20",
+      border: "border-violet-9/20",
     },
     confirm: {
       icon: AlertTriangle,

@@ -10,7 +10,7 @@ const SalesHeader = ({ onClose, onOpenChat }) => (
         <button
           onClick={onOpenChat}
           title="Open Conversation"
-          className="h-9 w-9 flex items-center justify-center rounded-xl text-[color:var(--violet-10)] bg-[color:var(--violet-2)] hover:bg-[color:var(--violet-3)] transition-all active:scale-95 border border-indigo-100"
+          className="h-9 w-9 flex items-center justify-center rounded-xl text-red-10 bg-red-2 hover:bg-red-3 transition-all active:scale-95 border border-red-3"
         >
           <MessageCircle size={18} />
         </button>

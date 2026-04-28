@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Spinner from "@/components/ui/Spinner";
+import Dot from "./ui/Dot";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { activeChatService } from "../services/tasks/activeChatService";
 import Avatar from "./Avatar";
@@ -90,10 +91,10 @@ function MessageBubble({ entry, currentUserId }) {
         className={cn(
           "mx-4 my-2 p-3 rounded-xl border border-dashed text-xs",
           isRejection
-            ? "bg-destructive/5 border-red-500/20 text-destructive"
+            ? "bg-red-3/50 border-red-6/20 text-red-11"
             : isVerified
-              ? "bg-primary/5 border-foreground/20 text-foreground"
-              : "bg-green-9/5 border-green-500/20 text-green-10",
+              ? "bg-primary/5 border-border/20 text-foreground"
+              : "bg-green-3/50 border-green-6/20 text-green-11",
         )}
       >
         <div className="flex items-center gap-2 mb-1">
@@ -148,12 +149,12 @@ function MessageBubble({ entry, currentUserId }) {
             {isMe ? "You" : entry.authorName}
           </span>
           {entry.authorIsHead && (
-            <span className="text-[8px] bg-warning/10 text-amber-10 px-1 rounded font-black uppercase">
+            <span className="text-[8px] bg-amber-3/50 text-amber-11 px-1 rounded font-black uppercase">
               Head
             </span>
           )}
           {entry.authorIsHr && (
-            <span className="text-[8px] bg-blue-9/10 text-blue-10 px-1 rounded font-black uppercase">
+            <span className="text-[8px] bg-blue-3/50 text-blue-11 px-1 rounded font-black uppercase">
               HR
             </span>
           )}
@@ -651,7 +652,7 @@ export default function ComprehensiveChatModal({
 
             {/* SELECTION ACTIONS BAR */}
             {selectionMode && selectedChatIds.size > 0 && (
-              <div className="flex items-center justify-between bg-muted/50 border border-indigo-100 rounded-lg p-2 px-3">
+              <div className="flex items-center justify-between bg-mauve-2 border border-mauve-3 rounded-lg p-2 px-3">
                 <span className="text-xs font-bold text-foreground">
                   {selectedChatIds.size} selected
                 </span>
@@ -709,7 +710,7 @@ export default function ComprehensiveChatModal({
                           type="checkbox"
                           checked={isChecked}
                           readOnly
-                          className="w-4 h-4 rounded-sm border-mauve-5 text-foreground focus:ring-indigo-600 pointer-events-none"
+                          className="w-4 h-4 rounded-sm border-mauve-5 text-foreground focus:ring-mauve-8 pointer-events-none"
                         />
                       </div>
                     )}
@@ -749,8 +750,7 @@ export default function ComprehensiveChatModal({
                           </span>
                           {chat.is_deleted &&
                             chat.entity_type !== "COMMITTEE_TASK" && (
-                              <span className="text-[8px] bg-red-100 text-destructive px-1 py-0.5 rounded-sm font-black uppercase tracking-widest flex items-center gap-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-destructive block"></span>{" "}
+                                <Dot color="bg-destructive" className="block" />{" "}
                                 Deleted
                               </span>
                             )}
@@ -770,7 +770,11 @@ export default function ComprehensiveChatModal({
                       </p>
                     </div>
                     {chat.is_unread && !selectionMode && (
-                      <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-lg shadow-foreground/40" />
+                      <Dot
+                        size="w-2 h-2"
+                        color="bg-primary"
+                        className="absolute top-1/2 -right-1 -translate-y-1/2 shadow-lg shadow-foreground/40"
+                      />
                     )}
                   </button>
                 );
@@ -851,7 +855,7 @@ export default function ComprehensiveChatModal({
 
               {/* Banners for Deleted / Wipe Requested */}
               {isEntityDeleted ? (
-                <div className="bg-destructive/10 border-b border-destructive/20 text-destructive px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
+                <div className="bg-red-3 border-b border-red-6 text-red-11 px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
                   <AlertTriangle
                     size={14}
                     className="mt-0.5 sm:mt-0 shrink-0"
@@ -868,7 +872,7 @@ export default function ComprehensiveChatModal({
                   </div>
                 </div>
               ) : isEntityPendingWipe ? (
-                <div className="bg-warning/10 border-b border-amber-500/20 text-amber-10 px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
+                <div className="bg-amber-3 border-b border-amber-6 text-amber-11 px-4 py-2 flex items-start sm:items-center gap-2 text-[11px] font-bold z-10 shrink-0">
                   <AlertTriangle
                     size={14}
                     className="mt-0.5 sm:mt-0 shrink-0"
@@ -923,7 +927,7 @@ export default function ComprehensiveChatModal({
                     Input disabled. The associated record has been deleted.
                   </div>
                 ) : (
-                  <div className="bg-card border border-border rounded-2xl p-1.5 focus-within:ring-2 ring-indigo-500/20 transition-shadow">
+                  <div className="bg-card border border-border rounded-2xl p-1.5 focus-within:ring-2 ring-mauve-8/20 transition-shadow">
                     <Input
                       value={messageContent}
                       onChange={(e) => setMessageContent(e.target.value)}

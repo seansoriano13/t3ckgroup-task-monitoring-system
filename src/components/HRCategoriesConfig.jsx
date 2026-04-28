@@ -333,7 +333,7 @@ export default function HRCategoriesConfig() {
                       onChange={(e) =>
                         setFormData({ ...formData, categoryId: e.target.value })
                       }
-                      className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-8/10 transition-all text-foreground font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -350,7 +350,7 @@ export default function HRCategoriesConfig() {
                       onChange={(e) =>
                         setFormData({ ...formData, description: e.target.value })
                       }
-                      className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all text-foreground font-medium"
+                      className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-8/10 transition-all text-foreground font-medium"
                     />
                   </div>
                 </div>
@@ -473,7 +473,7 @@ export default function HRCategoriesConfig() {
 
               {/* Managed Mode Inputs (Fallback) */}
               {(isNewDept || isNewSubDept) && (
-                <div className="bg-[color:var(--violet-2)]/50 border border-indigo-100 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
+                <div className="bg-violet-2/50 border border-mauve-3 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
                   <div className="flex items-center gap-2 mb-1">
                     <Info size={14} className="text-[color:var(--violet-10)]" />
                     <p className="text-[11px] font-black text-foreground uppercase tracking-widest">
@@ -497,7 +497,7 @@ export default function HRCategoriesConfig() {
                             department: e.target.value.toUpperCase(),
                           })
                         }
-                        className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                        className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-mauve-8 transition-all font-bold"
                       />
                     </div>
                   )}
@@ -518,7 +518,7 @@ export default function HRCategoriesConfig() {
                             subDepartment: e.target.value.toUpperCase(),
                           })
                         }
-                        className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-all font-bold"
+                        className="w-full bg-card border border-mauve-5 rounded-xl px-3 py-2 text-xs outline-none focus:border-mauve-8 transition-all font-bold"
                       />
                     </div>
                   )}

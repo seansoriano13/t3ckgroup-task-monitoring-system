@@ -1,4 +1,4 @@
-﻿import { Plus, Settings } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { ScheduleActivityRow } from "./ScheduleActivityRow";
 
 export function ScheduleDayView({
@@ -121,7 +121,7 @@ export function ScheduleDayView({
           {!isLocked && (
             <button
               onClick={() => handleAddSlot(currentDateObj.dateStr, "AM")}
-              className="w-full py-2.5 border-2 border-dashed border-border hover:border-indigo-300 rounded-xl text-xs font-bold text-muted-foreground hover:text-[color:var(--violet-10)] transition-all flex items-center justify-center gap-2 hover:bg-[color:var(--violet-2)]/50"
+              className="w-full py-2.5 border-2 border-dashed border-border hover:border-mauve-6 rounded-xl text-xs font-bold text-muted-foreground hover:text-violet-10 transition-all flex items-center justify-center gap-2 hover:bg-violet-2/50"
             >
               <Plus size={14} /> Add AM Activity
             </button>
@@ -187,7 +187,7 @@ export function ScheduleDayView({
           {!isLocked && (
             <button
               onClick={() => handleAddSlot(currentDateObj.dateStr, "PM")}
-              className="w-full py-2.5 border-2 border-dashed border-border hover:border-indigo-300 rounded-xl text-xs font-bold text-muted-foreground hover:text-[color:var(--violet-10)] transition-all flex items-center justify-center gap-2 hover:bg-[color:var(--violet-2)]/50"
+              className="w-full py-2.5 border-2 border-dashed border-border hover:border-mauve-6 rounded-xl text-xs font-bold text-muted-foreground hover:text-violet-10 transition-all flex items-center justify-center gap-2 hover:bg-violet-2/50"
             >
               <Plus size={14} /> Add PM Activity
             </button>

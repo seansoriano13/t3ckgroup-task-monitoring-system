@@ -208,9 +208,10 @@ export default function QuotaManagementModule({
           <MetricBadge
             label="Published Target"
             value={metrics.totalPublished}
+            color="violet"
           />
-          <MetricBadge label="Draft Target" value={metrics.totalDraft} />
-          <MetricBadge label="Missing" value={metrics.missingCount} isCount />
+          <MetricBadge label="Draft Target" value={metrics.totalDraft} color="orange" />
+          <MetricBadge label="Missing" value={metrics.missingCount} color="red" isCount />
         </div>
       </div>
 
@@ -227,7 +228,7 @@ export default function QuotaManagementModule({
               placeholder="Search employees..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-mauve-2 border border-mauve-4 rounded-lg text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-mauve-2 border border-mauve-4 rounded-lg text-sm focus:ring-2 focus:ring-mauve-3 focus:border-mauve-8 transition-all outline-none"
             />
           </div>
 
@@ -235,7 +236,7 @@ export default function QuotaManagementModule({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none pl-9 pr-8 py-2 bg-mauve-2 border border-mauve-4 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none"
+              className="appearance-none pl-9 pr-8 py-2 bg-mauve-2 border border-mauve-4 rounded-lg text-sm font-medium focus:ring-2 focus:ring-mauve-3 focus:border-mauve-8 outline-none"
             >
               <option value="ALL">All Status</option>
               <option value="PUBLISHED">Published</option>
@@ -375,7 +376,7 @@ export default function QuotaManagementModule({
 
 function MetricBadge({ label, value, color, isCount = false }) {
   const colorMap = {
-    indigo: "text-[color:var(--violet-10)] bg-[color:var(--violet-2)] border-indigo-100",
+    violet: "text-violet-10 bg-violet-2 border-mauve-3",
     orange: "text-orange-600 bg-orange-50 border-orange-100",
     red: "text-destructive bg-destructive/5 border-red-100",
   };
@@ -446,7 +447,7 @@ function QuotaTableRow({
         <button
           onClick={onViewHistory}
           disabled={!quota}
-          className="p-2 rounded-lg text-muted-foreground hover:text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-2 rounded-lg text-muted-foreground hover:text-violet-10 hover:bg-violet-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           title="View History"
         >
           <History size={16} />
@@ -499,7 +500,7 @@ function QuotaGridCard({
         <button
           onClick={onViewHistory}
           disabled={!quota}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-violet-10 hover:bg-violet-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
         >
           <History size={14} />
         </button>
@@ -569,7 +570,7 @@ function QuotaInput({ value, onChange, isDirty, fullWidth = false }) {
         className={`w-full bg-mauve-2 border text-foreground rounded-lg pl-7 pr-3 py-2 text-sm font-bold outline-none transition-all ${
           isDirty
             ? "border-[color:var(--amber-8)] focus:border-amber-500 focus:ring-2 focus:ring-amber-100 bg-[color:var(--amber-2)]/30"
-            : "border-mauve-4 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            : "border-mauve-4 focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
         }`}
       />
     </div>
@@ -594,7 +595,7 @@ function StatusBadge({ status }) {
       );
     case "UNSAVED":
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-[color:var(--amber-2)] text-[color:var(--amber-10)] border border-[color:var(--amber-6)] shadow-sm shadow-amber-100">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-2 text-amber-11 border border-amber-6 shadow-sm shadow-amber-3">
           Unsaved Edit
         </span>
       );

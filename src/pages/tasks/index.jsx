@@ -19,6 +19,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import PageContainer from "../../components/ui/PageContainer";
 import TabGroup from "../../components/ui/TabGroup";
 import Spinner from "@/components/ui/Spinner";
+import Dot from "../../components/ui/Dot";
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -369,8 +370,10 @@ export default function TasksPage() {
             <div key={statusKey} className="space-y-4">
               {/* Group Header */}
               <div className="flex items-center gap-3 border-b border-border pb-2 px-1">
-                <div
-                  className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)] ${
+                <Dot
+                  size="w-2 h-2"
+                  className="shadow-[0_0_8px_rgba(0,0,0,0.2)]"
+                  color={
                     statusKey === "COMPLETE_VERIFIED"
                       ? "bg-green-9"
                       : statusKey === "COMPLETE_UNVERIFIED"
@@ -380,7 +383,7 @@ export default function TasksPage() {
                           : statusKey === "NOT APPROVED"
                             ? "bg-destructive"
                             : "bg-[color:var(--amber-9)]"
-                  }`}
+                  }
                 />
                 <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                   {statusKey === "COMPLETE_VERIFIED"

@@ -25,6 +25,7 @@ import LogTaskModal from "./LogTaskModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SectionHeader from "./ui/SectionHeader";
+import Dot from "./ui/Dot";
 
 function InsightBar({ label, count, total, color }) {
   const percentage = total === 0 ? 0 : Math.round((count / total) * 100);
@@ -240,8 +241,10 @@ export default function TasksList({ selectedRange }) {
               return (
                 <div key={statusKey} className="space-y-4">
                   <div className="flex items-center gap-2.5 px-1 py-1">
-                    <div
-                      className={`w-2 h-2 rounded-full shadow-sm ${
+                    <Dot
+                      className="shadow-sm"
+                      size="w-2 h-2"
+                      color={
                         statusKey === "COMPLETE_VERIFIED"
                           ? "bg-green-9 shadow-green-5"
                           : statusKey === "COMPLETE_UNVERIFIED"
@@ -251,7 +254,7 @@ export default function TasksList({ selectedRange }) {
                               : statusKey === "NOT APPROVED"
                                 ? "bg-destructive shadow-red-200"
                                 : "bg-warning shadow-[color:var(--amber-5)]"
-                      }`}
+                      }
                     />
                     <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                       {statusKey === "COMPLETE_VERIFIED"
@@ -377,8 +380,9 @@ export default function TasksList({ selectedRange }) {
                                 size={14}
                               />
                             )}
-                          <div
-                            className={`w-2 h-2 rounded-full ${
+                          <Dot
+                            size="w-2 h-2"
+                            color={
                               task.status === TASK_STATUS.COMPLETE
                                 ? "bg-green-9 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
                                 : task.status === TASK_STATUS.AWAITING_APPROVAL
@@ -386,7 +390,7 @@ export default function TasksList({ selectedRange }) {
                                   : task.status === TASK_STATUS.NOT_APPROVED
                                     ? "bg-destructive/60"
                                     : "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.3)]"
-                            }`}
+                            }
                           />
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 bg-muted px-2 py-0.5 rounded-md border border-border/50">
                             {new Date(task.createdAt).toLocaleDateString(

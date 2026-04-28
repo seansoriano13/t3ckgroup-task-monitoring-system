@@ -345,12 +345,12 @@ export default function ProfilePage() {
               {(user?.isHead || user?.isHr) && (
                 <div className="flex gap-2">
                   {user?.isHead && (
-                    <span className="bg-[color:var(--amber-2)] text-[color:var(--amber-11)] border border-[color:var(--amber-6)] text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
+                    <span className="bg-amber-2 text-amber-11 border border-amber-6 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
                       Head
                     </span>
                   )}
                   {user?.isHr && (
-                    <span className="bg-[color:var(--violet-2)] text-[color:var(--violet-11)] border border-mauve-5 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
+                    <span className="bg-violet-2 text-violet-11 border border-mauve-5 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
                       HR
                     </span>
                   )}
@@ -379,7 +379,7 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 bg-[color:var(--violet-2)] border border-indigo-100 rounded-xl flex items-center justify-center text-[color:var(--violet-9)]">
+                <div className="w-10 h-10 bg-violet-2 border border-mauve-3 rounded-xl flex items-center justify-center text-violet-9">
                   <Building2 size={20} />
                 </div>
                 <div>
@@ -426,7 +426,7 @@ export default function ProfilePage() {
           {!user?.isSuperAdmin && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 bg-[color:var(--violet-2)] border border-indigo-100 rounded-2xl flex items-center justify-center text-[color:var(--violet-9)]">
+                <div className="w-12 h-12 bg-violet-2 border border-mauve-3 rounded-2xl flex items-center justify-center text-violet-9">
                   <Hash size={20} />
                 </div>
                 <div>
@@ -575,7 +575,7 @@ export default function ProfilePage() {
                   setBannerFile(null);
                   setRemoveBanner(false);
                 }}
-                className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all"
+                className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-mauve-8/40 transition-all"
                 placeholder="Paste Unsplash image URL"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -624,7 +624,7 @@ export default function ProfilePage() {
                 setCustomQuote(e.target.value);
                 setRemoveQuote(false);
               }}
-              className="w-full min-h-[70px] rounded-xl border border-border bg-muted/40 p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all resize-none"
+              className="w-full min-h-[70px] rounded-xl border border-border bg-muted/40 p-3 text-sm outline-none focus:ring-2 focus:ring-mauve-8/40 transition-all resize-none"
               placeholder="Write your 7-word motivational quote (all users)..."
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

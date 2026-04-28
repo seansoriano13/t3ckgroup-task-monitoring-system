@@ -7,13 +7,13 @@ import {
   CheckCircle2,
   TriangleAlert,
 } from "lucide-react";
+import Dot from "./ui/Dot";
 import StatusBadge from "./StatusBadge";
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import { useAuth } from "../context/AuthContext";
 import { TASK_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
 import HighlightText from "./HighlightText";
-
 
 const getRelativeTime = (dateString) => {
   if (!dateString) return "";
@@ -46,7 +46,6 @@ const getRelativeTime = (dateString) => {
 };
 
 const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
-
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -185,7 +184,6 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
           </p>
         )}
 
-
         {/* Expanded Checklist */}
         {isChecklistFormat && isExpanded && (
           <div
@@ -199,7 +197,6 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
               onInlineCheck={handleInlineCheck}
               searchTerm={searchTerm}
             />
-
           </div>
         )}
       </div>
@@ -247,13 +244,13 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         {task.priority && (
           <div className="flex items-center gap-1.5 shrink-0 font-bold text-[10px] uppercase tracking-wider">
             {task.priority === "HIGH" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.4)] shrink-0"></span>
+              <Dot color="bg-destructive" className="shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
             )}
             {task.priority === "MEDIUM" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.4)] shrink-0"></span>
+              <Dot color="bg-warning" className="shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
             )}
             {task.priority === "LOW" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-mauve-6 shrink-0"></span>
+              <Dot />
             )}
             <span
               className={

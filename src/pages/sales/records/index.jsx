@@ -141,11 +141,11 @@ export default function SalesRecordsPage() {
             Completed: {recordsSummary.completedPct}%
           </span>
           {activeTab === "ACTIVITIES" && (
-            <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-[color:var(--violet-2)] text-[color:var(--violet-11)] border border-mauve-5">
+            <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-violet-2 text-violet-11 border border-mauve-5">
               Unplanned: {recordsSummary.unplannedPct}%
             </span>
           )}
-          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-[color:var(--amber-2)] text-[color:var(--amber-11)] border border-[color:var(--amber-6)]">
+          <span className="text-[10px] font-black px-3 py-1.5 rounded-lg bg-amber-2 text-amber-11 border border-amber-6">
             {activeTab === "ACTIVITIES" ? "Pending Expense" : "Unverified"}:{" "}
             {recordsSummary.pendingExpense}
           </span>

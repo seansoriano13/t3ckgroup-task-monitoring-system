@@ -47,8 +47,8 @@ const TYPE_OPTIONS = [
     label: "New Feature",
     icon: Rocket,
     description: "Product update or new release",
-    color: "text-indigo-600",
-    bg: "bg-indigo-50 border-indigo-200",
+    color: "text-mauve-11",
+    bg: "bg-mauve-2 border-mauve-4",
   },
   {
     value: "fix",
@@ -250,7 +250,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
                 type="button"
                 onClick={generateAIContent}
                 disabled={isGenerating}
-                className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 bg-indigo-500/10 hover:bg-indigo-500/15 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-[11px] font-bold text-mauve-9 hover:text-mauve-11 bg-mauve-9/10 hover:bg-mauve-9/15 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
                   <Spinner size="sm" />
@@ -633,7 +633,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
             <Button
               onClick={handlePost}
               disabled={!content.trim() || isPosting}
-              className="h-9 px-6 rounded-xl shadow-lg shadow-indigo-200 gap-2"
+              className="h-9 px-6 rounded-xl shadow-lg shadow-mauve-4 gap-2"
             >
               {isPosting ? (
                 <>

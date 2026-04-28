@@ -1,5 +1,6 @@
 import { FieldBox } from "./FieldBox";
 import { ClipboardList } from "lucide-react";
+import Dot from "./ui/Dot";
 
 const ManagementSection = ({
   isEditing,
@@ -23,7 +24,7 @@ const ManagementSection = ({
   return (
     <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-2xl border border-border">
       <div className="col-span-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1 flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <Dot />
         Management Details
       </div>
 
@@ -110,7 +111,10 @@ const ManagementSection = ({
         <div className="col-span-2 pt-2 border-t border-border mt-1">
           <FieldBox label="Reported To (Head)" isEditing={false}>
             <p className="px-3 text-sm font-bold text-[color:var(--violet-10)] flex items-center gap-2">
-              <ClipboardList size={14} className="text-[color:var(--violet-8)]" />
+              <ClipboardList
+                size={14}
+                className="text-[color:var(--violet-8)]"
+              />
               {reportedToName}
             </p>
           </FieldBox>
