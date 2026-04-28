@@ -21,17 +21,30 @@ export const salesRevenueService = {
   },
 
   async getEmployeeRevenue(employeeId, yearMonthStr) {
-    // yearMonthStr e.g. '2026-03'
     const { startDate, endDate } = getMonthBoundaries(yearMonthStr);
-    const { data, error } = await supabase
+
+    // 1. Fetch verification enforcement setting
+    const { data: settings } = await supabase
+      .from("app_settings")
+      .select("require_revenue_verification")
+      .maybeSingle();
+    const isEnforced = settings?.require_revenue_verification === true;
+
+    let query = supabase
       .from("sales_revenue_logs")
       .select("*")
       .eq("employee_id", employeeId)
       .eq("record_type", "SALES_ORDER")
       .gte("date", startDate)
       .lt("date", endDate)
-      .neq("is_deleted", true); // #1 — exclude soft-deleted rows (was missing, inflated metrics)
+      .neq("is_deleted", true);
 
+    // 2. Enforce verification if active
+    if (isEnforced) {
+      query = query.eq("is_verified", true);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data;
   },
@@ -160,14 +173,27 @@ export const salesRevenueService = {
   },
 
   async getRevenueAnalysis(startDate, endDate) {
-    const { data, error } = await supabase
+    // 1. Fetch verification enforcement setting
+    const { data: settings } = await supabase
+      .from("app_settings")
+      .select("require_revenue_verification")
+      .maybeSingle();
+    const isEnforced = settings?.require_revenue_verification === true;
+
+    let query = supabase
       .from("sales_revenue_logs")
       .select("*, employees!sales_revenue_logs_employee_id_fkey(name, avatar_path)")
       .eq("record_type", "SALES_ORDER")
       .gte("date", startDate)
-      .lt("date", endDate) // #14 — fixed lte→lt for consistent exclusive end-date (matches getRevenueLogsByMonth)
-      .neq("is_deleted", true) // exclude soft-deleted rows
-      .order("date", { ascending: false });
+      .lt("date", endDate)
+      .neq("is_deleted", true);
+
+    // 2. Enforce verification if active
+    if (isEnforced) {
+      query = query.eq("is_verified", true);
+    }
+
+    const { data, error } = await query.order("date", { ascending: false });
     if (error) throw error;
     return data;
   },

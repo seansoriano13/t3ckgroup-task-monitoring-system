@@ -98,7 +98,14 @@ export const salesAdminService = {
   async getLeaderboardData(startDate, endDate, quotaMonthKeys = []) {
     if (!quotaMonthKeys || quotaMonthKeys.length === 0) return [];
 
-    // Query sales_quotas which now has all the pre-calculated metrics via triggers
+    // 1. Fetch verification enforcement setting
+    const { data: settings } = await supabase
+      .from("app_settings")
+      .select("require_revenue_verification")
+      .maybeSingle();
+    const isEnforced = settings?.require_revenue_verification === true;
+
+    // 2. Query sales_quotas (base targets and other metrics)
     const { data: quotas, error } = await supabase
       .from("sales_quotas")
       .select("*, employees(name, sub_department, department)")
@@ -106,7 +113,27 @@ export const salesAdminService = {
 
     if (error) throw error;
 
-    // Aggregate by employee (in case of multiple months)
+    // 3. If verification is enforced, manually calculate current_actual from verified logs
+    // This ensures metrics are accurate even if DB triggers aren't updated yet.
+    let verifiedRevenueMap = {};
+    if (isEnforced) {
+      const { data: verifiedLogs } = await supabase
+        .from("sales_revenue_logs")
+        .select("employee_id, revenue_amount")
+        .eq("record_type", "SALES_ORDER")
+        .eq("is_verified", true)
+        .neq("is_deleted", true)
+        .gte("date", startDate)
+        .lt("date", endDate);
+
+      (verifiedLogs || []).forEach((log) => {
+        const empId = log.employee_id;
+        verifiedRevenueMap[empId] =
+          (verifiedRevenueMap[empId] || 0) + (Number(log.revenue_amount) || 0);
+      });
+    }
+
+    // 4. Aggregate by employee
     const agg = {};
 
     (quotas || []).forEach((q) => {
@@ -124,8 +151,14 @@ export const salesAdminService = {
           dealsPending: 0,
         };
       }
-      agg[q.employee_id].quota += q.status === "PUBLISHED" ? Number(q.amount_target) || 0 : 0;
-      agg[q.employee_id].revenueWon += Number(q.current_actual) || 0;
+
+      const revenueWon = isEnforced
+        ? verifiedRevenueMap[q.employee_id] || 0
+        : Number(q.current_actual) || 0;
+
+      agg[q.employee_id].quota +=
+        q.status === "PUBLISHED" ? Number(q.amount_target) || 0 : 0;
+      agg[q.employee_id].revenueWon += revenueWon;
       agg[q.employee_id].revenueLost += Number(q.revenue_lost) || 0;
       agg[q.employee_id].dealsWon += Number(q.deals_won) || 0;
       agg[q.employee_id].dealsLost += Number(q.deals_lost) || 0;
