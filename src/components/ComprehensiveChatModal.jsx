@@ -810,7 +810,7 @@ export default function ComprehensiveChatModal({
                       {selectedChat.title}
                     </h3>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                      {selectedChat.entity_type} �{" "}
+                      {selectedChat.entity_type} •{" "}
                       {selectedChat.subtitle || "Overview"}
                     </div>
                   </div>
