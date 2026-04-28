@@ -7,6 +7,7 @@ import {
   XCircle,
   Clock,
   Undo2,
+  RefreshCw,
 } from "lucide-react";
 import { TASK_STATUS } from "../constants/status.js";
 import { Button } from "@/components/ui/button";
@@ -26,9 +27,10 @@ const TaskFooter = ({ actions, permissions, state }) => {
     onSubmitApproval,
     onSelfVerify,
     onRecallTask,
+    onResubmit,
   } = actions;
   const { canEdit, canEvaluate, isHr, isManagement, isOwner } = permissions;
-  const { isEditing, isSubmitting, task, formIsValid } = state;
+  const { isEditing, isSubmitting, task, formIsValid, isHrRejected } = state;
 
   return (
     <div className="px-5 py-3 border-t border-border bg-card flex justify-between items-center shrink-0 rounded-b-xl">
@@ -79,6 +81,23 @@ const TaskFooter = ({ actions, permissions, state }) => {
           </Button>
         ) : (
           <>
+            {/* --- RESUBMIT (HR-rejected tasks — owner only) --- */}
+            {!isEditing && isOwner && isHrRejected && (
+              <Button
+                onClick={onResubmit}
+                disabled={isSubmitting}
+                className="bg-violet-9 hover:bg-violet-10 text-white font-bold px-5 h-9 text-sm"
+                title="Reset this task back to the head review queue"
+              >
+                {isSubmitting ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <RefreshCw size={16} />
+                )}
+                Resubmit for Review
+              </Button>
+            )}
+
             {/* --- AUTHOR ACTION --- */}
             {canEdit && (
               <Button
@@ -97,11 +116,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 task.status === TASK_STATUS.NOT_APPROVED) && (
                 <Button
                   onClick={onSubmitApproval}
-                  disabled={
-                    isSubmitting ||
-                    (state.isMarketing && !state.hasAttachments) ||
-                    state.task.status === TASK_STATUS.AWAITING_APPROVAL
-                  }
+                  disabled={isSubmitting || state.task.status === TASK_STATUS.AWAITING_APPROVAL}
                   className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
                 >
                   {isSubmitting ? (
@@ -109,7 +124,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                   ) : (
                     <CheckCircle size={16} />
                   )}
-                  {state.isMarketing ? "Mark as Done" : "Submit for Review"}
+                  Submit for Approval
                 </Button>
               )}
 

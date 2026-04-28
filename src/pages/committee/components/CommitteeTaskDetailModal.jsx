@@ -628,7 +628,7 @@ export default function CommitteeTaskDetailModal({
                                     <CheckCircle2 size={16} />
                                     {isMarkingDone
                                       ? "Marking..."
-                                      : "Mark as Done"}
+                                      : "Submit for Approval"}
                                   </button>
                                 )}
 

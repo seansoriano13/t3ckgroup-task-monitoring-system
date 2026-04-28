@@ -19,7 +19,7 @@ export const salesAdminService = {
       data || {
         require_revenue_verification: false,
         sales_self_approve_expenses: false,
-        universal_task_submission: false,
+        universal_task_submission: true,
         marketing_approval_by_ops_manager: false,
         enable_self_verification: false,
         enable_bulk_approval: false,

@@ -349,6 +349,21 @@ export const taskMutationService = {
 
       // --- Status transition events ---
       const isEmployeeSelfComplete = payload?.status === TASK_STATUS.AWAITING_APPROVAL && current?.status !== TASK_STATUS.AWAITING_APPROVAL;
+
+      // Employee resubmitting an HR-rejected task back into the head review pipeline
+      const isResubmission =
+        payload?.status === TASK_STATUS.INCOMPLETE &&
+        current?.status === TASK_STATUS.NOT_APPROVED;
+      if (isResubmission) {
+        updateData.grade = 0;
+        updateData.evaluated_by = null;
+        updateData.evaluated_at = null;
+        updateData.hr_verified = false;
+        updateData.hr_verified_at = null;
+        updateData.hr_remarks = "";
+        updateData.remarks = "";
+      }
+
       if (isEmployeeSelfComplete) {
         taskActivityService.addSystemEvent(
           taskId,
@@ -435,7 +450,7 @@ export const taskMutationService = {
         );
       }
 
-      // Task recalled
+      // Task recalled (from AWAITING_APPROVAL)
       const isRecall =
         payload?.status === TASK_STATUS.INCOMPLETE &&
         current?.status === TASK_STATUS.AWAITING_APPROVAL;
@@ -444,6 +459,15 @@ export const taskMutationService = {
           taskId,
           `Task recalled by ${editorName}.`,
           { event: "STATUS_CHANGE", old_status: TASK_STATUS.AWAITING_APPROVAL, new_status: TASK_STATUS.INCOMPLETE },
+        );
+      }
+
+      // Task resubmitted (from HR rejection back to head queue)
+      if (isResubmission) {
+        taskActivityService.addSystemEvent(
+          taskId,
+          `Task resubmitted for head review by ${current.creator?.name || editorName}.`,
+          { event: "RESUBMITTED", old_status: TASK_STATUS.NOT_APPROVED, new_status: TASK_STATUS.INCOMPLETE },
         );
       }
 
@@ -463,6 +487,8 @@ export const taskMutationService = {
           if (newEnd !== current.end_at) edits.push("end date");
         }
         if (payload.remarks !== undefined && payload.remarks !== current.remarks) edits.push("remarks");
+        if (payload.paymentVoucher !== undefined && payload.paymentVoucher !== current.payment_voucher) edits.push("payment voucher");
+        if (payload.attachments !== undefined) edits.push("attachments");
 
         if (edits.length > 0) {
           taskActivityService.addSystemEvent(
@@ -538,6 +564,29 @@ export const taskMutationService = {
           message: `Your task ${taskNameSnippet} was rejected for revision. Check the remarks.`,
           reference_id: taskId,
         });
+      }
+
+      if (isResubmission) {
+        // Notify the head that the employee resubmitted for re-evaluation
+        const resubNotif = {
+          sender_id: payload.editedBy,
+          type: "NEW_TASK_SUBMITTED",
+          title: "Task Resubmitted for Review",
+          message: `${current.creator?.name} resubmitted ${taskNameSnippet} after HR rejection. Please re-evaluate.`,
+          reference_id: taskId,
+        };
+        if (current.reported_to) {
+          notificationService.createNotification({
+            recipient_id: current.reported_to,
+            ...resubNotif,
+          });
+        } else {
+          notificationService.notifyHeadByDepartment(
+            current.creator?.department,
+            current.creator?.sub_department,
+            resubNotif,
+          );
+        }
       }
 
       if (payload.hrVerified === true && current.hr_verified === false) {

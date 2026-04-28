@@ -161,8 +161,8 @@ export default function SettingsPage() {
                 isLoading={loadingSettings}
               />
               <SettingToggle
-                label="Universal Task Submission (Beta)"
-                description="When ON, all employees (not just Marketing) can explicitly submit tasks for manager review before approval. Currently in proposal — enable only after team alignment."
+                label="Universal Task Submission"
+                description="All employees can explicitly submit tasks for manager review before approval. Heads will see submitted tasks in their approval queue."
                 icon={Shield}
                 checked={!!appSettings?.universal_task_submission}
                 onToggle={toggle("universal_task_submission")}

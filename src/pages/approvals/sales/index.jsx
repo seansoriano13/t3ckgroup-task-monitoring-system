@@ -28,6 +28,7 @@ import { supabase } from "../../../lib/supabase";
 import PageContainer from "@/components/ui/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import TabGroup from "@/components/ui/TabGroup";
+import { Button } from "@/components/ui/button";
 import Avatar from "../../../components/Avatar";
 import HighlightText from "../../../components/HighlightText";
 
@@ -57,6 +58,8 @@ export default function SalesHeadApprovalsPage() {
   const [sortBy, setSortBy] = useState("NEWEST");
   const [selectedActivities, setSelectedActivities] = useState(new Set());
   const [bulkRemarks, setBulkRemarks] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleToggleSelection = (id) => {
     setSelectedActivities((prev) => {
@@ -381,6 +384,16 @@ export default function SalesHeadApprovalsPage() {
     return result;
   }, [processedActivities, activeTab]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterEmp, filterStatus, filterType, timeframe, selectedDateFilter, sortBy, activeTab]);
+
+  const paginatedGroupedData = useMemo(() => {
+    return groupedData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  }, [groupedData, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(groupedData.length / itemsPerPage);
+
   // ── Mutations ──
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["salesHeadPending"] });
@@ -665,7 +678,7 @@ export default function SalesHeadApprovalsPage() {
           </div>
         ) : activeTab !== "REQUESTS" ? (
           <div className="space-y-8">
-            {groupedData.map((empGroup) => (
+            {paginatedGroupedData.map((empGroup) => (
               <EmployeeBlock
                 key={empGroup.employeeName}
                 empGroup={empGroup}
@@ -680,8 +693,39 @@ export default function SalesHeadApprovalsPage() {
                 onToggleDaySelection={handleToggleDaySelection}
                 searchTerm={searchQuery}
               />
-
             ))}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-border pt-6 mt-4">
+                <span className="text-sm font-semibold text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.max(1, prev - 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ) : null}
       </PageContainer>

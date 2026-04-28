@@ -411,17 +411,19 @@ export default function TaskApprovalsPage() {
 
           {/* Super-admin scope toggle — visible only to super admins */}
           {isSuperAdmin && (
-            <button
-              onClick={() => setReportedToMeOnly((prev) => !prev)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all shrink-0 ${
-                reportedToMeOnly
-                  ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
-                  : "bg-amber-500/10 border-amber-500/30 text-amber-600 hover:bg-amber-500/20"
-              }`}
-            >
-              <Users2 size={13} />
-              {reportedToMeOnly ? "My Queue" : "All Tasks (System-wide)"}
-            </button>
+            <TabGroup
+              tabs={[
+                { value: "ME", label: "My Queue", icon: Users2 },
+                {
+                  value: "ALL",
+                  label: "System-wide",
+                  icon: Users2,
+                  activeClass: "bg-amber-500/10 text-amber-600 shadow-sm rounded-lg",
+                },
+              ]}
+              activeTab={reportedToMeOnly ? "ME" : "ALL"}
+              onChange={(v) => setReportedToMeOnly(v === "ME")}
+            />
           )}
         </div>
 

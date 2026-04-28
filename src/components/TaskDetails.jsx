@@ -171,14 +171,13 @@ export default function TaskDetails({
 
   // Permissions & Handlers
   const isOwner = user?.id === task.loggedById;
-  const isHrRejected = task.status === "NOT APPROVED" && (task.grade ?? 0) > 0;
+  const isHrRejected = task.status === TASK_STATUS.NOT_APPROVED && (task.grade ?? 0) > 0;
   const canEdit =
     isHr ||
     isHead ||
     (isOwner &&
       task.status !== TASK_STATUS.COMPLETE &&
-      task.status !== TASK_STATUS.AWAITING_APPROVAL &&
-      !isHrRejected);
+      task.status !== TASK_STATUS.AWAITING_APPROVAL);
 
   let isChecklistFormat = false;
   let hasUncheckedItems = false;
@@ -321,6 +320,14 @@ export default function TaskDetails({
       editedBy: user.id,
       hrVerified: false,
       hrRemarks: "",
+    });
+  };
+
+  const handleResubmit = () => {
+    executeUpdate({
+      id: task.id,
+      status: TASK_STATUS.INCOMPLETE,
+      editedBy: user.id,
     });
   };
 
@@ -653,8 +660,7 @@ export default function TaskDetails({
                 }}
                 readOnly={
                   !canEdit ||
-                  !isOwner ||
-                  task.status === TASK_STATUS.NOT_APPROVED
+                  !isOwner
                 }
               />
             </div>
@@ -824,6 +830,8 @@ export default function TaskDetails({
                 editedBy: user.id,
               }),
 
+            onResubmit: handleResubmit,
+
             setTimelineMessage: (msg) => {
               timelineMessageRef.current = msg;
             },
@@ -844,6 +852,7 @@ export default function TaskDetails({
               appSettings?.universal_task_submission === true,
             hasAttachments:
               formData.attachments && formData.attachments.length > 0,
+            isHrRejected,
             isDelayed,
             enableSelfVerification:
               appSettings?.enable_self_verification === true,

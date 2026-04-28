@@ -163,7 +163,9 @@ export default function ChecklistTaskInput({
                     setItems(newItems);
                     emitChange(newItems);
                     setTimeout(() => {
-                      const inputs = e.target.closest(".space-y-2")?.querySelectorAll('input[type="text"]');
+                      const inputs = e.target
+                        .closest(".space-y-2")
+                        ?.querySelectorAll('input[type="text"]');
                       inputs?.[Math.max(0, index - 1)]?.focus();
                     }, 0);
                   }
@@ -188,7 +190,7 @@ export default function ChecklistTaskInput({
           <button
             type="button"
             onClick={addItem}
-            className="flex items-center gap-2 text-xs font-bold text-[color:var(--violet-10)] hover:text-[color:var(--violet-11)] transition-all py-2 px-3 rounded-lg hover:bg-[color:var(--violet-2)]"
+            className="flex items-center gap-2 text-xs font-bold text-mauve-10 transition-all py-2 px-3 rounded-lg hover:bg-mauve-3"
           >
             <Plus size={16} /> Add Item
           </button>

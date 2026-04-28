@@ -750,6 +750,7 @@ export default function ComprehensiveChatModal({
                           </span>
                           {chat.is_deleted &&
                             chat.entity_type !== "COMMITTEE_TASK" && (
+                              <span className="flex items-center gap-1 text-[9px] font-bold text-red-11 bg-red-3/50 px-1.5 py-0.5 rounded uppercase">
                                 <Dot color="bg-destructive" className="block" />{" "}
                                 Deleted
                               </span>
