@@ -35,6 +35,8 @@ export default function LogSalesPage() {
 
   // If navigated from "Convert to SO", pre-fill the data
   const prefill = location.state?.prefill || {};
+  // ID of the original quotation being converted (if any)
+  const sourceQuotationId = prefill.source_quotation_id || null;
 
   const [formData, setFormData] = useState({
     record_type: prefill.record_type || RECORD_TYPE.SALES_ORDER,
@@ -53,12 +55,24 @@ export default function LogSalesPage() {
 
   const mutation = useMutation({
     mutationFn: (payload) => salesService.logRevenue(payload),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(
         isOrder
           ? "Sales Order Logged Successfully!"
           : "Sales Quotation Logged Successfully!",
       );
+
+      // If this SO was converted from a quotation, flag the original as converted
+      if (isOrder && sourceQuotationId) {
+        try {
+          await salesService.updateRevenueLog(sourceQuotationId, {
+            is_converted: true,
+          });
+        } catch (err) {
+          console.warn("Could not flag quotation as converted:", err.message);
+        }
+      }
+
       // clear `location.state` to avoid prefilling again if refreshed
       navigate(location.pathname, { replace: true, state: {} });
       // reset generic fields
@@ -72,7 +86,7 @@ export default function LogSalesPage() {
         reference_number: "",
         remarks: "",
       }));
-      // invalidate queries if Dashboard relies on them
+      // invalidate queries so Revenue tab reflects the converted flag
       queryClient.invalidateQueries({ queryKey: ["revenueLogs"] });
       queryClient.invalidateQueries({ queryKey: ["allRevenueLogs"] });
     },

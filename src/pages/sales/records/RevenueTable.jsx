@@ -142,25 +142,36 @@ export default function RevenueTable({
                       >
                         {/* Convert to SO Button for Quotations */}
                         {log.record_type === "SALES_QUOTATION" && (
-                          <button
-                            title="Convert to Sales Order"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate("/sales/log-sales", {
-                                state: {
-                                  prefill: {
-                                    ...log,
-                                    record_type: "SALES_ORDER",
-                                    date: new Date().toISOString().split("T")[0],
+                          log.is_converted ? (
+                            <span
+                              title="Already converted to a Sales Order"
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-3/50 text-green-10 border border-green-6/20 cursor-default"
+                            >
+                              <Briefcase size={12} />
+                              <p className="font-black text-[10px] uppercase tracking-widest">Converted</p>
+                            </span>
+                          ) : (
+                            <button
+                              title="Convert to Sales Order"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate("/sales/log-sales", {
+                                  state: {
+                                    prefill: {
+                                      ...log,
+                                      record_type: "SALES_ORDER",
+                                      date: new Date().toISOString().split("T")[0],
+                                      source_quotation_id: log.id,
+                                    },
                                   },
-                                },
-                              });
-                            }}
-                            className="flex-center gap-1 p-1.5 rounded-lg text-violet-10 hover:bg-violet-3/50 transition-colors"
-                          >
-                            <p className="font-bold text-sm uppercase">Convert</p>{" "}
-                            <Briefcase size={14} />
-                          </button>
+                                });
+                              }}
+                              className="flex-center gap-1 p-1.5 rounded-lg text-violet-10 hover:bg-violet-3/50 transition-colors"
+                            >
+                              <p className="font-bold text-sm uppercase">Convert</p>{" "}
+                              <Briefcase size={14} />
+                            </button>
+                          )
                         )}
 
                         {/* Super Admin soft-delete button */}
@@ -232,6 +243,15 @@ function RevenueStatusBadge({ log, isVerificationEnforced }) {
     return (
       <span className="bg-amber-3/50 text-amber-11 border border-amber-6/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
         PENDING
+      </span>
+    );
+  }
+
+  // Converted quotation — takes priority over generic SUBMITTED label
+  if (log.record_type === "SALES_QUOTATION" && log.is_converted) {
+    return (
+      <span className="bg-green-3/50 text-green-11 border border-green-6/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+        CONVERTED
       </span>
     );
   }
