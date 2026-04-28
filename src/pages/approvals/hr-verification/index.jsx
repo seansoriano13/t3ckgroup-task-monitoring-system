@@ -149,8 +149,9 @@ export default function HrVerificationPage() {
           (t.taskDescription || "").toLowerCase().includes(q),
       );
     }
-    if (priorityFilter === "HIGH") result = result.filter((t) => t.priority === "HIGH");
-    if (priorityFilter === "NORMAL") result = result.filter((t) => t.priority !== "HIGH");
+    if (priorityFilter !== "ALL") {
+      result = result.filter((t) => t.priority === priorityFilter);
+    }
     if (startDate && endDate) {
       const filterStart = new Date(startDate).setHours(0, 0, 0, 0);
       const filterEnd = new Date(endDate).setHours(23, 59, 59, 999);

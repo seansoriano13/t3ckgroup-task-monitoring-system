@@ -48,9 +48,17 @@ export const AuthProvider = ({ children }) => {
             resolveProfileMediaUrl(employee.dashboardBannerPath),
           ]);
 
+          // Only fall back to Google's OAuth avatar when the employee has no
+          // custom avatar_path saved. If they do have one, use the storage URL
+          // (or nothing). This prevents Google's photo from overwriting a
+          // custom upload on every reload.
+          const googleFallback = employee.avatarPath
+            ? ""
+            : metadata?.avatar_url || metadata?.picture || "";
+
           const mergedUser = {
             ...employee,
-            picture: pictureFromStorage || metadata?.avatar_url || metadata?.picture || "",
+            picture: pictureFromStorage || googleFallback,
             dashboardBannerUrl: bannerFromStorage || null,
           };
           

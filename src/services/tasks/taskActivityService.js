@@ -13,7 +13,7 @@ export const taskActivityService = {
       .select(
         `
         *,
-        author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)
+        author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)
       `,
       )
       .eq("task_id", taskId)
@@ -66,7 +66,7 @@ export const taskActivityService = {
           created_at,
           creator:employees!tasks_logged_by_fk(name, department, sub_department)
         ),
-        author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)
+        author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)
       `,
       )
       .order("created_at", { ascending: false });
@@ -148,7 +148,7 @@ export const taskActivityService = {
         content: content.trim(),
       })
       .select(
-        `*, author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)`,
+        `*, author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`,
       )
       .single();
 
@@ -290,7 +290,7 @@ export const taskActivityService = {
             const { data } = await supabase
               .from("task_activity")
               .select(
-                `*, author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)`,
+                `*, author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`,
               )
               .eq("id", payload.new.id)
               .single();
@@ -337,7 +337,7 @@ export const taskActivityService = {
             const { data } = await supabase
               .from("task_activity")
               .select(
-                `*, author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)`,
+                `*, author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`,
               )
               .eq("id", payload.new.id)
               .single();

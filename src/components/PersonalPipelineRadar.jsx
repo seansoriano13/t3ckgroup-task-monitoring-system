@@ -86,7 +86,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
   }
 
   return (
-    <div className="bg-card border border-primary/20 rounded-3xl shadow-xl overflow-hidden relative group">
+    <div className="bg-card border border-mauve-6 rounded-3xl shadow-xl overflow-hidden relative group">
       {/* Visual background glow */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full pointer-events-none" />
 
@@ -102,21 +102,21 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
               />
               <div>
                 <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-                  <Activity className="text-primary" size={20} /> My Pipeline Radar
+                  <Activity className="text-primary" size={20} /> My Pipeline
+                  Radar
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1 font-medium italic">
                   Visual performance tracking for{" "}
                   {selectedMonth
                     ? new Date(selectedMonth).toLocaleString("default", {
-                      month: "long",
-                      year: "numeric",
-                    })
+                        month: "long",
+                        year: "numeric",
+                      })
                     : "this month"}
                 </p>
               </div>
             </div>
           </div>
-
 
           <div className="flex gap-4">
             <div className="bg-muted border border-border rounded-2xl px-5 py-3 text-center">
@@ -243,14 +243,18 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
 function LegendItem({ icon, label, value, color }) {
   return (
     <div className="flex items-center gap-3 bg-muted/50 border border-border/50 p-2 rounded-xl">
-      <div className={`p-1.5 rounded-lg ${color} text-primary-foreground shadow-sm`}>
+      <div
+        className={`p-1.5 rounded-lg ${color} text-primary-foreground shadow-sm`}
+      >
         {icon}
       </div>
       <div>
         <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">
           {label}
         </p>
-        <p className="text-sm font-black text-foreground leading-none">{value}</p>
+        <p className="text-sm font-black text-foreground leading-none">
+          {value}
+        </p>
       </div>
     </div>
   );

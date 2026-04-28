@@ -2,14 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { salesQuotaService } from "../../services/sales/salesQuotaService";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-import { PlusCircle, Edit3, CheckCircle2, User } from "lucide-react";
+import { PlusCircle, Edit3, CheckCircle2 } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
+import Avatar from "../Avatar";
 
 export default function QuotaHistoryModal({
   isOpen,
   onClose,
   quotaId,
   employeeName,
+  employeeAvatar,
 }) {
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ["quotaHistory", quotaId],
@@ -21,13 +23,16 @@ export default function QuotaHistoryModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md w-full p-0 bg-card shadow-2xl rounded-2xl border border-mauve-4 overflow-hidden">
         {/* Header */}
-        <div className="bg-mauve-2 border-b border-mauve-3 p-5">
-          <h2 className="text-lg font-black text-foreground tracking-tight">
-            Quota History
-          </h2>
-          <p className="text-sm text-muted-foreground font-medium mt-1">
-            Audit log for {employeeName}
-          </p>
+        <div className="bg-mauve-2 border-b border-mauve-3 p-5 flex items-center gap-4">
+          <Avatar name={employeeName} src={employeeAvatar} size="md" />
+          <div>
+            <h2 className="text-lg font-black text-foreground tracking-tight">
+              Quota History
+            </h2>
+            <p className="text-sm text-muted-foreground font-medium mt-1">
+              Audit log for {employeeName}
+            </p>
+          </div>
         </div>
 
         {/* Content */}
@@ -49,7 +54,7 @@ export default function QuotaHistoryModal({
                 const isPublished = log.action === "PUBLISHED";
 
                 let Icon = Edit3;
-                let colorClass = "bg-[color:var(--blue-3)] text-[color:var(--blue-10)] border-[color:var(--blue-6)]";
+                let colorClass = "bg-blue-3 text-blue-10 border-blue-6";
 
                 if (isCreated) {
                   Icon = PlusCircle;
@@ -79,7 +84,7 @@ export default function QuotaHistoryModal({
                               ? "bg-green-50 text-green-10"
                               : isPublished
                                 ? "bg-muted text-foreground"
-                                : "bg-[color:var(--blue-2)] text-[color:var(--blue-10)]"
+                                : "bg-blue-2 text-blue-10"
                           }`}
                         >
                           {log.action}
@@ -96,17 +101,11 @@ export default function QuotaHistoryModal({
                       </div>
 
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-mauve-4 text-muted-foreground overflow-hidden">
-                          {log.changed_by_employee?.avatar_path ? (
-                            <img
-                              src={log.changed_by_employee.avatar_path}
-                              alt="avatar"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <User size={12} />
-                          )}
-                        </div>
+                        <Avatar
+                          name={log.changed_by_employee?.name || "System"}
+                          src={log.changed_by_employee?.avatar_path}
+                          size="sm"
+                        />
                         <span className="text-xs font-semibold text-foreground">
                           {log.changed_by_employee?.name || "System"}
                         </span>

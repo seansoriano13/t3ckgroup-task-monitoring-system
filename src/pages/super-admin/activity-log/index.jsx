@@ -13,6 +13,7 @@ import { committeeTaskActivityService } from "../../../services/committeeTaskAct
 import TaskDetails from "../../../components/TaskDetails.jsx";
 import SalesTaskDetailsModal from "../../../components/SalesTaskDetailsModal.jsx";
 import Avatar from "../../../components/Avatar.jsx";
+import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import HighlightText from "../../../components/HighlightText";
 
 import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
@@ -189,6 +190,7 @@ export default function SuperAdminActivityLogPage() {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedSalesActivityId, setSelectedSalesActivityId] = useState(null);
   const [liveAnim, setLiveAnim] = useState(false);
+  const avatarMap = useEmployeeAvatarMap();
 
   const [filters, setFilters] = useState({
     type: "ALL",
@@ -892,6 +894,7 @@ export default function SuperAdminActivityLogPage() {
                         <div className="flex items-center gap-1.5">
                           <Avatar
                             name={e.authorName || "System"}
+                            src={avatarMap.get(e.authorId)}
                             size="xxs"
                             className="bg-mauve-4 text-mauve-12  shadow-sm"
                           />

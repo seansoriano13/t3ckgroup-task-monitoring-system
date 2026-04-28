@@ -388,8 +388,8 @@ export default function TasksList({ selectedRange }) {
                                 : task.status === TASK_STATUS.AWAITING_APPROVAL
                                   ? "bg-primary shadow-[0_0_8px_rgba(79,70,229,0.3)]"
                                   : task.status === TASK_STATUS.NOT_APPROVED
-                                    ? "bg-destructive/60"
-                                    : "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                                    ? "bg-red-9 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                                    : "bg-amber-7 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
                             }
                           />
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 bg-muted px-2 py-0.5 rounded-md border border-border/50">
@@ -548,7 +548,7 @@ export default function TasksList({ selectedRange }) {
                             color="bg-primary/50"
                           />
                           <InsightBar
-                            label="Verified & Locked"
+                            label="Verified"
                             count={verifiedCount}
                             total={total}
                             color="bg-green-9 shadow-green-5"

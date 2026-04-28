@@ -11,9 +11,11 @@ export default function PriorityDropdown({
   className = "",
   triggerClassName,
   customTrigger,
+  hasAll = false,
 }) {
-  const currentPriority =
-    PRIORITY_OPTIONS.find((p) => p.value === value) || PRIORITY_OPTIONS[0];
+  const currentPriority = value === "ALL"
+    ? { value: "ALL", label: "Priority: All", dot: "bg-transparent" }
+    : PRIORITY_OPTIONS.find((p) => p.value === value) || PRIORITY_OPTIONS[0];
 
   return (
     <Dropdown
@@ -41,6 +43,24 @@ export default function PriorityDropdown({
     >
       {({ close }) => (
         <>
+          {hasAll && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onChange) onChange("ALL");
+                close();
+              }}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
+                value === "ALL" || !value
+                  ? "bg-muted/80 text-foreground font-bold"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              <Dot size="w-2 h-2" color="bg-transparent" />
+              Priority: All
+            </button>
+          )}
           {PRIORITY_OPTIONS.map((opt) => (
             <button
               key={opt.value}

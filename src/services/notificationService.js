@@ -12,7 +12,7 @@ export const notificationService = {
       .from('notifications')
       .select(`
         *,
-        sender:employees!notifications_sender_id_fkey(name, department)
+        sender:employees!notifications_sender_id_fkey(name, department, avatar_path)
       `)
       .eq('recipient_id', userId)
       .order('created_at', { ascending: false })

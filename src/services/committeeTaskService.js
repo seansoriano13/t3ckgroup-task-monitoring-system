@@ -86,7 +86,7 @@ export const committeeTaskService = {
       .from("committee_tasks")
       .select(`
         *,
-        creator:employees!committee_tasks_created_by_fkey(name, department, sub_department),
+        creator:employees!committee_tasks_created_by_fkey(name, department, sub_department, avatar_path),
         members:committee_task_members(
           id, employee_id, task_description, status, grade, grade_remarks, rated_at, rated_by,
           employee:employees!committee_task_members_employee_id_fkey(name, avatar_path)
@@ -112,7 +112,7 @@ export const committeeTaskService = {
       .from("committee_tasks")
       .select(`
         *,
-        creator:employees!committee_tasks_created_by_fkey(name, department, sub_department),
+        creator:employees!committee_tasks_created_by_fkey(name, department, sub_department, avatar_path),
         members:committee_task_members(
           id, employee_id, task_description, status, grade, grade_remarks, rated_at, rated_by,
           employee:employees!committee_task_members_employee_id_fkey(name, avatar_path, department)
@@ -385,7 +385,7 @@ export const committeeTaskService = {
     // Get creator and task to notify
     const { data: ct } = await supabase
       .from("committee_tasks")
-      .select("*, creator:employees!committee_tasks_created_by_fkey(name)")
+      .select("*, creator:employees!committee_tasks_created_by_fkey(name, avatar_path)")
       .eq("id", committeeTaskId)
       .single();
 

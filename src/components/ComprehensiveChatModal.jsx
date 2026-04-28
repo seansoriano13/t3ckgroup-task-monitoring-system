@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "../lib/supabase";
 import { cn } from "@/lib/utils";
 import TabGroup from "@/components/ui/TabGroup";
+import HighlightText from "./HighlightText";
 
 // -------------------------------------------------------------
 //  HELPERS
@@ -761,13 +762,13 @@ export default function ComprehensiveChatModal({
                         </span>
                       </div>
                       <h4 className="text-[13px] font-bold truncate leading-tight mb-1">
-                        {chat.title}
+                        <HighlightText text={chat.title || ""} search={searchQuery} />
                       </h4>
                       <p className="text-xs text-muted-foreground truncate leading-relaxed">
                         <span className="font-bold text-foreground/80">
-                          {chat.latest_author}:
+                          <HighlightText text={chat.latest_author || ""} search={searchQuery} />:
                         </span>{" "}
-                        {chat.latest_message}
+                        <HighlightText text={chat.latest_message || ""} search={searchQuery} />
                       </p>
                     </div>
                     {chat.is_unread && !selectionMode && (

@@ -43,7 +43,7 @@ export const salesAdminService = {
     let query = supabase
       .from("sales_activities")
       .select(
-        "*, employees!sales_activities_employee_id_fkey(name, department, sub_department, is_super_admin), sales_weekly_plans!sales_activities_plan_id_fkey(status)",
+        "*, employees!sales_activities_employee_id_fkey(name, department, sub_department, is_super_admin, avatar_path), sales_weekly_plans!sales_activities_plan_id_fkey(status)",
       )
       .neq("is_deleted", true)
       .order("scheduled_date", { ascending: false });
@@ -68,7 +68,7 @@ export const salesAdminService = {
     const { data, error } = await supabase
       .from("sales_activities")
       .select(
-        "*, employees!sales_activities_employee_id_fkey(name, department, sub_department, is_super_admin)",
+        "*, employees!sales_activities_employee_id_fkey(name, department, sub_department, is_super_admin, avatar_path)",
       )
       .neq("is_deleted", true)
       .gte("scheduled_date", startDate)
@@ -83,7 +83,7 @@ export const salesAdminService = {
     const { data, error } = await supabase
       .from("sales_revenue_logs")
       .select(
-        "*, employees!sales_revenue_logs_employee_id_fkey(name, department, sub_department, is_super_admin), editor:employees!sales_revenue_logs_last_edited_by_fkey(name)",
+        "*, employees!sales_revenue_logs_employee_id_fkey(name, department, sub_department, is_super_admin, avatar_path), editor:employees!sales_revenue_logs_last_edited_by_fkey(name, avatar_path)",
       )
       .neq("is_deleted", true) // exclude soft-deleted rows
       .order("date", { ascending: false });

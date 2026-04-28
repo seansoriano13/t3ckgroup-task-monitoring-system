@@ -17,7 +17,6 @@ import Spinner from "@/components/ui/Spinner";
 import QuotaHistoryModal from "./QuotaHistoryModal";
 import HighlightText from "../../components/HighlightText";
 
-
 export default function QuotaManagementModule({
   salesEmployees = [],
   quotas = [],
@@ -38,6 +37,7 @@ export default function QuotaManagementModule({
     isOpen: false,
     quotaId: null,
     employeeName: "",
+    employeeAvatar: "",
   });
 
   // Map employee_id -> latest quota object (for the selected month/range)
@@ -98,7 +98,7 @@ export default function QuotaManagementModule({
   // Filtering
   const filteredEmployees = useMemo(() => {
     return salesEmployees.filter((emp) => {
-    const q = quotaMap[emp.id];
+      const q = quotaMap[emp.id];
       const matchSearch =
         emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (emp.role &&
@@ -184,6 +184,7 @@ export default function QuotaManagementModule({
         isOpen: true,
         quotaId: q.id,
         employeeName: salesEmployees.find((e) => e.id === empId)?.name,
+        employeeAvatar: resolvedAvatars[empId],
       });
     } else {
       toast("No quota history yet.");
@@ -210,8 +211,17 @@ export default function QuotaManagementModule({
             value={metrics.totalPublished}
             color="violet"
           />
-          <MetricBadge label="Draft Target" value={metrics.totalDraft} color="orange" />
-          <MetricBadge label="Missing" value={metrics.missingCount} color="red" isCount />
+          <MetricBadge
+            label="Draft Target"
+            value={metrics.totalDraft}
+            color="orange"
+          />
+          <MetricBadge
+            label="Missing"
+            value={metrics.missingCount}
+            color="red"
+            isCount
+          />
         </div>
       </div>
 
@@ -273,11 +283,7 @@ export default function QuotaManagementModule({
             disabled={isSaving || !hasPendingEdits}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shrink-0 bg-mauve-12 hover:bg-mauve-12 text-primary-foreground disabled:bg-mauve-4 disabled:text-muted-foreground disabled:cursor-not-allowed"
           >
-            {isSaving ? (
-              <Spinner size="sm" />
-            ) : (
-              <CheckCheck size={14} />
-            )}
+            {isSaving ? <Spinner size="sm" /> : <CheckCheck size={14} />}
             Save Drafts
           </button>
 
@@ -286,11 +292,7 @@ export default function QuotaManagementModule({
             disabled={isPublishing || draftQuotaIds.length === 0}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shrink-0 bg-primary hover:bg-primary-hover text-primary-foreground shadow-md shadow-primary/15 disabled:bg-mauve-5 disabled:shadow-none disabled:cursor-not-allowed"
           >
-            {isPublishing ? (
-              <Spinner size="sm" />
-            ) : (
-              <UploadCloud size={14} />
-            )}
+            {isPublishing ? <Spinner size="sm" /> : <UploadCloud size={14} />}
             Publish All Drafts
           </button>
         </div>
@@ -330,7 +332,6 @@ export default function QuotaManagementModule({
                     onViewHistory={() => openHistory(emp.id)}
                     searchQuery={searchQuery}
                   />
-
                 ))}
               </tbody>
             </table>
@@ -350,7 +351,6 @@ export default function QuotaManagementModule({
                 onViewHistory={() => openHistory(emp.id)}
                 searchQuery={searchQuery}
               />
-
             ))}
           </div>
         )}
@@ -367,6 +367,7 @@ export default function QuotaManagementModule({
         }
         quotaId={historyModalState.quotaId}
         employeeName={historyModalState.employeeName}
+        employeeAvatar={historyModalState.employeeAvatar}
       />
     </div>
   );
@@ -407,7 +408,6 @@ function QuotaTableRow({
   onViewHistory,
   searchQuery,
 }) {
-
   const serverValue = quota?.amount_target ?? 0;
   const isDirty = (parseFloat(draftValue) || 0) !== serverValue;
   const status = isDirty ? "UNSAVED" : quota?.status || "MISSING";
@@ -431,10 +431,12 @@ function QuotaTableRow({
               <HighlightText text={employee.name} search={searchQuery} />
             </p>
             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-              <HighlightText text={employee.role || "Sales Rep"} search={searchQuery} />
+              <HighlightText
+                text={employee.role || "Sales Rep"}
+                search={searchQuery}
+              />
             </p>
           </div>
-
         </div>
       </td>
       <td className="px-6 py-4">
@@ -447,7 +449,7 @@ function QuotaTableRow({
         <button
           onClick={onViewHistory}
           disabled={!quota}
-          className="p-2 rounded-lg text-muted-foreground hover:text-violet-10 hover:bg-violet-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-2 rounded-lg text-muted-foreground hover:text-mauve-12 hover:bg-mauve-3 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           title="View History"
         >
           <History size={16} />
@@ -468,7 +470,6 @@ function QuotaGridCard({
   onViewHistory,
   searchQuery,
 }) {
-
   const serverValue = quota?.amount_target ?? 0;
   const isDirty = (parseFloat(draftValue) || 0) !== serverValue;
   const status = isDirty ? "UNSAVED" : quota?.status || "MISSING";
@@ -492,9 +493,11 @@ function QuotaGridCard({
               <HighlightText text={employee.name} search={searchQuery} />
             </p>
             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">
-              <HighlightText text={employee.role || "Sales Rep"} search={searchQuery} />
+              <HighlightText
+                text={employee.role || "Sales Rep"}
+                search={searchQuery}
+              />
             </p>
-
           </div>
         </div>
         <button

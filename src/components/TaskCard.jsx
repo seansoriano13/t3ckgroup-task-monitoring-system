@@ -13,6 +13,7 @@ import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import { useAuth } from "../context/AuthContext";
 import { TASK_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import HighlightText from "./HighlightText";
 
 const getRelativeTime = (dateString) => {
@@ -47,6 +48,7 @@ const getRelativeTime = (dateString) => {
 
 const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
   const { user } = useAuth();
+  const avatarMap = useEmployeeAvatarMap();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const isHr =
@@ -210,6 +212,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
           >
             <Avatar
               name={task.loggedByName}
+              src={avatarMap.get(task.loggedById) || task.loggedByAvatar}
               size="xs"
               className="shadow-inner bg-mauve-2 text-mauve-10 border-mauve-4"
             />
@@ -244,20 +247,24 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         {task.priority && (
           <div className="flex items-center gap-1.5 shrink-0 font-bold text-[10px] uppercase tracking-wider">
             {task.priority === "HIGH" && (
-              <Dot color="bg-destructive" className="shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
+              <Dot
+                color="bg-destructive"
+                className="shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+              />
             )}
             {task.priority === "MEDIUM" && (
-              <Dot color="bg-warning" className="shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+              <Dot
+                color="bg-warning"
+                className="shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+              />
             )}
-            {task.priority === "LOW" && (
-              <Dot />
-            )}
+            {task.priority === "LOW" && <Dot />}
             <span
               className={
                 task.priority === "HIGH"
                   ? "text-destructive"
                   : task.priority === "MEDIUM"
-                    ? "text-[color:var(--amber-10)]"
+                    ? "text-amber-10"
                     : "text-muted-foreground"
               }
             >

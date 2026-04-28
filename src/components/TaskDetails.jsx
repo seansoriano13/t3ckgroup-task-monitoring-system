@@ -171,7 +171,8 @@ export default function TaskDetails({
 
   // Permissions & Handlers
   const isOwner = user?.id === task.loggedById;
-  const isHrRejected = task.status === TASK_STATUS.NOT_APPROVED && (task.grade ?? 0) > 0;
+  const isHrRejected =
+    task.status === TASK_STATUS.NOT_APPROVED && (task.grade ?? 0) > 0;
   const canEdit =
     isHr ||
     isHead ||
@@ -658,10 +659,7 @@ export default function TaskDetails({
                     true,
                   );
                 }}
-                readOnly={
-                  !canEdit ||
-                  !isOwner
-                }
+                readOnly={!canEdit || !isOwner}
               />
             </div>
 
@@ -673,7 +671,7 @@ export default function TaskDetails({
                     ? "bg-muted/50/50 border-border"
                     : isNotApproved
                       ? "bg-destructive/10 border-destructive/20"
-                      : "border-primary/20"
+                      : "border-mauve-8"
                 }`}
               >
                 <div className="grid gap-1 mb-3">

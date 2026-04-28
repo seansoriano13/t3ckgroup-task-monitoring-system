@@ -219,8 +219,9 @@ export default function TaskApprovalsPage() {
           (t.paymentVoucher || "").toLowerCase().includes(q),
       );
     }
-    if (priorityFilter === "HIGH") result = result.filter((t) => t.priority === "HIGH");
-    if (priorityFilter === "NORMAL") result = result.filter((t) => t.priority !== "HIGH");
+    if (priorityFilter !== "ALL") {
+      result = result.filter((t) => t.priority === priorityFilter);
+    }
     if (statusFilter !== "ALL") {
       if (statusFilter === TASK_STATUS.INCOMPLETE)
         result = result.filter((t) => t.status === TASK_STATUS.INCOMPLETE);

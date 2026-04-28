@@ -9,6 +9,7 @@ import { TASK_STATUS } from "../../../constants/status.js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Avatar from "../../../components/Avatar";
+import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import GradeSelector from "../../../components/GradeSelector.jsx";
 import HighlightText from "../../../components/HighlightText";
 import Dot from "../../../components/ui/Dot";
@@ -32,6 +33,7 @@ export function ApprovalRow({
   const [remarks, setRemarks] = useState(task.remarks || "");
   const [hrRemarks, setHrRemarks] = useState(task.hrRemarks || "");
   const rowRef = useRef(null);
+  const avatarMap = useEmployeeAvatarMap();
 
   useEffect(() => {
     if (defaultExpanded) {
@@ -189,6 +191,7 @@ export function ApprovalRow({
         <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
           <Avatar
             name={task.loggedByName}
+            src={avatarMap.get(task.loggedById) || task.loggedByAvatar}
             size="lg"
             isSelected={isSelected}
             showCheckOnSelect={true}
@@ -405,6 +408,7 @@ export function ApprovalRow({
                       Evaluation Remarks
                     </label>
                     <Input
+                      className="placeholder:text-xs w-full bg-background mt-1 p-5"
                       type="text"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
@@ -413,7 +417,6 @@ export function ApprovalRow({
                           ? "No feedback provided"
                           : "Add feedback..."
                       }
-                      className="w-full bg-background mt-1"
                       disabled={isVerifiedTab}
                     />
                   </div>
@@ -424,14 +427,14 @@ export function ApprovalRow({
                         variant="outline"
                         onClick={handleHeadReject}
                         disabled={!remarks || isSubmitting}
-                        className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
+                        className="order-2 px-6 py-4 text-sm sm:order-1 hover:text-destructive hover:border-destructive/50"
                       >
                         Not Approve
                       </Button>
                       <Button
                         onClick={handleHeadApprove}
                         disabled={grade === null || isSubmitting}
-                        className="order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-primary-foreground"
+                        className="order-1 px-6 py-4 sm:order-2 bg-green-10 hover:bg-green-11 text-primary-foreground"
                       >
                         Approve Task
                       </Button>

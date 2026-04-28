@@ -553,7 +553,7 @@ export default function EditRevenueModal({
                   !hasPendingRequest && (
                     <div className="bg-green-9/5 border border-green-500/20 rounded-xl p-3 flex sm:items-center justify-between gap-3">
                       <span className="text-[10px] font-black text-green-10 uppercase tracking-widest flex items-center gap-1.5">
-                        <CheckCircle2 size={14} /> Verified & Locked
+                        <CheckCircle2 size={14} /> Verified
                       </span>
                       <button
                         type="button"

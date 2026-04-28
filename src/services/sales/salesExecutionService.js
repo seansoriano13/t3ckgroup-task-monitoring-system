@@ -18,7 +18,7 @@ export const salesExecutionService = {
       const { data: inserted, error: iErr } = await supabase
         .from("sales_activities")
         .insert(toInsert)
-        .select("*, employees!sales_activities_employee_id_fkey(name)");
+        .select("*, employees!sales_activities_employee_id_fkey(name, avatar_path)");
       if (iErr) throw iErr;
       results = [...results, ...inserted];
 
@@ -208,7 +208,7 @@ export const salesExecutionService = {
   async getDailyActivities(employeeId, dateStr) {
     const { data, error } = await supabase
       .from("sales_activities")
-      .select("*, employees!sales_activities_employee_id_fkey(name)")
+      .select("*, employees!sales_activities_employee_id_fkey(name, avatar_path)")
       .eq("employee_id", employeeId)
       .eq("scheduled_date", dateStr)
       .neq("is_deleted", true)
@@ -251,7 +251,7 @@ export const salesExecutionService = {
         }),
       })
       .eq("id", activityId)
-      .select("*, employees!sales_activities_employee_id_fkey(name)")
+      .select("*, employees!sales_activities_employee_id_fkey(name, avatar_path)")
       .single();
 
     if (error) throw error;
@@ -357,7 +357,7 @@ export const salesExecutionService = {
       .from("sales_activities")
       .select(`
         *,
-        employees!sales_activities_employee_id_fkey(name, department, sub_department, email),
+        employees!sales_activities_employee_id_fkey(name, department, sub_department, email, avatar_path),
         sales_weekly_plans(id, status)
       `)
       .eq("id", activityId)

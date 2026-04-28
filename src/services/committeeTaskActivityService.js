@@ -9,7 +9,7 @@ export const committeeTaskActivityService = {
       .from("committee_task_activity")
       .select(`
         *,
-        author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)
+        author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)
       `)
       .eq("task_id", taskId)
       .order("created_at", { ascending: true });
@@ -42,7 +42,7 @@ export const committeeTaskActivityService = {
         type: "COMMENT",
         content: content.trim(),
       })
-      .select(`*, author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)`)
+      .select(`*, author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`)
       .single();
 
     if (error) throw error;
@@ -126,7 +126,7 @@ export const committeeTaskActivityService = {
           created_at,
           creator:employees!committee_tasks_created_by_fkey(name, department, sub_department)
         ),
-        author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)
+        author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)
       `)
       .order("created_at", { ascending: false });
 
@@ -210,7 +210,7 @@ export const committeeTaskActivityService = {
           try {
             const { data } = await supabase
               .from("committee_task_activity")
-              .select(`*, author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)`)
+              .select(`*, author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`)
               .eq("id", payload.new.id)
               .single();
 
@@ -252,7 +252,7 @@ export const committeeTaskActivityService = {
           try {
             const { data } = await supabase
               .from("committee_task_activity")
-              .select(`*, author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin)`)
+              .select(`*, author:employees!committee_task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`)
               .eq("id", payload.new.id)
               .single();
 

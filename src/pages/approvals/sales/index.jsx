@@ -344,23 +344,30 @@ export default function SalesHeadApprovalsPage() {
     const map = new Map();
     processedActivities.forEach((act) => {
       const empName = act.employees?.name || "Unknown Employee";
-      if (!map.has(empName)) map.set(empName, new Map());
+      const empAvatar = act.employees?.avatar_path || null;
+      if (!map.has(empName)) {
+        map.set(empName, {
+          dates: new Map(),
+          avatarPath: empAvatar
+        });
+      }
 
-      const dateMap = map.get(empName);
+      const entry = map.get(empName);
+      const dateMap = entry.dates;
       const date = act.scheduled_date || "Unknown Date";
       if (!dateMap.has(date)) dateMap.set(date, []);
       dateMap.get(date).push(act);
     });
 
     const result = [];
-    for (const [empName, dateMap] of map.entries()) {
+    for (const [empName, entry] of map.entries()) {
       const dates = [];
-      for (const [dateStr, activities] of dateMap.entries()) {
+      for (const [dateStr, activities] of entry.dates.entries()) {
         dates.push({ date: dateStr, activities });
       }
       // Sort dates newest first
       dates.sort((a, b) => new Date(b.date) - new Date(a.date));
-      result.push({ employeeName: empName, dates });
+      result.push({ employeeName: empName, avatarPath: entry.avatarPath, dates });
     }
     // Sort employees by risk first on pending tab, otherwise alphabetical.
     if (activeTab === "PENDING") {
@@ -762,7 +769,7 @@ function EmployeeBlock({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <Avatar name={empGroup.employeeName} size="lg" className="bg-primary/10 text-primary border-primary/20 shadow-inner" />
+          <Avatar name={empGroup.employeeName} src={empGroup.avatarPath} size="lg" className="bg-primary/10 text-primary border-primary/20 shadow-inner" />
           <div>
             <h2 className="text-lg font-bold text-foreground leading-tight">
               <HighlightText text={empGroup.employeeName} search={searchTerm} />

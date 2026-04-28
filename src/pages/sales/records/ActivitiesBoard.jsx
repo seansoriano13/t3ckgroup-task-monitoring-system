@@ -4,6 +4,7 @@ import { Clock } from "lucide-react";
 import { AlertCircle, Users } from "lucide-react";
 import { REVENUE_STATUS } from "../../../constants/status";
 import Avatar from "../../../components/Avatar";
+import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import HighlightText from "../../../components/HighlightText";
 
 
@@ -17,6 +18,7 @@ export default function ActivitiesBoard({
   appSettings,
   searchTerm,
 }) {
+  const avatarMap = useEmployeeAvatarMap();
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -32,7 +34,12 @@ export default function ActivitiesBoard({
             className="bg-mauve-1 border border-mauve-4 rounded-2xl p-4 sm:p-6 shadow-sm"
           >
             <h2 className="text-xl font-black text-foreground mb-4 border-b border-mauve-4 pb-2 flex items-center gap-2">
-              <Avatar name={empGroup.employeeName} size="sm" className="bg-primary/10 text-primary border-primary/20" /> 
+              <Avatar 
+                name={empGroup.employeeName} 
+                src={avatarMap.get(empGroup.employeeId)}
+                size="sm" 
+                className="bg-primary/10 text-primary border-primary/20" 
+              /> 
               <HighlightText text={empGroup.employeeName} search={searchTerm} />
             </h2>
 

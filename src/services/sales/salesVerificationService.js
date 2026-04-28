@@ -8,7 +8,7 @@ export const salesVerificationService = {
     const { data, error } = await supabase
       .from("sales_activities")
       .select(
-        "*, sales_weekly_plans(status), employees!sales_activities_employee_id_fkey(name, department, sub_department)",
+        "*, sales_weekly_plans(status), employees!sales_activities_employee_id_fkey(name, department, sub_department, avatar_path)",
       )
       .is("head_verified_at", null)
       .neq("is_deleted", true)
@@ -200,7 +200,7 @@ export const salesVerificationService = {
     const { data, error } = await supabase
       .from("sales_activities")
       .select(
-        "*, employees!sales_activities_employee_id_fkey!inner(name, department, sub_department, is_super_admin)",
+        "*, employees!sales_activities_employee_id_fkey!inner(name, department, sub_department, is_super_admin, avatar_path)",
       )
       .eq("head_verified_by", verifiedBy)
       .not("head_verified_at", "is", null)

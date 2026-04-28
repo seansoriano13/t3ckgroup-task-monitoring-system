@@ -533,7 +533,12 @@ export function useSalesRecordsFilters(user) {
             PM: blocks.PM,
             all: blocks.all,
           }));
-        return { employeeName: empName, dates: sortedDates };
+        return { 
+          employeeName: empName, 
+          employeeId: Object.values(datesMap)[0].all[0].employee_id,
+          avatarPath: Object.values(datesMap)[0].all[0].employees?.avatar_path,
+          dates: sortedDates 
+        };
       })
       .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
   }, [filteredActivities, activeTab, viewMode, timeframe]);

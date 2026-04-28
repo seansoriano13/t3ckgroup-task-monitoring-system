@@ -39,15 +39,15 @@ export default function SalesFilters({
   isVerificationEnforced = false,
   showDateFilter = null,
   filterRecordType = "ALL",
-  setFilterRecordType = () => { },
+  setFilterRecordType = () => {},
   sortBy,
   setSortBy,
 }) {
   const [showAdvanced, setShowAdvanced] = useState(
     (canViewAllSales ? filterEmp !== "ALL" : filterEmp !== user?.id) ||
-    filterStatus !== "ALL" ||
-    (activeTab === "ACTIVITIES" && filterType !== "ALL") ||
-    (activeTab === "REVENUE" && filterRecordType !== "ALL")
+      filterStatus !== "ALL" ||
+      (activeTab === "ACTIVITIES" && filterType !== "ALL") ||
+      (activeTab === "REVENUE" && filterRecordType !== "ALL"),
   );
 
   const shouldShowDateFilter =
@@ -80,26 +80,30 @@ export default function SalesFilters({
   ];
 
   const empOptions = [
-    ...(canViewAllSales ? [{ value: "ALL", label: "All Representatives" }] : [{ value: user?.id, label: "My Records" }]),
-    ...(canViewAllSales ? uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name })) : []),
+    ...(canViewAllSales
+      ? [{ value: "ALL", label: "All Representatives" }]
+      : [{ value: user?.id, label: "My Records" }]),
+    ...(canViewAllSales
+      ? uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name }))
+      : []),
   ];
 
   const statusOptions =
     activeTab === "ACTIVITIES"
       ? [
-        { value: "ALL", label: "All Statuses" },
-        { value: "INCOMPLETE", label: "Planned / Incomplete" },
-        { value: "APPROVED", label: "Approved / Completed" },
-        { value: "PENDING", label: "Pending Expense Approval" },
-      ]
+          { value: "ALL", label: "All Statuses" },
+          { value: "INCOMPLETE", label: "Planned / Incomplete" },
+          { value: "APPROVED", label: "Approved / Completed" },
+          { value: "PENDING", label: "Pending Expense Approval" },
+        ]
       : [
-        { value: "ALL", label: "All Statuses" },
-        { value: "APPROVED", label: "Completed" },
-        { value: "INCOMPLETE", label: "Lost" },
-        ...(isVerificationEnforced
-          ? [{ value: "UNVERIFIED", label: "Pending Verification" }]
-          : []),
-      ];
+          { value: "ALL", label: "All Statuses" },
+          { value: "APPROVED", label: "Completed" },
+          { value: "INCOMPLETE", label: "Lost" },
+          ...(isVerificationEnforced
+            ? [{ value: "UNVERIFIED", label: "Pending Verification" }]
+            : []),
+        ];
 
   const typeOptions = [
     { value: "ALL", label: "All Activity Types" },
@@ -120,21 +124,33 @@ export default function SalesFilters({
     { value: "NAME", label: "By name" },
   ];
 
-  const currentEmpLabel = empOptions.find((o) => o.value === (canViewAllSales ? filterEmp : user?.id))?.label || "All Representatives";
-  const currentStatusLabel = statusOptions.find((o) => o.value === filterStatus)?.label || "All Statuses";
-  const currentTypeLabel = typeOptions.find((o) => o.value === filterType)?.label || "All Activity Types";
-  const currentRecordTypeLabel = recordTypeOptions.find((o) => o.value === filterRecordType)?.label || "All Record Types";
-  const currentSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Newest first";
-  const currentTimeframeLabel = timeframeOptions.find((o) => o.value === timeframe)?.label || "Daily";
+  const currentEmpLabel =
+    empOptions.find((o) => o.value === (canViewAllSales ? filterEmp : user?.id))
+      ?.label || "All Representatives";
+  const currentStatusLabel =
+    statusOptions.find((o) => o.value === filterStatus)?.label ||
+    "All Statuses";
+  const currentTypeLabel =
+    typeOptions.find((o) => o.value === filterType)?.label ||
+    "All Activity Types";
+  const currentRecordTypeLabel =
+    recordTypeOptions.find((o) => o.value === filterRecordType)?.label ||
+    "All Record Types";
+  const currentSortLabel =
+    sortOptions.find((o) => o.value === sortBy)?.label || "Newest first";
+  const currentTimeframeLabel =
+    timeframeOptions.find((o) => o.value === timeframe)?.label || "Daily";
 
   return (
     <div className="grid gap-3 md:gap-4">
       {/* Row 1: Search & Permanent Filters */}
       <div className="bg-card border border-[#E5E7EB] p-3 md:p-4 rounded-xl flex flex-col xl:flex-row items-stretch xl:items-center gap-3 md:gap-4 relative z-20">
-
         {/* Search */}
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            size={18}
+          />
           <Input
             type="text"
             placeholder={
@@ -151,14 +167,14 @@ export default function SalesFilters({
         {/* Action Group */}
         <div className="flex items-center gap-2 w-full xl:w-auto flex-wrap justify-between xl:justify-start relative z-10">
           <div className="flex gap-2 items-center flex-wrap">
-
             {/* DATE PICKER */}
             {shouldShowDateFilter && (
               <div
-                className={`bg-card  flex items-center border rounded-lg h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${selectedDateFilter
-                  ? "text-foreground border-primary/20 font-medium"
-                  : "border-border hover:border-border/80 text-foreground"
-                  }`}
+                className={`bg-card  flex items-center border rounded-lg h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${
+                  selectedDateFilter
+                    ? "text-foreground border-mauve-8 font-medium"
+                    : "border-border hover:border-border/80 text-foreground"
+                }`}
               >
                 {/* Timeframe Dropdown inside DatePicker wrapper */}
                 <Dropdown
@@ -201,11 +217,19 @@ export default function SalesFilters({
                 </Dropdown>
 
                 <div className="relative flex items-center px-2">
-                  <CalendarIcon size={14} className={`${selectedDateFilter ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`} />
+                  <CalendarIcon
+                    size={14}
+                    className={`${selectedDateFilter ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
+                  />
                   <DatePicker
-                    selected={selectedDateFilter ? new Date(selectedDateFilter) : null}
+                    selected={
+                      selectedDateFilter ? new Date(selectedDateFilter) : null
+                    }
                     onChange={(date) => {
-                      if (!date) { setSelectedDateFilter(""); return; }
+                      if (!date) {
+                        setSelectedDateFilter("");
+                        return;
+                      }
                       if (timeframe === "YEARLY") {
                         setSelectedDateFilter(date.getFullYear().toString());
                       } else if (timeframe === "MONTHLY") {
@@ -221,15 +245,26 @@ export default function SalesFilters({
                     showMonthYearPicker={timeframe === "MONTHLY"}
                     showYearPicker={timeframe === "YEARLY"}
                     dateFormat={
-                      timeframe === "YEARLY" ? "yyyy" : timeframe === "MONTHLY" ? "MMMM yyyy" : "MMM d, yyyy"
+                      timeframe === "YEARLY"
+                        ? "yyyy"
+                        : timeframe === "MONTHLY"
+                          ? "MMMM yyyy"
+                          : "MMM d, yyyy"
                     }
                     isClearable={true}
                     portalId="root"
                     placeholderText={
-                      timeframe === "YEARLY" ? "Select Year" : timeframe === "MONTHLY" ? "Select Month" : "Select Date"
+                      timeframe === "YEARLY"
+                        ? "Select Year"
+                        : timeframe === "MONTHLY"
+                          ? "Select Month"
+                          : "Select Date"
                     }
-                    className={`bg-transparent outline-none w-[110px] text-[13px] cursor-pointer ${selectedDateFilter ? "text-foreground placeholder:text-muted-foreground font-medium" : "text-foreground placeholder:text-muted-foreground"
-                      }`}
+                    className={`bg-transparent outline-none w-[110px] text-[13px] cursor-pointer ${
+                      selectedDateFilter
+                        ? "text-foreground placeholder:text-muted-foreground font-medium"
+                        : "text-foreground placeholder:text-muted-foreground"
+                    }`}
                   />
                 </div>
               </div>
@@ -286,7 +321,6 @@ export default function SalesFilters({
       {/* Row 2: Advanced Filters */}
       {showAdvanced && (
         <div className="bg-mauve-2 border border-[#E5E7EB] p-4 rounded-xl flex flex-wrap gap-3 relative z-10 animate-in fade-in slide-in-from-top-2 duration-200">
-
           {/* Status Filter */}
           <Dropdown
             className="flex-1 min-w-[170px]"
@@ -316,7 +350,7 @@ export default function SalesFilters({
             popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
             disabled={!canViewAllSales}
             trigger={({ isOpen, disabled }) => (
-              <div className={disabled ? 'opacity-50 pointer-events-none' : ''}>
+              <div className={disabled ? "opacity-50 pointer-events-none" : ""}>
                 <FilterTrigger
                   label={currentEmpLabel}
                   isActive={canViewAllSales && filterEmp !== "ALL"}

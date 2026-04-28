@@ -261,6 +261,7 @@ export default function TaskFilters({
             value={priorityFilter}
             onChange={(val) => setPriorityFilter(val)}
             className="flex-1 min-w-[150px]"
+            hasAll={true}
             customTrigger={({ isOpen, currentPriority }) => {
               const isActive = priorityFilter && priorityFilter !== "ALL";
               return (

@@ -9,7 +9,7 @@ export const salesRevenueService = {
 
     const { data, error } = await supabase
       .from("sales_revenue_logs")
-      .select("*, employees!sales_revenue_logs_employee_id_fkey(name)")
+      .select("*, employees!sales_revenue_logs_employee_id_fkey(name, avatar_path)")
       .eq("record_type", "SALES_ORDER")
       .gte("date", startDate)
       .lt("date", endDate)
@@ -92,7 +92,7 @@ export const salesRevenueService = {
       .from("sales_revenue_logs")
       .update(payload)
       .eq("id", id)
-      .select("*, employees(name)")
+      .select("*, employees(name, avatar_path)")
       .single();
     if (error) throw error;
 
@@ -162,7 +162,7 @@ export const salesRevenueService = {
   async getRevenueAnalysis(startDate, endDate) {
     const { data, error } = await supabase
       .from("sales_revenue_logs")
-      .select("*, employees!sales_revenue_logs_employee_id_fkey(name)")
+      .select("*, employees!sales_revenue_logs_employee_id_fkey(name, avatar_path)")
       .eq("record_type", "SALES_ORDER")
       .gte("date", startDate)
       .lt("date", endDate) // #14 — fixed lte→lt for consistent exclusive end-date (matches getRevenueLogsByMonth)

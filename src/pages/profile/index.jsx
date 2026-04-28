@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { storageService } from "../../services/storageService";
 import { employeeService } from "../../services/employeeService";
 import { aiService } from "../../services/aiService";
+import ImageCropModal from "../../components/ImageCropModal";
 import {
   TASK_STATUS,
   REVENUE_STATUS,
@@ -47,6 +48,9 @@ export default function ProfilePage() {
   const [removeQuote, setRemoveQuote] = useState(false);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState("");
+  // Crop modal
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
 
   const isHttpUrl = (value) => /^https?:\/\//i.test(value || "");
 
@@ -538,7 +542,12 @@ export default function ProfilePage() {
                 accept="image/*"
                 className="hidden"
                 onChange={(e) => {
-                  setAvatarFile(e.target.files?.[0] || null);
+                  const selected = e.target.files?.[0];
+                  if (!selected) return;
+                  // Reset input so same file can be re-selected after cancel
+                  e.target.value = "";
+                  setPendingAvatarFile(selected);
+                  setCropModalOpen(true);
                   setRemoveAvatar(false);
                 }}
               />
@@ -670,6 +679,19 @@ export default function ProfilePage() {
           </button>
         </div>
       </div>
+      <ImageCropModal
+        file={pendingAvatarFile}
+        isOpen={cropModalOpen}
+        onConfirm={(croppedFile) => {
+          setAvatarFile(croppedFile);
+          setPendingAvatarFile(null);
+          setCropModalOpen(false);
+        }}
+        onCancel={() => {
+          setPendingAvatarFile(null);
+          setCropModalOpen(false);
+        }}
+      />
     </PageContainer>
   );
 }
