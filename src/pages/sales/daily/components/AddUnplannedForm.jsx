@@ -32,7 +32,7 @@ export function AddUnplannedForm({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-[10px] font-black text-muted-foreground hover:text-[color:var(--violet-10)] transition-colors flex items-center gap-1.5 uppercase tracking-widest"
+        className="w-full text-[10px] font-black text-muted-foreground hover:text-violet-10 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
       >
         <Plus size={14} /> NEW UNPLANNED ITEM
       </button>
@@ -82,7 +82,7 @@ export function AddUnplannedForm({
   return (
     <div className="animate-in fade-in slide-in-from-top-2 p-5 bg-card rounded-2xl border border-border mt-2 space-y-4 shadow-lg relative w-full overflow-hidden">
       <div className="flex justify-between items-center border-b border-border pb-3 mb-2">
-        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--violet-10)] flex items-center gap-1.5">
+        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-10 flex items-center gap-1.5">
           <Plus size={13} /> Unplanned Entry
         </h4>
       </div>
@@ -204,7 +204,7 @@ export function AddUnplannedForm({
         </div>
 
         <div className="border-t border-border pt-4 mt-2 sm:col-span-2">
-          <label className="text-[10px] font-black text-[color:var(--amber-10)] uppercase tracking-[0.2em] block mb-2.5">
+          <label className="text-[10px] font-black text-amber-10 uppercase tracking-[0.2em] block mb-2.5">
             Fund Request &amp; Reference
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -215,7 +215,7 @@ export function AddUnplannedForm({
               onChange={(e) =>
                 setPayload({ ...payload, reference_number: e.target.value })
               }
-              className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
+              className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
             />
             <input
               type="number"
@@ -228,7 +228,7 @@ export function AddUnplannedForm({
                     e.target.value === "" ? "" : Number(e.target.value),
                 })
               }
-              className="w-full bg-[color:var(--amber-2)]/50 border border-[color:var(--amber-6)] rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-[color:var(--amber-8)] focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
+              className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
               min="0"
               step="0.01"
             />

@@ -823,7 +823,7 @@ export default function SuperAdminActivityLogPage() {
                             {e.type || "SYSTEM"}
                           </p>
                           {e.isCommittee && (
-                            <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-[color:var(--violet-3)] text-[color:var(--violet-11)] border border-[color:var(--violet-5)]">
+                            <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-violet-3 text-violet-11 border border-violet-5">
                               Committee Task
                             </span>
                           )}

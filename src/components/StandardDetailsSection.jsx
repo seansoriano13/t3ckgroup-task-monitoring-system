@@ -83,7 +83,7 @@ const StandardDetailsSection = ({
               triggerClassName="w-full bg-transparent px-3 py-2 outline-none text-sm font-bold cursor-pointer flex items-center gap-2"
               customTrigger={({ isOpen, currentPriority }) => (
                 <div className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-colors ${isOpen ? 'bg-muted/50' : 'hover:bg-muted/30'} cursor-pointer`}>
-                  <div className={`flex items-center gap-2 ${currentPriority.value === 'HIGH' ? 'text-destructive' : currentPriority.value === 'MEDIUM' ? 'text-[color:var(--amber-10)]' : 'text-muted-foreground'}`}>
+                  <div className={`flex items-center gap-2 ${currentPriority.value === 'HIGH' ? 'text-destructive' : currentPriority.value === 'MEDIUM' ? 'text-amber-10' : 'text-muted-foreground'}`}>
                     <Dot size="w-2 h-2" color={currentPriority.dot} />
                     <span className="font-bold">{currentPriority.label}</span>
                   </div>
@@ -93,7 +93,7 @@ const StandardDetailsSection = ({
             />
           ) : (
             <div
-              className={`px-3 text-sm font-bold flex items-center gap-2 ${task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-[color:var(--amber-10)]" : "text-muted-foreground"}`}
+              className={`px-3 text-sm font-bold flex items-center gap-2 ${task.priority === "HIGH" ? "text-destructive" : task.priority === "MEDIUM" ? "text-amber-10" : "text-muted-foreground"}`}
             >
               <Dot
                 size="w-2 h-2"
@@ -142,7 +142,7 @@ const StandardDetailsSection = ({
                   <CheckCircle2 size={16} /> Verified
                 </span>
               ) : (
-                <span className="text-sm font-bold text-[color:var(--amber-10)] flex items-center gap-1.5">
+                <span className="text-sm font-bold text-amber-10 flex items-center gap-1.5">
                   <Clock size={16} /> Pending HR Audit
                 </span>
               )}

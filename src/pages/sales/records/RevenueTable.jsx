@@ -8,6 +8,7 @@ import Pagination from "./Pagination";
 import { REVENUE_STATUS, SALES_PLAN_STATUS } from "../../../constants/status";
 import { confirmDeleteToast } from "../../../components/ui/CustomToast";
 import HighlightText from "../../../components/HighlightText";
+import Spinner from "../../../components/ui/Spinner";
 
 
 /**
@@ -81,8 +82,10 @@ export default function RevenueTable({
             <tbody className="divide-y divide-gray-4">
               {isLoading ? (
                 <tr>
-                  <td colSpan="9" className="p-10 text-center text-muted-foreground font-bold">
-                    Loading Revenue Logs...
+                  <td colSpan="9" className="p-20">
+                    <div className="flex justify-center">
+                      <Spinner size="md" text="Loading Revenue Logs..." />
+                    </div>
                   </td>
                 </tr>
               ) : filteredRevenue.length === 0 ? (

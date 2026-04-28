@@ -3,6 +3,7 @@ import { CheckCircle2, Circle, XCircle, AlertCircle } from "lucide-react";
 import { Clock } from "lucide-react";
 import Pagination from "./Pagination";
 import HighlightText from "../../../components/HighlightText";
+import Spinner from "../../../components/ui/Spinner";
 
 /**
  * Full table view for the Activities tab.
@@ -50,45 +51,13 @@ export default function ActivitiesTable({
           </thead>
           <tbody className="divide-y divide-gray-4">
             {isLoading ? (
-              Array.from({ length: 8 }).map((_, i) => (
-                <tr key={i} className="animate-pulse">
-                  {/* Date + badges */}
-                  <td className="p-4">
-                    <div className="h-3.5 w-24 bg-muted rounded-full mb-2" />
-                    <div className="flex gap-1.5">
-                      <div className="h-4 w-8 bg-muted rounded" />
-                      <div className="h-4 w-16 bg-muted rounded" />
-                    </div>
-                  </td>
-                  {/* Employee */}
-                  <td className="p-4">
-                    <div className="h-3.5 w-32 bg-muted rounded-full mb-2" />
-                    <div className="h-2.5 w-20 bg-muted rounded-full" />
-                  </td>
-                  {/* Account */}
-                  <td className="p-4">
-                    <div className="h-3.5 w-36 bg-muted rounded-full" />
-                  </td>
-                  {/* Activity */}
-                  <td className="p-4">
-                    <div className="h-3 w-20 bg-muted rounded-full mb-1.5" />
-                    <div className="h-4 w-16 bg-muted rounded" />
-                  </td>
-                  {/* Details */}
-                  <td className="p-4">
-                    <div className="h-3 w-40 bg-muted rounded-full mb-1.5" />
-                    <div className="h-3 w-28 bg-muted rounded-full" />
-                  </td>
-                  {/* Ref / Expense */}
-                  <td className="p-4">
-                    <div className="h-4 w-10 bg-muted rounded-full" />
-                  </td>
-                  {/* Status */}
-                  <td className="p-4 flex justify-center">
-                    <div className="h-5 w-5 bg-muted rounded-full" />
-                  </td>
-                </tr>
-              ))
+              <tr>
+                <td colSpan="7" className="p-20">
+                  <div className="flex justify-center">
+                    <Spinner size="md" text="Loading Activities..." />
+                  </div>
+                </td>
+              </tr>
             ) : filteredActivities.length === 0 ? (
               <tr>
                 <td
@@ -168,7 +137,7 @@ export default function ActivitiesTable({
                         </span>
                         {(act.is_unplanned ||
                           !act.sales_weekly_plans?.status) && (
-                          <span className="block mt-1 text-[10px] text-[color:var(--blue-9)] bg-[color:var(--blue-9)]/10 w-max px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
+                          <span className="block mt-1 text-[10px] text-blue-9 bg-blue-9/10 w-max px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
                             Unplanned
                           </span>
                         )}
@@ -202,7 +171,7 @@ export default function ActivitiesTable({
                         {expandedMetaRow === act.id && (
                           <div className="flex flex-col gap-1 mt-1.5">
                             {act.reference_number && (
-                              <span className="text-[10px] font-black text-[color:var(--amber-10)] bg-warning/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
+                              <span className="text-[10px] font-black text-amber-10 bg-warning/10 border border-amber-500/20 px-2 py-0.5 rounded-full w-max">
                                 {act.reference_number}
                               </span>
                             )}
@@ -266,7 +235,7 @@ function PlanStatusBadge({ act, isDone, showApprovedStatus }) {
   if (isUnplanned) {
     return (
       <span
-        className="text-[10px] bg-[color:var(--blue-9)]/10 text-[color:var(--blue-10)] px-2 py-0.5 rounded uppercase tracking-widest font-black"
+        className="text-[10px] bg-blue-9/10 text-blue-10 px-2 py-0.5 rounded uppercase tracking-widest font-black"
         title="Unplanned Injection"
       >
         UNPLANNED
@@ -279,7 +248,7 @@ function PlanStatusBadge({ act, isDone, showApprovedStatus }) {
 
   const config = {
     DRAFT: {
-      bg: "bg-[color:var(--yellow-9)]/10 text-yellow-600",
+      bg: "bg-yellow-9/10 text-yellow-600",
       label: "DRAFT",
     },
     SUBMITTED: { bg: "bg-green-9/10 text-green-10", label: "SUBMITTED" },
@@ -317,7 +286,7 @@ function ActivityStatusIcon({ status, showApprovedStatus }) {
   }
   if (status === "PENDING") {
     return (
-      <div className="flex flex-col items-center gap-1 text-[color:var(--amber-9)]">
+      <div className="flex flex-col items-center gap-1 text-amber-9">
         <Clock size={18} />
         <span className="text-[10px] font-black uppercase tracking-widest bg-warning/10 px-2 py-0.5 rounded">
           PENDING

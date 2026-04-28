@@ -194,7 +194,7 @@ export default function SystemUpdateManager() {
                 type="button"
                 onClick={generateAIContent}
                 disabled={isGenerating}
-                className="flex items-center gap-1.5 text-xs font-bold text-[color:var(--blue-9)] hover:text-[color:var(--blue-10)] bg-[color:var(--blue-9)]/10 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs font-bold text-blue-9 hover:text-blue-10 bg-blue-9/10 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
                   <Spinner size="sm" />
@@ -355,8 +355,8 @@ export default function SystemUpdateManager() {
                           }}
                           className={`transition-colors ${
                             inlineEditId === update.id
-                              ? "text-[color:var(--blue-10)]"
-                              : "text-mauve-8 hover:text-[color:var(--blue-9)]"
+                              ? "text-blue-10"
+                              : "text-mauve-8 hover:text-blue-9"
                           }`}
                           title="Edit Update"
                         >

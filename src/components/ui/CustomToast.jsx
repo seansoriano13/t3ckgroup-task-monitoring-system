@@ -49,14 +49,14 @@ export function CustomToast({
       border: "border-red-500/20",
     },
     loading: {
-      color: "text-[color:var(--violet-9)]",
+      color: "text-violet-9",
       bg: "bg-primary/10",
       border: "border-violet-9/20",
       spin: true,
     },
     info: {
       icon: Info,
-      color: "text-[color:var(--violet-9)]",
+      color: "text-violet-9",
       bg: "bg-primary/10",
       border: "border-violet-9/20",
     },

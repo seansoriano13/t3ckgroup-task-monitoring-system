@@ -119,11 +119,11 @@ export default function SalesTaskDetailsModal({
 
           {/* Pending wipe banner */}
           {!activity?.is_deleted && activity?.delete_requested_by && (
-            <div className="bg-[color:var(--amber-2)] border border-[color:var(--amber-6)] rounded-xl p-4 flex items-center gap-3 text-[color:var(--amber-11)] shadow-sm transition-all duration-300 animate-pulse">
-              <div className="bg-[color:var(--amber-3)] p-2 rounded-lg">
+            <div className="bg-amber-2 border border-amber-6 rounded-xl p-4 flex items-center gap-3 text-amber-11 shadow-sm transition-all duration-300 animate-pulse">
+              <div className="bg-amber-3 p-2 rounded-lg">
                 <AlertTriangle
                   size={20}
-                  className="text-[color:var(--amber-10)]"
+                  className="text-amber-10"
                 />
               </div>
               <div>
@@ -165,7 +165,7 @@ export default function SalesTaskDetailsModal({
                     activity?.status === "APPROVED"
                       ? "bg-green-9/10 text-green-9"
                       : activity?.status === "PENDING"
-                        ? "bg-warning/10 text-[color:var(--amber-9)]"
+                        ? "bg-warning/10 text-amber-9"
                         : "bg-muted text-muted-foreground"
                   }`}
                 >
@@ -178,7 +178,7 @@ export default function SalesTaskDetailsModal({
                 </span>
                 {(activity?.is_unplanned ||
                   !activity?.sales_weekly_plans?.status) && (
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] border border-blue-500/30">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-blue-9/10 text-blue-9 border border-blue-500/30">
                     UNPLANNED
                   </span>
                 )}
@@ -324,7 +324,7 @@ export default function SalesTaskDetailsModal({
               </div>
 
               <FieldBox label="Reference No. (SQ/TRM)" isEditing={false}>
-                <p className="px-3 text-sm font-black text-[color:var(--amber-10)] flex items-center gap-2">
+                <p className="px-3 text-sm font-black text-amber-10 flex items-center gap-2">
                   <Tag size={13} className="shrink-0" />
                   {activity?.reference_number || (
                     <span className="text-muted-foreground italic font-normal text-xs">
@@ -335,7 +335,7 @@ export default function SalesTaskDetailsModal({
               </FieldBox>
 
               <FieldBox label="SO Number" isEditing={false}>
-                <p className="px-3 text-sm font-black text-[color:var(--blue-9)] flex items-center gap-2">
+                <p className="px-3 text-sm font-black text-blue-9 flex items-center gap-2">
                   <Tag size={13} className="shrink-0" />
                   {activity?.so_number || (
                     <span className="text-muted-foreground italic font-normal text-xs">

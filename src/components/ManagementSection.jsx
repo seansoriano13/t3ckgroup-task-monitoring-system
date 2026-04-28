@@ -110,10 +110,10 @@ const ManagementSection = ({
       {!isEditing && reportedToName && (
         <div className="col-span-2 pt-2 border-t border-border mt-1">
           <FieldBox label="Reported To (Head)" isEditing={false}>
-            <p className="px-3 text-sm font-bold text-[color:var(--violet-10)] flex items-center gap-2">
+            <p className="px-3 text-sm font-bold text-violet-10 flex items-center gap-2">
               <ClipboardList
                 size={14}
-                className="text-[color:var(--violet-8)]"
+                className="text-violet-8"
               />
               {reportedToName}
             </p>

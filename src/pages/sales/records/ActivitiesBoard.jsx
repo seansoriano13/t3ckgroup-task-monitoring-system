@@ -6,6 +6,7 @@ import { REVENUE_STATUS } from "../../../constants/status";
 import Avatar from "../../../components/Avatar";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import HighlightText from "../../../components/HighlightText";
+import Spinner from "../../../components/ui/Spinner";
 
 
 /**
@@ -13,6 +14,7 @@ import HighlightText from "../../../components/HighlightText";
  */
 export default function ActivitiesBoard({
   boardData,
+  isLoading,
   timeframe,
   onActivityClick,
   appSettings,
@@ -22,7 +24,11 @@ export default function ActivitiesBoard({
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {boardData.length === 0 ? (
+      {isLoading ? (
+        <div className="py-20 flex justify-center">
+          <Spinner size="lg" text="Loading Activities Board..." />
+        </div>
+      ) : boardData.length === 0 ? (
         <div className="p-10 text-center text-muted-foreground font-bold bg-mauve-1 rounded-2xl border border-mauve-4">
           <AlertCircle className="mx-auto mb-2 text-mauve-8" />
           No activities match the filters.

@@ -379,10 +379,10 @@ export default function TasksPage() {
                       : statusKey === "COMPLETE_UNVERIFIED"
                         ? "bg-green-8"
                         : statusKey === "AWAITING_APPROVAL"
-                          ? "bg-[color:var(--blue-9)]"
+                          ? "bg-blue-9"
                           : statusKey === "NOT APPROVED"
                             ? "bg-destructive"
-                            : "bg-[color:var(--amber-9)]"
+                            : "bg-amber-9"
                   }
                 />
                 <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">

@@ -1,4 +1,4 @@
-﻿import { Calendar, Download, TrendingUp, TrendingDown, Trophy, Package } from "lucide-react";
+import { Calendar, Download, TrendingUp, TrendingDown, Trophy, Package } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -92,7 +92,7 @@ export function AnalyticsView({
             <TrendingUp className="text-green-10" size={16} /> Period Closed Revenue
           </h3>
           <p className="text-5xl font-black text-foreground">
-            ₱{anAggs.won.toLocaleString()}
+            ?{anAggs.won.toLocaleString()}
           </p>
         </div>
         <div className="border border-mauve-4 p-8 rounded-2xl flex flex-col justify-center">
@@ -100,7 +100,7 @@ export function AnalyticsView({
             <TrendingDown size={14} className="text-destructive" /> Period Lost Revenue
           </h3>
           <p className="text-4xl font-black text-mauve-11">
-            ₱{anAggs.lost.toLocaleString()}
+            ?{anAggs.lost.toLocaleString()}
           </p>
           <span className="text-xs text-mauve-8 mt-2 block italic">
             Lost opportunities inside query boundary.
@@ -129,7 +129,7 @@ export function AnalyticsView({
                   <div className="flex items-center gap-3">
                     <span
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
-                        i === 0 ? "bg-[color:var(--yellow-9)]/20 text-yellow-600" : "bg-mauve-4 text-mauve-10"
+                        i === 0 ? "bg-yellow-9/20 text-yellow-600" : "bg-mauve-4 text-mauve-10"
                       }`}
                     >
                       {i + 1}
@@ -137,13 +137,13 @@ export function AnalyticsView({
                     <div>
                       <p className="text-sm font-black text-foreground">{emp.name}</p>
                       <p className="text-[10px] uppercase font-bold text-mauve-8 tracking-wider">
-                        Lost: ₱{emp.lost.toLocaleString()}
+                        Lost: ?{emp.lost.toLocaleString()}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-black text-lg">
-                      ₱{emp.won.toLocaleString()}
+                      ?{emp.won.toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -180,8 +180,8 @@ export function AnalyticsView({
                     </span>
                   </div>
                   <div className="flex justify-between text-xs font-mono font-black">
-                    <span>Completed: ₱{prod.won.toLocaleString()}</span>
-                    <span>Lost: ₱{prod.lost.toLocaleString()}</span>
+                    <span>Completed: ?{prod.won.toLocaleString()}</span>
+                    <span>Lost: ?{prod.lost.toLocaleString()}</span>
                   </div>
                 </div>
               ))

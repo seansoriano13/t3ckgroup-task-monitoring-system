@@ -296,9 +296,9 @@ export default function HRCategoriesConfig() {
             <div>
               <h2 className="text-xl font-black text-foreground flex items-center gap-2">
                 {editingId ? (
-                  <Edit size={20} className="text-[color:var(--violet-9)]" />
+                  <Edit size={20} className="text-violet-9" />
                 ) : (
-                  <Plus size={20} className="text-[color:var(--violet-9)]" />
+                  <Plus size={20} className="text-violet-9" />
                 )}
                 {editingId ? "Edit Category" : "Add Category"}
               </h2>
@@ -406,7 +406,7 @@ export default function HRCategoriesConfig() {
                           });
                           close();
                         }}
-                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
+                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-violet-10 hover:bg-violet-2 transition-colors uppercase tracking-wider"
                       >
                         + Add New Department
                       </button>
@@ -462,7 +462,7 @@ export default function HRCategoriesConfig() {
                           setFormData({ ...formData, subDepartment: "" });
                           close();
                         }}
-                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] transition-colors uppercase tracking-wider"
+                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-violet-10 hover:bg-violet-2 transition-colors uppercase tracking-wider"
                       >
                         + Add New Sub-Dept
                       </button>
@@ -475,7 +475,7 @@ export default function HRCategoriesConfig() {
               {(isNewDept || isNewSubDept) && (
                 <div className="bg-violet-2/50 border border-mauve-3 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <Info size={14} className="text-[color:var(--violet-10)]" />
+                    <Info size={14} className="text-violet-10" />
                     <p className="text-[11px] font-black text-foreground uppercase tracking-widest">
                       Manual Entry Mode
                     </p>
@@ -533,7 +533,7 @@ export default function HRCategoriesConfig() {
                         subDepartment: "",
                       });
                     }}
-                    className="text-[10px] font-bold text-[color:var(--violet-10)] hover:underline"
+                    className="text-[10px] font-bold text-violet-10 hover:underline"
                   >
                     Cancel manual entry
                   </button>

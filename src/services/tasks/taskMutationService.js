@@ -366,12 +366,25 @@ export const taskMutationService = {
       }
 
       if (isEmployeeSelfComplete) {
+        // Detect if this is a re-submission by checking prior RESUBMITTED activity
+        let submitVerb = "submitted";
+        try {
+          const { data: resubmitEvents } = await supabase
+            .from("task_activities")
+            .select("id")
+            .eq("task_id", taskId)
+            .eq("metadata->>event", "RESUBMITTED")
+            .limit(1);
+          if (resubmitEvents && resubmitEvents.length > 0) submitVerb = "resubmitted";
+        } catch (_) {}
+
         taskActivityService.addSystemEvent(
           taskId,
-          `${current.creator?.name || "Employee"} submitted task for review.`,
+          `${current.creator?.name || "Employee"} ${submitVerb} task for review.`,
           { event: "STATUS_CHANGE", old_status: current.status, new_status: TASK_STATUS.AWAITING_APPROVAL },
         );
       }
+
 
       if (isHeadApprove) {
         // Write the approval entry with grade + message to the timeline

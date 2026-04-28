@@ -563,7 +563,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                     expenseSummary.conversionRate >= 60
                       ? "text-green-10"
                       : expenseSummary.conversionRate >= 30
-                        ? "text-[color:var(--amber-10)]"
+                        ? "text-amber-10"
                         : "text-destructive"
                   }`}>
                     {expenseSummary.conversionRate}%
@@ -618,7 +618,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
               amount={expenseSummary.pendingExpense}
               count={expenseSummary.pendingCount}
               icon={Clock}
-              accentClass="text-[color:var(--amber-10)]"
+              accentClass="text-amber-10"
               borderClass="border-amber-500/20 hover:border-amber-500/40"
               bgClass="bg-card"
             />
@@ -627,7 +627,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
               amount={expenseSummary.bizDevExpense}
               count={expenseSummary.bizDevCount}
               icon={Briefcase}
-              accentClass="text-[color:var(--blue-10)]"
+              accentClass="text-blue-10"
               borderClass="border-blue-500/20 hover:border-blue-500/40"
               bgClass="bg-card"
             />
@@ -686,10 +686,10 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                         <td className="p-3 text-right font-mono text-xs text-destructive font-semibold">
                           {emp.lost > 0 ? `₱${emp.lost.toLocaleString()}` : "—"}
                         </td>
-                        <td className="p-3 text-right font-mono text-xs text-[color:var(--amber-10)] font-semibold">
+                        <td className="p-3 text-right font-mono text-xs text-amber-10 font-semibold">
                           {emp.pending > 0 ? `₱${emp.pending.toLocaleString()}` : "—"}
                         </td>
-                        <td className="p-3 text-right font-mono text-xs text-[color:var(--blue-10)] font-semibold">
+                        <td className="p-3 text-right font-mono text-xs text-blue-10 font-semibold">
                           {emp.bizDev > 0 ? `₱${emp.bizDev.toLocaleString()}` : "—"}
                         </td>
                         <td className="p-3 text-center">
@@ -698,7 +698,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                               emp.winRate >= 60
                                 ? "border-green-500 text-green-11"
                                 : emp.winRate >= 30
-                                  ? "border-amber-500 text-[color:var(--amber-11)]"
+                                  ? "border-amber-500 text-amber-11"
                                   : "border-red-500 text-destructive"
                             }`}>
                               {emp.winRate}%

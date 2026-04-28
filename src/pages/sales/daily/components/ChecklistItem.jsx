@@ -139,10 +139,10 @@ export function ChecklistItem({
           />
         ) : isPendingApproval ? (
           <div className="relative">
-            <CheckCircle2 size={24} className="text-[color:var(--amber-9)] opacity-50" />
+            <CheckCircle2 size={24} className="text-amber-9 opacity-50" />
             <Clock
               size={12}
-              className="text-[color:var(--amber-10)] absolute -right-1 -bottom-1 bg-card rounded-full shadow-sm"
+              className="text-amber-10 absolute -right-1 -bottom-1 bg-card rounded-full shadow-sm"
             />
           </div>
         ) : (
@@ -158,7 +158,7 @@ export function ChecklistItem({
         <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-[10px] font-black border transition-all ${
           isDone || isPendingApproval
             ? "bg-muted text-mauve-4 border-mauve-4"
-            : "bg-[color:var(--violet-2)] text-[color:var(--violet-10)] border-mauve-5"
+            : "bg-violet-2 text-violet-10 border-mauve-5"
         }`}>
           {index}
         </span>
@@ -167,11 +167,11 @@ export function ChecklistItem({
       <div className="flex-1 min-w-0">
         <div
           onClick={() => onView(data)}
-          className={`font-bold text-base cursor-pointer hover:text-[color:var(--violet-10)] transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-muted-foreground" : "text-foreground"}`}
+          className={`font-bold text-base cursor-pointer hover:text-violet-10 transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-muted-foreground" : "text-foreground"}`}
         >
           <span>{data.account_name}</span>
           {data.is_unplanned && (
-            <span className="text-[10px] bg-[color:var(--blue-9)]/10 text-[color:var(--blue-9)] px-2 py-0.5 rounded-full not-italic no-underline border border-blue-500/20">
+            <span className="text-[10px] bg-blue-9/10 text-blue-9 px-2 py-0.5 rounded-full not-italic no-underline border border-blue-500/20">
               EXTRA
             </span>
           )}
@@ -181,7 +181,7 @@ export function ChecklistItem({
             </span>
           )}
           {isPendingApproval && (
-            <span className="text-[10px] bg-warning/10 text-[color:var(--amber-10)] px-2 py-0.5 rounded-full not-italic font-black tracking-widest border border-amber-500/20">
+            <span className="text-[10px] bg-warning/10 text-amber-10 px-2 py-0.5 rounded-full not-italic font-black tracking-widest border border-amber-500/20">
               PENDING APPROVAL
             </span>
           )}
@@ -195,7 +195,7 @@ export function ChecklistItem({
         {(data.reference_number || data.expense_amount) && (
           <div className="flex flex-wrap gap-2 mt-1.5">
             {data.reference_number && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-warning/10 text-[color:var(--amber-10)] border border-amber-500/25 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-warning/10 text-amber-10 border border-amber-500/25 px-2 py-0.5 rounded-full">
                 {data.reference_number}
               </span>
             )}
@@ -309,7 +309,7 @@ export function ChecklistItem({
         ) : !isDone ? (
           <button
             onClick={() => setIsEditing(true)}
-           className="mt-1 text-[10px] font-black text-muted-foreground hover:text-[color:var(--violet-10)] uppercase tracking-widest transition-colors"
+           className="mt-1 text-[10px] font-black text-muted-foreground hover:text-violet-10 uppercase tracking-widest transition-colors"
           >
             {details ? `Note: ${details}` : "+ Add Note (Optional)"}
           </button>
@@ -324,7 +324,7 @@ export function ChecklistItem({
 
       <button
         onClick={() => onView(data)}
-        className="mt-1 shrink-0 text-muted-foreground hover:text-[color:var(--violet-9)] transition-colors p-1 rounded-lg hover:bg-[color:var(--violet-2)]"
+        className="mt-1 shrink-0 text-muted-foreground hover:text-violet-9 transition-colors p-1 rounded-lg hover:bg-violet-2"
         title="View Details"
       >
         <Maximize2 size={18} />

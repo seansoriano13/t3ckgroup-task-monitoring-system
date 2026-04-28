@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { ChevronDown } from "lucide-react";
 
 /**
@@ -46,28 +46,58 @@ export function FilterTrigger({
 
 /**
  * FilterOptionList - A standardized list of options for filter popovers.
+ * Shows a search bar when options exceed 5 items.
  */
 export function FilterOptionList({ options, value, onChange, close }) {
+  const [query, setQuery] = React.useState("");
+
+  const filtered = query.trim()
+    ? options.filter((opt) =>
+        opt.label.toLowerCase().includes(query.trim().toLowerCase()),
+      )
+    : options;
+
   return (
-    <div className="p-1 max-h-60 overflow-y-auto">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onChange(opt.value);
-            if (close) close();
-          }}
-          className={`w-full text-left px-3 py-2 rounded-md text-[13px] transition-colors font-medium ${
-            value === opt.value
-              ? "bg-mauve-5 text-foreground font-bold"
-              : "text-muted-foreground hover:bg-muted/80"
-          }`}
-        >
-          {opt.label}
-        </button>
-      ))}
+    <div className="flex flex-col">
+      {options.length > 5 && (
+        <div className="px-2 pt-2 pb-1 border-b border-border">
+          <input
+            autoFocus
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search..."
+            onClick={(e) => e.stopPropagation()}
+            className="w-full bg-muted/50 border border-border rounded-md px-2.5 py-1.5 text-[12px] font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-mauve-6 focus:ring-1 focus:ring-mauve-6 transition-all"
+          />
+        </div>
+      )}
+      <div className="p-1 max-h-56 overflow-y-auto">
+        {filtered.length === 0 ? (
+          <p className="text-center text-[12px] text-muted-foreground py-3 font-medium">
+            No results found
+          </p>
+        ) : (
+          filtered.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(opt.value);
+                if (close) close();
+              }}
+              className={`w-full text-left px-3 py-2 rounded-md text-[13px] transition-colors font-medium ${
+                value === opt.value
+                  ? "bg-mauve-5 text-foreground font-bold"
+                  : "text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))
+        )}
+      </div>
     </div>
   );
 }

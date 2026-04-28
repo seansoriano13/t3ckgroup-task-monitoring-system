@@ -595,7 +595,7 @@ export default function EditRevenueModal({
                 historyLogs.map((logItem) => {
                   let Icon = Edit3;
                   let colorClass =
-                    "bg-[color:var(--blue-3)] text-[color:var(--blue-10)] border-[color:var(--blue-6)]";
+                    "bg-blue-3 text-blue-10 border-blue-6";
 
                   if (logItem.action === "CREATED") {
                     Icon = PlusCircle;
@@ -603,11 +603,11 @@ export default function EditRevenueModal({
                   } else if (logItem.action === "VERIFIED") {
                     Icon = ShieldCheck;
                     colorClass =
-                      "bg-[color:var(--violet-3)] text-[color:var(--violet-10)] border-mauve-5";
+                      "bg-violet-3 text-violet-10 border-mauve-5";
                   } else if (logItem.action === "EDIT REQUESTED") {
                     Icon = Clock;
                     colorClass =
-                      "bg-[color:var(--amber-3)] text-[color:var(--amber-10)] border-[color:var(--amber-6)]";
+                      "bg-amber-3 text-amber-10 border-amber-6";
                   } else if (logItem.action === "REQUEST REJECTED") {
                     Icon = X;
                     colorClass =
@@ -632,12 +632,12 @@ export default function EditRevenueModal({
                               logItem.action === "CREATED"
                                 ? "bg-green-50 text-green-10"
                                 : logItem.action === "VERIFIED"
-                                  ? "bg-[color:var(--violet-2)] text-[color:var(--violet-10)]"
+                                  ? "bg-violet-2 text-violet-10"
                                   : logItem.action === "EDIT REQUESTED"
-                                    ? "bg-[color:var(--amber-2)] text-[color:var(--amber-10)]"
+                                    ? "bg-amber-2 text-amber-10"
                                     : logItem.action === "REQUEST REJECTED"
                                       ? "bg-destructive/5 text-destructive"
-                                      : "bg-[color:var(--blue-2)] text-[color:var(--blue-10)]"
+                                      : "bg-blue-2 text-blue-10"
                             }`}
                           >
                             {logItem.action}

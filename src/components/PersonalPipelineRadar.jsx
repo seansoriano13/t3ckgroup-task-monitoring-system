@@ -123,7 +123,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">
                 Avg Grade
               </p>
-              <div className="flex items-center justify-center gap-1.5 text-[color:var(--blue-9)]">
+              <div className="flex items-center justify-center gap-1.5 text-blue-9">
                 <Star size={16} className="fill-current" />
                 <span className="text-lg font-black">{stats.avgGrade}</span>
               </div>

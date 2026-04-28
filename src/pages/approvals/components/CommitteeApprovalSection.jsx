@@ -1,4 +1,4 @@
-﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { committeeTaskService } from "../../../services/committeeTaskService";
 import { useAuth } from "../../../context/AuthContext";
 import { useState } from "react";
@@ -121,7 +121,7 @@ export default function CommitteeApprovalSection() {
                    <div key={m.id} className="bg-card border border-border p-3 rounded-lg flex flex-col gap-1.5">
                      <div className="flex justify-between items-start">
                        <span className="font-bold text-sm">{m.employee?.name}</span>
-                       <div className="flex items-center text-[color:var(--amber-9)] bg-warning/10 px-1.5 py-0.5 rounded text-xs font-bold gap-0.5">
+                       <div className="flex items-center text-amber-9 bg-warning/10 px-1.5 py-0.5 rounded text-xs font-bold gap-0.5">
                          {m.grade} <Star size={10} fill="currentColor" />
                        </div>
                      </div>

@@ -384,7 +384,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                               {isNow && !isSelected && (
                                 <Dot
                                   size="w-1.5 h-1.5"
-                                  color="bg-[color:var(--blue-9)]"
+                                  color="bg-blue-9"
                                   className="absolute top-1.5 right-1.5 shadow-sm"
                                 />
                               )}

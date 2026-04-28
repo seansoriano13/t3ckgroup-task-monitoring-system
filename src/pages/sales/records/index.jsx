@@ -210,6 +210,7 @@ export default function SalesRecordsPage() {
         {activeTab === "ACTIVITIES" && viewMode === "BOARD" && (
           <ActivitiesBoard
             boardData={boardData}
+            isLoading={isActLoading}
             timeframe={timeframe}
             onActivityClick={setSelectedActivity}
             appSettings={appSettings}

@@ -285,7 +285,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
               {task.hrVerified ? (
                 <CheckCircle2 size={12} className="text-green-9" />
               ) : (
-                <Clock size={12} className="text-[color:var(--amber-9)]" />
+                <Clock size={12} className="text-amber-9" />
               )}
             </div>
           </>

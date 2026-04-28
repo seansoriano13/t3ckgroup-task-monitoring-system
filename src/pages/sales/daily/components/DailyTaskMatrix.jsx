@@ -1,4 +1,4 @@
-﻿import { ChecklistItem } from "./ChecklistItem";
+import { ChecklistItem } from "./ChecklistItem";
 import { AddUnplannedForm } from "./AddUnplannedForm";
 
 export function DailyTaskMatrix({
@@ -20,7 +20,7 @@ export function DailyTaskMatrix({
       {/* AM COLUMN */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
         <div className="bg-muted/50 px-4 py-3.5 border-b border-border flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-[color:var(--amber-5)]" />
+          <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-5" />
           <h2 className="font-black text-foreground uppercase tracking-[0.2em] text-xs">
             Morning Block
           </h2>
@@ -72,7 +72,7 @@ export function DailyTaskMatrix({
       {/* PM COLUMN */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
         <div className="bg-muted/50 px-4 py-3.5 border-b border-border flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-[color:var(--violet-8)] shadow-sm shadow-primary/20" />
+          <div className="w-2.5 h-2.5 rounded-full bg-violet-8 shadow-sm shadow-primary/20" />
           <h2 className="font-black text-foreground uppercase tracking-[0.2em] text-xs">
             Afternoon Block
           </h2>

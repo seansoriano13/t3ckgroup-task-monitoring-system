@@ -513,7 +513,7 @@ export default function TaskDetails({
                     className="h-11 shadow-sm"
                   />
                 ) : (
-                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-[color:var(--violet-10)] flex items-center gap-2 shadow-sm">
+                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-violet-10 flex items-center gap-2 shadow-sm">
                     <FolderKanban size={14} />
                     {formData.projectTitle}
                   </div>
@@ -694,7 +694,7 @@ export default function TaskDetails({
                         </span>
                       </div>
                       {task.evaluatedById === task.loggedById && (
-                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-[color:var(--plum-9)] text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
+                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-plum-9 text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
                           Self-Verified
                         </span>
                       )}

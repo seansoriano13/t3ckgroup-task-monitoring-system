@@ -264,14 +264,14 @@ export default function QuotaManagementModule({
           <div className="flex bg-mauve-3 p-1 rounded-lg mr-2 shrink-0">
             <button
               onClick={() => setViewMode("LIST")}
-              className={`p-1.5 rounded-md transition-all ${viewMode === "LIST" ? "bg-card shadow-sm text-[color:var(--violet-10)]" : "text-muted-foreground hover:text-foreground"}`}
+              className={`p-1.5 rounded-md transition-all ${viewMode === "LIST" ? "bg-card shadow-sm text-violet-10" : "text-muted-foreground hover:text-foreground"}`}
               title="List View"
             >
               <ListIcon size={16} />
             </button>
             <button
               onClick={() => setViewMode("GRID")}
-              className={`p-1.5 rounded-md transition-all ${viewMode === "GRID" ? "bg-card shadow-sm text-[color:var(--violet-10)]" : "text-muted-foreground hover:text-foreground"}`}
+              className={`p-1.5 rounded-md transition-all ${viewMode === "GRID" ? "bg-card shadow-sm text-violet-10" : "text-muted-foreground hover:text-foreground"}`}
               title="Grid View"
             >
               <LayoutGrid size={16} />
@@ -414,7 +414,7 @@ function QuotaTableRow({
 
   return (
     <tr
-      className={`group transition-colors ${isDirty ? "bg-[color:var(--amber-2)]/30" : "hover:bg-mauve-2/50"}`}
+      className={`group transition-colors ${isDirty ? "bg-amber-2/30" : "hover:bg-mauve-2/50"}`}
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
@@ -572,7 +572,7 @@ function QuotaInput({ value, onChange, isDirty, fullWidth = false }) {
         onChange={handleChange}
         className={`w-full bg-mauve-2 border text-foreground rounded-lg pl-7 pr-3 py-2 text-sm font-bold outline-none transition-all ${
           isDirty
-            ? "border-[color:var(--amber-8)] focus:border-amber-500 focus:ring-2 focus:ring-amber-100 bg-[color:var(--amber-2)]/30"
+            ? "border-amber-8 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 bg-amber-2/30"
             : "border-mauve-4 focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3"
         }`}
       />

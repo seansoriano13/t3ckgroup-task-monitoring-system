@@ -136,7 +136,7 @@ function ActivityEntry({ entry, currentUserId, avatarMap }) {
                 {entry.authorName || "HR Audit"}
               </span>
               <span
-                className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-[color:var(--violet-10)]" : "text-destructive"}`}
+                className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-violet-10" : "text-destructive"}`}
               >
                 {isVerified ? "Verification Successful" : "Verification Failed"}
               </span>

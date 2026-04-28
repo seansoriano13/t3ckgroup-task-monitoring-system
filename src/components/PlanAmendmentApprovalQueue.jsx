@@ -145,7 +145,7 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
                       <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
                         Week: {plan.week_start_date}
                       </span>
-                      <span className="text-[10px] font-black bg-warning/10 text-[color:var(--amber-10)] border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                      <span className="text-[10px] font-black bg-warning/10 text-amber-10 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
                         {changes.added.length + changes.removed.length + changes.modified.length} Changes Detected
                       </span>
                     </div>
@@ -153,7 +153,7 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="hidden sm:flex flex-col items-end mr-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--amber-10)]">Review Items</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-10">Review Items</span>
                     <span className="text-[9px] text-mauve-5 font-bold uppercase tracking-tighter">Plan Amendment</span>
                   </div>
                   {isExpanded ? <ChevronUp size={20} className="text-foreground"/> : <ChevronDown size={20} className="text-muted-foreground"/>}
@@ -193,9 +193,9 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
                            </div>
                         </div>
 
-                        <div className="bg-[color:var(--blue-9)]/5 border border-blue-500/10 rounded-xl p-4">
-                           <h4 className="text-[10px] font-black text-[color:var(--blue-11)] uppercase tracking-widest mb-3 flex items-center gap-2">
-                              <Dot color="bg-[color:var(--blue-9)]" />
+                        <div className="bg-blue-9/5 border border-blue-500/10 rounded-xl p-4">
+                           <h4 className="text-[10px] font-black text-blue-11 uppercase tracking-widest mb-3 flex items-center gap-2">
+                              <Dot color="bg-blue-9" />
                               Modified ({changes.modified.length})
                            </h4>
                            <div className="space-y-2">
@@ -203,7 +203,7 @@ export default function PlanAmendmentApprovalQueue({ initialExpandedId }) {
                                  <div key={i} className="bg-card border border-blue-500/20 px-2 py-1.5 rounded shadow-sm">
                                     <p className="text-xs font-bold text-foreground truncate">{m.activity.account_name}</p>
                                     <div className="mt-1 space-y-0.5">
-                                       {m.diffs.map((d, j) => <p key={j} className="text-[10px] text-[color:var(--blue-11)] bg-[color:var(--blue-2)] px-1 rounded inline-block w-full">{d}</p>)}
+                                       {m.diffs.map((d, j) => <p key={j} className="text-[10px] text-blue-11 bg-blue-2 px-1 rounded inline-block w-full">{d}</p>)}
                                     </div>
                                  </div>
                               ))}

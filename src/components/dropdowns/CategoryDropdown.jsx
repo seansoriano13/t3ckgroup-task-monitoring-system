@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Dropdown from "../ui/Dropdown";
 import { Tag, ChevronDown, Search, Check } from "lucide-react";
 
@@ -36,7 +36,7 @@ export default function CategoryDropdown({
             `property-pill ${isOpen ? "active" : ""} ${disabled ? "static" : ""}`
           }
         >
-          <Tag size={13} className={value ? "text-[color:var(--violet-9)]" : "text-muted-foreground"} />
+          <Tag size={13} className={value ? "text-violet-9" : "text-muted-foreground"} />
           <span className={value ? "text-foreground" : "text-mauve-7"}>
             {value || "Category"}
             {!value && <span className="text-destructive ml-0.5">*</span>}
@@ -44,7 +44,7 @@ export default function CategoryDropdown({
           {!disabled && (
             <ChevronDown
               size={12}
-              className={value ? "text-[color:var(--violet-8)]" : "text-mauve-7"}
+              className={value ? "text-violet-8" : "text-mauve-7"}
             />
           )}
         </button>
@@ -57,7 +57,7 @@ export default function CategoryDropdown({
               <Search size={14} className="text-mauve-7 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="Search categoriesâ€¦"
+                placeholder="Search categories…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="flex-1 bg-transparent outline-none text-xs text-foreground placeholder:text-mauve-7"
@@ -68,7 +68,7 @@ export default function CategoryDropdown({
           <div className="max-h-[260px] overflow-y-auto p-1">
             {searchedCategories.length === 0 ? (
               <p className="text-xs text-mauve-7 text-center py-4">
-                {isLoading ? "Loadingâ€¦" : "No categories found"}
+                {isLoading ? "Loading…" : "No categories found"}
               </p>
             ) : (
               searchedCategories.map((cat) => (
@@ -90,7 +90,7 @@ export default function CategoryDropdown({
                   <span className="truncate flex-1">
                     <span className="font-semibold">{cat.category_id}</span>
                     <span className="text-muted-foreground ml-1.5">
-                      â€” {cat.description}
+                      — {cat.description}
                     </span>
                   </span>
                   {value === cat.category_id && (

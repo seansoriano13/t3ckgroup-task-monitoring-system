@@ -135,7 +135,7 @@ export default function DayManagementModal({
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Select Days to Wipe</span>
                 <button 
                   onClick={handleSelectAll}
-                  className="text-[10px] font-black text-[color:var(--violet-10)] uppercase tracking-widest hover:underline"
+                  className="text-[10px] font-black text-violet-10 uppercase tracking-widest hover:underline"
                 >
                   {selectedDates.length > 0 ? "Deselect All" : "Select All Available"}
                 </button>
@@ -171,7 +171,7 @@ export default function DayManagementModal({
                             {isSelected && <CheckCircle2 size={14} strokeWidth={3} />}
                           </div>
                           <div className="flex flex-col">
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? "text-[color:var(--violet-10)]" : "text-muted-foreground"}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? "text-violet-10" : "text-muted-foreground"}`}>
                               {wd.label}
                             </span>
                             <span className="text-base font-black text-foreground">
@@ -182,14 +182,14 @@ export default function DayManagementModal({
 
                         <div className="flex items-center gap-3">
                           {stats.isRequested && (
-                            <span className="px-3 py-1 bg-warning/10 text-[color:var(--amber-10)] text-[9px] font-black uppercase tracking-widest rounded-full border border-amber-500/20 flex items-center gap-1.5">
+                            <span className="px-3 py-1 bg-warning/10 text-amber-10 text-[9px] font-black uppercase tracking-widest rounded-full border border-amber-500/20 flex items-center gap-1.5">
                               <Clock size={12} /> Pending Request
                             </span>
                           )}
                           {stats.hasActivities ? (
                             <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${
                               isSelected 
-                                ? "bg-[color:var(--violet-3)] text-[color:var(--violet-11)] border-mauve-5 shadow-sm font-black" 
+                                ? "bg-violet-3 text-violet-11 border-mauve-5 shadow-sm font-black" 
                                 : "bg-muted text-muted-foreground border-border"
                             }`}>
                               {stats.count} Activities

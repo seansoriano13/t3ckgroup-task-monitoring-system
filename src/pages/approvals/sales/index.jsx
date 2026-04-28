@@ -31,6 +31,7 @@ import TabGroup from "@/components/ui/TabGroup";
 import { Button } from "@/components/ui/button";
 import Avatar from "../../../components/Avatar";
 import HighlightText from "../../../components/HighlightText";
+import Spinner from "../../../components/ui/Spinner";
 
 
 export default function SalesHeadApprovalsPage() {
@@ -485,8 +486,8 @@ export default function SalesHeadApprovalsPage() {
 
   if (isLoadingCurrent) {
     return (
-      <div className="py-20 text-center text-muted-foreground font-bold">
-        Loading Sales Action Queue...
+      <div className="py-20 flex justify-center">
+        <Spinner size="md" text="Loading Sales Action Queue" />
       </div>
     );
   }
@@ -904,7 +905,7 @@ function DateGroupBlock({
             {/* AM Column */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[color:var(--amber-11)] bg-[color:var(--amber-2)] border border-[color:var(--amber-6)] px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-amber-11 bg-amber-2 border border-amber-6 px-2.5 py-1 rounded-md flex items-center gap-1.5">
                   <Clock size={11} /> AM — {amActivities.length}{" "}
                   {amActivities.length === 1 ? "Log" : "Logs"}
                 </span>
@@ -921,7 +922,7 @@ function DateGroupBlock({
             {/* PM Column */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[color:var(--violet-11)] bg-[color:var(--violet-2)] border border-mauve-5 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-violet-11 bg-violet-2 border border-mauve-5 px-2.5 py-1 rounded-md flex items-center gap-1.5">
                   <Clock size={11} /> PM — {pmActivities.length}{" "}
                   {pmActivities.length === 1 ? "Log" : "Logs"}
                 </span>
@@ -1001,7 +1002,7 @@ function ActivityCard({
             <Clock size={12} /> {activity.time_of_day}
           </span>
           {activity.is_unplanned && (
-            <span className="text-[color:var(--blue-10)] bg-[color:var(--blue-9)]/10 border border-blue-500/20 px-2 py-1 rounded-md">
+            <span className="text-blue-10 bg-blue-9/10 border border-blue-500/20 px-2 py-1 rounded-md">
               Unplanned
             </span>
           )}
@@ -1085,7 +1086,7 @@ function VerifiedActivityCard({
             <Clock size={12} /> {activity.time_of_day}
           </span>
           {activity.is_unplanned && (
-            <span className="text-[color:var(--blue-10)] bg-[color:var(--blue-9)]/10 border border-blue-500/20 px-2 py-1 rounded-md">
+            <span className="text-blue-10 bg-blue-9/10 border border-blue-500/20 px-2 py-1 rounded-md">
               Unplanned
             </span>
           )}

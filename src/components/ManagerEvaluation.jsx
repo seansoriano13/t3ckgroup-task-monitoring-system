@@ -48,7 +48,7 @@ export default function ManagerEvaluation({
               </span>
             </div>
             {task.evaluatedBy === task.loggedById && (
-              <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-[color:var(--plum-9)] text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
+              <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-plum-9 text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
                 Self-Verified
               </span>
             )}

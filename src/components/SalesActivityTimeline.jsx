@@ -60,17 +60,17 @@ function ActivityEntry({ entry, currentUserId }) {
         iconClass = "bg-destructive/20 text-red-400 border-red-500/20";
       } else {
         Icon = Target;
-        iconClass = "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30";
+        iconClass = "bg-blue-9/15 text-blue-9 border-blue-500/30";
       }
     } else if (eventType === "COMPLETED") {
       Icon = ShieldCheck;
       iconClass = "bg-green-9/20 text-green-9 border-green-500/20";
     } else if (eventType === "ATTACHMENTS_UPDATED") {
       Icon = Paperclip;
-      iconClass = "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30";
+      iconClass = "bg-blue-9/15 text-blue-9 border-blue-500/30";
     } else if (eventType === "DAY_WIPE_REQUESTED" || eventType === "DAY_WIPE_RESOLVED") {
       Icon = Trash2;
-      iconClass = "bg-warning/15 text-[color:var(--amber-9)] border-amber-500/30";
+      iconClass = "bg-warning/15 text-amber-9 border-amber-500/30";
     }
 
     return (
@@ -141,9 +141,9 @@ function ActivityEntry({ entry, currentUserId }) {
       <div
         className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
           entry.authorIsHead || entry.authorIsSuperAdmin
-            ? "bg-warning/15 text-[color:var(--amber-9)] border-amber-500/30"
+            ? "bg-warning/15 text-amber-9 border-amber-500/30"
             : entry.authorIsHr
-              ? "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30"
+              ? "bg-blue-9/15 text-blue-9 border-blue-500/30"
               : "bg-mauve-3 text-mauve-10 border-mauve-4"
         }`}
       >
@@ -209,7 +209,7 @@ function LegacyEntries({ headRemarks, headVerifiedByName }) {
       </p>
       <div className="py-2 px-3 rounded-lg bg-mauve-3/50 border border-mauve-4">
         <div className="flex items-center gap-2 mb-1">
-          <Star size={10} className="text-[color:var(--amber-9)]" />
+          <Star size={10} className="text-amber-9" />
           <span className="text-[10px] font-bold text-muted-foreground">
             {headVerifiedByName || "Manager"}
           </span>

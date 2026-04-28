@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AlertCircle, TrendingUp } from "lucide-react";
 
 export function EmployeeRankingsTable({
@@ -126,7 +126,7 @@ export function EmployeeRankingsTable({
                   {showQuota && (
                     <td className="p-4 text-right font-mono text-mauve-11 text-sm">
                       {canSeeNumbers ? (
-                        `₱${Number(emp.quota).toLocaleString()}`
+                        `?${Number(emp.quota).toLocaleString()}`
                       ) : (
                         <span className="text-mauve-8 italic font-sans">
                           {pct}% Quota
@@ -136,7 +136,7 @@ export function EmployeeRankingsTable({
                   )}
                   <td className="p-4 text-right font-mono text-foreground font-semibold text-sm tabular-nums">
                     {canSeeNumbers ? (
-                      `₱${emp.revenueWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      `?${emp.revenueWon.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     ) : (
                       <span className="text-muted-foreground font-sans">
                         {pct}% Achieved
@@ -145,7 +145,7 @@ export function EmployeeRankingsTable({
                   </td>
                   <td className="p-4 text-right font-mono text-foreground font-semibold text-sm tabular-nums">
                     {canSeeNumbers ? (
-                      `₱${emp.revenueLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      `?${emp.revenueLost.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     ) : (
                       <span className="text-muted-foreground italic font-sans">
                         N/A
@@ -158,7 +158,7 @@ export function EmployeeRankingsTable({
                         className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${emp.winRate >= 70
                           ? "border-green-300 text-green-11"
                           : emp.winRate >= 40
-                            ? "border-amber-300 text-[color:var(--amber-11)]"
+                            ? "border-amber-300 text-amber-11"
                             : "border-red-300 text-destructive"
                           }`}
                       >
@@ -166,7 +166,7 @@ export function EmployeeRankingsTable({
                       </span>
                     ) : (
                       <span className="text-[10px] text-muted-foreground italic">
-                        {totalDeals === 0 ? "No deals" : "—"}
+                        {totalDeals === 0 ? "No deals" : "�"}
                       </span>
                     )}
                   </td>

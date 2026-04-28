@@ -155,26 +155,26 @@ export function ScheduleHeader({
         !isRequestingAmendment ? (
           <button
             onClick={() => setIsRequestingAmendment(true)}
-            className="px-4 py-2 bg-warning hover:bg-[color:var(--amber-10)] text-primary-foreground rounded-xl font-bold flex items-center gap-2 transition-all shadow-md shadow-[color:var(--amber-5)] h-10"
+            className="px-4 py-2 bg-warning hover:bg-amber-10 text-primary-foreground rounded-xl font-bold flex items-center gap-2 transition-all shadow-md shadow-amber-5 h-10"
           >
             Request Amendment
           </button>
         ) : (
-          <div className="flex items-center gap-2 bg-[color:var(--amber-2)] p-1.5 rounded-xl border border-[color:var(--amber-6)] shadow-sm">
+          <div className="flex items-center gap-2 bg-amber-2 p-1.5 rounded-xl border border-amber-6 shadow-sm">
             <input
               autoFocus
               type="text"
               value={amendmentReason}
               onChange={(e) => setAmendmentReason(e.target.value)}
               placeholder="Reason for amendment..."
-              className="text-sm px-3 py-2 rounded-lg border border-[color:var(--amber-6)] outline-none w-[220px] bg-card focus:border-[color:var(--amber-8)] transition-colors font-medium"
+              className="text-sm px-3 py-2 rounded-lg border border-amber-6 outline-none w-[220px] bg-card focus:border-amber-8 transition-colors font-medium"
             />
             <button
               onClick={() => requestAmendmentMutation.mutate()}
               disabled={
                 !amendmentReason.trim() || requestAmendmentMutation.isPending
               }
-              className="px-3 py-1.5 text-xs font-bold bg-warning hover:bg-[color:var(--amber-10)] text-primary-foreground rounded-lg disabled:opacity-50 transition-colors"
+              className="px-3 py-1.5 text-xs font-bold bg-warning hover:bg-amber-10 text-primary-foreground rounded-lg disabled:opacity-50 transition-colors"
             >
               {requestAmendmentMutation.isPending ? "Submitting..." : "Submit"}
             </button>
@@ -190,19 +190,19 @@ export function ScheduleHeader({
 
       {/* Missing Activities Alert for Approved Plans */}
       {plan.status === "APPROVED" && weekSummary.missingDays > 0 && (
-        <div className="bg-[color:var(--amber-2)] border border-[color:var(--amber-6)] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
+        <div className="bg-amber-2 border border-amber-6 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
           <div className="flex items-center gap-3">
-            <div className="bg-[color:var(--amber-3)] p-2 rounded-xl">
+            <div className="bg-amber-3 p-2 rounded-xl">
               <AlertTriangle
                 size={20}
-                className="text-[color:var(--amber-10)]"
+                className="text-amber-10"
               />
             </div>
             <div>
-              <p className="text-sm font-black text-[color:var(--amber-12)] uppercase tracking-tight">
+              <p className="text-sm font-black text-amber-12 uppercase tracking-tight">
                 Schedule Incomplete
               </p>
-              <p className="text-xs font-bold text-[color:var(--amber-11)]/80">
+              <p className="text-xs font-bold text-amber-11/80">
                 Your plan is approved but has gaps due to wiped activities.
                 Request an amendment to refill your schedule.
               </p>
@@ -211,7 +211,7 @@ export function ScheduleHeader({
           {!isRequestingAmendment && (
             <button
               onClick={() => setIsRequestingAmendment(true)}
-              className="px-4 py-2 bg-warning hover:bg-[color:var(--amber-10)] text-primary-foreground rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95"
+              className="px-4 py-2 bg-warning hover:bg-amber-10 text-primary-foreground rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95"
             >
               Start Amendment
             </button>

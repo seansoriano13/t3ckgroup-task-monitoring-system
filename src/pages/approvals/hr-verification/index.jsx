@@ -8,6 +8,7 @@ import { TASK_STATUS } from "../../../constants/status.js";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { ShieldCheck, History, Search, Users } from "lucide-react";
 import toast from "react-hot-toast";
+import Spinner from "@/components/ui/Spinner";
 import TaskDetails from "../../../components/TaskDetails.jsx";
 import TaskFilters from "../../../components/TaskFilters.jsx";
 import CommitteeApprovalSection from "../components/CommitteeApprovalSection.jsx";
@@ -257,7 +258,14 @@ export default function HrVerificationPage() {
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
 
   if (isLoading)
-    return <div className="py-20 text-center text-muted-foreground font-bold">Loading Verification Queue...</div>;
+    return (
+      <div className="py-20 flex flex-col items-center justify-center text-muted-foreground h-[60vh]">
+        <Spinner size="md" />
+        <p className="font-bold animate-pulse tracking-wider uppercase text-sm mt-3">
+          Loading Verification Queue...
+        </p>
+      </div>
+    );
 
   return (
     <ProtectedRoute requireHr={true}>

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 /**
  * PropertyPill - A reusable pill-styled component for property selections,
@@ -19,7 +19,7 @@ export default function PropertyPill({
       disabled={disabled}
       className={`property-pill ${isActive ? "active" : ""} ${disabled ? "static" : ""} ${className}`}
     >
-      {Icon && <Icon size={13} className={isActive ? "text-[color:var(--violet-9)]" : "text-muted-foreground"} />}
+      {Icon && <Icon size={13} className={isActive ? "text-violet-9" : "text-muted-foreground"} />}
       {children}
     </button>
   );

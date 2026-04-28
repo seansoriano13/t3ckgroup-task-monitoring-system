@@ -253,7 +253,7 @@ export default function TasksList({ selectedRange }) {
                               ? "bg-primary shadow-primary/20"
                               : statusKey === "NOT APPROVED"
                                 ? "bg-destructive shadow-red-200"
-                                : "bg-warning shadow-[color:var(--amber-5)]"
+                                : "bg-warning shadow-amber-5"
                       }
                     />
                     <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
@@ -463,7 +463,7 @@ export default function TasksList({ selectedRange }) {
                             label="Awaiting Mgt Approval"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-[color:var(--blue-9)]"
+                            color="bg-blue-9"
                           />
                           <InsightBar
                             label="Approved (Pending HR)"
@@ -489,7 +489,7 @@ export default function TasksList({ selectedRange }) {
                             label="Needs My Review (New)"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-[color:var(--blue-9)]"
+                            color="bg-blue-9"
                           />
                           <InsightBar
                             label="Rejected by Me"

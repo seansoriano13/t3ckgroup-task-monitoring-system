@@ -1,8 +1,8 @@
-ï»¿import { Shield, AlertTriangle, Lightbulb, Target } from "lucide-react";
+import { Shield, AlertTriangle, Lightbulb, Target } from "lucide-react";
 
 /**
  * SWOT-inspired strategic insights panel.
- * Visible only to admins/CEO â€” never to regular sales employees.
+ * Visible only to admins/CEO — never to regular sales employees.
  */
 export default function SWOTPanel({ leaderboard, productData, activities }) {
   if (!leaderboard?.length) return null;
@@ -64,7 +64,7 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
       items: topPerformers.length > 0
         ? topPerformers.map(
             (e) =>
-              `${e.name} â€” ${e.winRate ?? 0}% win rate, â‚±${e.revenueWon.toLocaleString()} closed`
+              `${e.name} — ${e.winRate ?? 0}% win rate, ?${e.revenueWon.toLocaleString()} closed`
           )
         : ["Not enough data (min 2 closed deals per rep)"],
     },
@@ -78,7 +78,7 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
         ...(bottomPerformers.length > 0
           ? bottomPerformers.map(
               (e) =>
-                `${e.name} â€” ${e.quotaPct}% of quota (â‚±${e.revenueWon.toLocaleString()} / â‚±${e.quota.toLocaleString()})`
+                `${e.name} — ${e.quotaPct}% of quota (?${e.revenueWon.toLocaleString()} / ?${e.quota.toLocaleString()})`
             )
           : ["No underperformers flagged"]),
         ...(overallExecutionRate !== null && overallExecutionRate < 70
@@ -89,33 +89,33 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
     {
       title: "Opportunities",
       icon: Lightbulb,
-      color: "text-[color:var(--amber-9)]",
+      color: "text-amber-9",
       border: "border-amber-500/20",
       bg: "bg-warning/5",
       items:
         topProducts.length > 0
           ? topProducts.map(
               (p) =>
-                `${p.name} â€” ${p.count} deals, â‚±${p.won.toLocaleString()} revenue`
+                `${p.name} — ${p.count} deals, ?${p.won.toLocaleString()} revenue`
             )
           : ["No product data available"],
     },
     {
       title: "Threats",
       icon: Target,
-      color: "text-[color:var(--plum-9)]",
+      color: "text-plum-9",
       border: "border-purple-500/20",
-      bg: "bg-[color:var(--plum-9)]/5",
+      bg: "bg-plum-9/5",
       items: [
         concentrationPct > 50
-          ? `âš  Revenue dependency: Top rep accounts for ${concentrationPct}% of total revenue`
-          : `Revenue is diversified â€” top rep is ${concentrationPct}% of total`,
+          ? `? Revenue dependency: Top rep accounts for ${concentrationPct}% of total revenue`
+          : `Revenue is diversified — top rep is ${concentrationPct}% of total`,
         productConcentrationPct > 60
-          ? `âš  Product risk: Top product is ${productConcentrationPct}% of total revenue`
-          : `Product mix is balanced â€” top product is ${productConcentrationPct}%`,
+          ? `? Product risk: Top product is ${productConcentrationPct}% of total revenue`
+          : `Product mix is balanced — top product is ${productConcentrationPct}%`,
         ...(leaderboard.filter((e) => e.quotaPct < 30 && e.quota > 0).length > 2
           ? [
-              `${leaderboard.filter((e) => e.quotaPct < 30 && e.quota > 0).length} reps below 30% quota â€” pipeline issue`,
+              `${leaderboard.filter((e) => e.quotaPct < 30 && e.quota > 0).length} reps below 30% quota — pipeline issue`,
             ]
           : []),
       ],
@@ -152,7 +152,7 @@ export default function SWOTPanel({ leaderboard, productData, activities }) {
                     key={i}
                     className="text-sm text-mauve-11 font-medium leading-relaxed flex gap-2"
                   >
-                    <span className="text-mauve-7 shrink-0 mt-0.5">â€¢</span>
+                    <span className="text-mauve-7 shrink-0 mt-0.5">•</span>
                     <span>{item}</span>
                   </li>
                 ))}

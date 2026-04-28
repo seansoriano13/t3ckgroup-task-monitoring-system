@@ -227,7 +227,7 @@ export default function CommitteeTaskDetailModal({
                   {isHrVerified ? (
                     <CheckCircle2 size={14} className="text-green-9" />
                   ) : (
-                    <Clock size={14} className="text-[color:var(--amber-9)]" />
+                    <Clock size={14} className="text-amber-9" />
                   )}
                 </div>
               )}
@@ -260,7 +260,7 @@ export default function CommitteeTaskDetailModal({
                 );
               }}
               title="Open Conversation"
-              className="p-1.5 rounded-md text-[color:var(--violet-9)] hover:bg-[color:var(--violet-2)] hover:text-[color:var(--violet-10)] transition-colors mr-1"
+              className="p-1.5 rounded-md text-violet-9 hover:bg-violet-2 hover:text-violet-10 transition-colors mr-1"
             >
               <MessageCircle size={15} />
             </button>
@@ -515,7 +515,7 @@ export default function CommitteeTaskDetailModal({
                                   className={`text-[9px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider ${
                                     member.status === "DONE"
                                       ? "bg-green-9/10 text-green-10 border border-green-500/20"
-                                      : "bg-warning/10 text-[color:var(--amber-10)] border border-amber-500/20"
+                                      : "bg-warning/10 text-amber-10 border border-amber-500/20"
                                   }`}
                                 >
                                   {member.status}
@@ -529,7 +529,7 @@ export default function CommitteeTaskDetailModal({
                                     <button
                                       type="button"
                                       onClick={() => handleEditClick(member)}
-                                      className="p-1.5 text-muted-foreground hover:text-[color:var(--violet-10)] hover:bg-[color:var(--violet-2)] rounded-lg transition-colors"
+                                      className="p-1.5 text-muted-foreground hover:text-violet-10 hover:bg-violet-2 rounded-lg transition-colors"
                                       title="Edit Assignment"
                                     >
                                       <Edit3 size={14} />
@@ -639,7 +639,7 @@ export default function CommitteeTaskDetailModal({
                                   <button
                                     onClick={() => onRevertDone(member.id)}
                                     disabled={isReverting}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-warning/10 text-[color:var(--amber-10)] border border-amber-500/20 rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-warning/20 transition-colors ml-auto"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-warning/10 text-amber-10 border border-amber-500/20 rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-warning/20 transition-colors ml-auto"
                                   >
                                     {isReverting ? "..." : "Revert"}
                                   </button>
@@ -852,7 +852,7 @@ export default function CommitteeTaskDetailModal({
                 logs.map((log) => {
                   let Icon = Edit3;
                   let colorClass =
-                    "bg-[color:var(--blue-3)] text-[color:var(--blue-10)] border-[color:var(--blue-6)]";
+                    "bg-blue-3 text-blue-10 border-blue-6";
 
                   if (
                     log.action === "CREATED" ||
@@ -867,11 +867,11 @@ export default function CommitteeTaskDetailModal({
                   ) {
                     Icon = CheckCircle2;
                     colorClass =
-                      "bg-[color:var(--violet-3)] text-[color:var(--violet-10)] border-mauve-5";
+                      "bg-violet-3 text-violet-10 border-mauve-5";
                   } else if (log.action === "MEMBER_PENDING") {
                     Icon = Clock;
                     colorClass =
-                      "bg-[color:var(--amber-3)] text-[color:var(--amber-10)] border-[color:var(--amber-6)]";
+                      "bg-amber-3 text-amber-10 border-amber-6";
                   } else if (log.action === "HR_REJECTED") {
                     Icon = X;
                     colorClass =
@@ -879,7 +879,7 @@ export default function CommitteeTaskDetailModal({
                   } else if (log.action === "RATED") {
                     Icon = Star;
                     colorClass =
-                      "bg-[color:var(--amber-3)] text-[color:var(--amber-10)] border-[color:var(--amber-6)]";
+                      "bg-amber-3 text-amber-10 border-amber-6";
                   }
 
                   return (
@@ -903,12 +903,12 @@ export default function CommitteeTaskDetailModal({
                                 : log.action === "MEMBER_DONE" ||
                                     log.action === "COMPLETED" ||
                                     log.action === "HR_VERIFIED"
-                                  ? "bg-[color:var(--violet-2)] text-[color:var(--violet-10)]"
+                                  ? "bg-violet-2 text-violet-10"
                                   : log.action === "MEMBER_PENDING"
-                                    ? "bg-[color:var(--amber-2)] text-[color:var(--amber-10)]"
+                                    ? "bg-amber-2 text-amber-10"
                                     : log.action === "HR_REJECTED"
                                       ? "bg-destructive/5 text-destructive"
-                                      : "bg-[color:var(--blue-2)] text-[color:var(--blue-10)]"
+                                      : "bg-blue-2 text-blue-10"
                             }`}
                           >
                             {log.action.replace("_", " ")}

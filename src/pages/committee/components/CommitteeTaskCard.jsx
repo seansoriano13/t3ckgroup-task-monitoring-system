@@ -62,7 +62,7 @@ export default function CommitteeTaskCard({
               {isHrVerified ? (
                 <CheckCircle2 size={12} className="text-green-9" />
               ) : (
-                <Clock size={12} className="text-[color:var(--amber-9)]" />
+                <Clock size={12} className="text-amber-9" />
               )}
             </div>
           )}
@@ -107,7 +107,7 @@ export default function CommitteeTaskCard({
               className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 myMember.status === "DONE"
                   ? "bg-green-9/10 text-green-10"
-                  : "bg-warning/10 text-[color:var(--amber-10)]"
+                  : "bg-warning/10 text-amber-10"
               }`}
             >
               {myMember.status}
