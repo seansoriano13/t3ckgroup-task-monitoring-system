@@ -159,23 +159,31 @@ export default function SalesTaskDetailsModal({
 
             <FieldBox label="Status" isEditing={false}>
               <div className="px-3 flex items-center gap-1.5 flex-wrap">
-                <span
-                  className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
-                    activity?.status === "DONE" ||
-                    activity?.status === "APPROVED"
-                      ? "bg-green-9/10 text-green-9"
-                      : activity?.status === "PENDING"
-                        ? "bg-warning/10 text-amber-9"
-                        : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {activity?.status === "PENDING" &&
-                  !appSettings?.sales_self_approve_expenses
-                    ? "PENDING"
-                    : activity?.status === "APPROVED"
-                      ? "DONE"
-                      : activity?.status}
-                </span>
+                {/* VERIFIED badge — shown when Sales Head has audited */}
+                {activity?.head_verified_at ? (
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-violet-3 text-violet-11 border border-violet-6/30">
+                    VERIFIED
+                  </span>
+                ) : (
+                  <span
+                    className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                      activity?.status === "DONE" ||
+                      activity?.status === "APPROVED"
+                        ? "bg-green-9/10 text-green-9"
+                        : activity?.status === "PENDING"
+                          ? "bg-warning/10 text-amber-9"
+                          : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {activity?.status === "PENDING" &&
+                    !appSettings?.sales_self_approve_expenses
+                      ? "PENDING APPROVAL"
+                      : activity?.status === "APPROVED" ||
+                        activity?.status === "DONE"
+                        ? "DONE"
+                        : activity?.status || "INCOMPLETE"}
+                  </span>
+                )}
                 {(activity?.is_unplanned ||
                   !activity?.sales_weekly_plans?.status) && (
                   <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-blue-9/10 text-blue-9 border border-blue-500/30">

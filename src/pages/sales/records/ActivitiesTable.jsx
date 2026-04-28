@@ -205,6 +205,7 @@ export default function ActivitiesTable({
                       <td className="p-4 text-center">
                         <ActivityStatusIcon
                           status={act.status}
+                          headVerifiedAt={act.head_verified_at}
                           showApprovedStatus={showApprovedStatus}
                         />
                       </td>
@@ -271,14 +272,24 @@ function PlanStatusBadge({ act, isDone, showApprovedStatus }) {
   );
 }
 
-function ActivityStatusIcon({ status, showApprovedStatus }) {
+function ActivityStatusIcon({ status, headVerifiedAt, showApprovedStatus }) {
+  if (headVerifiedAt) {
+    return (
+      <div className="flex flex-col items-center gap-1 text-violet-11">
+        <CheckCircle2 size={18} />
+        <span className="text-[10px] font-black uppercase tracking-widest bg-violet-3 px-2 py-0.5 rounded border border-violet-6/30">
+          VERIFIED
+        </span>
+      </div>
+    );
+  }
   if (status === "APPROVED") {
     return (
       <div className="flex flex-col items-center gap-1 text-green-9">
         <CheckCircle2 size={18} />
         {showApprovedStatus && (
           <span className="text-[10px] font-black uppercase tracking-widest bg-green-9/10 px-2 py-0.5 rounded">
-            APPROVED
+            DONE
           </span>
         )}
       </div>

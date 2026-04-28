@@ -324,7 +324,7 @@ export const salesExecutionService = {
     if (data) {
       salesActivityLogService.addSystemEvent(
         activityId,
-        `Outcome updated to ${outcome || 'none'}.`,
+        `Outcome updated to ${outcome === 'COMPLETED' ? 'WON' : outcome || 'none'}.`,
         { event: "OUTCOME_UPDATED", outcome }
       ).catch(console.error);
     }
