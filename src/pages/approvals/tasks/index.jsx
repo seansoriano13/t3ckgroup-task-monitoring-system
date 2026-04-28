@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../../context/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../../../services/taskService.js";
+import { taskQueryService } from "../../../services/tasks/taskQueryService.js";
 import { supabase } from "../../../lib/supabase.js";
 import { TASK_STATUS } from "../../../constants/status.js";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
@@ -194,6 +195,17 @@ export default function TaskApprovalsPage() {
       });
   }, [rawTasks, user?.id, userDept, userSubDept, isHead, isSuperAdmin, appSettings, reportedToMeOnly]);
 
+  // IDs of all tasks currently in the pending queue — used to scope the replies query
+  const pendingTaskIds = useMemo(() => pendingTasks.map((t) => t.id), [pendingTasks]);
+
+  // Secondary query: which pending tasks has the current user already replied to?
+  const { data: repliedTaskIds = new Set() } = useQuery({
+    queryKey: ["managerReplies", user?.id, pendingTaskIds],
+    queryFn: () => taskQueryService.getManagerRepliesForTasks(pendingTaskIds, user.id),
+    enabled: !!user?.id && pendingTaskIds.length > 0,
+    staleTime: 30_000,
+  });
+
   const verifiedTasks = useMemo(() => {
     return rawTasks
       .filter((t) => {
@@ -263,9 +275,10 @@ export default function TaskApprovalsPage() {
 
   const editTaskMutation = useMutation({
     mutationFn: (updatedData) => taskService.updateTask(updatedData.id, updatedData),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["managerReplies"] });
     },
   });
 
@@ -290,6 +303,7 @@ export default function TaskApprovalsPage() {
       await taskService.undoBulkApproval(selectedTaskIds, user.id);
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["managerReplies"] });
       setSelectedTaskIds([]);
       toast.success("Action reverted successfully.");
     } catch (err) {
@@ -302,6 +316,7 @@ export default function TaskApprovalsPage() {
       await taskService.undoBulkApproval(taskIds, user.id);
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["managerReplies"] });
       toast.success("Bulk approval reverted successfully.");
     } catch (err) {
       toast.error(err.message || "Failed to revert bulk approval.");
@@ -485,6 +500,7 @@ export default function TaskApprovalsPage() {
                   }
                   isVerifiedTab={activeTab === "VERIFIED"}
                   searchTerm={searchQuery}
+                  isReplied={activeTab === "PENDING" && repliedTaskIds.has(task.id)}
                 />
               ))}
 

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, Maximize2, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Maximize2, CheckCircle2, MessageSquareCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate } from "../../../utils/formatDate.js";
 import { formatTaskPreview } from "../../../utils/taskFormatters";
@@ -27,6 +27,7 @@ export function ApprovalRow({
   onToggleSelection,
   isVerifiedTab,
   searchTerm,
+  isReplied,
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(task.grade || null);
@@ -180,7 +181,9 @@ export function ApprovalRow({
           ? "border-mauve-8 shadow bg-mauve-4"
           : expanded
             ? "bg-card border-border"
-            : "border-border bg-card shadow-sm hover:border-mauve-8"
+            : isReplied
+              ? "border-blue-a5 bg-blue-a2 shadow-sm hover:border-blue-a7"
+              : "border-border bg-card shadow-sm hover:border-mauve-8"
       }`}
     >
       {/* COMPACT ROW */}
@@ -247,8 +250,18 @@ export function ApprovalRow({
           </div>
 
           {appSettings?.enable_visual_shaming && isDelayed && (
-            <span className="px-2 py-1 rounded bg-orange-400/20 text-[color:var(--amber-10)] text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
+            <span className="px-2 py-1 rounded bg-orange-400/20 text-amber-10 text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
               Delayed
+            </span>
+          )}
+
+          {isReplied && (
+            <span
+              className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-a3 text-blue-11 text-[9px] font-black uppercase tracking-widest border border-blue-a5"
+              title="You've already replied to this task"
+            >
+              <MessageSquareCheck size={10} />
+              Replied
             </span>
           )}
 

@@ -387,7 +387,9 @@ export default function TaskDetails({
         (e.key.toLowerCase() === "v" &&
           e.target.tagName !== "INPUT" &&
           e.target.tagName !== "TEXTAREA") ||
-        e.key === "Enter"
+        (e.key === "Enter" &&
+          e.target.tagName !== "INPUT" &&
+          e.target.tagName !== "TEXTAREA")
       ) {
         e.preventDefault();
         handleVerify();

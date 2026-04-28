@@ -191,6 +191,18 @@ export const taskQueryService = {
     }));
   },
 
+  // 2.3. MANAGER REPLIES: Fetch all task IDs where the current user has any activity entry
+  async getManagerRepliesForTasks(taskIds, userId) {
+    if (!taskIds?.length || !userId) return new Set();
+    const { data, error } = await supabase
+      .from("task_activity")
+      .select("task_id")
+      .in("task_id", taskIds)
+      .eq("author_id", userId);
+    if (error) throw error;
+    return new Set((data || []).map((r) => r.task_id));
+  },
+
   // 2.5. SINGLE FETCH: Get one task by ID (for deep linking)
   async getTaskById(taskId) {
     const { data, error } = await supabase

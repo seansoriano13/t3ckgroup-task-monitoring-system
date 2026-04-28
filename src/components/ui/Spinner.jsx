@@ -43,7 +43,7 @@ export default function Spinner({
         {/* Minimalist Spinning Indicator */}
         <div
           className={cn(
-            "absolute inset-0 rounded-full border-transparent border-t-red-9 border-r-red-9/20 animate-spin",
+            "absolute inset-0 rounded-full border-transparent border-t-mauve-9 border-r-mauve-9/20 animate-spin",
             borderClass,
           )}
         />
@@ -60,7 +60,7 @@ export default function Spinner({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-mauve-1/60 backdrop-blur-sm dropdown-backdrop">
+      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-mauve-1/60 backdrop-blur-sm dropdown-backdrop">
         {spinnerContent}
       </div>
     );
