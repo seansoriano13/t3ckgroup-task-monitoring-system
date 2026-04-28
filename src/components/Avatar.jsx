@@ -34,7 +34,15 @@ export default function Avatar({
   const defaultBg =
     !hasBg && !isSelected ? "bg-muted text-muted-foreground border-border" : "";
 
-  const initial = name ? name.charAt(0).toUpperCase() : "?";
+  const initials = name
+    ? name
+        .split(" ")
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase()
+    : "?";
 
   return (
     <div
@@ -79,7 +87,7 @@ export default function Avatar({
                 : "scale-100 opacity-100 rotate-0"
             }`}
           >
-            {initial}
+            {initials}
           </div>
         </>
       )}

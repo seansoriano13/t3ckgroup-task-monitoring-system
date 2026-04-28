@@ -10,6 +10,10 @@ import {
   ShieldCheck,
   Star,
   AlertTriangle,
+  Target,
+  XCircle,
+  Paperclip,
+  Trash2,
 } from "lucide-react";
 
 const formatTime = (isoString) => {
@@ -42,13 +46,40 @@ function ActivityEntry({ entry, currentUserId }) {
 
   // --- SYSTEM event ---
   if (entry.type === "SYSTEM") {
+    const eventType = entry.metadata?.event;
+    let Icon = Zap;
+    let iconClass = "bg-mauve-3 text-mauve-8 border-mauve-4";
+    
+    if (eventType === "OUTCOME_UPDATED") {
+      const outcome = entry.metadata?.outcome;
+      if (outcome === "COMPLETED") {
+        Icon = Target;
+        iconClass = "bg-green-9/20 text-green-9 border-green-500/20";
+      } else if (outcome === "LOST") {
+        Icon = XCircle;
+        iconClass = "bg-destructive/20 text-red-400 border-red-500/20";
+      } else {
+        Icon = Target;
+        iconClass = "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30";
+      }
+    } else if (eventType === "COMPLETED") {
+      Icon = ShieldCheck;
+      iconClass = "bg-green-9/20 text-green-9 border-green-500/20";
+    } else if (eventType === "ATTACHMENTS_UPDATED") {
+      Icon = Paperclip;
+      iconClass = "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30";
+    } else if (eventType === "DAY_WIPE_REQUESTED" || eventType === "DAY_WIPE_RESOLVED") {
+      Icon = Trash2;
+      iconClass = "bg-warning/15 text-[color:var(--amber-9)] border-amber-500/30";
+    }
+
     return (
       <div className="flex items-start gap-2.5 py-2 px-1">
-        <div className="w-6 h-6 rounded-full bg-mauve-3 border border-mauve-4 flex items-center justify-center shrink-0 mt-0.5">
-          <Zap size={12} className="text-mauve-8" />
+        <div className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${iconClass}`}>
+          <Icon size={12} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-mauve-8 leading-relaxed">
+          <p className={`text-[11px] leading-relaxed ${eventType === "OUTCOME_UPDATED" || eventType === "COMPLETED" ? "text-mauve-11 font-medium" : "text-mauve-8"}`}>
             {entry.content}
           </p>
           <p className="text-[9px] text-mauve-7 mt-0.5">{formatTime(entry.createdAt)}</p>

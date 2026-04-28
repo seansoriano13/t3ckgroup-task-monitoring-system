@@ -10,9 +10,11 @@ import {
   Image as ImageIcon,
   X,
   Maximize2,
+  ChevronDown,
 } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import { storageService } from "../../../../services/storageService";
+import Dropdown from "../../../../components/ui/Dropdown";
 
 export function ChecklistItem({
   data,
@@ -239,21 +241,25 @@ export function ChecklistItem({
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider shrink-0">
               Outcome:
             </label>
-            <select
-              value={data.sales_outcome || ""}
-              onChange={(e) =>
-                outcomeMutation.mutate({
-                  id: data.id,
-                  outcome: e.target.value || null,
-                })
-              }
+            <Dropdown
               disabled={outcomeMutation.isPending}
-              className="text-[10px] font-black uppercase bg-card border border-border rounded-lg px-2 py-1 outline-none focus:border-mauve-8 cursor-pointer disabled:opacity-50 transition-colors"
+              trigger={({ isOpen }) => (
+                <button
+                  className={`flex items-center gap-1.5 text-[10px] font-black uppercase bg-card border ${isOpen ? "border-mauve-8" : "border-border"} rounded-lg px-2 py-1 outline-none cursor-pointer transition-colors ${outcomeMutation.isPending ? "opacity-50" : ""}`}
+                >
+                  {data.sales_outcome === "COMPLETED" ? "WON" : data.sales_outcome === "LOST" ? "LOST" : "Pending"}
+                  <ChevronDown size={12} className="opacity-50" />
+                </button>
+              )}
             >
-              <option value="">Pending</option>
-              <option value="COMPLETED"> WON</option>
-              <option value="LOST"> LOST</option>
-            </select>
+              {({ close }) => (
+                <div className="flex flex-col p-1 w-24">
+                  <button onClick={() => { outcomeMutation.mutate({ id: data.id, outcome: null }); close(); }} className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded transition-colors">Pending</button>
+                  <button onClick={() => { outcomeMutation.mutate({ id: data.id, outcome: "COMPLETED" }); close(); }} className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded text-green-10 transition-colors">WON</button>
+                  <button onClick={() => { outcomeMutation.mutate({ id: data.id, outcome: "LOST" }); close(); }} className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded text-destructive transition-colors">LOST</button>
+                </div>
+              )}
+            </Dropdown>
             {outcomeMutation.isPending && (
               <Spinner size="sm" />
             )}

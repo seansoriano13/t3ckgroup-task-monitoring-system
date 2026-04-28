@@ -193,18 +193,17 @@ export default function DailyExecutionPage() {
 
 
   const handleAddUnplanned = (payload) => {
-    const hasExpense = Number(payload.expense_amount) > 0;
-    const needsApproval =
-      hasExpense && !appSettings?.sales_self_approve_expenses;
-
     addUnplannedMutation.mutate({
       ...payload,
       employee_id: user.id,
       plan_id: planWrapper?.id || null,
       scheduled_date: selectedDate,
-      status: needsApproval ? REVENUE_STATUS.PENDING : REVENUE_STATUS.APPROVED, // #11
+      // Unplanned activities always start as PENDING — the employee must mark them done
+      // manually (same flow as planned ones). Only expense approval elevates to PENDING
+      // after mark-done; pre-setting APPROVED would skip the execution step entirely.
+      status: REVENUE_STATUS.PENDING,
       is_unplanned: true,
-      completed_at: needsApproval ? null : new Date().toISOString(),
+      completed_at: null,
     });
   };
 

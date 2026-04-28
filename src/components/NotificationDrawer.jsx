@@ -30,7 +30,68 @@ import TabGroup from "./ui/TabGroup";
 import Avatar from "./Avatar";
 import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import Dot from "./ui/Dot";
+import { handleNotificationRoute } from "../utils/notificationRouter";
 
+// ─── Icon Map ─────────────────────────────────────────────────────────────────
+const TYPE_ICONS = {
+  TASK_GRADED: <CheckCircle2 size={18} className="text-green-500" />,
+  TASK_REJECTED: <XCircle size={18} className="text-red-500" />,
+  TASK_VERIFIED: <ShieldAlert size={18} className="text-primary" />,
+  TASK_COMPLETED: <Trophy size={18} className="text-green-9" />,
+  NEW_TASK_SUBMITTED: <Clock size={18} className="text-amber-500" />,
+  TASK_APPROVED_BY_HEAD: <CheckCircle2 size={18} className="text-amber-600" />,
+  REVENUE_LOCKED: <ShieldAlert size={18} className="text-green-500" />,
+  REVENUE_EDIT_REQUESTED: <Clock size={18} className="text-orange-500" />,
+  REVENUE_EDIT_RESULT: <TrendingUp size={18} className="text-primary" />,
+  SALES_PLAN_SUBMITTED: <Briefcase size={18} className="text-purple-500" />,
+  PLAN_AMENDMENT_RESULT: <CheckCircle2 size={18} className="text-blue-600" />,
+  SALES_DAY_CONQUERED: <CheckCheck size={18} className="text-green-500" />,
+  SALES_WEEK_CONQUERED: <Trophy size={18} className="text-yellow-500" />,
+  UNPLANNED_ACTIVITY: <FileText size={18} className="text-primary" />,
+  DAY_DELETE_REQUESTED: <XCircle size={18} className="text-red-600" />,
+  DAY_DELETE_RESULT: <Trash2 size={18} className="text-foreground" />,
+  COMMITTEE_ASSIGNED: <Briefcase size={18} className="text-violet-9" />,
+  COMMITTEE_TASK_COMMENT: <MessageCircle size={18} className="text-violet-9" />,
+  COMMITTEE_TASK_READY_FOR_HR: (
+    <CheckCircle2 size={18} className="text-violet-10" />
+  ),
+  SALES_QUOTA_PUBLISHED: <Target size={18} className="text-green-9" />,
+  PLAN_AMENDMENT_REQUESTED: <Clock size={18} className="text-amber-500" />,
+};
+
+const getIconForType = (type) =>
+  TYPE_ICONS[type] ?? <Bell size={18} className="text-gray-9" />;
+
+// ─── Tabs config ──────────────────────────────────────────────────────────────
+const buildTabs = (user) => [
+  { value: "ALL", label: "ALL" },
+  { value: "UNREAD", label: "UNREAD" },
+  ...(user?.has_task_flow || user?.isHr || user?.isSuperAdmin
+    ? [{ value: "TASKS", label: "TASKS" }]
+    : []),
+  ...(user?.has_sales_flow || user?.isHr || user?.isSuperAdmin
+    ? [{ value: "SALES", label: "SALES" }]
+    : []),
+];
+
+// ─── Filter helper ────────────────────────────────────────────────────────────
+const filterNotifs = (notifications, tab) => {
+  if (tab === "TASKS")
+    return notifications.filter(
+      (n) => n.type.includes("TASK") || n.type.includes("COMMITTEE"),
+    );
+  if (tab === "SALES")
+    return notifications.filter(
+      (n) =>
+        n.type.includes("SALES") ||
+        n.type.includes("REVENUE") ||
+        n.type.includes("ACTIVITY"),
+    );
+  if (tab === "UNREAD") return notifications.filter((n) => !n.is_read);
+  return notifications; // ALL
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function NotificationDrawer({ isOpen, onClose }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -39,19 +100,19 @@ export default function NotificationDrawer({ isOpen, onClose }) {
 
   const [activeTab, setActiveTab] = useState("ALL");
 
+  // ── Data ──────────────────────────────────────────────────────────────────
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications", user?.id],
     queryFn: () => notificationService.getMyNotifications(user?.id),
-    enabled: !!user?.id && isOpen, // Only fetch eagerly if open
+    enabled: !!user?.id && isOpen,
   });
 
-  // Real-time subscription hook when Drawer is mounted/User is active
+  // Real-time subscription
   useEffect(() => {
     if (!user?.id) return;
     const subscription = notificationService.subscribeToNotifications(
       user.id,
       (newNotif) => {
-        // Optimistically update the cache when a new notification drops in
         queryClient.setQueryData(["notifications", user.id], (old = []) => [
           newNotif,
           ...old,
@@ -59,19 +120,29 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       },
     );
     return () => {
-      if (subscription) {
-        supabase.removeChannel(subscription);
-      }
+      if (subscription) supabase.removeChannel(subscription);
     };
   }, [user?.id, queryClient]);
 
+  // ── Mutations ─────────────────────────────────────────────────────────────
   const markReadMutation = useMutation({
     mutationFn: (id) => notificationService.markAsRead(id),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, id) => {
       queryClient.setQueryData(["notifications", user?.id], (old = []) =>
-        old.map((n) => (n.id === variables ? { ...n, is_read: true } : n)),
+        old.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
       );
     },
+  });
+
+  const markUnreadMutation = useMutation({
+    mutationFn: (id) => notificationService.markAsUnread(id),
+    onSuccess: (_, id) => {
+      queryClient.setQueryData(["notifications", user?.id], (old = []) =>
+        old.map((n) => (n.id === id ? { ...n, is_read: false } : n)),
+      );
+      toast.success("Marked as unread");
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   const markAllReadMutation = useMutation({
@@ -94,245 +165,30 @@ export default function NotificationDrawer({ isOpen, onClose }) {
     onError: (err) => toast.error(err.message),
   });
 
-  const markUnreadMutation = useMutation({
-    mutationFn: (id) => notificationService.markAsUnread(id),
-    onSuccess: (data, variables) => {
-      queryClient.setQueryData(["notifications", user?.id], (old = []) =>
-        old.map((n) => (n.id === variables ? { ...n, is_read: false } : n)),
-      );
-      toast.success("Marked as unread");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
   const deleteNotifMutation = useMutation({
     mutationFn: (id) => notificationService.deleteNotification(id),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, id) => {
       queryClient.setQueryData(["notifications", user?.id], (old = []) =>
-        old.filter((n) => n.id !== variables),
+        old.filter((n) => n.id !== id),
       );
       toast.success("Notification removed");
     },
     onError: (err) => toast.error(err.message),
   });
 
-  const getIconForType = (type) => {
-    switch (type) {
-      case "TASK_GRADED":
-        return <CheckCircle2 size={18} className="text-green-500" />;
-      case "TASK_REJECTED":
-        return <XCircle size={18} className="text-red-500" />;
-      case "TASK_VERIFIED":
-        return <ShieldAlert size={18} className="text-primary" />;
-      case "TASK_COMPLETED":
-        return <Trophy size={18} className="text-green-9" />;
-      case "NEW_TASK_SUBMITTED":
-        return <Clock size={18} className="text-amber-500" />;
-      case "TASK_APPROVED_BY_HEAD":
-        return <CheckCircle2 size={18} className="text-amber-600" />;
-      case "REVENUE_LOCKED":
-        return <ShieldAlert size={18} className="text-green-500" />;
-      case "REVENUE_EDIT_REQUESTED":
-        return <Clock size={18} className="text-orange-500" />;
-      case "REVENUE_EDIT_RESULT":
-        return <TrendingUp size={18} className="text-primary" />;
-      case "SALES_PLAN_SUBMITTED":
-        return <Briefcase size={18} className="text-purple-500" />;
-      case "PLAN_AMENDMENT_RESULT":
-        return <CheckCircle2 size={18} className="text-blue-600" />;
-      case "SALES_DAY_CONQUERED":
-        return <CheckCheck size={18} className="text-green-500" />;
-      case "SALES_WEEK_CONQUERED":
-        return <Trophy size={18} className="text-yellow-500" />;
-      case "UNPLANNED_ACTIVITY":
-        return <FileText size={18} className="text-primary" />;
-      case "DAY_DELETE_REQUESTED":
-        return <XCircle size={18} className="text-red-600" />;
-      case "DAY_DELETE_RESULT":
-        return <Trash2 size={18} className="text-foreground" />;
-      case "COMMITTEE_ASSIGNED":
-        return <Briefcase size={18} className="text-violet-9" />;
-      case "COMMITTEE_TASK_COMMENT":
-        return <MessageCircle size={18} className="text-violet-9" />;
-      case "COMMITTEE_TASK_READY_FOR_HR":
-        return <CheckCircle2 size={18} className="text-violet-10" />;
-      case "SALES_QUOTA_PUBLISHED":
-        return <Target size={18} className="text-green-9" />;
-      case "PLAN_AMENDMENT_REQUESTED":
-        return <Clock size={18} className="text-amber-500" />;
-      default:
-        return <Bell size={18} className="text-gray-9" />;
-    }
-  };
+  // ── Derived state ─────────────────────────────────────────────────────────
+  const filteredNotifs = useMemo(
+    () => filterNotifs(notifications, activeTab),
+    [notifications, activeTab],
+  );
 
-  const filteredNotifs = useMemo(() => {
-    if (activeTab === "ALL") return notifications;
-    if (activeTab === "TASKS")
-      return notifications.filter(
-        (n) => n.type.includes("TASK") || n.type.includes("COMMITTEE"),
-      );
-    if (activeTab === "SALES")
-      return notifications.filter(
-        (n) =>
-          n.type.includes("SALES") ||
-          n.type.includes("REVENUE") ||
-          n.type.includes("ACTIVITY"),
-      );
-    if (activeTab === "UNREAD") return notifications.filter((n) => !n.is_read);
-    return notifications;
-  }, [notifications, activeTab]);
-
+  // ── Handler ───────────────────────────────────────────────────────────────
   const handleNotificationClick = (notif) => {
-    if (!notif.is_read) {
-      markReadMutation.mutate(notif.id);
-    }
-
-    if (!notif.reference_id && !notif.type.includes("CONQUERED")) return; // No deep link unless there is a fallback
-
-    // Deep Routing Logic
-    if (notif.type === "COMMITTEE_TASK_COMMENT") {
-      // Comment notifications should open the chat, not the detail modal
-      navigate("/committee");
-      window.dispatchEvent(
-        new CustomEvent("OPEN_CHAT_MODAL", {
-          detail: {
-            entityId: notif.reference_id,
-            entityType: "COMMITTEE_TASK",
-          },
-        }),
-      );
-    } else if (
-      notif.type === "COMMITTEE_ASSIGNED" ||
-      notif.type === "COMMITTEE_TASK_READY_FOR_HR"
-    ) {
-      // Navigate to /committee and open the detail modal
-      navigate("/committee");
-      window.dispatchEvent(
-        new CustomEvent("OPEN_ENTITY_DETAILS", {
-          detail: { id: notif.reference_id, type: "COMMITTEE_TASK" },
-        }),
-      );
-    } else if (notif.type.includes("TASK")) {
-      // Route to the correct approval queue based on role
-      const isHrUser = user?.isHr || user?.is_hr;
-      const isHeadUser = user?.isHead || user?.is_head;
-      const isSA = user?.isSuperAdmin || user?.is_super_admin;
-
-      if (notif.type === "TASK_APPROVED_BY_HEAD" && isHrUser) {
-        // HR got notified that a Head approved — send to HR verification queue
-        navigate("/approvals/hr-verification", {
-          state: { openTaskId: notif.reference_id },
-        });
-      } else if (isHeadUser || isSA) {
-        // Head or SuperAdmin: task approval queue
-        navigate("/approvals/tasks", {
-          state: { openTaskId: notif.reference_id },
-        });
-      } else if (isHrUser) {
-        // HR-only: task verification queue
-        navigate("/approvals/hr-verification", {
-          state: { openTaskId: notif.reference_id },
-        });
-      } else {
-        // Employee: their own task page
-        navigate("/tasks", { state: { openTaskId: notif.reference_id } });
-      }
-    } else if (notif.type === "SALES_PLAN_SUBMITTED") {
-      // Manager/Head: Go to sales approvals page
-      if (
-        user?.isSuperAdmin ||
-        user?.isHead ||
-        user?.is_super_admin ||
-        user?.is_head
-      ) {
-        navigate("/approvals/sales", {
-          state: { highlightPlanId: notif.reference_id },
-        });
-      } else {
-        // Employee: Go to their schedule
-        navigate("/sales/schedule");
-      }
-    } else if (notif.type === "PLAN_AMENDMENT_REQUESTED") {
-      // Manager/Head: Go to sales approvals page
-      navigate("/approvals/sales", {
-        state: { highlightPlanId: notif.reference_id },
-      });
-    } else if (notif.type === "SALES_QUOTA_PUBLISHED") {
-      // Go to Dashboard to see performance/quota
-      navigate("/");
-    } else if (notif.type === "PLAN_AMENDMENT_RESULT") {
-      // Sales Rep: Go to their schedule to see approved/rejected result
-      navigate("/sales/schedule", {
-        state: { highlightPlanId: notif.reference_id },
-      });
-    } else if (notif.type === "UNPLANNED_ACTIVITY") {
-      // Go to records and open that activity
-      navigate("/sales/records", {
-        state: { openActivityId: notif.reference_id },
-      });
-    } else if (
-      notif.type === "SALES_DAY_CONQUERED" ||
-      notif.type === "SALES_WEEK_CONQUERED"
-    ) {
-      const date =
-        notif.reference_id ||
-        (notif.created_at ? notif.created_at.split("T")[0] : null);
-      const isManagement =
-        user?.isSuperAdmin ||
-        user?.isHead ||
-        user?.isHr ||
-        user?.is_super_admin ||
-        user?.is_head ||
-        user?.is_hr;
-      if (isManagement) {
-        navigate("/sales/records", {
-          state: {
-            eventType: notif.type,
-            fallbackDate: date,
-            fallbackEmpId: notif.sender_id,
-          },
-        });
-      } else {
-        navigate("/sales/daily", { state: { date } });
-      }
-    } else if (notif.type.includes("REVENUE")) {
-      navigate("/sales/records", {
-        state: { openRevenueId: notif.reference_id },
-      });
-    } else if (notif.type === "SALES_EXPENSE_PENDING") {
-      // Admins/Heads: route them to the sales approval queue specialized for activities
-      if (
-        user?.isSuperAdmin ||
-        user?.isHead ||
-        user?.is_super_admin ||
-        user?.is_head
-      ) {
-        navigate("/approvals/sales", {
-          state: { highlightActivityId: notif.reference_id },
-        });
-      } else {
-        navigate("/approvals/tasks", {
-          state: { highlightExpenseId: notif.reference_id },
-        });
-      }
-    } else if (notif.type === "SALES_EXPENSE_PROCESSED") {
-      // Sales rep: go to their daily execution for that day
-      navigate("/sales/daily", {
-        state: { highlightActivityId: notif.reference_id },
-      });
-    } else if (notif.type === "DAY_DELETE_REQUESTED") {
-      // Manager: go to approvals and expand deletion queue for that date/emp
-      navigate("/approvals/sales", {
-        state: { highlightDeletionDate: notif.reference_id },
-      });
-    } else if (notif.type === "DAY_DELETE_RESULT") {
-      // Sales Rep: go to their daily tracker for that day
-      navigate("/sales/daily", { state: { date: notif.reference_id } });
-    }
-
-    onClose(); // collapse drawer
+    if (!notif.is_read) markReadMutation.mutate(notif.id);
+    handleNotificationRoute(notif, user, navigate, onClose);
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
       {/* Backdrop */}
@@ -347,6 +203,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       <div
         className={`fixed top-0 right-0 h-full w-[500px] max-w-full bg-card border-l border-border shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
+        {/* Header */}
         <div className="p-6 border-b border-border flex justify-between items-center bg-card shrink-0">
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -382,16 +239,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         <div className="p-2 shrink-0">
           <TabGroup
             variant="pill"
-            tabs={[
-              { value: "ALL", label: "ALL" },
-              { value: "UNREAD", label: "UNREAD" },
-              ...(user?.has_task_flow || user?.isHr || user?.isSuperAdmin
-                ? [{ value: "TASKS", label: "TASKS" }]
-                : []),
-              ...(user?.has_sales_flow || user?.isHr || user?.isSuperAdmin
-                ? [{ value: "SALES", label: "SALES" }]
-                : []),
-            ]}
+            tabs={buildTabs(user)}
             activeTab={activeTab}
             onChange={setActiveTab}
             fullWidth={true}
@@ -414,142 +262,157 @@ export default function NotificationDrawer({ isOpen, onClose }) {
             </div>
           ) : (
             filteredNotifs.map((notif) => (
-              <div
+              <NotifItem
                 key={notif.id}
+                notif={notif}
+                avatarMap={avatarMap}
+                onMarkRead={() => markReadMutation.mutate(notif.id)}
+                onMarkUnread={() => markUnreadMutation.mutate(notif.id)}
+                onDelete={() =>
+                  confirmDeleteToast(
+                    "Delete Notification?",
+                    "This will permanently remove this alert from your hub.",
+                    () => deleteNotifMutation.mutate(notif.id),
+                  )
+                }
                 onClick={() => handleNotificationClick(notif)}
-                className={`p-6 border-b border-border transition-colors cursor-pointer
-                        ${
-                          !notif.is_read
-                            ? "bg-mauve-4 hover:bg-mauve-5"
-                            : "bg-mauve-3 hover:bg-mauve-4"
-                        }`}
-              >
-                <div className="flex gap-4 items-start">
-                  <div className="relative shrink-0">
-                    {notif.sender_id || notif.sender?.id ? (
-                      <Avatar
-                        name={notif.sender?.name || "User"}
-                        src={
-                          avatarMap.get(notif.sender_id || notif.sender?.id) ??
-                          undefined
-                        }
-                        size="md"
-                        className={!notif.is_read ? "ring-2 ring-mauve-6" : ""}
-                      />
-                    ) : (
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${notif.is_read ? "bg-muted" : "bg-primary/10"}`}
-                      >
-                        {getIconForType(notif.type)}
-                      </div>
-                    )}
-
-                    {/* Small type badge overlay if it's an avatar */}
-                    {(notif.sender_id || notif.sender?.id) && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-card border border-border rounded-full flex items-center justify-center shadow-sm z-10">
-                        {React.cloneElement(getIconForType(notif.type), {
-                          size: 10,
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start mb-1 gap-2">
-                      <h4
-                        className={`text-sm font-bold truncate ${notif.is_read ? "text-muted-foreground" : "text-foreground"}`}
-                      >
-                        {notif.title}
-                      </h4>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed font-normal">
-                      {notif.message}
-                    </p>
-
-                    <div className="mt-1.5 text-[12px] text-muted-foreground flex items-center gap-1.5">
-                      {new Date(notif.created_at).toLocaleDateString(
-                        undefined,
-                        { month: "short", day: "numeric" },
-                      )}
-                      {notif.sender && (
-                        <>
-                          <span>•</span>
-                          <span>By {notif.sender.name}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div
-                    className="flex flex-col items-end gap-2 shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Dropdown
-                      placement="bottom-end"
-                      popoverClassName="absolute top-full right-0 mt-1.5 bg-card border border-border rounded-xl shadow-2xl z-[110] popover-enter"
-                      trigger={({ isOpen }) => (
-                        <button
-                          className={`p-1.5 rounded-full hover:bg-muted transition-colors ${isOpen ? "bg-muted text-foreground" : "text-muted-foreground"}`}
-                        >
-                          <MoreHorizontal size={16} />
-                        </button>
-                      )}
-                    >
-                      {({ close }) => (
-                        <div
-                          className="p-1 min-w-[160px] flex flex-col bg-card border border-border rounded-lg shadow-xl"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {!notif.is_read ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markReadMutation.mutate(notif.id);
-                                close();
-                              }}
-                              className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
-                            >
-                              <MailOpen size={14} /> Mark as read
-                            </button>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markUnreadMutation.mutate(notif.id);
-                                close();
-                              }}
-                              className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
-                            >
-                              <MailWarning size={14} /> Mark as unread
-                            </button>
-                          )}
-                          <div className="h-px bg-border my-1" />
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              confirmDeleteToast(
-                                "Delete Notification?",
-                                "This will permanently remove this alert from your hub.",
-                                () => deleteNotifMutation.mutate(notif.id),
-                              );
-                              close();
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors text-left"
-                          >
-                            <Trash2 size={14} /> Delete
-                          </button>
-                        </div>
-                      )}
-                    </Dropdown>
-                    {!notif.is_read && (
-                      <Dot size="w-2 h-2" color="bg-primary/100" className="mr-1.5 mt-1" />
-                    )}
-                  </div>
-                </div>
-              </div>
+              />
             ))
           )}
         </div>
       </div>
     </>
+  );
+}
+
+// ─── NotifItem ────────────────────────────────────────────────────────────────
+function NotifItem({ notif, avatarMap, onMarkRead, onMarkUnread, onDelete, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className={`p-6 border-b border-border transition-colors cursor-pointer ${
+        !notif.is_read
+          ? "bg-mauve-4 hover:bg-mauve-5"
+          : "bg-mauve-3 hover:bg-mauve-4"
+      }`}
+    >
+      <div className="flex gap-4 items-start">
+        {/* Avatar / Icon */}
+        <div className="relative shrink-0">
+          {notif.sender_id || notif.sender?.id ? (
+            <Avatar
+              name={notif.sender?.name || "User"}
+              src={
+                avatarMap.get(notif.sender_id || notif.sender?.id) ?? undefined
+              }
+              size="md"
+              className={!notif.is_read ? "ring-2 ring-mauve-6" : ""}
+            />
+          ) : (
+            <div
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${notif.is_read ? "bg-muted" : "bg-primary/10"}`}
+            >
+              {getIconForType(notif.type)}
+            </div>
+          )}
+
+          {/* Type badge overlay */}
+          {(notif.sender_id || notif.sender?.id) && (
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-card border border-border rounded-full flex items-center justify-center shadow-sm z-10">
+              {React.cloneElement(getIconForType(notif.type), { size: 10 })}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start mb-1 gap-2">
+            <h4
+              className={`text-sm font-bold truncate ${notif.is_read ? "text-muted-foreground" : "text-foreground"}`}
+            >
+              {notif.title}
+            </h4>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed font-normal">
+            {notif.message}
+          </p>
+          <div className="mt-1.5 text-[12px] text-muted-foreground flex items-center gap-1.5">
+            {new Date(notif.created_at).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+            })}
+            {notif.sender && (
+              <>
+                <span>•</span>
+                <span>By {notif.sender.name}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div
+          className="flex flex-col items-end gap-2 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Dropdown
+            placement="bottom-end"
+            popoverClassName="absolute top-full right-0 mt-1.5 bg-card border border-border rounded-xl shadow-2xl z-[110] popover-enter"
+            trigger={({ isOpen }) => (
+              <button
+                className={`p-1.5 rounded-full hover:bg-muted transition-colors ${isOpen ? "bg-muted text-foreground" : "text-muted-foreground"}`}
+              >
+                <MoreHorizontal size={16} />
+              </button>
+            )}
+          >
+            {({ close }) => (
+              <div
+                className="p-1 min-w-[160px] flex flex-col bg-card border border-border rounded-lg shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {!notif.is_read ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMarkRead();
+                      close();
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
+                  >
+                    <MailOpen size={14} /> Mark as read
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMarkUnread();
+                      close();
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
+                  >
+                    <MailWarning size={14} /> Mark as unread
+                  </button>
+                )}
+                <div className="h-px bg-border my-1" />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                    close();
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors text-left"
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
+            )}
+          </Dropdown>
+          {!notif.is_read && (
+            <Dot size="w-2 h-2" color="bg-primary/100" className="mr-1.5 mt-1" />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

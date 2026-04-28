@@ -157,7 +157,7 @@ export const taskMutationService = {
     const { data: cur, error: curErr } = await supabase
       .from("tasks")
       .select(
-        "status, hr_verified, evaluated_by, logged_by, reported_to, task_description, project_title, category_id, priority, start_at, end_at, remarks, grade, payment_voucher, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
+        "status, hr_verified, evaluated_by, logged_by, reported_to, task_description, project_title, category_id, priority, start_at, end_at, remarks, grade, payment_voucher, attachment_urls, category:categories(description), creator:employees!tasks_logged_by_fk(name, department, sub_department)",
       )
       .eq("id", taskId)
       .single();
@@ -472,31 +472,144 @@ export const taskMutationService = {
         );
       }
 
-      // Check for core field edits (only log if we aren't already logging a state transition)
+      // Check for core field edits — log a separate, detailed entry per changed field
       if (!isEmployeeSelfComplete && !isHeadApprove && !isHeadReject && !isHrReject && !isRecall && payload.status === undefined) {
-        const edits = [];
-        if (payload.taskDescription !== undefined && payload.taskDescription !== current.task_description) edits.push("description");
-        if (payload.projectTitle !== undefined && payload.projectTitle !== current.project_title) edits.push("project");
-        if (payload.categoryId !== undefined && payload.categoryId !== current.category_id) edits.push("category");
-        if (payload.priority !== undefined && payload.priority !== current.priority) edits.push("priority");
-        if (payload.startAt !== undefined) {
-          const newStart = payload.startAt ? new Date(payload.startAt).toISOString() : null;
-          if (newStart !== current.start_at) edits.push("start date");
-        }
-        if (payload.endAt !== undefined) {
-          const newEnd = payload.endAt ? new Date(payload.endAt).toISOString() : null;
-          if (newEnd !== current.end_at) edits.push("end date");
-        }
-        if (payload.remarks !== undefined && payload.remarks !== current.remarks) edits.push("remarks");
-        if (payload.paymentVoucher !== undefined && payload.paymentVoucher !== current.payment_voucher) edits.push("payment voucher");
-        if (payload.attachments !== undefined) edits.push("attachments");
+        const fmtDate = (iso) => {
+          if (!iso) return "(none)";
+          return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+        };
+        const truncate = (str, len = 60) =>
+          str ? (str.length > len ? str.substring(0, len) + "…" : str) : "(none)";
 
-        if (edits.length > 0) {
+        // Task description
+        if (payload.taskDescription !== undefined && payload.taskDescription !== current.task_description) {
           taskActivityService.addSystemEvent(
             taskId,
-            `Task ${edits.join(", ")} updated by ${editorName}.`,
-            { event: "TASK_EDITED", edits }
+            `${editorName} changed the task description.\n  From: "${truncate(current.task_description)}"\n  To: "${truncate(payload.taskDescription)}"`,
+            { event: "TASK_EDITED", field: "task_description", old: current.task_description, new: payload.taskDescription }
           );
+        }
+
+        // Project title
+        if (payload.projectTitle !== undefined && (payload.projectTitle || null) !== (current.project_title || null)) {
+          const oldProj = current.project_title || "(none)";
+          const newProj = payload.projectTitle || "(none)";
+          taskActivityService.addSystemEvent(
+            taskId,
+            `${editorName} changed the project title from "${oldProj}" to "${newProj}".`,
+            { event: "TASK_EDITED", field: "project_title", old: current.project_title, new: payload.projectTitle }
+          );
+        }
+
+        // Category
+        if (payload.categoryId !== undefined && payload.categoryId !== current.category_id) {
+          // Fetch new category name
+          let newCatName = payload.categoryId;
+          try {
+            const { data: newCat } = await supabase
+              .from("categories")
+              .select("description")
+              .eq("id", payload.categoryId)
+              .single();
+            newCatName = newCat?.description || payload.categoryId;
+          } catch (_) {}
+          const oldCatName = current.category?.description || current.category_id || "(none)";
+          taskActivityService.addSystemEvent(
+            taskId,
+            `${editorName} changed the category from "${oldCatName}" to "${newCatName}".`,
+            { event: "TASK_EDITED", field: "category_id", old: current.category_id, new: payload.categoryId }
+          );
+        }
+
+        // Priority
+        if (payload.priority !== undefined && payload.priority !== current.priority) {
+          taskActivityService.addSystemEvent(
+            taskId,
+            `${editorName} changed the priority from ${current.priority} to ${payload.priority}.`,
+            { event: "TASK_EDITED", field: "priority", old: current.priority, new: payload.priority }
+          );
+        }
+
+        // Start date
+        if (payload.startAt !== undefined) {
+          const newStart = payload.startAt ? new Date(payload.startAt).toISOString() : null;
+          // Compare only the date portion (YYYY-MM-DD) to avoid sub-second / timezone false positives
+          const oldStartDay = current.start_at ? current.start_at.substring(0, 10) : null;
+          const newStartDay = newStart ? newStart.substring(0, 10) : null;
+          if (newStartDay !== oldStartDay) {
+            taskActivityService.addSystemEvent(
+              taskId,
+              `${editorName} changed the start date from ${fmtDate(current.start_at)} to ${fmtDate(newStart)}.`,
+              { event: "TASK_EDITED", field: "start_at", old: current.start_at, new: newStart }
+            );
+          }
+        }
+
+        // End date
+        if (payload.endAt !== undefined) {
+          const newEnd = payload.endAt ? new Date(payload.endAt).toISOString() : null;
+          // Compare only the date portion (YYYY-MM-DD)
+          const oldEndDay = current.end_at ? current.end_at.substring(0, 10) : null;
+          const newEndDay = newEnd ? newEnd.substring(0, 10) : null;
+          if (newEndDay !== oldEndDay) {
+            taskActivityService.addSystemEvent(
+              taskId,
+              `${editorName} changed the end date from ${fmtDate(current.end_at)} to ${fmtDate(newEnd)}.`,
+              { event: "TASK_EDITED", field: "end_at", old: current.end_at, new: newEnd }
+            );
+          }
+        }
+
+        // Remarks
+        if (payload.remarks !== undefined && payload.remarks !== current.remarks) {
+          taskActivityService.addSystemEvent(
+            taskId,
+            `${editorName} updated the remarks.\n  From: "${truncate(current.remarks || "(none)")}"\n  To: "${truncate(payload.remarks || "(none)")}"`,
+            { event: "TASK_EDITED", field: "remarks", old: current.remarks, new: payload.remarks }
+          );
+        }
+
+        // Payment voucher
+        if (payload.paymentVoucher !== undefined && (payload.paymentVoucher || null) !== (current.payment_voucher || null)) {
+          const oldPv = current.payment_voucher || null;
+          const newPv = payload.paymentVoucher || null;
+          let pvMsg;
+          if (!oldPv && newPv) {
+            pvMsg = `${editorName} added a payment voucher: "${newPv}".`;
+          } else if (oldPv && !newPv) {
+            pvMsg = `${editorName} removed the payment voucher (was: "${oldPv}").`;
+          } else {
+            pvMsg = `${editorName} changed the payment voucher from "${oldPv}" to "${newPv}".`;
+          }
+          taskActivityService.addSystemEvent(
+            taskId,
+            pvMsg,
+            { event: "TASK_EDITED", field: "payment_voucher", old: oldPv, new: newPv }
+          );
+        }
+
+        // Attachments — only log if the actual count changed
+        if (payload.attachments !== undefined) {
+          const oldCount = (current.attachment_urls || []).length;
+          const newCount = (payload.attachments || []).length;
+          const diff = newCount - oldCount;
+          if (diff !== 0) {
+            let attMsg;
+            if (oldCount === 0 && newCount > 0) {
+              attMsg = `${editorName} uploaded ${newCount} attachment${newCount !== 1 ? "s" : ""}.`;
+            } else if (newCount === 0 && oldCount > 0) {
+              attMsg = `${editorName} removed all ${oldCount} attachment${oldCount !== 1 ? "s" : ""}.`;
+            } else if (diff > 0) {
+              attMsg = `${editorName} added ${diff} attachment${diff !== 1 ? "s" : ""} (${newCount} total).`;
+            } else {
+              attMsg = `${editorName} removed ${Math.abs(diff)} attachment${Math.abs(diff) !== 1 ? "s" : ""} (${newCount} remaining).`;
+            }
+            taskActivityService.addSystemEvent(
+              taskId,
+              attMsg,
+              { event: "TASK_EDITED", field: "attachments", old_count: oldCount, new_count: newCount }
+            );
+          }
         }
       }
     }

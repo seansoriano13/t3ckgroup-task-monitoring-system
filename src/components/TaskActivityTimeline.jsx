@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../services/tasks/taskActivityService";
 import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
 import { useAuth } from "../context/AuthContext";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import {
   Send,
   Zap,
@@ -15,33 +16,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Spinner from "@/components/ui/Spinner";
+import Avatar from "./Avatar";
 
 const formatTime = (isoString) => {
   if (!isoString) return "";
   const d = new Date(isoString);
-  const now = new Date();
-  const diffMs = now - d;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
+    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 };
 
 /**
  * Renders a single activity entry based on its type
  */
-function ActivityEntry({ entry, currentUserId }) {
+function ActivityEntry({ entry, currentUserId, avatarMap }) {
   const isMe = entry.authorId === currentUserId;
 
   // --- SYSTEM event ---
@@ -142,7 +135,9 @@ function ActivityEntry({ entry, currentUserId }) {
               <span className="text-xs font-bold text-foreground">
                 {entry.authorName || "HR Audit"}
               </span>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-[color:var(--violet-10)]" : "text-destructive"}`}>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-widest ${isVerified ? "text-[color:var(--violet-10)]" : "text-destructive"}`}
+              >
                 {isVerified ? "Verification Successful" : "Verification Failed"}
               </span>
             </div>
@@ -164,23 +159,17 @@ function ActivityEntry({ entry, currentUserId }) {
   return (
     <div className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
       {/* Avatar */}
-      <div
-        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
+      <Avatar
+        name={entry.authorName}
+        src={avatarMap.get(entry.authorId) ?? undefined}
+        className={`w-9 h-9 text-xs font-black border rounded-full ${
           entry.authorIsHead || entry.authorIsSuperAdmin
-            ? "bg-warning/15 text-[color:var(--amber-9)] border-amber-500/30"
+            ? "bg-warning/15 text-amber-9 border-amber-500/30"
             : entry.authorIsHr
-              ? "bg-[color:var(--blue-9)]/15 text-[color:var(--blue-9)] border-blue-500/30"
+              ? "bg-blue-9/15 text-blue-9 border-blue-500/30"
               : "bg-muted/50 text-mauve-10 border-border"
         }`}
-      >
-        {entry.authorName
-          ? entry.authorName
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .substring(0, 2)
-          : "?"}
-      </div>
+      />
 
       {/* Bubble */}
       <div className={`max-w-[85%] ${isMe ? "items-end" : "items-start"}`}>
@@ -191,7 +180,9 @@ function ActivityEntry({ entry, currentUserId }) {
             </span>
           )}
           {isMe && (
-            <span className="text-[10px] font-extrabold text-[color:var(--violet-10)] uppercase tracking-widest ml-auto">You</span>
+            <span className="text-[10px] font-extrabold text-mauve-11  uppercase tracking-widest ml-auto">
+              You
+            </span>
           )}
         </div>
         <div
@@ -230,21 +221,27 @@ function LegacyEntries({ remarks, hrRemarks, evaluatedByName, grade }) {
       {remarks && (
         <div className="py-2 px-3 rounded-lg bg-muted/50/50 border border-border">
           <div className="flex items-center gap-2 mb-1">
-            <Star size={10} className="text-[color:var(--amber-9)]" />
+            <Star size={10} className="text-amber-9" />
             <span className="text-[10px] font-bold text-muted-foreground">
               {evaluatedByName || "Manager"} {grade ? `— Grade: ${grade}` : ""}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">{remarks}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {remarks}
+          </p>
         </div>
       )}
       {hrRemarks && (
-        <div className="py-2 px-3 rounded-lg bg-[color:var(--blue-9)]/5 border border-blue-500/15">
+        <div className="py-2 px-3 rounded-lg bg-blue-9/5 border border-blue-500/15">
           <div className="flex items-center gap-2 mb-1">
-            <ShieldCheck size={10} className="text-[color:var(--blue-9)]" />
-            <span className="text-[10px] font-bold text-muted-foreground">HR Notes</span>
+            <ShieldCheck size={10} className="text-blue-9" />
+            <span className="text-[10px] font-bold text-muted-foreground">
+              HR Notes
+            </span>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">{hrRemarks}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {hrRemarks}
+          </p>
         </div>
       )}
     </div>
@@ -266,6 +263,7 @@ export default function TaskActivityTimeline({
   inputType = "textarea",
 }) {
   const { user } = useAuth();
+  const avatarMap = useEmployeeAvatarMap();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
@@ -273,14 +271,17 @@ export default function TaskActivityTimeline({
 
   // Unique suffix per instance to avoid Supabase channel name collisions
   // when multiple TaskActivityTimeline components target the same task
-  const instanceId = useRef(`-timeline-${Math.random().toString(36).substring(2, 9)}`);
+  const instanceId = useRef(
+    `-timeline-${Math.random().toString(36).substring(2, 9)}`,
+  );
 
   // Fetch activity
   const { data: activity = [], isLoading } = useQuery({
     queryKey: ["taskActivity", taskId, entityType],
-    queryFn: () => entityType === "COMMITTEE_TASK" 
-      ? committeeTaskActivityService.getActivityForTask(taskId)
-      : taskActivityService.getActivityForTask(taskId),
+    queryFn: () =>
+      entityType === "COMMITTEE_TASK"
+        ? committeeTaskActivityService.getActivityForTask(taskId)
+        : taskActivityService.getActivityForTask(taskId),
     enabled: !!taskId,
     staleTime: 30_000,
   });
@@ -292,7 +293,9 @@ export default function TaskActivityTimeline({
         ? committeeTaskActivityService.addComment(taskId, authorId, content)
         : taskActivityService.addComment(taskId, authorId, content),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
+      queryClient.invalidateQueries({
+        queryKey: ["taskActivity", taskId, entityType],
+      });
       setMessage("");
     },
   });
@@ -302,13 +305,26 @@ export default function TaskActivityTimeline({
     if (!taskId) return;
 
     const suffix = instanceId.current;
-    const channel = entityType === "COMMITTEE_TASK"
-      ? committeeTaskActivityService.subscribeToActivity(taskId, () => {
-          queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
-        }, suffix)
-      : taskActivityService.subscribeToActivity(taskId, () => {
-          queryClient.invalidateQueries({ queryKey: ["taskActivity", taskId, entityType] });
-        }, suffix);
+    const channel =
+      entityType === "COMMITTEE_TASK"
+        ? committeeTaskActivityService.subscribeToActivity(
+            taskId,
+            () => {
+              queryClient.invalidateQueries({
+                queryKey: ["taskActivity", taskId, entityType],
+              });
+            },
+            suffix,
+          )
+        : taskActivityService.subscribeToActivity(
+            taskId,
+            () => {
+              queryClient.invalidateQueries({
+                queryKey: ["taskActivity", taskId, entityType],
+              });
+            },
+            suffix,
+          );
 
     return () => {
       if (entityType === "COMMITTEE_TASK") {
@@ -386,7 +402,10 @@ export default function TaskActivityTimeline({
 
             {activity.length === 0 && !showLegacy && (
               <div className="text-center py-6">
-                <MessageCircle size={24} className="mx-auto text-mauve-6 mb-2" />
+                <MessageCircle
+                  size={24}
+                  className="mx-auto text-mauve-6 mb-2"
+                />
                 <p className="text-[11px] text-muted-foreground font-bold">
                   No activity yet
                 </p>
@@ -401,6 +420,7 @@ export default function TaskActivityTimeline({
                 key={entry.id}
                 entry={entry}
                 currentUserId={user?.id}
+                avatarMap={avatarMap}
               />
             ))}
           </>

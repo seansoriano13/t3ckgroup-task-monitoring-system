@@ -10,7 +10,7 @@ const   Dropdown = forwardRef(
       onToggle,
       onClose,
       className = "",
-      popoverClassName = "absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] popover-enter",
+      popoverClassName = "absolute top-full mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] popover-enter",
       placement = "bottom-start", // bottom-start, bottom-end, etc.
       disabled = false,
       usePortal = false,

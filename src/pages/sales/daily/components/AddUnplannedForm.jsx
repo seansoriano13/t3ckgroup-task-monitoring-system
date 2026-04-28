@@ -1,8 +1,9 @@
-import { Plus, Image as ImageIcon, X } from "lucide-react";
+import { Plus, Image as ImageIcon, X, ChevronDown } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import { storageService } from "../../../../services/storageService";
 import toast from "react-hot-toast";
 import { useState } from "react";
+import Dropdown from "../../../../components/ui/Dropdown";
 
 export function AddUnplannedForm({
   timeOfDay,
@@ -93,19 +94,34 @@ export function AddUnplannedForm({
               Account &amp; Activity
             </label>
             <div className="flex gap-2">
-              <select
-                value={payload.activity_type}
-                onChange={(e) =>
-                  setPayload({ ...payload, activity_type: e.target.value })
-                }
-                className="bg-card border border-border rounded-xl px-2 py-2 text-[10px] font-black outline-none cursor-pointer text-foreground focus:border-mauve-8 transition-colors"
+              <Dropdown
+                placement="bottom-start"
+                trigger={({ isOpen }) => (
+                  <button
+                    className={`bg-card border ${isOpen ? "border-mauve-8 shadow-sm" : "border-border"} rounded-xl px-3 py-2 text-[10px] font-black outline-none cursor-pointer text-foreground transition-colors flex items-center justify-between min-w-[120px]`}
+                  >
+                    {payload.activity_type}
+                    <ChevronDown size={14} className="opacity-50 ml-2" />
+                  </button>
+                )}
               >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                {({ close }) => (
+                  <div className="flex flex-col p-1.5 w-[140px] max-h-[200px] overflow-y-auto">
+                    {categories.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => {
+                          setPayload({ ...payload, activity_type: c });
+                          close();
+                        }}
+                        className={`text-left px-3 py-2 text-[10px] font-black uppercase rounded-lg transition-colors ${payload.activity_type === c ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-mauve-4"}`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </Dropdown>
               <input
                 autoFocus
                 required

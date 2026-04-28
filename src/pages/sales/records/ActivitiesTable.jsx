@@ -50,14 +50,45 @@ export default function ActivitiesTable({
           </thead>
           <tbody className="divide-y divide-gray-4">
             {isLoading ? (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="p-10 text-center text-muted-foreground font-bold"
-                >
-                  Loading Activities...
-                </td>
-              </tr>
+              Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  {/* Date + badges */}
+                  <td className="p-4">
+                    <div className="h-3.5 w-24 bg-muted rounded-full mb-2" />
+                    <div className="flex gap-1.5">
+                      <div className="h-4 w-8 bg-muted rounded" />
+                      <div className="h-4 w-16 bg-muted rounded" />
+                    </div>
+                  </td>
+                  {/* Employee */}
+                  <td className="p-4">
+                    <div className="h-3.5 w-32 bg-muted rounded-full mb-2" />
+                    <div className="h-2.5 w-20 bg-muted rounded-full" />
+                  </td>
+                  {/* Account */}
+                  <td className="p-4">
+                    <div className="h-3.5 w-36 bg-muted rounded-full" />
+                  </td>
+                  {/* Activity */}
+                  <td className="p-4">
+                    <div className="h-3 w-20 bg-muted rounded-full mb-1.5" />
+                    <div className="h-4 w-16 bg-muted rounded" />
+                  </td>
+                  {/* Details */}
+                  <td className="p-4">
+                    <div className="h-3 w-40 bg-muted rounded-full mb-1.5" />
+                    <div className="h-3 w-28 bg-muted rounded-full" />
+                  </td>
+                  {/* Ref / Expense */}
+                  <td className="p-4">
+                    <div className="h-4 w-10 bg-muted rounded-full" />
+                  </td>
+                  {/* Status */}
+                  <td className="p-4 flex justify-center">
+                    <div className="h-5 w-5 bg-muted rounded-full" />
+                  </td>
+                </tr>
+              ))
             ) : filteredActivities.length === 0 ? (
               <tr>
                 <td
