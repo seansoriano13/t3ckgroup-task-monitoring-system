@@ -335,6 +335,11 @@ export const taskMutationService = {
 
     if (error) throw error;
 
+    // Detect resubmission (NOT APPROVED → INCOMPLETE) before the activity/notification blocks
+    const isResubmission =
+      payload?.status === TASK_STATUS.INCOMPLETE &&
+      current?.status === TASK_STATUS.NOT_APPROVED;
+
     // ===========================
     // ACTIVITY TIMELINE ENTRIES
     // ===========================
@@ -350,10 +355,6 @@ export const taskMutationService = {
       // --- Status transition events ---
       const isEmployeeSelfComplete = payload?.status === TASK_STATUS.AWAITING_APPROVAL && current?.status !== TASK_STATUS.AWAITING_APPROVAL;
 
-      // Employee resubmitting an HR-rejected task back into the head review pipeline
-      const isResubmission =
-        payload?.status === TASK_STATUS.INCOMPLETE &&
-        current?.status === TASK_STATUS.NOT_APPROVED;
       if (isResubmission) {
         updateData.grade = 0;
         updateData.evaluated_by = null;
