@@ -385,67 +385,57 @@ export const taskMutationService = {
 
 
       if (isHeadApprove) {
-        // Write the approval entry with grade + message to the timeline
-        taskActivityService.addApprovalEntry(
+        taskActivityService.upsertActivityEntry(
           taskId,
           payload.editedBy,
-          payload.activityMessage || payload.remarks || "Approved",
-          { event: "APPROVED", grade: payload.grade },
-        );
-        taskActivityService.addSystemEvent(
-          taskId,
-          `Task approved by ${editorName} — Grade: ${payload.grade}`,
-          { event: "STATUS_CHANGE", old_status: current.status, new_status: TASK_STATUS.COMPLETE, grade: payload.grade },
+          "APPROVAL",
+          "APPROVED",
+          payload.activityMessage || payload.remarks || `Task approved by ${editorName}`,
+          { event: "APPROVED", grade: payload.grade }
         );
       }
 
       if (isHeadReject) {
-        taskActivityService.addApprovalEntry(
+        taskActivityService.upsertActivityEntry(
           taskId,
           payload.editedBy,
-          payload.activityMessage || payload.remarks || "Not approved",
-          { event: "REJECTED", grade: 0 },
-        );
-        taskActivityService.addSystemEvent(
-          taskId,
-          `Task rejected by ${editorName}.`,
-          { event: "STATUS_CHANGE", old_status: current.status, new_status: TASK_STATUS.NOT_APPROVED },
+          "APPROVAL",
+          "REJECTED",
+          payload.activityMessage || payload.remarks || `Task rejected by ${editorName}`,
+          { event: "REJECTED", grade: 0 }
         );
       }
 
       if (payload.hrVerified === true && current.hr_verified === false) {
-        taskActivityService.addHrEntry(
+        taskActivityService.upsertActivityEntry(
           taskId,
           payload.editedBy,
-          payload.activityMessage || "Verified",
-          { event: "HR_VERIFIED" },
-        );
-        taskActivityService.addSystemEvent(
-          taskId,
-          `Task verified by HR (${editorName}).`,
-          { event: "HR_VERIFIED" },
+          "HR_NOTE",
+          "HR_VERIFIED",
+          payload.activityMessage || `Task verified by HR (${editorName})`,
+          { event: "HR_VERIFIED" }
         );
       }
 
       if (isHrReject) {
-        taskActivityService.addHrEntry(
+        taskActivityService.upsertActivityEntry(
           taskId,
           payload.editedBy,
-          payload.activityMessage || payload.hrRemarks || "Rejected by HR",
-          { event: "HR_REJECTED" },
-        );
-        taskActivityService.addSystemEvent(
-          taskId,
-          `Task rejected by HR (${editorName}).`,
-          { event: "HR_REJECTED" },
+          "HR_NOTE",
+          "HR_REJECTED",
+          payload.activityMessage || payload.hrRemarks || `Task rejected by HR (${editorName})`,
+          { event: "HR_REJECTED" }
         );
       }
 
       if (isHrUndo) {
-        taskActivityService.addSystemEvent(
+        taskActivityService.upsertActivityEntry(
           taskId,
+          payload.editedBy,
+          "SYSTEM",
+          "HR_UNDO",
           `HR verification undone by ${editorName}.`,
-          { event: "HR_UNDO" },
+          { event: "HR_UNDO" }
         );
       }
 

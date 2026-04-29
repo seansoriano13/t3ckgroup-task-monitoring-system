@@ -232,27 +232,40 @@ export const taskActivityService = {
   },
 
   /**
-   * Upsert a checklist event to prevent noise (keeps only one cumulative log)
+   * Generic upsert for activity logs to prevent timeline noise.
+   * Finds the most recent log for the task matching the given `type`, `author_id`, and `metadataEvent`.
+   * If it exists, updates it. If not, inserts a new one.
    */
-  async upsertChecklistEvent(taskId, content, metadata = null) {
+  async upsertActivityEntry(taskId, authorId, type, metadataEvent, content, metadata = null) {
     if (!taskId) return;
     try {
-      const { data: existingLogs } = await supabase
+      let query = supabase
         .from("task_activity")
         .select("id, metadata")
         .eq("task_id", taskId)
-        .eq("type", "SYSTEM")
-        .eq("metadata->>event", "CHECKLIST_UPDATED")
+        .eq("type", type)
+        .eq("metadata->>event", metadataEvent)
         .order("created_at", { ascending: false })
         .limit(1);
 
+      if (authorId === null) {
+        query = query.is("author_id", null);
+      } else {
+        query = query.eq("author_id", authorId);
+      }
+
+      const { data: existingLogs } = await query;
+
       if (existingLogs && existingLogs.length > 0) {
         const existingLog = existingLogs[0];
+        
+        // Preserve the original 'old' value if present, so the diff reflects the entire session
         const newMetadata = {
           ...metadata,
-          old: existingLog.metadata?.old || metadata.old,
-          new: metadata.new,
+          old: existingLog.metadata?.old !== undefined ? existingLog.metadata.old : metadata?.old,
+          new: metadata?.new !== undefined ? metadata.new : metadata?.new,
         };
+
         await supabase
           .from("task_activity")
           .update({ content, metadata: newMetadata, created_at: new Date().toISOString() })
@@ -260,15 +273,22 @@ export const taskActivityService = {
       } else {
         await supabase.from("task_activity").insert({
           task_id: taskId,
-          author_id: null,
-          type: "SYSTEM",
+          author_id: authorId,
+          type,
           content,
           metadata,
         });
       }
     } catch (err) {
-      console.error("Failed to upsert checklist event:", err);
+      console.error("Failed to upsert activity entry:", err);
     }
+  },
+
+  /**
+   * Upsert a checklist event to prevent noise (keeps only one cumulative log)
+   */
+  async upsertChecklistEvent(taskId, content, metadata = null) {
+    return this.upsertActivityEntry(taskId, null, "SYSTEM", "CHECKLIST_UPDATED", content, metadata);
   },
 
   /**

@@ -104,14 +104,14 @@ export default function SuperAdminDashboard() {
             />
           </div>
 
-          <div className="pt-6">
+          {/* <div className="pt-6">
             <EmployeePipelineMatrix selectedRange={selectedRange} />
           </div>
 
           <SalesPerformanceMetrics
             selectedMonth={selectedRange.startDate}
             selectedLabel={selectedRange.label}
-          />
+          /> */}
         </PageContainer>
       )}
     </ProtectedRoute>
