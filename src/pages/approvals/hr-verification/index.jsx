@@ -12,7 +12,7 @@ import Spinner from "@/components/ui/Spinner";
 import TaskDetails from "../../../components/TaskDetails.jsx";
 import TaskFilters from "../../../components/TaskFilters.jsx";
 import CommitteeApprovalSection from "../components/CommitteeApprovalSection.jsx";
-
+import { ApprovalHeader } from "../components/ApprovalHeader";
 import { ApprovalRow } from "../components/ApprovalRow";
 import BulkVerifyModal from "./components/BulkVerifyModal";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ export default function HrVerificationPage() {
     },
   });
 
+  const [autoOpenId, setAutoOpenId] = useState(null);
   const [viewTask, setViewTask] = useState(null);
   const [activeTab, setActiveTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,9 +71,10 @@ export default function HrVerificationPage() {
   useEffect(() => {
     if (location.state?.openTaskId && rawTasks.length > 0) {
       const targetTask = rawTasks.find((t) => t.id === location.state.openTaskId);
-      if (targetTask) {
-        queueMicrotask(() => setViewTask(targetTask));
-      }
+      queueMicrotask(() => {
+        setAutoOpenId(location.state.openTaskId);
+        if (targetTask) setViewTask(targetTask);
+      });
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, rawTasks, navigate, location.pathname]);
@@ -270,61 +272,20 @@ export default function HrVerificationPage() {
   return (
     <ProtectedRoute requireHr={true}>
       <PageContainer className="pt-4">
-        {/* PAGE HEADER */}
-        <PageHeader
-          title="Task Verification"
-          description="HR sign-off and audit of Head-approved tasks for payroll accuracy."
-        >
-          {appSettings?.enable_bulk_approval && (
-            <>
-              {selectedTaskIds.length > 0 ? (
-                <>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleDeselectAll}
-                    className="font-semibold shadow-sm"
-                  >
-                    <XSquare className="mr-2 h-4 w-4" /> Deselect All
-                  </Button>
-                  {activeTab === "VERIFIED" ? (
-                    <Button
-                      onClick={handleBulkUnverify}
-                      size="sm"
-                      disabled={isBulkUnverifyPending}
-                      className="font-semibold shadow-sm text-primary-foreground bg-destructive hover:bg-red-9"
-                    >
-                      <Undo2 className="mr-2 h-4 w-4" /> Undo {selectedTaskIds.length} Verification{selectedTaskIds.length > 1 ? "s" : ""}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setIsBulkVerifyModalOpen(true)}
-                      size="sm"
-                      className="font-semibold shadow-sm text-primary-foreground bg-blue-10 hover:bg-blue-11"
-                    >
-                      <ShieldCheck className="mr-2 h-4 w-4" /> Verify {selectedTaskIds.length} Selected
-                    </Button>
-                  )}
-                </>
-              ) : filteredTasks.length > 0 ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="font-semibold shadow-sm"
-                >
-                  <CheckSquare className="mr-2 h-4 w-4" /> Select All
-                </Button>
-              ) : null}
-            </>
-          )}
-          <div className="bg-card border border-border px-4 py-2 rounded-xl flex items-center gap-2.5 shadow-sm">
-            <Clock size={16} className="text-primary" />
-            <span className="text-foreground font-black text-[11px] uppercase tracking-widest">
-              {activeRawData.length} {activeTab === "VERIFIED" ? "Verified" : "Pending"}
-            </span>
-          </div>
-        </PageHeader>
+        <ApprovalHeader
+          isHr={true}
+          isSuperAdmin={isSuperAdmin}
+          appSettings={appSettings}
+          pendingTasksCount={activeRawData.length}
+          filteredTasksCount={filteredTasks.length}
+          selectedCount={selectedTaskIds.length}
+          onSelectAllPending={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          handleBulkApprove={() => setIsBulkVerifyModalOpen(true)}
+          handleBulkDecline={() => {}} 
+          handleUndoBulk={handleBulkUnverify}
+          isVerifiedTab={activeTab === "VERIFIED"}
+        />
 
         {/* TAB TOGGLE */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/50 pb-4 mt-2">
@@ -396,7 +357,7 @@ export default function HrVerificationPage() {
                     task={task}
                     isHr={true}
                     currentUserId={user?.id}
-                    defaultExpanded={false}
+                    defaultExpanded={task.id === autoOpenId}
                     onViewDetails={setViewTask}
                     onProcess={(payload) =>
                       editTaskMutation.mutateAsync({ ...payload, editedBy: user.id })

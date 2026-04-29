@@ -14,15 +14,17 @@ export default function GradeSelector({
   compact = false,
 }) {
   const activeColorMap = {
-    1: "bg-destructive text-primary-foreground border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]",
-    2: "bg-orange-500 text-primary-foreground border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]",
-    3: "bg-amber-500 text-primary-foreground border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]",
-    4: "bg-lime-500 text-primary-foreground border-lime-500 shadow-[0_0_15px_rgba(132,204,22,0.3)]",
-    5: "bg-green-9 text-primary-foreground border-green-9 shadow-[0_0_15px_rgba(16,185,129,0.3)]",
+    1: "bg-destructive text-white shadow-sm",
+    2: "bg-orange-500 text-white shadow-sm",
+    3: "bg-amber-500 text-white shadow-sm",
+    4: "bg-lime-500 text-white shadow-sm",
+    5: "bg-green-10 text-white shadow-sm",
   };
 
   return (
-    <div className={`flex ${compact ? "gap-1" : "gap-2"}`}>
+    <div
+      className={`flex items-center bg-muted/40 p-1 rounded-xl w-full ${compact ? "gap-0.5" : "gap-1"}`}
+    >
       {[1, 2, 3, 4, 5].map((num) => {
         const isSelected = grade === num;
 
@@ -30,12 +32,12 @@ export default function GradeSelector({
           return (
             <div
               key={num}
-              className={`flex items-center justify-center rounded-lg font-black border transition-all ${
-                compact ? "w-6 h-7 text-[10px]" : "flex-1 py-3 text-sm"
+              className={`flex items-center justify-center font-bold transition-all rounded-lg ${
+                compact ? "w-6 h-7 text-[10px]" : "flex-1 py-2 text-sm"
               } ${
                 isSelected
-                  ? `${activeColorMap[num]} scale-105 z-10`
-                  : "bg-muted/10 text-muted-foreground/30 border-transparent"
+                  ? `${activeColorMap[num]}`
+                  : "text-muted-foreground/40 opacity-50"
               }`}
             >
               {num}
@@ -49,16 +51,12 @@ export default function GradeSelector({
             type="button"
             disabled={!canEvaluate}
             onClick={() => onSelect?.(num)}
-            className={`flex items-center justify-center font-bold transition-all border ${
-              compact ? "w-6 h-7 rounded-lg text-[10px]" : "flex-1 py-3 rounded-xl text-sm"
+            className={`flex items-center justify-center font-bold transition-all rounded-lg ${
+              compact ? "w-6 h-7 text-[10px]" : "flex-1 py-2 text-sm"
             } ${!canEvaluate ? "opacity-50 cursor-not-allowed" : ""} ${
               isSelected
-                ? `${activeColorMap[num]} shadow-xl scale-[1.05] z-10`
-                : `bg-card text-muted-foreground border-border ${
-                    canEvaluate
-                      ? "hover:border-primary/30 hover:bg-muted/50"
-                      : ""
-                  }`
+                ? `${activeColorMap[num]} scale-[1.02] z-10`
+                : `text-muted-foreground hover:bg-background/80 hover:text-foreground`
             }`}
           >
             {num}

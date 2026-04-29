@@ -9,6 +9,7 @@ import { TASK_STATUS } from "../../../constants/status.js";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { Search, CheckCircle2, History, Users2 } from "lucide-react";
 import toast from "react-hot-toast";
+import Spinner from "@/components/ui/Spinner";
 import ExpenseApprovalQueue from "../../../components/ExpenseApprovalQueue.jsx";
 import TaskDetails from "../../../components/TaskDetails.jsx";
 import TaskFilters from "../../../components/TaskFilters.jsx";
@@ -367,8 +368,11 @@ export default function TaskApprovalsPage() {
 
   if (isLoading)
     return (
-      <div className="py-20 text-center text-muted-foreground font-bold">
-        Loading Queue...
+      <div className="py-20 flex flex-col items-center justify-center text-muted-foreground h-[60vh]">
+        <Spinner size="md" />
+        <p className="font-bold animate-pulse tracking-wider uppercase text-sm mt-3">
+          Loading Approval Queue...
+        </p>
       </div>
     );
 

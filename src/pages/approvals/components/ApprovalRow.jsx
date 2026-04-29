@@ -1,5 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, Maximize2, CheckCircle2, MessageSquareCheck } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Maximize2,
+  CheckCircle2,
+  MessageSquareCheck,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate } from "../../../utils/formatDate.js";
 import { formatTaskPreview } from "../../../utils/taskFormatters";
@@ -225,7 +231,7 @@ export function ApprovalRow({
           </div>
 
           <div className="hidden md:flex flex-1 min-w-0 ml-4 pl-4 border-l border-border items-center">
-            <p className="text-sm font-semibold text-muted-foreground line-clamp-1 max-w-md">
+            <p className="text-sm md:sm font-bold text-foreground line-clamp-1 max-w-md">
               <HighlightText
                 text={formatTaskPreview(task.taskDescription)}
                 search={searchTerm}
@@ -235,22 +241,22 @@ export function ApprovalRow({
         </div>
 
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
-          <div className="flex flex-col items-end leading-tight">
-            <span className="text-[10px] md:text-xs font-bold text-muted-foreground">
+          <div className="flex flex-col items-end leading-tight opacity-70">
+            <span className="text-[9px] md:text-[10px] font-medium text-muted-foreground">
               {formatDate(task.createdAt)}
             </span>
             {task.editedAt && (
               <span
-                className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-widest"
+                className="text-[8px] md:text-[9px] text-muted-foreground font-medium uppercase tracking-widest"
                 title={`Last modified ${formatDate(task.editedAt)}${task.editedByName ? ` by ${task.editedByName}` : ""}`}
               >
-                Mod: {formatDate(task.editedAt)}
+                {formatDate(task.editedAt)}
               </span>
             )}
           </div>
 
           {appSettings?.enable_visual_shaming && isDelayed && (
-            <span className="px-2 py-1 rounded bg-orange-400/20 text-amber-10 text-[9px] font-black uppercase tracking-widest border border-orange-500/30 animate-pulse">
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-bold uppercase tracking-widest animate-pulse">
               Delayed
             </span>
           )}
@@ -315,7 +321,7 @@ export function ApprovalRow({
                   />
                 </div>
               ) : (
-                <div className="bg-card p-3 md:p-4 rounded-lg border border-border text-xs md:text-sm text-foreground whitespace-pre-wrap leading-relaxed shadow-inner">
+                <div className="bg-muted/30 p-3 md:p-4 rounded-xl border border-transparent text-xs md:text-sm text-foreground whitespace-pre-wrap leading-relaxed">
                   <HighlightText
                     text={formatTaskPreview(task.taskDescription)}
                     search={searchTerm}
@@ -373,7 +379,7 @@ export function ApprovalRow({
                       placeholder={
                         isVerifiedTab ? "No notes provided" : "Audit notes..."
                       }
-                      className="w-full bg-background"
+                      className="w-full bg-muted/30 border-transparent focus-visible:bg-background mt-1 p-5"
                       disabled={isVerifiedTab}
                     />
                   </div>
@@ -381,18 +387,18 @@ export function ApprovalRow({
                   {!isVerifiedTab && (
                     <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         onClick={handleHrReject}
                         disabled={!hrRemarks || isSubmitting}
-                        className="order-2 sm:order-1 hover:text-destructive hover:border-destructive/50"
+                        className="px-3 py-5 order-2 sm:order-1 text-white hover:bg-red-11 bg-red-9"
                       >
-                        Not Approve
+                        Return
                       </Button>
                       <Button
                         variant="primary"
                         onClick={handleHrVerify}
                         disabled={isSubmitting}
-                        className="order-1 sm:order-2 bg-green-10 hover:bg-green  -11 text-primary-foreground"
+                        className="px-3 py-5 order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-white font-bold"
                       >
                         Verify & Sign
                       </Button>
@@ -421,7 +427,7 @@ export function ApprovalRow({
                       Evaluation Remarks
                     </label>
                     <Input
-                      className="placeholder:text-xs w-full bg-background mt-1 p-5"
+                      className="placeholder:text-xs w-full bg-muted/30 border-transparent focus-visible:bg-background mt-1 p-5"
                       type="text"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
@@ -435,19 +441,19 @@ export function ApprovalRow({
                   </div>
 
                   {!isVerifiedTab && (
-                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         onClick={handleHeadReject}
                         disabled={!remarks || isSubmitting}
-                        className="order-2 px-6 py-4 text-sm sm:order-1 hover:text-destructive hover:border-destructive/50"
+                        className="px-3 py-5 order-2 sm:order-1 text-white hover:bg-red-11 bg-red-9"
                       >
-                        Not Approve
+                        Return
                       </Button>
                       <Button
                         onClick={handleHeadApprove}
                         disabled={grade === null || isSubmitting}
-                        className="order-1 px-6 py-4 sm:order-2 bg-green-10 hover:bg-green-11 text-primary-foreground"
+                        className="px-3 py-5 order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-white font-bold"
                       >
                         Approve Task
                       </Button>
@@ -476,7 +482,7 @@ export function ApprovalRow({
                     <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
                       X
                     </span>{" "}
-                    Reject
+                    Return
                   </>
                 ) : (
                   <>
@@ -487,7 +493,7 @@ export function ApprovalRow({
                     <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
                       X
                     </span>{" "}
-                    Reject
+                    Return
                   </>
                 )}
               </p>
