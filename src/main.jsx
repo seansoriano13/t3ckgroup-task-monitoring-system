@@ -1,4 +1,4 @@
-﻿import { StrictMode } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { Routes } from "@generouted/react-router";
@@ -15,8 +15,8 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: true, // Instantly updates when they click back into browser
       refetchOnReconnect: "always",
-      staleTime: 1000 * 60 * 5, // Considers data "fresh" for 5 minutes
-      refetchInterval: 1000 * 30, // 👈 Increased to 30s: Better for mobile battery/background stability
+      staleTime: 1000 * 60 * 15, // Considers data "fresh" for 15 minutes
+      refetchInterval: false, // 👈 DISABLED: Polling is the primary cause of high egress. Rely on manual refresh or Realtime.
       retry: 2, 
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     },

@@ -35,11 +35,10 @@ export default function SalesDashboard({ globalRange }) {
   const monthKeys = globalRange?.monthKeys || [];
   const isMonthly = rangeMode === "MONTHLY";
   const { data: leaderboardData, isLoading: isLdrLoading } = useQuery({
-    queryKey: ["salesLeaderboard", startDate, endDate, monthKeys],
     queryFn: () =>
       salesService.getLeaderboardData(startDate, endDate, monthKeys),
     enabled: !!startDate && !!endDate,
-    refetchInterval: 15000,
+    refetchInterval: false,
   });
 
   const leaderboard = leaderboardData?.rankings || [];
@@ -62,7 +61,7 @@ export default function SalesDashboard({ globalRange }) {
     queryKey: ["salesRevenueLogs", startDate, endDate],
     queryFn: () => salesService.getRevenueLogsByMonth(startDate?.slice(0, 7)),
     enabled: isMonthly && isVerificationEnforced && !!startDate,
-    refetchInterval: 15000,
+    refetchInterval: false,
   });
 
   // Raw revenue for product analysis
@@ -70,7 +69,7 @@ export default function SalesDashboard({ globalRange }) {
     queryKey: ["salesRevenueAnalysis", startDate, endDate],
     queryFn: () => salesService.getRevenueAnalysis(startDate, endDate),
     enabled: !!startDate && !!endDate,
-    refetchInterval: 15000,
+    refetchInterval: false,
   });
 
   // // Activities for SWOT & execution metrics (admin only)

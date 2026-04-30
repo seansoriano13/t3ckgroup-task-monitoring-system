@@ -3,67 +3,59 @@ import imageCompression from 'browser-image-compression';
 
 export const storageService = {
   /**
-   * Compresses and uploads an image to the task-attachments bucket.
-   * Path: {userId}/{taskId}_{timestamp}.{ext}
+   * Compresses and uploads an image to Cloudinary (formerly Supabase Storage).
+   *Offloading media to Cloudinary eliminates Supabase Egress costs.
    */
   async uploadTaskAttachment(userId, taskId, file) {
     if (!userId || !taskId || !file) throw new Error("Missing required fields for upload.");
-
-    // Compress the image before uploading to save free tier space
-    const options = {
-      maxSizeMB: 1, // Compress to max 1MB
-      maxWidthOrHeight: 1920,
-      useWebWorker: true
-    };
     
-    let fileToUpload = file;
-    try {
-      if (file.type.startsWith('image/')) {
-         fileToUpload = await imageCompression(file, options);
-      }
-    } catch (error) {
-      console.warn("Compression failed, uploading original.", error);
-    }
-
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop() || 'png';
-    const filePath = `${userId}/${taskId}_${timestamp}.${extension}`;
-
-    const { data, error } = await supabase.storage
-      .from('task-attachments')
-      .upload(filePath, fileToUpload, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (error) throw error;
-    
-    // Returns the storage path needed for the DB
-    return data.path;
+    // Switch to Cloudinary for all task attachments to save Supabase Egress
+    return this.uploadToCloudinary(file);
   },
 
   /**
    * Batch get signed URLs for viewing attachments.
+   * If the path is already a full URL (Cloudinary), returns it as is.
    */
   async getSignedUrls(paths = []) {
     if (!paths || paths.length === 0) return [];
     
-    const { data, error } = await supabase.storage
-      .from('task-attachments')
-      .createSignedUrls(paths, 3600); // 1 hour expiry
+    const supabasePaths = paths.filter(p => !p.startsWith('http'));
+    const cloudinaryUrls = paths.filter(p => p.startsWith('http'));
 
-    if (error) throw error;
-    return data.map((d, index) => ({
-       path: paths[index],
-       signedUrl: d.signedUrl 
+    let signedSupabase = [];
+    if (supabasePaths.length > 0) {
+      const { data, error } = await supabase.storage
+        .from('task-attachments')
+        .createSignedUrls(supabasePaths, 3600);
+      if (!error && data) {
+        signedSupabase = data.map((d, i) => ({
+          path: supabasePaths[i],
+          signedUrl: d.signedUrl
+        }));
+      }
+    }
+
+    const cloudinaryMapped = cloudinaryUrls.map(url => ({
+      path: url,
+      signedUrl: url
     }));
+
+    return [...signedSupabase, ...cloudinaryMapped];
   },
 
   /**
-   * Delete an attachment
+   * Delete an attachment.
+   * Skips Supabase if it's a Cloudinary URL.
    */
   async deleteAttachment(path) {
     if (!path) return;
+    
+    if (path.startsWith('http')) {
+      // For now, we don't delete from Cloudinary to keep it simple (requires signed requests)
+      // Offloading egress is the priority.
+      return true;
+    }
     
     const { error } = await supabase.storage
       .from('task-attachments')

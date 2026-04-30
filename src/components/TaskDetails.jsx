@@ -16,6 +16,7 @@ import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import ImageAttachment from "./ImageAttachment";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.js";
+import { taskQueryService } from "../services/tasks/taskQueryService";
 import { toast } from "react-hot-toast";
 import { confirmDeleteToast } from "./ui/CustomToast";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,17 @@ export default function TaskDetails({
   const [approvalGrade, setApprovalGrade] = useState(null);
   const [descriptionType, setDescriptionType] = useState("description");
 
+  // 🔥 FULL TASK FETCH: Fetch complete details ONLY when drawer is open
+  // This allows the main Dashboard/Task list to be lightweight (no attachments/large remarks)
+  const { data: fullTask, isLoading: isFetchingTask } = useQuery({
+    queryKey: ["taskDetails", task?.id],
+    queryFn: () => taskQueryService.getTaskById(task.id),
+    enabled: isOpen && !!task?.id,
+    staleTime: 1000 * 60, // Consider fresh for 1 min
+  });
+
+  const activeTask = fullTask || task; // Fallback to prop while loading
+
   // Timeline message ref — used by the approval flow to grab the message
   // from the timeline input box when the head clicks Approve/Reject
   const timelineMessageRef = useRef("");
@@ -72,22 +84,22 @@ export default function TaskDetails({
     paymentVoucher: "",
   });
 
-  // Pre-hydrate the form data immediately when the modal opens
+  // Pre-hydrate the form data immediately when the modal opens or fullTask loads
   useEffect(() => {
-    if (isOpen && task) {
+    if (isOpen && activeTask) {
       if (user?.id) {
-        activeChatService.markAsRead(user.id, "TASK", task.id);
+        activeChatService.markAsRead(user.id, "TASK", activeTask.id);
       }
 
       const taskDept =
-        task.creator?.department ||
-        task.employees?.department ||
-        task.department ||
+        activeTask.creator?.department ||
+        activeTask.employees?.department ||
+        activeTask.department ||
         "";
       const taskSubDept =
-        task.creator?.sub_department ||
-        task.employees?.sub_department ||
-        task.sub_department ||
+        activeTask.creator?.sub_department ||
+        activeTask.employees?.sub_department ||
+        activeTask.sub_department ||
         "";
 
       queueMicrotask(() => {
@@ -95,7 +107,7 @@ export default function TaskDetails({
         timelineMessageRef.current = "";
 
         let initialDescriptionType = "description";
-        const desc = task.taskDescription;
+        const desc = activeTask.taskDescription;
         if (desc) {
           const trimmed = typeof desc === "string" ? desc.trim() : "";
           if (
@@ -112,22 +124,22 @@ export default function TaskDetails({
           department: taskDept || user?.department || "",
           subDepartment:
             taskSubDept || user?.sub_department || user?.subDepartment || "",
-          loggedById: task.loggedById || "",
-          categoryId: task.categoryId || "",
-          priority: task.priority || "LOW",
-          status: task.status || "INCOMPLETE",
-          startAt: task.startAt ? toLocalDatetimeString(task.startAt) : "",
-          endAt: task.endAt ? toLocalDatetimeString(task.endAt) : "",
-          projectTitle: task.projectTitle || "",
-          taskDescription: task.taskDescription || "",
-          grade: task.grade || 0,
-          remarks: task.remarks || "",
-          attachments: task.attachments || [],
-          paymentVoucher: task.paymentVoucher || "",
+          loggedById: activeTask.loggedById || "",
+          categoryId: activeTask.categoryId || "",
+          priority: activeTask.priority || "LOW",
+          status: activeTask.status || "INCOMPLETE",
+          startAt: activeTask.startAt ? toLocalDatetimeString(activeTask.startAt) : "",
+          endAt: activeTask.endAt ? toLocalDatetimeString(activeTask.endAt) : "",
+          projectTitle: activeTask.projectTitle || "",
+          taskDescription: activeTask.taskDescription || "",
+          grade: activeTask.grade || 0,
+          remarks: activeTask.remarks || "",
+          attachments: activeTask.attachments || [],
+          paymentVoucher: activeTask.paymentVoucher || "",
         });
       });
     }
-  }, [isOpen, task, user]);
+  }, [isOpen, activeTask, user]);
 
   // Role Checks
   const isHr =
