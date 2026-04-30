@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from "react";
 import Dropdown from "../ui/Dropdown";
 import { Tag, ChevronDown, Search, Check } from "lucide-react";
-
-export default function CategoryDropdown({
+import { FilterTrigger } from "../ui/FilterDropdown";export default function CategoryDropdown({
   value,
   onChange,
   categories = [],
@@ -32,27 +31,34 @@ export default function CategoryDropdown({
       onClose={onClose}
       className={`z-[100] ${className}`}
       /* popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] w-[280px] popover-enter" */
-      trigger={({ isOpen }) => (
-        <button
-          type="button"
-          className={
-            triggerClassName ||
-            `property-pill ${isOpen ? "active" : ""} ${disabled ? "static" : ""}`
-          }
-        >
-          <Tag size={13} />
-          <span className={value ? "text-foreground" : "text-mauve-7"}>
-            {value || "Category"}
-            {!value && <span className="text-destructive ml-0.5">*</span>}
-          </span>
-          {!disabled && (
-            <ChevronDown
-              size={12}
-              className={value ? "text-violet-8" : "text-mauve-7"}
-            />
-          )}
-        </button>
-      )}
+      trigger={({ isOpen, disabled }) => 
+        triggerClassName ? (
+          <button
+            type="button"
+            className={triggerClassName}
+          >
+            <Tag size={13} />
+            <span className={value ? "text-foreground" : "text-mauve-7"}>
+              {value || "Category"}
+              {!value && <span className="text-destructive ml-0.5">*</span>}
+            </span>
+            {!disabled && (
+              <ChevronDown
+                size={12}
+                className={value ? "text-violet-8" : "text-mauve-7"}
+              />
+            )}
+          </button>
+        ) : (
+          <FilterTrigger
+            label={value || "Category"}
+            isActive={!!value}
+            isOpen={isOpen}
+            icon={Tag}
+            disabled={disabled}
+          />
+        )
+      }
     >
       {({ close }) => (
         <>

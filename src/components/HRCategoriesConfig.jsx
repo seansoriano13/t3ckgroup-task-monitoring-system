@@ -1,15 +1,22 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Edit, Trash2, XSquare, Building2, Info, ChevronDown } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  XSquare,
+  Building2,
+  Info,
+  ChevronDown,
+} from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import { employeeService } from "../services/employeeService";
 import { useAuth } from "../context/AuthContext";
 import { confirmDeleteToast } from "./ui/CustomToast";
 import { Dialog, DialogContent } from "./ui/dialog";
 import Dropdown from "./ui/Dropdown";
-import PropertyPill from "./ui/PropertyPill";
-import { FilterOptionList } from "./ui/FilterDropdown";
+import { FilterTrigger, FilterOptionList } from "./ui/FilterDropdown";
 
 export default function HRCategoriesConfig() {
   const queryClient = useQueryClient();
@@ -98,7 +105,8 @@ export default function HRCategoriesConfig() {
   const upsertMutation = useMutation({
     mutationFn: async ({ mode, id, data }) => {
       const actorId = user?.id || null;
-      if (mode === "edit") return employeeService.updateCategory(id, data, actorId);
+      if (mode === "edit")
+        return employeeService.updateCategory(id, data, actorId);
       return employeeService.createCategory({ ...data, updatedBy: actorId });
     },
     onSuccess: (_, variables) => {
@@ -144,10 +152,12 @@ export default function HRCategoriesConfig() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.categoryId.trim()) return toast.error("Category ID is required.");
+    if (!formData.categoryId.trim())
+      return toast.error("Category ID is required.");
     if (!formData.description.trim())
       return toast.error("Description is required.");
-    if (!formData.department.trim()) return toast.error("Department is required.");
+    if (!formData.department.trim())
+      return toast.error("Department is required.");
     if (!formData.subDepartment.trim())
       return toast.error("Sub-Department is required.");
 
@@ -204,7 +214,9 @@ export default function HRCategoriesConfig() {
         {isLoading ? (
           <div className="py-10 flex flex-col items-center justify-center gap-3">
             <Spinner size="md" />
-            <p className="text-muted-foreground font-bold">Loading categories...</p>
+            <p className="text-muted-foreground font-bold">
+              Loading categories...
+            </p>
           </div>
         ) : isError ? (
           <div className="p-8 text-center bg-red-a2 border-b border-red-a5">
@@ -216,77 +228,80 @@ export default function HRCategoriesConfig() {
           </div>
         ) : (
           <table className="w-full text-left border-collapse whitespace-nowrap">
-                <thead>
-                  <tr className="bg-mauve-1 border-b border-mauve-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    <th className="p-4">Category ID</th>
-                    <th className="p-4 w-1/3">Description</th>
-                    <th className="p-4">Department</th>
-                    <th className="p-4">Sub-Department</th>
-                    <th className="p-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-4">
-                  {filteredCategories.length > 0 ? (
-                    filteredCategories.map((cat) => (
-                      <tr
-                        key={cat.id}
-                        className="hover:bg-mauve-3/30 transition-colors"
+            <thead>
+              <tr className="bg-mauve-1 border-b border-mauve-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                <th className="p-4">Category ID</th>
+                <th className="p-4 w-1/3">Description</th>
+                <th className="p-4">Department</th>
+                <th className="p-4">Sub-Department</th>
+                <th className="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-4">
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((cat) => (
+                  <tr
+                    key={cat.id}
+                    className="hover:bg-mauve-3/30 transition-colors"
+                  >
+                    <td className="p-4">
+                      <span className="text-xs font-bold text-foreground bg-mauve-3 px-2 py-1 rounded border border-mauve-4">
+                        {cat.categoryId}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm text-mauve-11 truncate max-w-xs">
+                      {cat.description}
+                    </td>
+                    <td className="p-4 text-sm text-mauve-11">
+                      {cat.department || "-"}
+                    </td>
+                    <td className="p-4 text-sm text-mauve-11">
+                      {cat.subDepartment || "-"}
+                    </td>
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        onClick={() => openEdit(cat)}
+                        className="p-2 bg-mauve-3 hover:bg-mauve-4 text-foreground rounded-lg transition-colors inline-block"
+                        title="Edit Category"
                       >
-                      <td className="p-4">
-                        <span className="text-xs font-bold text-foreground bg-mauve-3 px-2 py-1 rounded border border-mauve-4">
-                          {cat.categoryId}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm text-mauve-11 truncate max-w-xs">
-                        {cat.description}
-                      </td>
-                      <td className="p-4 text-sm text-mauve-11">
-                        {cat.department || "-"}
-                      </td>
-                      <td className="p-4 text-sm text-mauve-11">
-                        {cat.subDepartment || "-"}
-                      </td>
-                      <td className="p-4 text-right space-x-2">
-                        <button
-                          onClick={() => openEdit(cat)}
-                          className="p-2 bg-mauve-3 hover:bg-mauve-4 text-foreground rounded-lg transition-colors inline-block"
-                          title="Edit Category"
-                        >
-                          <Edit size={16} />
-                        </button>
-                         <button
-                          onClick={() => {
-                            confirmDeleteToast(
-                              `Delete Category?`,
-                              `"${cat.categoryId}" will be permanently removed. This cannot be undone.`,
-                              () => deleteMutation.mutate(cat)
-                            );
-                          }}
-                          className="p-2 bg-red-900/20 hover:bg-red-900/40 text-destructive rounded-lg transition-colors inline-block"
-                          title="Delete Category"
-                          disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="5"
-                      className="p-8 text-center text-muted-foreground font-bold"
-                    >
-                      No categories found matching your search.
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          confirmDeleteToast(
+                            `Delete Category?`,
+                            `"${cat.categoryId}" will be permanently removed. This cannot be undone.`,
+                            () => deleteMutation.mutate(cat),
+                          );
+                        }}
+                        className="p-2 bg-red-900/20 hover:bg-red-900/40 text-destructive rounded-lg transition-colors inline-block"
+                        title="Delete Category"
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
-                )}
-                </tbody>
-              </table>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="p-8 text-center text-muted-foreground font-bold"
+                  >
+                    No categories found matching your search.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         )}
       </div>
 
-      <Dialog open={isModalOpen} onOpenChange={(open) => !open && setIsModalOpen(false)}>
+      <Dialog
+        open={isModalOpen}
+        onOpenChange={(open) => !open && setIsModalOpen(false)}
+      >
         <DialogContent
           showCloseButton={false}
           className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl max-h-[90vh] overflow-hidden"
@@ -348,7 +363,10 @@ export default function HRCategoriesConfig() {
                       type="text"
                       value={formData.description}
                       onChange={(e) =>
-                        setFormData({ ...formData, description: e.target.value })
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
                       }
                       className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-8/10 transition-all text-foreground font-medium"
                     />
@@ -363,16 +381,12 @@ export default function HRCategoriesConfig() {
                   placement="top-start"
                   /* popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter" */
                   trigger={({ isOpen }) => (
-                    <PropertyPill
-                      isActive={!!formData.department || isOpen}
+                    <FilterTrigger
+                      label={formData.department || "Set Department"}
+                      isActive={!!formData.department}
+                      isOpen={isOpen}
                       icon={Building2}
-                    >
-                      <span>{formData.department || "Set Department"}</span>
-                      <ChevronDown
-                        size={12}
-                        className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      />
-                    </PropertyPill>
+                    />
                   )}
                 >
                   {({ close }) => (
@@ -383,7 +397,10 @@ export default function HRCategoriesConfig() {
                         </p>
                       </div>
                       <FilterOptionList
-                        options={uniqueDepts.map((d) => ({ label: d, value: d }))}
+                        options={uniqueDepts.map((d) => ({
+                          label: d,
+                          value: d,
+                        }))}
                         value={formData.department}
                         onChange={(val) => {
                           setFormData({
@@ -406,7 +423,7 @@ export default function HRCategoriesConfig() {
                           });
                           close();
                         }}
-                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-bold text-violet-10 hover:bg-violet-2 transition-colors uppercase tracking-wider"
+                        className="w-full text-left px-3 py-2 rounded-md text-[11px] font-boldx  transition-colors uppercase tracking-wider"
                       >
                         + Add New Department
                       </button>
@@ -421,19 +438,13 @@ export default function HRCategoriesConfig() {
                   placement="top-start"
                   /* popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter" */
                   trigger={({ isOpen, disabled }) => (
-                    <PropertyPill
-                      isActive={(!!formData.subDepartment || isOpen) && !disabled}
-                      disabled={disabled}
+                    <FilterTrigger
+                      label={formData.subDepartment || "Set Sub-Dept"}
+                      isActive={!!formData.subDepartment}
+                      isOpen={isOpen}
                       icon={Building2}
-                    >
-                      <span>{formData.subDepartment || "Set Sub-Dept"}</span>
-                      {!disabled && (
-                        <ChevronDown
-                          size={12}
-                          className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-                        />
-                      )}
-                    </PropertyPill>
+                      disabled={disabled}
+                    />
                   )}
                 >
                   {({ close }) => (
@@ -446,7 +457,10 @@ export default function HRCategoriesConfig() {
                       <FilterOptionList
                         options={[
                           { label: "None", value: "" },
-                          ...uniqueSubDepts.map((s) => ({ label: s, value: s })),
+                          ...uniqueSubDepts.map((s) => ({
+                            label: s,
+                            value: s,
+                          })),
                         ]}
                         value={formData.subDepartment}
                         onChange={(val) => {
@@ -563,4 +577,3 @@ export default function HRCategoriesConfig() {
     </div>
   );
 }
-

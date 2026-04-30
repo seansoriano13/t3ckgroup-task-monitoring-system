@@ -973,7 +973,7 @@ export default function SuperAdminActivityLogPage() {
                         />
                       </div>
 
-                      {/* Footer: author avatar + status pill — matches property-pill style */}
+                      {/* Footer: author avatar + status pill — matches premium trigger style */}
                       <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                         {/* Author — matches LogTaskHeader dept initial badge */}
                         <div className="flex items-center gap-1.5">
@@ -988,7 +988,7 @@ export default function SuperAdminActivityLogPage() {
                           </span>
                         </div>
 
-                        {/* Status — matches .property-pill */}
+                        {/* Status — matches standardized triggers */}
                         <StatusBadge status={e.taskStatus} />
                       </div>
                     </div>

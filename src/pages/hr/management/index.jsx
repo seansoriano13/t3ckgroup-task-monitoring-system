@@ -21,8 +21,10 @@ import {
 import Spinner from "@/components/ui/Spinner";
 import { ListCheck } from "lucide-react";
 import Dropdown from "../../../components/ui/Dropdown";
-import PropertyPill from "../../../components/ui/PropertyPill";
-import { FilterOptionList } from "../../../components/ui/FilterDropdown";
+import {
+  FilterTrigger,
+  FilterOptionList,
+} from "../../../components/ui/FilterDropdown";
 import { Dialog, DialogContent } from "../../../components/ui/dialog";
 import { Users } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -32,7 +34,8 @@ import TabGroup from "../../../components/ui/TabGroup";
 import HighlightText from "../../../components/HighlightText";
 import Avatar from "@/components/Avatar";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
-
+import PrimaryButton from "@/components/PrimaryButton";
+import { Button } from "@/components/ui/button";
 
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
@@ -42,7 +45,10 @@ export default function EmployeeManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const avatarMap = useEmployeeAvatarMap();
-  const resolvedAvatars = useMemo(() => Object.fromEntries(avatarMap), [avatarMap]);
+  const resolvedAvatars = useMemo(
+    () => Object.fromEntries(avatarMap),
+    [avatarMap],
+  );
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ["allEmployees"],
@@ -122,12 +128,13 @@ export default function EmployeeManagement() {
                   className="w-full bg-muted/40 border border-border text-foreground rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-4 transition-all text-sm"
                 />
               </div>
-              <button
+              <Button
+                className={"h-9 px-6 rounded-xl shadow-lg shadow-primary/20"}
                 onClick={handleAddNew}
-                className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all shadow-lg shadow-primary/15"
               >
-                <UserPlus size={16} /> Add Employee
-              </button>
+                <UserPlus size={16} />
+                <p>Add Employee</p>
+              </Button>
             </div>
 
             <div className="bg-card border border-border rounded-2xl shadow-sm overflow-x-auto">
@@ -169,7 +176,10 @@ export default function EmployeeManagement() {
                           />
                           <div className="truncate">
                             <p className="font-black text-foreground">
-                              <HighlightText text={emp.name} search={searchTerm} />
+                              <HighlightText
+                                text={emp.name}
+                                search={searchTerm}
+                              />
                             </p>
 
                             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
@@ -191,7 +201,7 @@ export default function EmployeeManagement() {
                           {emp.role || "-"}
                         </td>
                         <td className="p-4 text-xs flex gap-1">
-                           {emp.isSuperAdmin && (
+                          {emp.isSuperAdmin && (
                             <span className="bg-violet-2 text-violet-11 border border-mauve-5 px-2.5 py-1 rounded-lg font-black text-[10px] flex items-center gap-1 uppercase tracking-wider">
                               <Shield size={11} /> Super Admin
                             </span>
@@ -440,7 +450,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                   <input
                     required
                     type="text"
-                    placeholder="e.g. John Doe"
+                    placeholder="e.g. Juan Dela Cruz"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
@@ -458,7 +468,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                   <input
                     required
                     type="email"
-                    placeholder="e.g. john@t3ckgroup.com"
+                    placeholder="e.g. juan@t3ckgroup.com"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
@@ -473,18 +483,14 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                   Job Role / Title
                 </label>
                 <div className="relative">
-                  <Briefcase
-                    size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  />
                   <input
                     type="text"
                     value={formData.role}
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
-                    placeholder="e.g. MARKETING ASSISTANT"
-                    className="w-full bg-muted/40 border border-border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-4 transition-all text-foreground font-medium"
+                    placeholder="e.g. Marketing Assistant"
+                    className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-4 transition-all text-foreground font-medium"
                   />
                 </div>
               </div>
@@ -495,18 +501,14 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
               <Dropdown
                 usePortal={true}
                 placement="top-start"
-                /* popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter" */
+                /* popoverClassName="bg-card border border-border rounded-xl shadow-2xl w-[240px] popover-enter" */
                 trigger={({ isOpen }) => (
-                  <PropertyPill
-                    isActive={!!formData.department || isOpen}
+                  <FilterTrigger
+                    label={formData.department || "Set Department"}
+                    isActive={!!formData.department}
+                    isOpen={isOpen}
                     icon={Building2}
-                  >
-                    <span>{formData.department || "Set Department"}</span>
-                    <ChevronDown
-                      size={12}
-                      className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-                    />
-                  </PropertyPill>
+                  />
                 )}
               >
                 {({ close }) => (
@@ -555,19 +557,13 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 placement="top-start"
                 /* popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter" */
                 trigger={({ isOpen, disabled }) => (
-                  <PropertyPill
-                    isActive={(!!formData.subDepartment || isOpen) && !disabled}
-                    disabled={disabled}
+                  <FilterTrigger
+                    label={formData.subDepartment || "Set Sub-Dept"}
+                    isActive={!!formData.subDepartment}
+                    isOpen={isOpen}
                     icon={Building2}
-                  >
-                    <span>{formData.subDepartment || "Set Sub-Dept"}</span>
-                    {!disabled && (
-                      <ChevronDown
-                        size={12}
-                        className={`ml-1 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      />
-                    )}
-                  </PropertyPill>
+                    disabled={disabled}
+                  />
                 )}
               >
                 {({ close }) => (
@@ -834,9 +830,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
             disabled={mutation.isPending}
             className="px-10 py-3.5 bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-2xl transition-all shadow-xl shadow-primary/20 disabled:opacity-50 text-[11px] uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2"
           >
-            {mutation.isPending ? (
-              <Spinner size="sm" />
-            ) : null}
+            {mutation.isPending ? <Spinner size="sm" /> : null}
             {mutation.isPending ? "Saving..." : "Save Employee"}
           </button>
         </div>

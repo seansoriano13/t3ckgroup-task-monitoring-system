@@ -1,10 +1,9 @@
 import React from "react";
 import Dropdown from "../ui/Dropdown";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Flag } from "lucide-react";
 import Dot from "../ui/Dot";
 import { PRIORITY_OPTIONS } from "../../constants/task";
-
-export default function PriorityDropdown({
+import { FilterTrigger } from "../ui/FilterDropdown";export default function PriorityDropdown({
   value,
   onChange,
   disabled = false,
@@ -27,15 +26,13 @@ export default function PriorityDropdown({
       onClose={onClose}
       className={`z-100 ${className}`}
       /* popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] min-w-[150px] popover-enter p-1" */
-      trigger={({ isOpen }) => {
+      trigger={({ isOpen, disabled }) => {
         if (customTrigger) return customTrigger({ isOpen, currentPriority });
 
-        return (
+        return triggerClassName ? (
           <button
             type="button"
-            className={
-              triggerClassName || `property-pill ${isOpen ? "active" : ""}`
-            }
+            className={triggerClassName}
           >
             <Dot size="w-2 h-2" color={currentPriority.dot} />
             <span className="text-muted-foreground font-medium">
@@ -43,6 +40,14 @@ export default function PriorityDropdown({
             </span>
             <ChevronDown size={12} className="text-mauve-7 ml-auto" />
           </button>
+        ) : (
+          <FilterTrigger
+            label={currentPriority.label}
+            isActive={value && value !== "ALL"}
+            isOpen={isOpen}
+            icon={() => <Dot size="w-2 h-2" color={currentPriority.dot} />}
+            disabled={disabled}
+          />
         );
       }}
     >

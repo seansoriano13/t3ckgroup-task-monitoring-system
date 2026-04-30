@@ -17,6 +17,7 @@ import Spinner from "@/components/ui/Spinner";
 import Avatar from "@/components/Avatar";
 import Dropdown from "../ui/Dropdown";
 import { FilterTrigger, FilterOptionList } from "../ui/FilterDropdown";
+import QuotaHistoryModal from "./QuotaHistoryModal";
 
 export default function QuotaManagementModule({
   salesEmployees = [],
@@ -439,11 +440,7 @@ function QuotaTableRow({
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <Avatar
-            src={avatarUrl}
-            name={employee.name}
-            size="md"
-          />
+          <Avatar src={avatarUrl} name={employee.name} size="md" />
           <div>
             <p className="font-bold text-foreground">
               <HighlightText text={employee.name} search={searchQuery} />

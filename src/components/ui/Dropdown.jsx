@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, forwardRef } from "react";
 import { createPortal } from "react-dom";
 
-const   Dropdown = forwardRef(
+const Dropdown = forwardRef(
   (
     {
       trigger,
@@ -133,28 +133,24 @@ const   Dropdown = forwardRef(
 
         {isOpen &&
           (usePortal ? (
+            coords &&
             createPortal(
               <div
                 ref={popoverRef}
-                className={`${popoverClassName}`}
+                className={popoverClassName}
                 style={{
                   position: "fixed",
                   zIndex: 10001,
                   top: placement.startsWith("top")
-                    ? undefined
-                    : coords?.top
-                      ? coords.top + 6
-                      : 0,
+                    ? "auto"
+                    : coords.top + 6,
                   bottom: placement.startsWith("top")
-                    ? coords
-                      ? coords.windowHeight - coords.rectTop + 6
-                      : 0
-                    : undefined,
-                  // Respect placement
+                    ? coords.windowHeight - coords.rectTop + 6
+                    : "auto",
                   ...(placement.endsWith("end")
-                    ? { right: coords?.right, left: "auto" }
-                    : { left: coords?.left, right: "auto" }),
-                  minWidth: coords?.width,
+                    ? { right: coords.right, left: "auto" }
+                    : { left: coords.left, right: "auto" }),
+                  minWidth: coords.width,
                 }}
               >
                 {typeof children === "function"

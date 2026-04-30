@@ -5,6 +5,7 @@ import { formatTaskDateTime } from "../../utils/formatDate";
 import Dropdown from "../ui/Dropdown";
 import CategoryDropdown from "../dropdowns/CategoryDropdown";
 import PriorityDropdown from "../dropdowns/PriorityDropdown";
+import { FilterTrigger } from "../ui/FilterDropdown";
 
 export default function LogTaskPropertyBar({
   formData,
@@ -67,22 +68,16 @@ export default function LogTaskPropertyBar({
           className="z-[100]"
           popoverClassName="absolute top-full mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-4 popover-enter"
           trigger={({ isOpen }) => (
-            <button
-              type="button"
-              className={`property-pill ${isOpen ? "active" : ""}`}
-            >
-              <Clock size={13} className="text-muted-foreground" />
-              <span
-                className={
-                  formData.endAt ? "text-foreground" : "text-muted-foreground"
-                }
-              >
-                {formData.endAt
+            <FilterTrigger
+              label={
+                formData.endAt
                   ? formatTaskDateTime(formData.endAt)
-                  : "Set End Time"}
-              </span>
-              <ChevronDown size={12} className="text-mauve-7 ml-1" />
-            </button>
+                  : "Set End Time"
+              }
+              isActive={!!formData.endAt}
+              isOpen={isOpen}
+              icon={Clock}
+            />
           )}
         >
           {({ close }) => (

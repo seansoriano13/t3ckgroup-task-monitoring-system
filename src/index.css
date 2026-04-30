@@ -127,7 +127,7 @@
       0,
       0,
       0.2
-    ); /* structural overlay — not a color token */
+    ); 
     z-index: 5000;
   }
 }
@@ -378,22 +378,7 @@
   animation: check-flash 0.6s ease-out forwards;
 }
 
-/* --- PROPERTY PILL (Log Task) --- */
-.property-pill {
-  @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-mauve-4 bg-mauve-1 transition-all cursor-pointer select-none;
-}
 
-.property-pill:hover {
-  @apply border-mauve-5 bg-mauve-2;
-}
-
-.property-pill.active {
-  @apply border-mauve-6 bg-muted;
-}
-
-.property-pill.static {
-  @apply cursor-default border-mauve-3 bg-mauve-1/50;
-}
 
 /* --- POPOVER / EXPAND ANIMATIONS --- */
 @keyframes popover-in {
