@@ -8,7 +8,14 @@ import GradeSelector from "./GradeSelector";
 import TaskActivityTimeline from "./TaskActivityTimeline";
 import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
 import { isCategoryMetadataRemarks } from "../utils/taskFormatters";
-import { PencilLine, FolderKanban, Receipt, AlertTriangle, MessageCircle, Clock } from "lucide-react";
+import {
+  PencilLine,
+  FolderKanban,
+  Receipt,
+  AlertTriangle,
+  MessageCircle,
+  Clock,
+} from "lucide-react";
 import TaskFooter from "./TaskFooter.jsx";
 import { TASK_STATUS } from "../constants/status.js";
 import ChecklistTaskInput from "./ChecklistTaskInput";
@@ -16,7 +23,6 @@ import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
 import ImageAttachment from "./ImageAttachment";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.js";
-import { taskQueryService } from "../services/tasks/taskQueryService";
 import { toast } from "react-hot-toast";
 import { confirmDeleteToast } from "./ui/CustomToast";
 import { Input } from "@/components/ui/input";
@@ -26,6 +32,7 @@ import { activeChatService } from "../services/tasks/activeChatService";
 import { createPortal } from "react-dom";
 import HighlightText from "./HighlightText";
 import Dot from "./ui/Dot";
+import { taskQueryService } from "@/services/tasks/taskQueryService";
 
 export default function TaskDetails({
   isOpen,
@@ -128,8 +135,12 @@ export default function TaskDetails({
           categoryId: activeTask.categoryId || "",
           priority: activeTask.priority || "LOW",
           status: activeTask.status || "INCOMPLETE",
-          startAt: activeTask.startAt ? toLocalDatetimeString(activeTask.startAt) : "",
-          endAt: activeTask.endAt ? toLocalDatetimeString(activeTask.endAt) : "",
+          startAt: activeTask.startAt
+            ? toLocalDatetimeString(activeTask.startAt)
+            : "",
+          endAt: activeTask.endAt
+            ? toLocalDatetimeString(activeTask.endAt)
+            : "",
           projectTitle: activeTask.projectTitle || "",
           taskDescription: activeTask.taskDescription || "",
           grade: activeTask.grade || 0,
