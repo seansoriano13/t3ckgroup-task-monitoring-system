@@ -203,8 +203,6 @@ export default function LogTaskModal({ isOpen, onClose }) {
     );
   });
 
-  // Refined hooks needed... let's quickly check useLogTaskData and useLogTaskHandlers again.
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent

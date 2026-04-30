@@ -55,6 +55,7 @@ export default function LogTaskAssignmentBar({
                 usePortal
                 isOpen={openPopover === "hrDept"}
                 onToggle={() => onTogglePopover("hrDept")}
+                onClose={() => onTogglePopover(null)}
                 className="w-full"
                 trigger={({ isOpen }) => (
                   <FilterTrigger
@@ -88,6 +89,7 @@ export default function LogTaskAssignmentBar({
                 usePortal
                 isOpen={openPopover === "hrSubDept"}
                 onToggle={() => onTogglePopover("hrSubDept")}
+                onClose={() => onTogglePopover(null)}
                 className="w-full"
                 disabled={!hrDeptFilter}
                 trigger={({ isOpen, disabled }) => (
@@ -130,6 +132,7 @@ export default function LogTaskAssignmentBar({
             usePortal
             isOpen={openPopover === "assignee"}
             onToggle={() => onTogglePopover("assignee")}
+            onClose={() => onTogglePopover(null)}
             className="w-full"
             trigger={({ isOpen }) => (
               <FilterTrigger
@@ -173,6 +176,7 @@ export default function LogTaskAssignmentBar({
             usePortal
             isOpen={openPopover === "reportedTo"}
             onToggle={() => onTogglePopover("reportedTo")}
+            onClose={() => onTogglePopover(null)}
             className="w-full"
             trigger={({ isOpen }) => (
               <FilterTrigger

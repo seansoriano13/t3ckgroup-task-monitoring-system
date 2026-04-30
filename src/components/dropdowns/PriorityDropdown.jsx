@@ -13,6 +13,7 @@ export default function PriorityDropdown({
   customTrigger,
   hasAll = false,
   usePortal = false,
+  onClose,
 }) {
   const currentPriority =
     value === "ALL"
@@ -23,6 +24,7 @@ export default function PriorityDropdown({
     <Dropdown
       disabled={disabled}
       usePortal={usePortal}
+      onClose={onClose}
       className={`z-100 ${className}`}
       /* popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] min-w-[150px] popover-enter p-1" */
       trigger={({ isOpen }) => {

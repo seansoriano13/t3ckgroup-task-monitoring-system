@@ -26,6 +26,7 @@ export default function LogTaskPropertyBar({
         <CategoryDropdown
           isOpen={openPopover === "category"}
           onToggle={() => onTogglePopover("category")}
+          onClose={() => onTogglePopover(null)}
           usePortal
           value={formData.categoryId}
           onChange={(newCategoryId) => {
@@ -46,6 +47,7 @@ export default function LogTaskPropertyBar({
         <PriorityDropdown
           isOpen={openPopover === "priority"}
           onToggle={() => onTogglePopover("priority")}
+          onClose={() => onTogglePopover(null)}
           usePortal
           value={formData.priority}
           onChange={(newPriority) => {
@@ -59,9 +61,11 @@ export default function LogTaskPropertyBar({
         <Dropdown
           isOpen={openPopover === "endTime"}
           onToggle={() => onTogglePopover("endTime")}
+          onClose={() => onTogglePopover(null)}
           usePortal
+          placement="bottom-end"
           className="z-[100]"
-          /* popoverClassName="absolute top-full right-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-3 w-[clamp(280px,90vw,420px)] popover-enter" */
+          popoverClassName="absolute top-full mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-4 popover-enter"
           trigger={({ isOpen }) => (
             <button
               type="button"
@@ -83,7 +87,7 @@ export default function LogTaskPropertyBar({
         >
           {({ close }) => (
             <>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-4">
                 End Date & Time
               </label>
               <div className="w-full py-1">

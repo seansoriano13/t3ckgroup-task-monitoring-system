@@ -34,6 +34,55 @@
 @import "@radix-ui/colors/orange-dark.css";
 @import "@radix-ui/colors/orange-dark-alpha.css";
 
+:root {
+  /* Layout: Clean, neutral Mauve */
+  --background: var(--mauve-1);
+  --foreground: var(--mauve-12);
+
+  /* Cards & Popovers */
+  --card: var(--mauve-2);
+  --card-foreground: var(--mauve-12);
+  --popover: var(--mauve-2);
+  --popover-foreground: var(--mauve-12);
+
+  /* Brand: Red for primary actions */
+  --primary: var(--red-9);
+  --primary-foreground: var(--mauve-1);
+
+  /* Destructive: Red 11 for distinct destructive vs brand */
+  --destructive: var(--red-10);
+  --destructive-foreground: var(--mauve-1);
+
+  /* Secondary/Muted: Subtle Mauve backgrounds */
+  --secondary: var(--mauve-3);
+  --secondary-foreground: var(--mauve-11);
+  --muted: var(--mauve-3);
+  --muted-foreground: var(--mauve-11);
+
+  /* Accent: Light red wash */
+  --accent: var(--red-3);
+  --accent-foreground: var(--red-11);
+
+  /* Borders & Inputs */
+  --border: var(--mauve-6);
+  --input: var(--mauve-6);
+
+  /* Focus Rings */
+  --ring: var(--mauve-8);
+
+  /* Sidebar */
+  --sidebar: var(--mauve-2);
+  --sidebar-foreground: var(--mauve-12);
+  --sidebar-primary: var(--red-9);
+  --sidebar-primary-foreground: var(--mauve-1);
+  --sidebar-accent: var(--mauve-4);
+  --sidebar-accent-foreground: var(--mauve-11);
+  --sidebar-border: var(--mauve-5);
+  --sidebar-ring: var(--red-8);
+
+  --radius: 0.75rem;
+}
+
 /* Radix Theme Integration */
 @import "./styles/radix-theme.css";
 
@@ -89,7 +138,7 @@
 }
 
 .react-datepicker {
-  background-color: var(--mauve-1) !important;
+  background-color: var(--bg-muted) !important;
   border: none !important;
   border-radius: 12px !important;
   font-family: inherit !important;
@@ -103,8 +152,7 @@
 }
 
 .react-datepicker__header {
-  background-color: var(--mauve-1) !important;
-  border-bottom: 1px solid var(--mauve-3) !important;
+  background-color: var(--bg-muted) !important;
   border-top-left-radius: 12px !important;
   border-top-right-radius: 12px !important;
   padding-top: 14px !important;
@@ -197,8 +245,15 @@
 
 /* Time selection container */
 .react-datepicker--with-time .react-datepicker__time-container {
-  border-left: 1px solid var(--mauve-4) !important;
   width: 105px !important;
+}
+
+.react-datepicker__day-names {
+  border-top: 1px solid var(--mauve-6) !important;
+}
+
+.react-datepicker__time-container {
+  border-left: 1px solid var(--mauve-6) !important;
 }
 
 .react-datepicker__month-container {
@@ -210,6 +265,7 @@
 }
 
 .react-datepicker__time-container {
+  background: var(--bg-muted) !important;
   float: none !important;
 }
 
@@ -220,10 +276,11 @@
   border-radius: 0 !important;
   height: 235px !important;
   overflow-y: auto !important;
+  background-color: var(--bg-muted) !important;
 }
 
 .react-datepicker__time-list {
-  background-color: var(--mauve-1) !important;
+  background-color: var(--bg-muted) !important;
   padding: 0 !important;
   scrollbar-width: thin;
   scrollbar-color: var(--mauve-4) transparent;
@@ -267,10 +324,10 @@
 }
 
 .react-datepicker__header--time {
-  padding-top: 14px !important;
-  padding-bottom: 10px !important;
-  border-bottom: 1px solid var(--mauve-3) !important;
-  background-color: var(--mauve-1) !important;
+  padding-top: 18px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid var(--border) !important;
+  background-color: var(--bg-muted) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -500,55 +557,6 @@
 
 /* 
 ---break--- */
-
-:root {
-  /* Layout: Clean, neutral Mauve */
-  --background: var(--mauve-1);
-  --foreground: var(--mauve-12);
-
-  /* Cards & Popovers */
-  --card: var(--mauve-2);
-  --card-foreground: var(--mauve-12);
-  --popover: var(--mauve-2);
-  --popover-foreground: var(--mauve-12);
-
-  /* Brand: Red for primary actions */
-  --primary: var(--red-9);
-  --primary-foreground: var(--mauve-1);
-
-  /* Destructive: Red 11 for distinct destructive vs brand */
-  --destructive: var(--red-10);
-  --destructive-foreground: var(--mauve-1);
-
-  /* Secondary/Muted: Subtle Mauve backgrounds */
-  --secondary: var(--mauve-3);
-  --secondary-foreground: var(--mauve-11);
-  --muted: var(--mauve-3);
-  --muted-foreground: var(--mauve-11);
-
-  /* Accent: Light red wash */
-  --accent: var(--red-3);
-  --accent-foreground: var(--red-11);
-
-  /* Borders & Inputs */
-  --border: var(--mauve-6);
-  --input: var(--mauve-6);
-
-  /* Focus Rings */
-  --ring: var(--mauve-8);
-
-  /* Sidebar */
-  --sidebar: var(--mauve-2);
-  --sidebar-foreground: var(--mauve-12);
-  --sidebar-primary: var(--red-9);
-  --sidebar-primary-foreground: var(--mauve-1);
-  --sidebar-accent: var(--mauve-4);
-  --sidebar-accent-foreground: var(--mauve-11);
-  --sidebar-border: var(--mauve-5);
-  --sidebar-ring: var(--red-8);
-
-  --radius: 0.75rem;
-}
 
 /* Dark mode — Radix variables handle color switching automatically.
    Only structural/layout overrides go here, NO hardcoded color values. */

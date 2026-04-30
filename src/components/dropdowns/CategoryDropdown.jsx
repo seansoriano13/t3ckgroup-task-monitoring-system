@@ -12,6 +12,7 @@ export default function CategoryDropdown({
   triggerClassName,
   onResetOthers, // Optional callback to reset things like committeeRole when category changes
   usePortal = false,
+  onClose,
 }) {
   const [search, setSearch] = useState("");
 
@@ -20,7 +21,7 @@ export default function CategoryDropdown({
     return categories.filter(
       (cat) =>
         cat.category_id.toLowerCase().includes(search.toLowerCase()) ||
-        cat.description?.toLowerCase().includes(search.toLowerCase())
+        cat.description?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [categories, search]);
 
@@ -28,6 +29,7 @@ export default function CategoryDropdown({
     <Dropdown
       disabled={disabled}
       usePortal={usePortal}
+      onClose={onClose}
       className={`z-[100] ${className}`}
       /* popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] w-[280px] popover-enter" */
       trigger={({ isOpen }) => (
@@ -38,7 +40,7 @@ export default function CategoryDropdown({
             `property-pill ${isOpen ? "active" : ""} ${disabled ? "static" : ""}`
           }
         >
-          <Tag size={13} className={value ? "text-violet-9" : "text-muted-foreground"} />
+          <Tag size={13} />
           <span className={value ? "text-foreground" : "text-mauve-7"}>
             {value || "Category"}
             {!value && <span className="text-destructive ml-0.5">*</span>}
@@ -56,7 +58,10 @@ export default function CategoryDropdown({
         <>
           <div className="px-2 pt-2 pb-1 border-b border-border">
             <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted/50 rounded-md border border-border focus-within:border-mauve-4 focus-within:ring-1 focus-within:ring-mauve-4 transition-all">
-              <Search size={14} className="text-muted-foreground flex-shrink-0" />
+              <Search
+                size={14}
+                className="text-muted-foreground flex-shrink-0"
+              />
               <input
                 type="text"
                 placeholder="Search categories..."
@@ -69,15 +74,15 @@ export default function CategoryDropdown({
             </div>
           </div>
           <div className="max-h-[260px] overflow-y-auto p-1">
-        {isLoading ? (
-          <p className="text-[13px] text-mauve-7 text-center py-4 font-medium">
-            Loading…
-          </p>
-        ) : searchedCategories.length === 0 ? (
-          <p className="text-[13px] text-mauve-7 text-center py-4 font-medium">
-            No categories found
-          </p>
-        ) : (
+            {isLoading ? (
+              <p className="text-[13px] text-mauve-7 text-center py-4 font-medium">
+                Loading…
+              </p>
+            ) : searchedCategories.length === 0 ? (
+              <p className="text-[13px] text-mauve-7 text-center py-4 font-medium">
+                No categories found
+              </p>
+            ) : (
               searchedCategories.map((cat) => (
                 <button
                   key={cat.category_id}
@@ -115,5 +120,3 @@ export default function CategoryDropdown({
     </Dropdown>
   );
 }
-
-

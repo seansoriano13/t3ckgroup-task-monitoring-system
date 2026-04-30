@@ -121,7 +121,7 @@ export default function ChecklistTaskInput({
 
   return (
     <>
-      <div className="space-y-2">
+      <div className="space-y-2 pb-2">
         {items.map((item, index) => (
           <div
             key={index}
@@ -185,7 +185,7 @@ export default function ChecklistTaskInput({
         ))}
       </div>
 
-      <div className="pt-3 border-t border-border">
+      <div className="pt-3 ">
         <div className="flex justify-between items-center">
           <button
             type="button"

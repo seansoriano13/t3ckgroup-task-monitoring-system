@@ -1,14 +1,14 @@
 ﻿import { Receipt } from "lucide-react";
 import ChecklistTaskInput from "../ChecklistTaskInput";
 
-export default function LogTaskDetailsSection({ 
-  formData, 
-  handleChange, 
-  titleRef, 
+export default function LogTaskDetailsSection({
+  formData,
+  handleChange,
+  titleRef,
   selectedEmployeeInfo,
   descriptionType,
   setDescriptionType,
-  isExpanded
+  isExpanded,
 }) {
   return (
     <>
@@ -71,7 +71,7 @@ export default function LogTaskDetailsSection({
         </div>
 
         {descriptionType === "checklist" ? (
-          <div className="bg-card rounded-xl border border-mauve-3 p-1">
+          <div className="bg-card rounded-xl border border-mauve-3 p-4">
             <ChecklistTaskInput
               value={formData.taskDescription}
               onChange={handleChange}
