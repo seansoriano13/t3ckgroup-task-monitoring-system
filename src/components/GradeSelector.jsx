@@ -23,16 +23,16 @@ export default function GradeSelector({
 
   return (
     <div
-      className={`flex items-center bg-muted/40 p-1 rounded-xl w-full ${compact ? "gap-0.5" : "gap-1"}`}
+      className={`flex items-center bg-muted/40 p-1.5 rounded-full w-full ${compact ? "gap-0.5" : "gap-1"}`}
     >
       {[1, 2, 3, 4, 5].map((num) => {
-        const isSelected = grade === num;
+        const isSelected = Number(grade) === num;
 
         if (finalized) {
           return (
             <div
               key={num}
-              className={`flex items-center justify-center font-bold transition-all rounded-lg ${
+              className={`flex items-center justify-center font-bold transition-all rounded-full ${
                 compact ? "w-6 h-7 text-[10px]" : "flex-1 py-2 text-sm"
               } ${
                 isSelected
@@ -50,13 +50,13 @@ export default function GradeSelector({
             key={num}
             type="button"
             disabled={!canEvaluate}
-            onClick={() => onSelect?.(num)}
-            className={`flex items-center justify-center font-bold transition-all rounded-lg ${
+            onClick={() => onSelect?.(Number(grade) === num ? null : num)}
+            className={`flex items-center justify-center font-bold transition-all rounded-full ${
               compact ? "w-6 h-7 text-[10px]" : "flex-1 py-2 text-sm"
             } ${!canEvaluate ? "opacity-50 cursor-not-allowed" : ""} ${
               isSelected
-                ? `${activeColorMap[num]} scale-[1.02] z-10`
-                : `text-muted-foreground hover:bg-background/80 hover:text-foreground`
+                ? `${activeColorMap[num]} scale-[1.02] z-10 shadow-md`
+                : `text-muted-foreground hover:bg-background hover:text-foreground hover:shadow-sm`
             }`}
           >
             {num}

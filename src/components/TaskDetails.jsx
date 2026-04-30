@@ -726,7 +726,7 @@ export default function TaskDetails({
                 </div>
 
                 <GradeSelector
-                  grade={isFinalized ? task.grade : approvalGrade}
+                  grade={isFinalized ? activeTask?.grade : approvalGrade}
                   onSelect={setApprovalGrade}
                   canEvaluate={canEvaluate && !isFinalized}
                   finalized={isFinalized}

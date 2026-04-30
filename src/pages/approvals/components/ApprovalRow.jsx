@@ -37,8 +37,10 @@ export function ApprovalRow({
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
   const [grade, setGrade] = useState(task.grade || null);
-  const [remarks, setRemarks] = useState(task.remarks || "");
-  const [hrRemarks, setHrRemarks] = useState(task.hrRemarks || "");
+  const [remarks, setRemarks] = useState(isVerifiedTab ? task.remarks || "" : "");
+  const [hrRemarks, setHrRemarks] = useState(isVerifiedTab ? task.hrRemarks || "" : "");
+  const [isEditing, setIsEditing] = useState(false);
+  const isReadOnly = isVerifiedTab && !isEditing;
   const rowRef = useRef(null);
   const avatarMap = useEmployeeAvatarMap();
 
@@ -56,9 +58,18 @@ export function ApprovalRow({
   }, [expanded]);
 
   const handleKeyDown = (e) => {
-    if (!expanded || isSubmitting || isVerifiedTab) return;
+    if (!expanded || isSubmitting || isReadOnly) return;
 
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
+        e.preventDefault();
+        if (isHr) {
+          if (!isSubmitting) handleHrVerify();
+        } else {
+          if (grade !== null && !isSubmitting) handleHeadApprove();
+          else toast.error("Select a grade (1-5) before pressing Enter to approve");
+        }
+      }
       return;
     }
 
@@ -105,22 +116,23 @@ export function ApprovalRow({
   }, [task.createdAt]);
 
   const handleHeadApprove = async () => {
-    const toastId = toast.loading("Approving task...");
+    const toastId = toast.loading(isEditing ? "Updating task..." : "Approving task...");
     try {
       await onProcess({
         id: task.id,
         status: TASK_STATUS.COMPLETE,
         grade: grade,
         remarks: remarks,
-        endAt: new Date().toISOString(),
+        endAt: task.endAt || new Date().toISOString(),
         evaluatedBy: currentUserId,
         editedBy: currentUserId,
-        hrVerified: false,
-        hrRemarks: "",
+        hrVerified: task.hrVerified || false,
+        hrRemarks: task.hrRemarks || "",
       });
-      toast.success("Task approved!", { id: toastId });
+      toast.success(isEditing ? "Task updated!" : "Task approved!", { id: toastId });
+      setIsEditing(false);
     } catch {
-      toast.error("Failed to approve task", { id: toastId });
+      toast.error(isEditing ? "Failed to update task" : "Failed to approve task", { id: toastId });
     }
   };
 
@@ -144,19 +156,20 @@ export function ApprovalRow({
   };
 
   const handleHrVerify = async () => {
-    const toastId = toast.loading("Verifying task...");
+    const toastId = toast.loading(isEditing ? "Updating task..." : "Verifying task...");
     try {
       await onProcess({
         id: task.id,
         status: TASK_STATUS.COMPLETE,
         hrVerified: true,
-        hrVerifiedAt: new Date().toISOString(),
+        hrVerifiedAt: task.hrVerifiedAt || new Date().toISOString(),
         hrRemarks: hrRemarks,
         editedBy: currentUserId,
       });
-      toast.success("Task verified!", { id: toastId });
+      toast.success(isEditing ? "Task updated!" : "Task verified!", { id: toastId });
+      setIsEditing(false);
     } catch {
-      toast.error("Failed to verify task", { id: toastId });
+      toast.error(isEditing ? "Failed to update task" : "Failed to verify task", { id: toastId });
     }
   };
 
@@ -194,117 +207,136 @@ export function ApprovalRow({
     >
       {/* COMPACT ROW */}
       <div
-        className="p-3 md:p-4 flex items-center justify-between cursor-pointer gap-2"
+        className="p-3 md:p-4 flex items-start sm:items-center justify-between cursor-pointer gap-4 group hover:bg-muted/30 transition-colors rounded-xl"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-          <Avatar
-            name={task.loggedByName}
-            src={avatarMap.get(task.loggedById) || task.loggedByAvatar}
-            size="lg"
-            isSelected={isSelected}
-            showCheckOnSelect={true}
-            className={!isSelected ? " shadow-inner" : "shadow-inner"}
-            onClick={
-              appSettings?.enable_bulk_approval && onToggleSelection
-                ? (e) => {
-                    e.stopPropagation();
-                    onToggleSelection(task.id);
-                  }
-                : undefined
-            }
-            title={
-              appSettings?.enable_bulk_approval && onToggleSelection
-                ? isSelected
-                  ? "Deselect task"
-                  : "Select for bulk approval"
-                : undefined
-            }
-          />
-          <div className="min-w-0 flex-1 md:flex-none md:w-40 lg:w-56 shrink-0">
-            <h3 className="font-bold text-foreground text-xs md:text-sm truncate">
-              <HighlightText text={task.loggedByName} search={searchTerm} />
-            </h3>
-            <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">
-              <HighlightText text={task.categoryId} search={searchTerm} />
-            </p>
+        <div className="flex items-start sm:items-center gap-3 md:gap-4 flex-1 min-w-0">
+          <div className="shrink-0 mt-1 sm:mt-0">
+            <Avatar
+              name={task.loggedByName}
+              src={avatarMap.get(task.loggedById) || task.loggedByAvatar}
+              size="lg"
+              isSelected={isSelected}
+              showCheckOnSelect={true}
+              className={!isSelected ? " shadow-inner" : "shadow-inner"}
+              onClick={
+                appSettings?.enable_bulk_approval && onToggleSelection
+                  ? (e) => {
+                      e.stopPropagation();
+                      onToggleSelection(task.id);
+                    }
+                  : undefined
+              }
+              title={
+                appSettings?.enable_bulk_approval && onToggleSelection
+                  ? isSelected
+                    ? "Deselect task"
+                    : "Select for bulk approval"
+                  : undefined
+              }
+            />
           </div>
 
-          <div className="hidden md:flex flex-1 min-w-0 ml-4 pl-4 border-l border-border items-center">
-            <p className="text-sm md:sm font-bold text-foreground line-clamp-1 max-w-md">
+          <div className="flex flex-col min-w-0 flex-1 justify-center gap-0.5">
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 text-[10px] md:text-[11px] text-muted-foreground">
+              <span className="font-semibold text-foreground">
+                <HighlightText text={task.loggedByName} search={searchTerm} />
+              </span>
+              <span className="opacity-50">•</span>
+              <span className="bg-muted/50 px-1.5 py-0.5 rounded font-medium text-muted-foreground border border-border/50">
+                <HighlightText text={task.categoryId} search={searchTerm} />
+              </span>
+              <span className="opacity-50">•</span>
+              <span className="font-medium">{formatDate(task.createdAt)}</span>
+              {task.editedAt && (
+                <>
+                  <span className="opacity-50">•</span>
+                  <span
+                    className="italic opacity-80"
+                    title={`Last modified ${formatDate(task.editedAt)}${task.editedByName ? ` by ${task.editedByName}` : ""}`}
+                  >
+                    Edited: {formatDate(task.editedAt)}
+                  </span>
+                </>
+              )}
+            </div>
+
+            <h4 className="text-xs md:text-sm font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors leading-tight">
               <HighlightText
                 text={formatTaskPreview(task.taskDescription)}
                 search={searchTerm}
               />
-            </p>
+            </h4>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4 shrink-0">
-          <div className="flex flex-col items-end leading-tight opacity-70">
-            <span className="text-[9px] md:text-[10px] font-medium text-muted-foreground">
-              {formatDate(task.createdAt)}
-            </span>
-            {task.editedAt && (
-              <span
-                className="text-[8px] md:text-[9px] text-muted-foreground font-medium uppercase tracking-widest"
-                title={`Last modified ${formatDate(task.editedAt)}${task.editedByName ? ` by ${task.editedByName}` : ""}`}
-              >
-                {formatDate(task.editedAt)}
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2">
+            {Number(task.grade) > 0 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-green-a3 text-green-11 border border-green-a4 text-[9px] md:text-[10px] font-semibold tracking-wide uppercase">
+                Grade: {task.grade}
               </span>
+            )}
+
+            {appSettings?.enable_visual_shaming && isDelayed && (
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] md:text-[10px] font-semibold tracking-wide uppercase">
+                Delayed
+              </span>
+            )}
+
+            {isReplied && (
+              <span
+                className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-a3 text-blue-11 text-[9px] md:text-[10px] font-semibold tracking-wide uppercase border border-blue-a4"
+                title="You've already replied to this task"
+              >
+                <MessageSquareCheck size={12} />
+                Replied
+              </span>
+            )}
+
+            {task.priority === "HIGH" && (
+              <>
+                <span className="hidden sm:block px-2 py-0.5 rounded-md bg-red-a3 text-red-11 border border-red-a4 text-[9px] md:text-[10px] font-semibold tracking-wide uppercase">
+                  Priority
+                </span>
+                <Dot
+                  size="w-2 h-2"
+                  color="bg-red-9"
+                  className="sm:hidden shadow-[0_0_8px_rgba(229,72,77,0.5)]"
+                />
+              </>
             )}
           </div>
 
-          {appSettings?.enable_visual_shaming && isDelayed && (
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-bold uppercase tracking-widest animate-pulse">
-              Delayed
-            </span>
-          )}
-
-          {isReplied && (
-            <span
-              className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-a3 text-blue-11 text-[9px] font-black uppercase tracking-widest border border-blue-a5"
-              title="You've already replied to this task"
+          <div className="flex items-center gap-0.5 sm:gap-1 sm:ml-2 sm:pl-2 sm:border-l border-border/50">
+            <button
+              className="text-muted-foreground/60 hover:text-primary hover:bg-muted p-1.5 rounded-lg transition-all hidden sm:block"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(task);
+              }}
+              title="Open Full Details"
             >
-              <MessageSquareCheck size={10} />
-              Replied
-            </span>
-          )}
+              <Maximize2 size={16} />
+            </button>
 
-          {task.priority === "HIGH" && (
-            <>
-              <span className="hidden sm:block px-2 py-1 rounded bg-red-a3 text-red-11 text-[10px] font-black uppercase tracking-widest border border-red-a5">
-                High Priority
-              </span>
-              <Dot
-                size="w-2 h-2"
-                color="bg-red-9"
-                className="sm:hidden shadow-[0_0_8px_rgba(229,72,77,0.5)]"
-              />
-            </>
-          )}
-
-          <button
-            className="text-muted-foreground hover:text-primary transition-colors p-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails(task);
-            }}
-            title="Open Full Details"
-          >
-            <Maximize2 size={16} />
-          </button>
-
-          <button className="text-muted-foreground hover:text-foreground transition-colors p-1">
-            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-          </button>
+            <button className="text-muted-foreground/60 group-hover:text-foreground group-hover:bg-muted/50 p-1.5 rounded-lg transition-all">
+              {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* EXPANDED ACTION AREA */}
-      {expanded && (
-        <div className="p-4 border-t border-border bg-muted/50 rounded-b-xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!expanded}
+      >
+        <div className="overflow-hidden">
+          <div className="p-4 border-t border-border bg-muted/50 rounded-b-xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Col: Full Description */}
             <div className="flex flex-col">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
@@ -346,7 +378,7 @@ export function ApprovalRow({
             </div>
 
             {/* Right Col: Dynamic UI based on Role */}
-            <div className="space-y-4">
+            <div className="bg-card border border-border/60 p-5 rounded-2xl shadow-sm flex flex-col gap-6">
               {isHr ? (
                 /* --- HR UI --- */
                 <>
@@ -360,7 +392,7 @@ export function ApprovalRow({
                   </div>
 
                   {task.remarks && (
-                    <div className="bg-card border border-border p-3 rounded-xl">
+                    <div className="bg-muted/30 border border-border/50 p-3 rounded-xl">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                         Manager Remarks
                       </p>
@@ -368,39 +400,64 @@ export function ApprovalRow({
                     </div>
                   )}
 
-                  <div>
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block">
+                  <div className="relative border border-border/50 rounded-xl bg-muted/20 focus-within:bg-background focus-within:border-mauve-6 focus-within:ring-1 focus-within:ring-mauve-6 transition-all">
+                    <label className="absolute left-3 top-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider pointer-events-none">
                       HR Verification Notes
                     </label>
-                    <Input
-                      type="text"
+                    <textarea
                       value={hrRemarks}
                       onChange={(e) => setHrRemarks(e.target.value)}
                       placeholder={
-                        isVerifiedTab ? "No notes provided" : "Audit notes..."
+                        isReadOnly ? "No notes provided" : "Audit notes..."
                       }
-                      className="w-full bg-muted/30 border-transparent focus-visible:bg-background mt-1 p-5"
-                      disabled={isVerifiedTab}
+                      className="w-full bg-transparent border-none outline-none focus:ring-0 resize-none pt-7 pb-3 px-3 text-sm placeholder:text-muted-foreground/50 min-h-[80px] rounded-xl"
+                      disabled={isReadOnly}
                     />
                   </div>
 
-                  {!isVerifiedTab && (
-                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                  {isVerifiedTab && !isEditing && (
+                    <div className="flex justify-end pt-2">
                       <Button
-                        variant="secondary"
-                        onClick={handleHrReject}
-                        disabled={!hrRemarks || isSubmitting}
-                        className="px-3 py-5 order-2 sm:order-1 text-white hover:bg-red-11 bg-red-9"
+                        variant="outline"
+                        onClick={() => setIsEditing(true)}
+                        className="px-6 py-4 rounded-full font-semibold transition-all text-xs"
                       >
-                        Return
+                        Edit Evaluation
                       </Button>
+                    </div>
+                  )}
+
+                  {!isReadOnly && (
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                      {isEditing ? (
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setIsEditing(false);
+                            setHrRemarks(task.hrRemarks || "");
+                          }}
+                          disabled={isSubmitting}
+                          className="px-6 py-5 order-2 sm:order-1 rounded-full font-semibold transition-all"
+                        >
+                          Cancel
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          onClick={handleHrReject}
+                          disabled={!hrRemarks || isSubmitting}
+                          className="px-6 py-5 order-2 sm:order-1 text-white hover:bg-red-11 bg-red-9 rounded-full font-semibold transition-all"
+                        >
+                          Return
+                        </Button>
+                      )}
                       <Button
                         variant="primary"
                         onClick={handleHrVerify}
                         disabled={isSubmitting}
-                        className="px-3 py-5 order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-white font-bold"
+                        className="px-6 py-5 order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-white font-bold rounded-full shadow-md hover:shadow-lg transition-all"
                       >
-                        Verify & Sign
+                        {isEditing ? "Save Changes" : "Verify & Sign"}
                       </Button>
                     </div>
                   )}
@@ -409,53 +466,79 @@ export function ApprovalRow({
                 /* --- HEAD UI --- */
                 <>
                   <div>
-                    <label className="text-[10px] font-bold text-primary uppercase tracking-wider mb-2 block">
+                    <label className="text-[10px] font-bold  uppercase tracking-wider mb-2 block">
                       Assign Grade (1-5)
                     </label>
                     <div className="mt-1">
                       <GradeSelector
                         grade={grade}
                         onSelect={setGrade}
-                        canEvaluate={!isVerifiedTab}
-                        finalized={isVerifiedTab}
+                        canEvaluate={!isReadOnly}
+                        finalized={isReadOnly}
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block">
+                  <div className="relative border border-border/50 rounded-xl bg-muted/20 focus-within:bg-background focus-within:border-mauve-6 focus-within:ring-1 focus-within:ring-mauve-6 transition-all">
+                    <label className="absolute left-3 top-2 text-[9px] font-bold text-muted-foreground uppercase tracking-wider pointer-events-none">
                       Evaluation Remarks
                     </label>
-                    <Input
-                      className="placeholder:text-xs w-full bg-muted/30 border-transparent focus-visible:bg-background mt-1 p-5"
-                      type="text"
+                    <textarea
+                      className="w-full bg-transparent border-none outline-none focus:ring-0 resize-none pt-7 pb-3 px-3 text-sm placeholder:text-muted-foreground/50 min-h-[80px] rounded-xl"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
                       placeholder={
-                        isVerifiedTab && !remarks
+                        isReadOnly && !remarks
                           ? "No feedback provided"
                           : "Add feedback..."
                       }
-                      disabled={isVerifiedTab}
+                      disabled={isReadOnly}
                     />
                   </div>
 
-                  {!isVerifiedTab && (
-                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+                  {isVerifiedTab && !isEditing && (
+                    <div className="flex justify-end pt-2">
                       <Button
-                        variant="secondary"
-                        onClick={handleHeadReject}
-                        disabled={!remarks || isSubmitting}
-                        className="px-3 py-5 order-2 sm:order-1 text-white hover:bg-red-11 bg-red-9"
+                        variant="outline"
+                        onClick={() => setIsEditing(true)}
+                        className="px-6 py-4 rounded-full font-semibold transition-all text-xs"
                       >
-                        Return
+                        Edit Evaluation
                       </Button>
+                    </div>
+                  )}
+
+                  {!isReadOnly && (
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                      {isEditing ? (
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setIsEditing(false);
+                            setGrade(task.grade || null);
+                            setRemarks(task.remarks || "");
+                          }}
+                          disabled={isSubmitting}
+                          className="px-6 py-5 order-2 sm:order-1 rounded-full font-semibold transition-all"
+                        >
+                          Cancel
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          onClick={handleHeadReject}
+                          disabled={!remarks || isSubmitting}
+                          className="px-6 py-5 order-2 sm:order-1 text-white hover:bg-red-11 bg-red-9 rounded-full font-semibold transition-all"
+                        >
+                          Return
+                        </Button>
+                      )}
                       <Button
                         onClick={handleHeadApprove}
                         disabled={grade === null || isSubmitting}
-                        className="px-3 py-5 order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-white font-bold"
+                        className="px-6 py-5 order-1 sm:order-2 bg-green-10 hover:bg-green-11 text-white font-bold rounded-full shadow-md hover:shadow-lg transition-all"
                       >
-                        Approve Task
+                        {isEditing ? "Save Changes" : "Approve Task"}
                       </Button>
                     </div>
                   )}
@@ -465,20 +548,24 @@ export function ApprovalRow({
           </div>
 
           {/* KEYBOARD SHORTCUTS HINT */}
-          {!isVerifiedTab && (
+          {!isReadOnly && (
             <div className="mt-6 pt-3 border-t border-border/50 flex justify-center opacity-70">
-              <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase flex items-center gap-2">
+              <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase flex flex-wrap items-center justify-center gap-2 text-center">
                 Shortcuts:
                 {!isHr ? (
                   <>
                     <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border">
                       1-5
                     </span>{" "}
-                    Select Grade
+                    Grade
                     <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
                       Enter
                     </span>{" "}
                     Approve
+                    <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                      Ctrl+Enter
+                    </span>{" "}
+                    New Line
                     <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
                       X
                     </span>{" "}
@@ -491,6 +578,10 @@ export function ApprovalRow({
                     </span>{" "}
                     Verify
                     <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                      Ctrl+Enter
+                    </span>{" "}
+                    New Line
+                    <span className="bg-mauve-4 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
                       X
                     </span>{" "}
                     Return
@@ -500,7 +591,8 @@ export function ApprovalRow({
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
+  </div>
   );
 }

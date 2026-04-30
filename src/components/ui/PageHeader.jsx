@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 /**
  * Standard Page Header component to ensure visual consistency across all tabs.
