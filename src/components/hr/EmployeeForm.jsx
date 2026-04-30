@@ -1,0 +1,251 @@
+import { useState, useEffect } from "react";
+import { Shield, Users, Briefcase, ListCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import DeptSubDeptSelector from "./DeptSubDeptSelector";
+import { useMemo } from "react";
+
+export default function EmployeeForm({
+  initialData,
+  onSubmit,
+  formId = "employee-form",
+  rawCategories = [],
+  rawEmployees = [],
+}) {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    department: "",
+    subDepartment: "",
+    role: "",
+    isHead: false,
+    isHr: false,
+    isSuperAdmin: false,
+    has_sales_flow: false,
+    has_task_flow: true,
+    ...initialData,
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData((prev) => ({ ...prev, ...initialData }));
+    }
+  }, [initialData]);
+
+  const uniqueDepts = useMemo(() => {
+    const fromCategories = [
+      ...new Set(rawCategories.map((c) => c.department).filter(Boolean)),
+    ].sort();
+    if (!fromCategories.includes("SALES")) {
+      fromCategories.push("SALES");
+    }
+    return fromCategories;
+  }, [rawCategories]);
+
+  const uniqueSubDepts = useMemo(() => {
+    const dept = formData.department;
+    if (!dept) return [];
+
+    let subDepts = [
+      ...new Set(
+        rawCategories
+          .filter((c) => c.department === dept)
+          .map((c) => c.subDepartment)
+          .filter(Boolean),
+      ),
+    ];
+
+    // Manual injections for specific departments
+    if (dept === "SALES") {
+      ["GOV", "NGO", "SALES"].forEach((s) => {
+        if (!subDepts.includes(s)) subDepts.push(s);
+      });
+    }
+    if (dept === "OPERATIONS") {
+      if (!subDepts.includes("MARKETING")) subDepts.push("MARKETING");
+    }
+
+    // Also include sub-depts already assigned to employees in this dept
+    const fromEmps = rawEmployees
+      .filter((e) => e.department === dept)
+      .map((e) => e.subDepartment)
+      .filter(Boolean);
+
+    return [...new Set([...subDepts, ...fromEmps])].sort();
+  }, [rawCategories, rawEmployees, formData.department]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form id={formId} onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-4">
+        <div className="group">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+            Full Name
+          </label>
+          <input
+            required
+            type="text"
+            placeholder="e.g. Juan Dela Cruz"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
+            className="w-full bg-muted/30 border border-border rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 transition-all font-medium"
+          />
+        </div>
+
+        <div className="group">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+            Google Auth Email
+          </label>
+          <input
+            required
+            type="email"
+            placeholder="e.g. juan@t3ckgroup.com"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, email: e.target.value }))
+            }
+            className="w-full bg-muted/30 border border-border rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 transition-all font-medium"
+          />
+        </div>
+
+        <div className="group">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+            Job Role / Title
+          </label>
+          <input
+            type="text"
+            value={formData.role}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, role: e.target.value }))
+            }
+            placeholder="e.g. Marketing Assistant"
+            className="w-full bg-muted/30 border border-border rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 transition-all font-medium"
+          />
+        </div>
+      </div>
+
+      <DeptSubDeptSelector
+        department={formData.department}
+        subDepartment={formData.subDepartment}
+        onDepartmentChange={(val) =>
+          setFormData((prev) => ({ ...prev, department: val }))
+        }
+        onSubDepartmentChange={(val) =>
+          setFormData((prev) => ({ ...prev, subDepartment: val }))
+        }
+        uniqueDepts={uniqueDepts}
+        uniqueSubDepts={uniqueSubDepts}
+      />
+
+      <div className="space-y-2 pt-2">
+        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">
+          System Access Rights
+        </label>
+        <div className="grid grid-cols-1 gap-2">
+          {/* Dept Head */}
+          <AccessSwitch
+            label="Department Head"
+            description="Grant approval rights for this dept"
+            icon={Shield}
+            checked={formData.isHead}
+            onChange={(val) =>
+              setFormData((prev) => ({ ...prev, isHead: val }))
+            }
+            activeColor="bg-amber-3 text-amber-10"
+            hoverColor="group-hover:bg-amber-2"
+          />
+
+          {/* HR Admin */}
+          <AccessSwitch
+            label="HR Admin"
+            description="Access to employee & category management"
+            icon={Users}
+            checked={formData.isHr}
+            onChange={(val) => setFormData((prev) => ({ ...prev, isHr: val }))}
+            activeColor="bg-blue-3 text-blue-10"
+            hoverColor="group-hover:bg-blue-2"
+          />
+
+          {/* Super Admin */}
+          <AccessSwitch
+            label="Super Admin"
+            description="Full global system control"
+            icon={Shield}
+            checked={formData.isSuperAdmin}
+            onChange={(val) =>
+              setFormData((prev) => ({ ...prev, isSuperAdmin: val }))
+            }
+            activeColor="bg-violet-3 text-violet-10"
+            hoverColor="group-hover:bg-violet-2"
+            iconStrokeWidth={2.5}
+          />
+
+          {/* Sales Flow */}
+          <AccessSwitch
+            label="Sales Flow"
+            description="Enable sales tracking and quota modules"
+            icon={Briefcase}
+            checked={formData.has_sales_flow}
+            onChange={(val) =>
+              setFormData((prev) => ({ ...prev, has_sales_flow: val }))
+            }
+            activeColor="bg-green-3 text-green-10"
+            hoverColor="group-hover:bg-green-2"
+          />
+
+          {/* Task Flow */}
+          <AccessSwitch
+            label="Task Flow"
+            description="Enable task logging and monitoring"
+            icon={ListCheck}
+            checked={formData.has_task_flow}
+            onChange={(val) =>
+              setFormData((prev) => ({ ...prev, has_task_flow: val }))
+            }
+            activeColor="bg-fuchsia-100 text-fuchsia-600"
+            hoverColor="group-hover:bg-fuchsia-50"
+          />
+        </div>
+      </div>
+    </form>
+  );
+}
+
+function AccessSwitch({
+  label,
+  description,
+  icon: Icon,
+  checked,
+  onChange,
+  activeColor,
+  hoverColor,
+  iconStrokeWidth = 2,
+}) {
+  return (
+    <label className="flex items-center justify-between p-3 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 cursor-pointer transition-colors group">
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${checked ? activeColor : `bg-muted text-muted-foreground ${hoverColor}`}`}
+        >
+          <Icon size={18} strokeWidth={iconStrokeWidth} />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-foreground">{label}</p>
+          <p className="text-[10px] text-muted-foreground font-medium">
+            {description}
+          </p>
+        </div>
+      </div>
+      <Switch
+        className="data-checked:bg-foreground data-checked:text-background"
+        checked={checked}
+        onCheckedChange={onChange}
+      />
+    </label>
+  );
+}
