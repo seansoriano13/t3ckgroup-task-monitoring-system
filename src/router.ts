@@ -16,6 +16,7 @@ export type Path =
   | `/approvals/sales`
   | `/approvals/tasks`
   | `/committee`
+  | `/committee/components/CommitteeRoleManagerModal`
   | `/committee/components/CommitteeTaskCard`
   | `/committee/components/CommitteeTaskDetailModal`
   | `/committee/components/CreateCommitteeTaskModal`

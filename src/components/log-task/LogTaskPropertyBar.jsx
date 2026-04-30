@@ -5,7 +5,7 @@ import { formatTaskDateTime } from "../../utils/formatDate";
 import Dropdown from "../ui/Dropdown";
 import CategoryDropdown from "../dropdowns/CategoryDropdown";
 import PriorityDropdown from "../dropdowns/PriorityDropdown";
-import { FilterTrigger } from "../ui/FilterDropdown";
+import PropertyPill from "../ui/PropertyPill";
 
 export default function LogTaskPropertyBar({
   formData,
@@ -36,6 +36,7 @@ export default function LogTaskPropertyBar({
           categories={categories}
           isLoading={isLoadingData}
           disabled={!formData.loggedById}
+          triggerClassName={`property-pill ${openPopover === "category" || formData.categoryId ? "active" : ""}`}
           onResetOthers={() => {
             setCommitteeRole("");
             setOthersRemarks("");
@@ -54,6 +55,7 @@ export default function LogTaskPropertyBar({
           onChange={(newPriority) => {
             setFormData((p) => ({ ...p, priority: newPriority }));
           }}
+          triggerClassName={`property-pill ${openPopover === "priority" || (formData.priority && formData.priority !== "NORMAL") ? "active" : ""}`}
         />
       </div>
 
@@ -68,16 +70,13 @@ export default function LogTaskPropertyBar({
           className="z-[100]"
           popoverClassName="absolute top-full mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-4 popover-enter"
           trigger={({ isOpen }) => (
-            <FilterTrigger
-              label={
-                formData.endAt
-                  ? formatTaskDateTime(formData.endAt)
-                  : "Set End Time"
-              }
+            <PropertyPill
               isActive={!!formData.endAt}
               isOpen={isOpen}
               icon={Clock}
-            />
+            >
+              {formData.endAt ? formatTaskDateTime(formData.endAt) : "Set End Time"}
+            </PropertyPill>
           )}
         >
           {({ close }) => (

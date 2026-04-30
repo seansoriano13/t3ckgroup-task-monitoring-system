@@ -122,13 +122,21 @@
     inset: 0;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    background-color: rgba(
-      0,
-      0,
-      0,
-      0.2
-    ); 
+    background-color: rgba(0, 0, 0, 0.2);
     z-index: 5000;
+  }
+
+  /* PROPERTY PILL */
+  .property-pill {
+    @apply flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-border bg-card text-muted-foreground text-[12px] font-medium transition-all hover:bg-muted hover:text-foreground cursor-pointer;
+  }
+
+  .property-pill.active {
+    @apply border-mauve-6 bg-muted text-foreground font-semibold;
+  }
+
+  .property-pill.static {
+    @apply cursor-default hover:bg-card hover:text-muted-foreground;
   }
 }
 
@@ -138,7 +146,7 @@
 }
 
 .react-datepicker {
-  background-color: var(--bg-muted) !important;
+  background-color: var(--mauve-3) !important;
   border: none !important;
   border-radius: 12px !important;
   font-family: inherit !important;
@@ -152,7 +160,7 @@
 }
 
 .react-datepicker__header {
-  background-color: var(--bg-muted) !important;
+  background-color: var(--mauve-3) !important;
   border-top-left-radius: 12px !important;
   border-top-right-radius: 12px !important;
   padding-top: 14px !important;
@@ -241,6 +249,10 @@
   ) {
   background-color: var(--red-a2) !important;
   color: var(--primary) !important;
+}
+
+.react-datepicker__time {
+  background: var(--bg-muted) !important;
 }
 
 /* Time selection container */
@@ -377,8 +389,6 @@
 .animate-check-flash {
   animation: check-flash 0.6s ease-out forwards;
 }
-
-
 
 /* --- POPOVER / EXPAND ANIMATIONS --- */
 @keyframes popover-in {

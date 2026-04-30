@@ -8,17 +8,20 @@ import {
   Plus,
   Trash2,
   Calendar,
+  Settings2,
+  Users,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import toast from "react-hot-toast";
 import ChecklistTaskInput from "../../../components/ChecklistTaskInput";
 import { Button } from "@/components/ui/button";
-import Select from "react-select";
-import { LOG_TASK_SELECT_STYLES } from "../../../constants/task";
+import Dropdown from "../../../components/ui/Dropdown";
+import { FilterTrigger, FilterOptionList } from "../../../components/ui/FilterDropdown";
 import Spinner from "@/components/ui/Spinner";
-
-const COMMITTEE_ROLES = ["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"];
+import { useQuery } from "@tanstack/react-query";
+import { committeeRoleService } from "../../../services/committeeRoleService";
+import CommitteeRoleManagerModal from "./CommitteeRoleManagerModal";
 
 export default function CreateCommitteeTaskModal({
   isOpen,
@@ -29,6 +32,7 @@ export default function CreateCommitteeTaskModal({
   isSubmitting,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isRoleManagerOpen, setIsRoleManagerOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState(null);
@@ -72,6 +76,12 @@ export default function CreateCommitteeTaskModal({
       .map((e) => ({ value: e.id, label: e.name, department: e.department }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [employees]);
+
+  const { data: roles = [], isLoading: isRolesLoading } = useQuery({
+    queryKey: ["committeeRoles"],
+    queryFn: committeeRoleService.getRoles,
+    enabled: isOpen,
+  });
 
   const handleAddMember = () => {
     setMembers([
@@ -128,7 +138,8 @@ export default function CreateCommitteeTaskModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
         className={`p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[960px] sm:max-w-none max-w-[95vw] rounded-2xl ${
@@ -245,56 +256,75 @@ export default function CreateCommitteeTaskModal({
                     <label className="block text-[10px] font-bold text-muted-foreground uppercase">
                       Assignee
                     </label>
-                    <Select
-                      className="w-full flex-1"
-                      options={employeeOptions}
-                      value={
-                        employeeOptions.find(
-                          (o) => o.value === member.employeeId,
-                        ) || null
-                      }
-                      onChange={(opt) =>
-                        handleMemberChange(member.id, "employeeId", opt?.value)
-                      }
-                      placeholder="Select Employee..."
-                      classNamePrefix="react-select"
-                      classNames={LOG_TASK_SELECT_STYLES}
-                      unstyled
-                      isClearable
-                      menuShouldBlockScroll={false}
-                      menuPortalTarget={document.body}
-                      styles={{
-                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                      }}
-                    />
+                    <Dropdown
+                      usePortal
+                      className="w-full"
+                      trigger={({ isOpen }) => (
+                        <FilterTrigger
+                          label={
+                            employeeOptions.find((o) => o.value === member.employeeId)
+                              ?.label || "Select Employee..."
+                          }
+                          isActive={!!member.employeeId}
+                          isOpen={isOpen}
+                          icon={Users}
+                        />
+                      )}
+                    >
+                      {({ close }) => (
+                        <FilterOptionList
+                          options={employeeOptions}
+                          value={member.employeeId}
+                          onChange={(val) => {
+                            handleMemberChange(member.id, "employeeId", val);
+                            close();
+                          }}
+                          close={close}
+                        />
+                      )}
+                    </Dropdown>
                   </div>
 
                   {/* Role */}
                   <div className="flex flex-col gap-2">
-                    <label className="block text-[10px] font-bold text-muted-foreground uppercase">
-                      Role (Optional)
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[10px] font-bold text-muted-foreground uppercase">
+                        Role (Optional)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setIsRoleManagerOpen(true)}
+                        className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted transition-colors flex items-center gap-1 text-[9px] font-bold uppercase"
+                        title="Manage Roles"
+                      >
+                        <Settings2 size={11} /> Manage
+                      </button>
+                    </div>
                     <div className="flex flex-wrap gap-2">
-                      {COMMITTEE_ROLES.map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() =>
-                            handleMemberChange(
-                              member.id,
-                              "role",
-                              member.role === r ? "" : r,
-                            )
-                          }
-                          className={`px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all ${
-                            member.role === r
-                              ? "bg-primary text-primary-foreground shadow-sm scale-105 border border-primary"
-                              : "bg-card text-foreground border border-border hover:border-mauve-5 hover:text-foreground shadow-sm"
-                          }`}
-                        >
-                          {r}
-                        </button>
-                      ))}
+                      {isRolesLoading ? (
+                        <div className="text-[10px] text-muted-foreground animate-pulse">Loading roles...</div>
+                      ) : (
+                        roles.map((r) => (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() =>
+                              handleMemberChange(
+                                member.id,
+                                "role",
+                                member.role === r.role_name ? "" : r.role_name,
+                              )
+                            }
+                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all ${
+                              member.role === r.role_name
+                                ? "bg-primary text-primary-foreground shadow-sm scale-105 border border-primary"
+                                : "bg-card text-foreground border border-border hover:border-mauve-5 hover:text-foreground shadow-sm"
+                            }`}
+                          >
+                            {r.role_name}
+                          </button>
+                        ))
+                      )}
                     </div>
                     {member.role === "OTHERS" && (
                       <div className="animate-slide-down mt-1">
@@ -461,6 +491,11 @@ export default function CreateCommitteeTaskModal({
           </div>
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+      <CommitteeRoleManagerModal
+        isOpen={isRoleManagerOpen}
+        onClose={() => setIsRoleManagerOpen(false)}
+      />
+    </>
   );
 }

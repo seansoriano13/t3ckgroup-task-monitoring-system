@@ -18,6 +18,7 @@ import Avatar from "@/components/Avatar";
 import Dropdown from "../ui/Dropdown";
 import { FilterTrigger, FilterOptionList } from "../ui/FilterDropdown";
 import QuotaHistoryModal from "./QuotaHistoryModal";
+import HighlightText from "../HighlightText";
 
 export default function QuotaManagementModule({
   salesEmployees = [],

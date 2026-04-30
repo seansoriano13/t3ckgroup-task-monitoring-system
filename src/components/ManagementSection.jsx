@@ -48,7 +48,7 @@ const ManagementSection = ({
             )}
           >
             {({ close }) => (
-              <FilterOptionList
+              <FilterOptionLista
                 options={uniqueDepts.map((d) => ({ value: d, label: d }))}
                 value={formData.department}
                 onChange={(val) => {
