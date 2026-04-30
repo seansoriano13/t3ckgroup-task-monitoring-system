@@ -216,10 +216,10 @@ export default function BroadcastModal({ isOpen, onClose }) {
         {/* ── Header ──────────────────────────────────────── */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/60 shrink-0">
           <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-            <Avatar 
-              name={user?.department || "T"} 
-              size="xs" 
-              className="w-[18px] h-[18px] rounded bg-mauve-11 text-white text-[9px]" 
+            <Avatar
+              name={user?.department || "T"}
+              size="xs"
+              className="w-[18px] h-[18px] rounded bg-mauve-11 text-white text-[9px]"
             />
             <ChevronDown
               size={11}

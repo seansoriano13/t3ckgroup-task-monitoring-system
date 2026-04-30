@@ -495,7 +495,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
               <Dropdown
                 usePortal={true}
                 placement="top-start"
-                popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+                /* popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter" */
                 trigger={({ isOpen }) => (
                   <PropertyPill
                     isActive={!!formData.department || isOpen}
@@ -553,7 +553,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
                 disabled={!formData.department}
                 usePortal={true}
                 placement="top-start"
-                popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter"
+                /* popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[100] w-[240px] popover-enter" */
                 trigger={({ isOpen, disabled }) => (
                   <PropertyPill
                     isActive={(!!formData.subDepartment || isOpen) && !disabled}

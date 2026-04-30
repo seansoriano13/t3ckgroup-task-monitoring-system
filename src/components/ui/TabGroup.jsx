@@ -55,11 +55,10 @@ export default function TabGroup({
     pill: "bg-card text-foreground shadow-sm rounded-lg",
     primary:
       "bg-primary text-primary-foreground shadow-md shadow-primary/15 rounded-lg",
-    success:
-      "bg-green-10 text-white shadow-md shadow-green-9/20 rounded-lg",
+    success: "bg-green-10 text-white shadow-md shadow-green-9/20 rounded-lg",
     destructive:
       "bg-destructive text-destructive-foreground shadow-md shadow-destructive/15 rounded-lg",
-    underline: "border-b-2 border-primary text-foreground -mb-px",
+    underline: "border-b-2 border-mauve-10 text-foreground -mb-px",
   };
 
   const btnInactive = {

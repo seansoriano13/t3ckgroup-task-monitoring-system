@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Clock, ChevronDown } from "lucide-react";
 import DatePicker from "react-datepicker";
 import { formatTaskDateTime } from "../../utils/formatDate";
@@ -16,12 +16,17 @@ export default function LogTaskPropertyBar({
   endTimeRef,
   setCommitteeRole,
   setOthersRemarks,
+  openPopover,
+  onTogglePopover,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 py-2.5 border-t border-mauve-3/40 animate-content-in stagger-3 relative z-[20]">
       {/* Category Dropdown */}
       <div className="relative z-[100]" ref={categoryRef}>
         <CategoryDropdown
+          isOpen={openPopover === "category"}
+          onToggle={() => onTogglePopover("category")}
+          usePortal
           value={formData.categoryId}
           onChange={(newCategoryId) => {
             setFormData((p) => ({ ...p, categoryId: newCategoryId }));
@@ -39,6 +44,9 @@ export default function LogTaskPropertyBar({
       {/* Priority Dropdown */}
       <div className="relative z-[100]" ref={priorityRef}>
         <PriorityDropdown
+          isOpen={openPopover === "priority"}
+          onToggle={() => onTogglePopover("priority")}
+          usePortal
           value={formData.priority}
           onChange={(newPriority) => {
             setFormData((p) => ({ ...p, priority: newPriority }));
@@ -49,8 +57,11 @@ export default function LogTaskPropertyBar({
       {/* Time Dropdown */}
       <div className="relative z-[100]" ref={endTimeRef}>
         <Dropdown
+          isOpen={openPopover === "endTime"}
+          onToggle={() => onTogglePopover("endTime")}
+          usePortal
           className="z-[100]"
-          popoverClassName="absolute top-full right-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-3 w-[clamp(280px,90vw,420px)] popover-enter"
+          /* popoverClassName="absolute top-full right-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] p-3 w-[clamp(280px,90vw,420px)] popover-enter" */
           trigger={({ isOpen }) => (
             <button
               type="button"

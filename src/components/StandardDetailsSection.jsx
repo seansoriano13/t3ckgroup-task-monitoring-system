@@ -1,4 +1,4 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Tag } from "lucide-react";
 import Dot from "./ui/Dot";
 import { formatDate } from "../utils/formatDate";
 import { extractOthersDetailsFromRemarks } from "../utils/taskFormatters";
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Clock } from "lucide-react";
 import { CheckCircle2, ChevronDown } from "lucide-react";
 import PriorityDropdown from "./dropdowns/PriorityDropdown";
+import Dropdown from "./ui/Dropdown";
+import { FilterTrigger, FilterOptionList } from "./ui/FilterDropdown";
 
 const StandardDetailsSection = ({
   isEditing,
@@ -30,29 +32,47 @@ const StandardDetailsSection = ({
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
-        <FieldBox label="Task Category" isEditing={isEditing}>
+        <FieldBox label="Task Category" isEditing={isEditing} noBorder={isEditing}>
           {isEditing ? (
             <div className="w-full flex flex-col">
-              <select
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleChange}
+              <Dropdown
+                usePortal
+                className="w-full"
                 disabled={!formData.loggedById && isManagement}
-                className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground cursor-pointer disabled:opacity-50"
+                trigger={({ isOpen, disabled }) => (
+                  <FilterTrigger
+                    label={
+                      formData.categoryId
+                        ? `${formData.categoryId} - ${filteredCategories.find((c) => c.category_id === formData.categoryId)?.description || ""}`
+                        : topologyData?.isLoadingTop
+                          ? "Loading..."
+                          : !formData.loggedById && isManagement
+                            ? "Select Assignee First"
+                            : "Select Category..."
+                    }
+                    isActive={!!formData.categoryId}
+                    isOpen={isOpen}
+                    icon={Tag}
+                    disabled={disabled}
+                  />
+                )}
               >
-                <option value="" disabled className="text-muted-foreground">
-                  {topologyData?.isLoadingTop
-                    ? "Loading..."
-                    : !formData.loggedById && isManagement
-                      ? "Select Assignee First"
-                      : "Select Category..."}
-                </option>
-                {filteredCategories.map((cat) => (
-                  <option key={cat.category_id} value={cat.category_id}>
-                    {cat.category_id} - {cat.description}
-                  </option>
-                ))}
-              </select>
+                {({ close }) => (
+                  <FilterOptionList
+                    showSearch
+                    options={filteredCategories.map((cat) => ({
+                      value: cat.category_id,
+                      label: `${cat.category_id} - ${cat.description}`,
+                    }))}
+                    value={formData.categoryId}
+                    onChange={(val) => {
+                      handleChange({ target: { name: "categoryId", value: val } });
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
 
               {filteredCategories.length === 0 &&
                 !topologyData?.isLoadingTop &&
@@ -73,21 +93,33 @@ const StandardDetailsSection = ({
             </div>
           )}
         </FieldBox>
-        <FieldBox label="Priority" isEditing={isEditing}>
+        <FieldBox label="Priority" isEditing={isEditing} noBorder={isEditing}>
           {isEditing ? (
             <PriorityDropdown
               value={formData.priority}
-              onChange={(val) =>
-                handleChange({ target: { name: "priority", value: val } })
-              }
-              triggerClassName="w-full bg-transparent px-3 py-2 outline-none text-sm font-bold cursor-pointer flex items-center gap-2"
+              onChange={(val) => handleChange({ target: { name: "priority", value: val } })}
+              usePortal
               customTrigger={({ isOpen, currentPriority }) => (
-                <div className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-colors ${isOpen ? 'bg-muted/50' : 'hover:bg-muted/30'} cursor-pointer`}>
-                  <div className={`flex items-center gap-2 ${currentPriority.value === 'HIGH' ? 'text-destructive' : currentPriority.value === 'MEDIUM' ? 'text-amber-10' : 'text-muted-foreground'}`}>
+                <div
+                  className={`h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${
+                    isOpen
+                      ? "ring-1 ring-mauve-4 bg-muted font-medium"
+                      : "bg-card border-border hover:border-border/80"
+                  }`}
+                >
+                  <div
+                    className={`flex items-center gap-2 ${
+                      currentPriority.value === "HIGH"
+                        ? "text-destructive"
+                        : currentPriority.value === "MEDIUM"
+                          ? "text-amber-10"
+                          : "text-muted-foreground"
+                    }`}
+                  >
                     <Dot size="w-2 h-2" color={currentPriority.dot} />
-                    <span className="font-bold">{currentPriority.label}</span>
+                    <span className="text-[13px] font-bold">{currentPriority.label}</span>
                   </div>
-                  <ChevronDown size={14} className="text-muted-foreground" />
+                  <ChevronDown size={14} className={`text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </div>
               )}
             />
@@ -151,7 +183,7 @@ const StandardDetailsSection = ({
         )}
       </div>
       <div className="grid grid-cols-2 gap-3 mt-3">
-        <FieldBox label="Start Time" isEditing={isEditing}>
+        <FieldBox label="Start Time" isEditing={isEditing} noBorder={isEditing}>
           {isEditing ? (
             <Input
               disabled
@@ -167,7 +199,7 @@ const StandardDetailsSection = ({
             </p>
           )}
         </FieldBox>
-        <FieldBox label="End Time" isEditing={isEditing}>
+        <FieldBox label="End Time" isEditing={isEditing} noBorder={isEditing}>
           {isEditing ? (
             <Input
               type="datetime-local"

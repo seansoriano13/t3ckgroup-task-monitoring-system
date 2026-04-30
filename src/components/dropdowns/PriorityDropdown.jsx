@@ -12,16 +12,19 @@ export default function PriorityDropdown({
   triggerClassName,
   customTrigger,
   hasAll = false,
+  usePortal = false,
 }) {
-  const currentPriority = value === "ALL"
-    ? { value: "ALL", label: "Priority: All", dot: "bg-transparent" }
-    : PRIORITY_OPTIONS.find((p) => p.value === value) || PRIORITY_OPTIONS[0];
+  const currentPriority =
+    value === "ALL"
+      ? { value: "ALL", label: "All", dot: "bg-mauve-8" }
+      : PRIORITY_OPTIONS.find((p) => p.value === value) || PRIORITY_OPTIONS[0];
 
   return (
     <Dropdown
       disabled={disabled}
+      usePortal={usePortal}
       className={`z-100 ${className}`}
-      popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] min-w-[150px] popover-enter p-1"
+      /* popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] min-w-[150px] popover-enter p-1" */
       trigger={({ isOpen }) => {
         if (customTrigger) return customTrigger({ isOpen, currentPriority });
 
@@ -51,14 +54,14 @@ export default function PriorityDropdown({
                 if (onChange) onChange("ALL");
                 close();
               }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all active:scale-95 cursor-pointer ${
                 value === "ALL" || !value
                   ? "bg-muted/80 text-foreground font-bold"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <Dot size="w-2 h-2" color="bg-transparent" />
-              Priority: All
+              <Dot size="w-2 h-2" color="bg-mauve-8" />
+              All
             </button>
           )}
           {PRIORITY_OPTIONS.map((opt) => (
@@ -70,7 +73,7 @@ export default function PriorityDropdown({
                 if (onChange) onChange(opt.value);
                 close();
               }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all active:scale-95 cursor-pointer ${
                 value === opt.value
                   ? "bg-muted/80 text-foreground font-bold"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"

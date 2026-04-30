@@ -10,7 +10,7 @@ const   Dropdown = forwardRef(
       onToggle,
       onClose,
       className = "",
-      popoverClassName = "absolute top-full mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] popover-enter",
+      popoverClassName = "absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[10001] min-w-[150px] popover-enter p-1",
       placement = "bottom-start", // bottom-start, bottom-end, etc.
       disabled = false,
       usePortal = false,
@@ -43,12 +43,12 @@ const   Dropdown = forwardRef(
       if (dropdownRef.current && isOpen && usePortal) {
         const rect = dropdownRef.current.getBoundingClientRect();
         setCoords({
-          left: rect.left + window.scrollX,
-          top: rect.bottom + window.scrollY,
-          rectTop: rect.top + window.scrollY,
+          left: rect.left,
+          top: rect.bottom,
+          rectTop: rect.top,
           width: rect.width,
-          right: window.innerWidth - rect.right - window.scrollX,
-          windowHeight: document.documentElement.scrollHeight,
+          right: window.innerWidth - rect.right,
+          windowHeight: window.innerHeight,
         });
       }
     };
@@ -138,7 +138,8 @@ const   Dropdown = forwardRef(
                 ref={popoverRef}
                 className={`${popoverClassName}`}
                 style={{
-                  position: "absolute",
+                  position: "fixed",
+                  zIndex: 10001,
                   top: placement.startsWith("top")
                     ? undefined
                     : coords?.top

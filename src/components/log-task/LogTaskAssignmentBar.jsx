@@ -1,6 +1,6 @@
-﻿import Select from "react-select";
-import { Users, ClipboardList } from "lucide-react";
-import { LOG_TASK_SELECT_STYLES } from "../../constants/task";
+import { Users, ClipboardList, Building2 } from "lucide-react";
+import Dropdown from "../ui/Dropdown";
+import { FilterTrigger, FilterOptionList } from "../ui/FilterDropdown";
 
 const FieldBox = ({ label, children }) => (
   <div className="flex flex-col gap-1.5">
@@ -31,6 +31,8 @@ export default function LogTaskAssignmentBar({
   assignmentRef,
   onScroll,
   user,
+  openPopover,
+  onTogglePopover,
 }) {
   const { isHr, isHead, isSuperAdmin } = roles;
   const canAssignOthers = isHr || isHead;
@@ -49,43 +51,68 @@ export default function LogTaskAssignmentBar({
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                 Dept
               </label>
-              <Select
-                options={uniqueDepts.map((d) => ({ value: d, label: d }))}
-                value={hrDeptFilter ? { value: hrDeptFilter, label: hrDeptFilter } : null}
-                onChange={(opt) => {
-                  setHrDeptFilter(opt?.value || "");
-                  setHrSubDeptFilter("");
-                  setFormData((p) => ({ ...p, loggedById: "" }));
-                }}
-                onMenuOpen={() => onScroll(assignmentRef, true)}
-                placeholder="All"
-                classNamePrefix="react-select"
-                classNames={LOG_TASK_SELECT_STYLES}
-                unstyled
-                isClearable
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                isOpen={openPopover === "hrDept"}
+                onToggle={() => onTogglePopover("hrDept")}
+                className="w-full"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={hrDeptFilter || "All"}
+                    isActive={!!hrDeptFilter}
+                    isOpen={isOpen}
+                    icon={Building2}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={uniqueDepts.map((d) => ({ value: d, label: d }))}
+                    value={hrDeptFilter}
+                    onChange={(val) => {
+                      setHrDeptFilter(val);
+                      setHrSubDeptFilter("");
+                      setFormData((p) => ({ ...p, loggedById: "" }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </div>
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                 Sub-Dept
               </label>
-              <Select
-                options={uniqueSubDepts.map((sd) => ({ value: sd, label: sd }))}
-                value={hrSubDeptFilter ? { value: hrSubDeptFilter, label: hrSubDeptFilter } : null}
-                onChange={(opt) => {
-                  setHrSubDeptFilter(opt?.value || "");
-                  setFormData((p) => ({ ...p, loggedById: "" }));
-                }}
-                onMenuOpen={() => onScroll(assignmentRef, true)}
-                placeholder="All"
-                classNamePrefix="react-select"
-                classNames={LOG_TASK_SELECT_STYLES}
-                unstyled
-                isClearable
-                isDisabled={!hrDeptFilter}
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                isOpen={openPopover === "hrSubDept"}
+                onToggle={() => onTogglePopover("hrSubDept")}
+                className="w-full"
+                disabled={!hrDeptFilter}
+                trigger={({ isOpen, disabled }) => (
+                  <FilterTrigger
+                    label={hrSubDeptFilter || "All"}
+                    isActive={!!hrSubDeptFilter}
+                    isOpen={isOpen}
+                    icon={Building2}
+                    disabled={disabled}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={uniqueSubDepts.map((sd) => ({ value: sd, label: sd }))}
+                    value={hrSubDeptFilter}
+                    onChange={(val) => {
+                      setHrSubDeptFilter(val);
+                      setFormData((p) => ({ ...p, loggedById: "" }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </div>
           </div>
         </div>
@@ -99,26 +126,40 @@ export default function LogTaskAssignmentBar({
               <Users size={12} /> Assign To
             </label>
           )}
-          <Select
-            options={filteredEmployees.map((emp) => ({
-              value: emp.id,
-              label: emp.id === user.id ? "Myself" : emp.name,
-            }))}
-            value={filteredEmployees
-              .filter((emp) => emp.id === formData.loggedById)
-              .map((emp) => ({ 
-                value: emp.id, 
-                label: emp.id === user.id ? "Myself" : emp.name 
-              }))[0] || null}
-            onChange={(opt) => setFormData((p) => ({ ...p, loggedById: opt?.value || "" }))}
-            onMenuOpen={() => onScroll(assignmentRef, true)}
-            placeholder="Search assignee…"
-            classNamePrefix="react-select"
-            classNames={LOG_TASK_SELECT_STYLES}
-            unstyled
-            isClearable
-            menuShouldBlockScroll={false}
-          />
+          <Dropdown
+            usePortal
+            isOpen={openPopover === "assignee"}
+            onToggle={() => onTogglePopover("assignee")}
+            className="w-full"
+            trigger={({ isOpen }) => (
+              <FilterTrigger
+                label={
+                  filteredEmployees.find((emp) => emp.id === formData.loggedById)
+                    ? (formData.loggedById === user.id ? "Myself" : filteredEmployees.find((emp) => emp.id === formData.loggedById).name)
+                    : "Search assignee..."
+                }
+                isActive={!!formData.loggedById}
+                isOpen={isOpen}
+                icon={Users}
+              />
+            )}
+          >
+            {({ close }) => (
+              <FilterOptionList
+                showSearch
+                options={filteredEmployees.map((emp) => ({
+                  value: emp.id,
+                  label: emp.id === user.id ? "Myself" : emp.name,
+                }))}
+                value={formData.loggedById}
+                onChange={(val) => {
+                  setFormData((p) => ({ ...p, loggedById: val }));
+                  close();
+                }}
+                close={close}
+              />
+            )}
+          </Dropdown>
         </div>
       )}
 
@@ -128,23 +169,39 @@ export default function LogTaskAssignmentBar({
           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 pl-1">
             <ClipboardList size={12} /> Report To (Head)
           </label>
-          <Select
-            options={availableHeads.map((h) => ({
-              value: h.id,
-              label: h.name,
-            }))}
-            value={availableHeads
-              .filter((h) => h.id === selectedHead)
-              .map((h) => ({ value: h.id, label: h.name }))[0] || null}
-            onChange={(opt) => setSelectedHead(opt?.value || "")}
-            onMenuOpen={() => onScroll(assignmentRef, true)}
-            placeholder="Select manager/head…"
-            classNamePrefix="react-select"
-            classNames={LOG_TASK_SELECT_STYLES}
-            unstyled
-            isClearable
-            menuShouldBlockScroll={false}
-          />
+          <Dropdown
+            usePortal
+            isOpen={openPopover === "reportedTo"}
+            onToggle={() => onTogglePopover("reportedTo")}
+            className="w-full"
+            trigger={({ isOpen }) => (
+              <FilterTrigger
+                label={
+                  availableHeads.find((h) => h.id === selectedHead)?.name ||
+                  "Select manager/head..."
+                }
+                isActive={!!selectedHead}
+                isOpen={isOpen}
+                icon={ClipboardList}
+              />
+            )}
+          >
+            {({ close }) => (
+              <FilterOptionList
+                showSearch
+                options={availableHeads.map((h) => ({
+                  value: h.id,
+                  label: h.name,
+                }))}
+                value={selectedHead}
+                onChange={(val) => {
+                  setSelectedHead(val);
+                  close();
+                }}
+                close={close}
+              />
+            )}
+          </Dropdown>
         </div>
       )}
     </div>

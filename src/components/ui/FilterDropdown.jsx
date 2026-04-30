@@ -13,14 +13,12 @@ export function FilterTrigger({
 }) {
   return (
     <div
-      className={`bg-card h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${
+      className={`h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${
         disabled ? "opacity-50 pointer-events-none" : ""
       } ${
-        isOpen
-          ? "border-mauve-6 ring-1 ring-mauve-6 bg-card"
-          : isActive
-            ? "border-mauve-8 font-medium bg-muted/30"
-            : "border-border hover:border-border/80"
+        isOpen || isActive
+          ? "ring-1 ring-mauve-4 bg-muted font-medium"
+          : "bg-card border-border hover:border-border/80"
       }`}
     >
       <div className="flex items-center gap-2 overflow-hidden flex-1">
@@ -68,13 +66,13 @@ export function FilterOptionList({ options, value, onChange, close }) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
             onClick={(e) => e.stopPropagation()}
-            className="w-full bg-muted/50 border border-border rounded-md px-2.5 py-1.5 text-[12px] font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-mauve-6 focus:ring-1 focus:ring-mauve-6 transition-all"
+            className="w-full bg-muted/50 border border-border rounded-md px-2.5 py-1.5 text-[13px] font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-mauve-4 focus:ring-1 focus:ring-mauve-4 transition-all"
           />
         </div>
       )}
       <div className="p-1 max-h-56 overflow-y-auto">
         {filtered.length === 0 ? (
-          <p className="text-center text-[12px] text-muted-foreground py-3 font-medium">
+          <p className="text-center text-[13px] text-muted-foreground py-3 font-medium">
             No results found
           </p>
         ) : (
@@ -87,10 +85,10 @@ export function FilterOptionList({ options, value, onChange, close }) {
                 onChange(opt.value);
                 if (close) close();
               }}
-              className={`w-full text-left px-3 py-2 rounded-md text-[13px] transition-colors font-medium ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all active:scale-95 cursor-pointer ${
                 value === opt.value
-                  ? "bg-mauve-5 text-foreground font-bold"
-                  : "text-muted-foreground hover:bg-muted/80"
+                  ? "bg-muted/80 text-foreground font-bold"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               {opt.label}

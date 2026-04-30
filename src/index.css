@@ -331,7 +331,7 @@
 }
 
 .property-pill.active {
-  @apply border-mauve-6 bg-mauve-3;
+  @apply border-mauve-6 bg-muted;
 }
 
 .property-pill.static {

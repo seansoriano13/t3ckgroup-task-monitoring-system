@@ -1,6 +1,8 @@
-import { FieldBox } from "./FieldBox";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Building2, Users } from "lucide-react";
 import Dot from "./ui/Dot";
+import Dropdown from "./ui/Dropdown";
+import { FilterTrigger, FilterOptionList } from "./ui/FilterDropdown";
+import { FieldBox } from "./FieldBox";
 
 const ManagementSection = ({
   isEditing,
@@ -29,23 +31,34 @@ const ManagementSection = ({
       </div>
 
       {/* 1. Department */}
-      <FieldBox label="Department" isEditing={isEditing}>
+      <FieldBox label="Department" isEditing={isEditing} noBorder={isEditing}>
         {isEditing ? (
-          <select
-            value={formData.department}
-            onChange={handleDeptChange}
+          <Dropdown
+            usePortal
+            className="w-full"
             disabled={!canEditOrg}
-            className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            trigger={({ isOpen, disabled }) => (
+              <FilterTrigger
+                label={formData.department || "Select..."}
+                isActive={!!formData.department}
+                isOpen={isOpen}
+                icon={Building2}
+                disabled={disabled}
+              />
+            )}
           >
-            <option value="" disabled>
-              Select...
-            </option>
-            {uniqueDepts.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+            {({ close }) => (
+              <FilterOptionList
+                options={uniqueDepts.map((d) => ({ value: d, label: d }))}
+                value={formData.department}
+                onChange={(val) => {
+                  handleDeptChange({ target: { value: val } });
+                  close();
+                }}
+                close={close}
+              />
+            )}
+          </Dropdown>
         ) : (
           <p className="px-3 text-sm font-semibold text-foreground">
             {formData.department || "N/A"}
@@ -54,23 +67,34 @@ const ManagementSection = ({
       </FieldBox>
 
       {/* 2. Sub-Department */}
-      <FieldBox label="Sub-Department" isEditing={isEditing}>
+      <FieldBox label="Sub-Department" isEditing={isEditing} noBorder={isEditing}>
         {isEditing ? (
-          <select
-            value={formData.subDepartment}
-            onChange={handleSubDeptChange}
+          <Dropdown
+            usePortal
+            className="w-full"
             disabled={!canEditOrg || !formData.department}
-            className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            trigger={({ isOpen, disabled }) => (
+              <FilterTrigger
+                label={formData.subDepartment || "Select..."}
+                isActive={!!formData.subDepartment}
+                isOpen={isOpen}
+                icon={Building2}
+                disabled={disabled}
+              />
+            )}
           >
-            <option value="" disabled>
-              Select...
-            </option>
-            {uniqueSubDepts.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            {({ close }) => (
+              <FilterOptionList
+                options={uniqueSubDepts.map((s) => ({ value: s, label: s }))}
+                value={formData.subDepartment}
+                onChange={(val) => {
+                  handleSubDeptChange({ target: { value: val } });
+                  close();
+                }}
+                close={close}
+              />
+            )}
+          </Dropdown>
         ) : (
           <p className="px-3 text-sm font-semibold text-foreground">
             {formData.subDepartment || "N/A"}
@@ -80,24 +104,41 @@ const ManagementSection = ({
 
       {/* 3. Assignee */}
       <div className="col-span-2">
-        <FieldBox label="Employee (Assignee)" isEditing={isEditing}>
+        <FieldBox label="Employee (Assignee)" isEditing={isEditing} noBorder={isEditing}>
           {isEditing ? (
-            <select
-              name="loggedById"
-              value={formData.loggedById}
-              onChange={handleAssigneeChange}
+            <Dropdown
+              usePortal
+              className="w-full"
               disabled={!canEditAssignee || (!formData.subDepartment && isHr)}
-              className="w-full bg-transparent px-3 py-2 outline-none text-sm text-foreground font-bold cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              trigger={({ isOpen, disabled }) => (
+                <FilterTrigger
+                  label={
+                    filteredEmployees.find((e) => e.id === formData.loggedById)
+                      ?.name || "Select Employee..."
+                  }
+                  isActive={!!formData.loggedById}
+                  isOpen={isOpen}
+                  icon={Users}
+                  disabled={disabled}
+                />
+              )}
             >
-              <option value="" disabled>
-                Select Employee...
-              </option>
-              {filteredEmployees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name}
-                </option>
-              ))}
-            </select>
+              {({ close }) => (
+                <FilterOptionList
+                  showSearch
+                  options={filteredEmployees.map((emp) => ({
+                    value: emp.id,
+                    label: emp.name,
+                  }))}
+                  value={formData.loggedById}
+                  onChange={(val) => {
+                    handleAssigneeChange({ target: { value: val } });
+                    close();
+                  }}
+                  close={close}
+                />
+              )}
+            </Dropdown>
           ) : (
             <p className="px-3 text-sm font-bold text-foreground">
               {taskLoggedByName}
@@ -111,10 +152,7 @@ const ManagementSection = ({
         <div className="col-span-2 pt-2 border-t border-border mt-1">
           <FieldBox label="Reported To (Head)" isEditing={false}>
             <p className="px-3 text-sm font-bold text-violet-10 flex items-center gap-2">
-              <ClipboardList
-                size={14}
-                className="text-violet-8"
-              />
+              <ClipboardList size={14} className="text-violet-8" />
               {reportedToName}
             </p>
           </FieldBox>

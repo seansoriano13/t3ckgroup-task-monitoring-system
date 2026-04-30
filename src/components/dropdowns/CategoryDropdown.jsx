@@ -11,6 +11,7 @@ export default function CategoryDropdown({
   className = "",
   triggerClassName,
   onResetOthers, // Optional callback to reset things like committeeRole when category changes
+  usePortal = false,
 }) {
   const [search, setSearch] = useState("");
 
@@ -26,8 +27,9 @@ export default function CategoryDropdown({
   return (
     <Dropdown
       disabled={disabled}
+      usePortal={usePortal}
       className={`z-[100] ${className}`}
-      popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] w-[280px] popover-enter"
+      /* popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] w-[280px] popover-enter" */
       trigger={({ isOpen }) => (
         <button
           type="button"
@@ -52,25 +54,30 @@ export default function CategoryDropdown({
     >
       {({ close }) => (
         <>
-          <div className="p-2 border-b border-mauve-3">
-            <div className="flex items-center gap-2 px-2 py-1.5 bg-card rounded-lg border border-mauve-3">
-              <Search size={14} className="text-mauve-7 flex-shrink-0" />
+          <div className="px-2 pt-2 pb-1 border-b border-border">
+            <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted/50 rounded-md border border-border focus-within:border-mauve-4 focus-within:ring-1 focus-within:ring-mauve-4 transition-all">
+              <Search size={14} className="text-muted-foreground flex-shrink-0" />
               <input
                 type="text"
-                placeholder="Search categories…"
+                placeholder="Search categories..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 bg-transparent outline-none text-xs text-foreground placeholder:text-mauve-7"
+                className="flex-1 bg-transparent outline-none text-[13px] font-medium text-foreground placeholder:text-muted-foreground"
                 autoFocus
+                onClick={(e) => e.stopPropagation()}
               />
             </div>
           </div>
           <div className="max-h-[260px] overflow-y-auto p-1">
-            {searchedCategories.length === 0 ? (
-              <p className="text-xs text-mauve-7 text-center py-4">
-                {isLoading ? "Loading…" : "No categories found"}
-              </p>
-            ) : (
+        {isLoading ? (
+          <p className="text-[13px] text-mauve-7 text-center py-4 font-medium">
+            Loadingâ€¦
+          </p>
+        ) : searchedCategories.length === 0 ? (
+          <p className="text-[13px] text-mauve-7 text-center py-4 font-medium">
+            No categories found
+          </p>
+        ) : (
               searchedCategories.map((cat) => (
                 <button
                   key={cat.category_id}
@@ -81,16 +88,16 @@ export default function CategoryDropdown({
                     if (onResetOthers) onResetOthers();
                     close();
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center gap-2 ${
+                  className={`w-full text-left px-3 py-2 rounded-lg text-[13px] font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-2 ${
                     value === cat.category_id
-                      ? "bg-mauve-5 text-foreground font-bold"
-                      : "text-muted-foreground hover:bg-muted/80"
+                      ? "bg-muted/80 text-foreground font-bold"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   <span className="truncate flex-1">
                     <span className="font-semibold">{cat.category_id}</span>
                     <span className="text-muted-foreground ml-1.5">
-                      — {cat.description}
+                      â€” {cat.description}
                     </span>
                   </span>
                   {value === cat.category_id && (
@@ -108,3 +115,5 @@ export default function CategoryDropdown({
     </Dropdown>
   );
 }
+
+

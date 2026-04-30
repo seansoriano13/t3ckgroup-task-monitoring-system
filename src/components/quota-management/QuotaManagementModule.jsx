@@ -14,9 +14,9 @@ import {
   UploadCloud,
 } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
-import QuotaHistoryModal from "./QuotaHistoryModal";
-import HighlightText from "../../components/HighlightText";
 import Avatar from "@/components/Avatar";
+import Dropdown from "../ui/Dropdown";
+import { FilterTrigger, FilterOptionList } from "../ui/FilterDropdown";
 
 export default function QuotaManagementModule({
   salesEmployees = [],
@@ -243,22 +243,42 @@ export default function QuotaManagementModule({
             />
           </div>
 
-          <div className="relative shrink-0">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none pl-9 pr-8 py-2 bg-mauve-2 border border-mauve-4 rounded-lg text-sm font-medium focus:ring-2 focus:ring-mauve-3 focus:border-mauve-8 outline-none"
-            >
-              <option value="ALL">All Status</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="DRAFT">Draft</option>
-              <option value="MISSING">Missing</option>
-            </select>
-            <Filter
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={14}
-            />
-          </div>
+          <Dropdown
+            className="shrink-0"
+            trigger={({ isOpen }) => (
+              <FilterTrigger
+                label={
+                  statusFilter === "ALL"
+                    ? "All Status"
+                    : statusFilter === "PUBLISHED"
+                      ? "Published"
+                      : statusFilter === "DRAFT"
+                        ? "Draft"
+                        : "Missing"
+                }
+                isActive={statusFilter !== "ALL"}
+                isOpen={isOpen}
+                icon={Filter}
+              />
+            )}
+          >
+            {({ close }) => (
+              <FilterOptionList
+                options={[
+                  { value: "ALL", label: "All Status" },
+                  { value: "PUBLISHED", label: "Published" },
+                  { value: "DRAFT", label: "Draft" },
+                  { value: "MISSING", label: "Missing" },
+                ]}
+                value={statusFilter}
+                onChange={(val) => {
+                  setStatusFilter(val);
+                  close();
+                }}
+                close={close}
+              />
+            )}
+          </Dropdown>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto justify-end">

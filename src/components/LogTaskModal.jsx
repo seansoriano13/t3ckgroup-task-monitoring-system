@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 
 // Hooks
@@ -73,13 +73,12 @@ export default function LogTaskModal({ isOpen, onClose }) {
     if (ref.current) {
       setTimeout(() => {
         const el = ref.current;
-        const popover = el.querySelector(".popover-enter");
+        const popover = document.querySelector(".popover-enter");
 
         if (popover) {
           popover.scrollIntoView({
             behavior: "smooth",
-            block: "nearest",
-            inline: "nearest",
+            block: "center",
           });
         } else {
           el.scrollIntoView({
@@ -227,7 +226,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
           id="log-task-form"
           ref={scrollContainerRef}
           onSubmit={(e) => handleSubmit(e, { isCommittee, isOthersGlobal })}
-          className="flex-1 overflow-y-auto px-5 py-3 flex flex-col min-h-0"
+          className={`flex-1 overflow-y-auto px-5 py-3 flex flex-col min-h-0 transition-all duration-300 ${openPopover ? "pb-[300px]" : "pb-6"}`}
         >
           <LogTaskDetailsSection
             formData={formData}
@@ -249,6 +248,8 @@ export default function LogTaskModal({ isOpen, onClose }) {
             endTimeRef={endTimeRef}
             setCommitteeRole={setCommitteeRole}
             setOthersRemarks={setOthersRemarks}
+            openPopover={openPopover}
+            onTogglePopover={togglePopoverWithScroll}
           />
 
           {/* Committee / Others details */}
@@ -325,6 +326,8 @@ export default function LogTaskModal({ isOpen, onClose }) {
             setHrSubDeptFilter={setHrSubDeptFilter}
             onScroll={scrollToElement}
             user={user}
+            openPopover={openPopover}
+            onTogglePopover={togglePopoverWithScroll}
           />
         </form>
 

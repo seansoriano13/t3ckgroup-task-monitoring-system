@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   Search,
   Filter,
@@ -91,13 +91,13 @@ export default function SalesFilters({
   const statusOptions =
     activeTab === "ACTIVITIES"
       ? [
-          { value: "ALL", label: "All Statuses" },
+          { value: "ALL", label: "All" },
           { value: "INCOMPLETE", label: "Planned / Incomplete" },
           { value: "APPROVED", label: "Approved / Completed" },
           { value: "PENDING", label: "Pending Expense Approval" },
         ]
       : [
-          { value: "ALL", label: "All Statuses" },
+          { value: "ALL", label: "All" },
           { value: "APPROVED", label: "Completed" },
           { value: "INCOMPLETE", label: "Lost" },
           ...(isVerificationEnforced
@@ -106,14 +106,14 @@ export default function SalesFilters({
         ];
 
   const typeOptions = [
-    { value: "ALL", label: "All Activity Types" },
+    { value: "ALL", label: "All" },
     { value: "Sales Call", label: "Sales Call" },
     { value: "In-House", label: "In-House" },
     { value: "None", label: "Blank / None" },
   ];
 
   const recordTypeOptions = [
-    { value: "ALL", label: "All Record Types" },
+    { value: "ALL", label: "All" },
     { value: "SALES_ORDER", label: "Sales Orders" },
     { value: "SALES_QUOTATION", label: "Quotations" },
   ];
@@ -170,19 +170,19 @@ export default function SalesFilters({
             {/* DATE PICKER */}
             {shouldShowDateFilter && (
               <div
-                className={`bg-card  flex items-center border rounded-lg h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${
+                className={`flex items-center border rounded-lg h-[40px] md:h-[46px] shadow-sm transition-all shrink-0 ${
                   selectedDateFilter
-                    ? "text-foreground border-mauve-8 font-medium"
-                    : "border-border hover:border-border/80 text-foreground"
+                    ? "bg-muted ring-1 ring-mauve-4 font-medium"
+                    : "bg-card border-border hover:border-border/80 text-foreground"
                 }`}
               >
                 {/* Timeframe Dropdown inside DatePicker wrapper */}
                 <Dropdown
                   usePortal={true}
                   className="h-full border-r border-border flex-center"
-                  popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-[120px] popover-enter p-1"
+                  /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-[120px] popover-enter p-1" */
                   trigger={({ isOpen }) => (
-                    <div className="flex items-center px-3 gap-1.5 cursor-pointer hover:bg-muted/60 transition-colors h-full rounded-l-lg">
+                    <div className="flex items-center pl-4 pr-3 gap-2 cursor-pointer hover:bg-muted/60 transition-colors h-full rounded-l-lg min-w-[80px] justify-center">
                       <span className="text-[10px] uppercase font-bold tracking-widest text-foreground">
                         {currentTimeframeLabel}
                       </span>
@@ -275,7 +275,7 @@ export default function SalesFilters({
               <Dropdown
                 usePortal={true}
                 className="min-w-[150px] shrink-0"
-                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+                /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter" */
                 trigger={({ isOpen }) => (
                   <FilterTrigger
                     label={currentSortLabel}
@@ -324,7 +324,7 @@ export default function SalesFilters({
           {/* Status Filter */}
           <Dropdown
             className="flex-1 min-w-[170px]"
-            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter" */
             trigger={({ isOpen }) => (
               <FilterTrigger
                 label={currentStatusLabel}
@@ -347,7 +347,7 @@ export default function SalesFilters({
           {/* Employee Filter */}
           <Dropdown
             className="flex-1 min-w-[180px]"
-            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
+            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto" */
             disabled={!canViewAllSales}
             trigger={({ isOpen, disabled }) => (
               <div className={disabled ? "opacity-50 pointer-events-none" : ""}>
@@ -376,7 +376,7 @@ export default function SalesFilters({
           {activeTab === "ACTIVITIES" && (
             <Dropdown
               className="flex-1 min-w-[170px]"
-              popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+              /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter" */
               trigger={({ isOpen }) => (
                 <FilterTrigger
                   label={currentTypeLabel}
@@ -401,7 +401,7 @@ export default function SalesFilters({
           {activeTab === "REVENUE" && (
             <Dropdown
               className="flex-1 min-w-[170px]"
-              popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+              /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter" */
               trigger={({ isOpen }) => (
                 <FilterTrigger
                   label={currentRecordTypeLabel}

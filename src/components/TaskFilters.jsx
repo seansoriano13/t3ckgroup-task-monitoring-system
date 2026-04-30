@@ -48,9 +48,12 @@ export default function TaskFilters({
   onAdvancedOpenChange,
 }) {
   const [startDate, endDate] = dateRange || [null, null];
-  const [showAdvanced, setShowAdvancedRaw] = useState(forceAdvancedOpen || !!employeeFilter);
+  const [showAdvanced, setShowAdvancedRaw] = useState(
+    forceAdvancedOpen || !!employeeFilter,
+  );
 
-  const isFiltersReadOnly = !isManagement || (isHr && hrViewMode === "PERSONAL");
+  const isFiltersReadOnly =
+    !isManagement || (isHr && hrViewMode === "PERSONAL");
 
   const setShowAdvanced = (val) => {
     setShowAdvancedRaw(val);
@@ -79,13 +82,13 @@ export default function TaskFilters({
 
   // Option Definitions
   const sortOptions = [
-    { value: "NEWEST", label: "Sort: Newest" },
-    { value: "OLDEST", label: "Sort: Oldest" },
-    { value: "NAME", label: "Sort: By Name" },
+    { value: "NEWEST", label: "Newest" },
+    { value: "OLDEST", label: "Oldest" },
+    { value: "NAME", label: "By Name" },
   ];
 
   const statusOptions = [
-    { value: "ALL", label: "Status: All" },
+    { value: "ALL", label: "All" },
     { value: TASK_STATUS.COMPLETE, label: "Complete" },
     { value: TASK_STATUS.AWAITING_APPROVAL, label: "Awaiting Approval" },
     { value: TASK_STATUS.INCOMPLETE, label: "Incomplete" },
@@ -93,24 +96,24 @@ export default function TaskFilters({
   ];
 
   const deptOptions = [
-    { value: "ALL", label: "Dept: All" },
+    { value: "ALL", label: "All" },
     ...(!uniqueDepts.includes("SALES")
-      ? [{ value: "SALES", label: "Dept: SALES" }]
+      ? [{ value: "SALES", label: "SALES" }]
       : []),
     ...uniqueDepts
       .filter((d) => d !== "ALL")
-      .map((d) => ({ value: d, label: `Dept: ${d}` })),
+      .map((d) => ({ value: d, label: d })),
   ];
 
   const subDeptOptions = [
-    { value: "ALL", label: "Sub-Dept: All" },
+    { value: "ALL", label: "All" },
     ...uniqueSubDepts
       .filter((s) => s !== "ALL")
-      .map((s) => ({ value: s, label: `Sub: ${s}` })),
+      .map((s) => ({ value: s, label: s })),
   ];
 
   const employeeOptions = [
-    { value: "ALL", label: "Member: Everyone" },
+    { value: "ALL", label: "Everyone" },
     ...uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name })),
   ];
 
@@ -153,10 +156,10 @@ export default function TaskFilters({
           <div className="flex gap-2 items-center flex-wrap">
             {/* DATE PICKER */}
             <div
-              className={`bg-card flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 ${
+              className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-all shrink-0 ${
                 startDate || endDate
-                  ? "text-foreground border-primary/20 font-medium"
-                  : "border-border hover:border-border/80 text-foreground"
+                  ? "bg-muted ring-1 ring-mauve-4 font-medium"
+                  : "bg-card border-border hover:border-border/80 text-foreground"
               }`}
             >
               <CalendarIcon
@@ -183,7 +186,7 @@ export default function TaskFilters({
               <Dropdown
                 usePortal={true}
                 className="min-w-[150px] shrink-0"
-                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+                /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter" */
                 trigger={({ isOpen }) => (
                   <FilterTrigger
                     label={currentSortLabel}
@@ -234,7 +237,7 @@ export default function TaskFilters({
             <Dropdown
               disabled={disableStatusFilter}
               className="flex-1 min-w-[170px]"
-              popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+              /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter" */
               trigger={({ isOpen, disabled }) => (
                 <FilterTrigger
                   label={currentStatusLabel}
@@ -267,22 +270,18 @@ export default function TaskFilters({
               return (
                 <div
                   className={`h-[40px] md:h-[46px] w-full flex items-center justify-between px-3 rounded-lg border transition-all cursor-pointer ${
-                    isOpen
-                      ? "border-mauve-6 ring-1 ring-mauve-6 bg-card"
-                      : isActive
-                        ? "border-mauve-6 font-medium"
-                        : "border-border bg-card hover:border-border/80"
+                    isOpen || isActive
+                      ? "ring-1 ring-mauve-4 bg-muted font-medium"
+                      : "border-border bg-card hover:border-border/80"
                   }`}
                 >
                   <div className="flex items-center gap-2 overflow-hidden flex-1">
-                    {currentPriority.value !== "ALL" && (
-                      <div
-                        className={`w-2 h-2 shrink-0 rounded-full ${currentPriority.dot}`}
-                      />
-                    )}
+                    <div
+                      className={`w-2 h-2 shrink-0 rounded-full ${currentPriority.dot}`}
+                    />
                     <span className="text-[13px] text-foreground font-[500] truncate block w-full text-left">
                       {currentPriority.value === "ALL"
-                        ? "Priority: All"
+                        ? "All"
                         : currentPriority.label}
                     </span>
                   </div>
@@ -297,85 +296,87 @@ export default function TaskFilters({
             }}
           />
 
-              {/* Dept */}
-              <Dropdown
-                disabled={
-                  disableDeptFilter !== undefined ? disableDeptFilter : (!isHr || isFiltersReadOnly)
-                }
-                className="flex-1 min-w-[180px]"
-                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
-                trigger={({ isOpen, disabled }) => (
-                  <FilterTrigger
-                    label={currentDeptLabel}
-                    isActive={deptFilter !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Building2}
-                    disabled={disabled}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    options={deptOptions}
-                    value={deptFilter}
-                    onChange={(val) => {
-                      setDeptFilter(val);
-                      setSubDeptFilter("ALL");
-                    }}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
+          {/* Dept */}
+          <Dropdown
+            disabled={
+              disableDeptFilter !== undefined
+                ? disableDeptFilter
+                : !isHr || isFiltersReadOnly
+            }
+            className="flex-1 min-w-[180px]"
+            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto" */
+            trigger={({ isOpen, disabled }) => (
+              <FilterTrigger
+                label={currentDeptLabel}
+                isActive={deptFilter !== "ALL"}
+                isOpen={isOpen}
+                icon={Building2}
+                disabled={disabled}
+              />
+            )}
+          >
+            {({ close }) => (
+              <FilterOptionList
+                options={deptOptions}
+                value={deptFilter}
+                onChange={(val) => {
+                  setDeptFilter(val);
+                  setSubDeptFilter("ALL");
+                }}
+              close={close}
+              />
+            )}
+          </Dropdown>
 
-              {/* Sub-Dept */}
-              <Dropdown
-                disabled={deptFilter === "ALL" || isFiltersReadOnly}
-                className="flex-1 min-w-[180px]"
-                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto"
-                trigger={({ isOpen, disabled }) => (
-                  <FilterTrigger
-                    label={currentSubDeptLabel}
-                    isActive={subDeptFilter !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Building2}
-                    disabled={disabled}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    options={subDeptOptions}
-                    value={subDeptFilter}
-                    onChange={setSubDeptFilter}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
+          {/* Sub-Dept */}
+          <Dropdown
+            disabled={deptFilter === "ALL" || isFiltersReadOnly}
+            className="flex-1 min-w-[180px]"
+            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto" */
+            trigger={({ isOpen, disabled }) => (
+              <FilterTrigger
+                label={currentSubDeptLabel}
+                isActive={subDeptFilter !== "ALL"}
+                isOpen={isOpen}
+                icon={Building2}
+                disabled={disabled}
+              />
+            )}
+          >
+            {({ close }) => (
+              <FilterOptionList
+                options={subDeptOptions}
+                value={subDeptFilter}
+                onChange={setSubDeptFilter}
+                close={close}
+              />
+            )}
+          </Dropdown>
 
-              {/* Employees */}
-              <Dropdown
-                disabled={isFiltersReadOnly}
-                className="flex-1 min-w-[180px]"
-                popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto w-[250px]"
-                trigger={({ isOpen, disabled }) => (
-                  <FilterTrigger
-                    label={currentEmployeeLabel}
-                    isActive={employeeFilter !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Users}
-                    disabled={disabled}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    options={employeeOptions}
-                    value={employeeFilter}
-                    onChange={setEmployeeFilter}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
+          {/* Employees */}
+          <Dropdown
+            disabled={isFiltersReadOnly}
+            className="flex-1 min-w-[180px]"
+            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto w-[250px]" */
+            trigger={({ isOpen, disabled }) => (
+              <FilterTrigger
+                label={currentEmployeeLabel}
+                isActive={employeeFilter !== "ALL"}
+                isOpen={isOpen}
+                icon={Users}
+                disabled={disabled}
+              />
+            )}
+          >
+            {({ close }) => (
+              <FilterOptionList
+                options={employeeOptions}
+                value={employeeFilter}
+                onChange={setEmployeeFilter}
+                close={close}
+              />
+            )}
+          </Dropdown>
         </div>
       )}
     </div>

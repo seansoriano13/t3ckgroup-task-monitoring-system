@@ -252,8 +252,8 @@ export default function TasksList({ selectedRange }) {
                             : statusKey === "AWAITING APPROVAL"
                               ? "bg-primary shadow-primary/20"
                               : statusKey === "NOT APPROVED"
-                                ? "bg-destructive shadow-red-200"
-                                : "bg-warning shadow-amber-5"
+                                ? "bg-amber-6 shadow-red-200"
+                                : "bg-amber-6 shadow-amber-5"
                       }
                     />
                     <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">

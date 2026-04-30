@@ -221,9 +221,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   };
 
   const content = (
-    <div
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
-    >
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
       <Draggable
         handle=".drag-handle"
         nodeRef={panelRef}
@@ -274,7 +272,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                       : "Range"}
               </span>
               <span className="w-px h-3 bg-border" />
-              <span className="text-[13px] font-bold text-foreground">
+              <span className="text-sm font-bold text-foreground">
                 {rangeData.label}
               </span>
             </div>

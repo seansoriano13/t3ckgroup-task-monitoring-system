@@ -238,7 +238,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         {/* Tabs */}
         <div className="p-2 shrink-0">
           <TabGroup
-            variant="pill"
+            variant="underline"
             tabs={buildTabs(user)}
             activeTab={activeTab}
             onChange={setActiveTab}
@@ -286,7 +286,14 @@ export default function NotificationDrawer({ isOpen, onClose }) {
 }
 
 // ─── NotifItem ────────────────────────────────────────────────────────────────
-function NotifItem({ notif, avatarMap, onMarkRead, onMarkUnread, onDelete, onClick }) {
+function NotifItem({
+  notif,
+  avatarMap,
+  onMarkRead,
+  onMarkUnread,
+  onDelete,
+  onClick,
+}) {
   return (
     <div
       onClick={onClick}
@@ -357,7 +364,7 @@ function NotifItem({ notif, avatarMap, onMarkRead, onMarkUnread, onDelete, onCli
         >
           <Dropdown
             placement="bottom-end"
-            popoverClassName="absolute top-full right-0 mt-1.5 bg-card border border-border rounded-xl shadow-2xl z-[110] popover-enter"
+            /* popoverClassName="absolute top-full right-0 mt-1.5 bg-card border border-border rounded-xl shadow-2xl z-[110] popover-enter" */
             trigger={({ isOpen }) => (
               <button
                 className={`p-1.5 rounded-full hover:bg-muted transition-colors ${isOpen ? "bg-muted text-foreground" : "text-muted-foreground"}`}
@@ -409,7 +416,11 @@ function NotifItem({ notif, avatarMap, onMarkRead, onMarkUnread, onDelete, onCli
             )}
           </Dropdown>
           {!notif.is_read && (
-            <Dot size="w-2 h-2" color="bg-primary/100" className="mr-1.5 mt-1" />
+            <Dot
+              size="w-2 h-2"
+              color="bg-primary/100"
+              className="mr-1.5 mt-1"
+            />
           )}
         </div>
       </div>

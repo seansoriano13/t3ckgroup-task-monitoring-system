@@ -36,14 +36,14 @@ export default function CommitteeTaskFilters({
   };
 
   const statusOptions = [
-    { value: "ALL", label: "Status: All" },
-    { value: "ACTIVE", label: "Status: Active" },
-    { value: "COMPLETED", label: "Status: Completed" },
+    { value: "ALL", label: "All" },
+    { value: "ACTIVE", label: "Active" },
+    { value: "COMPLETED", label: "Completed" },
   ];
 
   const creatorOptions = [
-    { value: "ALL", label: "Creator: Everyone" },
-    ...uniqueCreators.map((c) => ({ value: c.id, label: `Creator: ${c.name}` })),
+    { value: "ALL", label: "Everyone" },
+    ...uniqueCreators.map((c) => ({ value: c.id, label: c.name })),
   ];
 
   const currentStatusLabel =
@@ -77,7 +77,7 @@ export default function CommitteeTaskFilters({
           {/* Status Dropdown */}
           <Dropdown
             className="flex-1 min-w-[140px]"
-            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter"
+            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter" */
             trigger={({ isOpen }) => (
               <FilterTrigger
                 label={currentStatusLabel}
@@ -100,7 +100,7 @@ export default function CommitteeTaskFilters({
           {/* Creator Dropdown */}
           <Dropdown
             className="flex-1 min-w-[180px]"
-            popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full max-h-[300px] overflow-y-auto popover-enter"
+            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full max-h-[300px] overflow-y-auto popover-enter" */
             trigger={({ isOpen }) => (
               <FilterTrigger
                 label={currentCreatorLabel}

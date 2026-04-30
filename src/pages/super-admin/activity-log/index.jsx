@@ -12,10 +12,11 @@ import Avatar from "../../../components/Avatar.jsx";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import HighlightText from "../../../components/HighlightText";
 
+import Dropdown from "../../../components/ui/Dropdown";
 import {
-  activityLogClassNames,
-  portalStyles,
-} from "../../../styles/selectStyles";
+  FilterTrigger,
+  FilterOptionList,
+} from "../../../components/ui/FilterDropdown";
 import {
   ShieldCheck,
   MessageCircle,
@@ -25,7 +26,6 @@ import {
   Filter,
   X,
   Search,
-  Calendar,
   Activity,
   Clock,
   ChevronDown,
@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge.jsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2 } from "lucide-react";
+import { Users } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
@@ -368,9 +371,13 @@ export default function SuperAdminActivityLogPage() {
       search: "",
     });
 
-  // Date input style — matches LogTaskModal inner fields
-  const dateCls =
-    "w-full bg-mauve-1 border border-mauve-4 rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:border-mauve-6 transition-colors hover:border-mauve-5 cursor-pointer";
+  // Date input style — matches FilterTrigger height and premium style
+  const dateCls = (isActive) =>
+    `w-full border rounded-lg px-3 h-[40px] md:h-[46px] text-[13px] text-foreground outline-none transition-all cursor-pointer flex items-center ${
+      isActive
+        ? "bg-muted ring-1 ring-mauve-4 font-medium"
+        : "bg-card border-border hover:border-border/80"
+    }`;
 
   return (
     <ProtectedRoute requireSuperAdmin={true}>
@@ -508,238 +515,293 @@ export default function SuperAdminActivityLogPage() {
                       setFilters((p) => ({ ...p, search: e.target.value }))
                     }
                     placeholder="Search content or task description…"
-                    className="w-full bg-mauve-1 border border-mauve-4 rounded-lg pl-8 pr-3 py-2 text-xs text-foreground outline-none focus:border-mauve-6 hover:border-mauve-5 transition-colors placeholder:text-muted-foreground"
+                    className="w-full bg-card border border-border rounded-lg pl-8 pr-3 h-[40px] md:h-[46px] text-[13px] text-foreground outline-none focus:ring-1 focus:ring-mauve-4 hover:border-border/80 transition-all placeholder:text-muted-foreground"
                   />
                 </div>
               </FieldBox>
             </div>
 
             <FieldBox label="Type">
-              <Select
-                options={[
-                  { value: "ALL", label: "All Types" },
-                  { value: "SYSTEM", label: "SYSTEM" },
-                  { value: "COMMENT", label: "COMMENT" },
-                  { value: "APPROVAL", label: "APPROVAL" },
-                  { value: "HR_NOTE", label: "HR_NOTE" },
-                ]}
-                value={
-                  filters.type === "ALL"
-                    ? { value: "ALL", label: "All Types" }
-                    : { value: filters.type, label: filters.type }
-                }
-                onChange={(opt) =>
-                  setFilters((p) => ({ ...p, type: opt?.value || "ALL" }))
-                }
-                placeholder="All Types"
-                classNamePrefix="react-select"
-                classNames={activityLogClassNames}
-                styles={portalStyles}
-                unstyled
-                isClearable={filters.type !== "ALL"}
-                menuPortalTarget={document.body}
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                className="w-full"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={filters.type === "ALL" ? "All Types" : filters.type}
+                    isActive={filters.type !== "ALL"}
+                    isOpen={isOpen}
+                    icon={Activity}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={[
+                      { value: "ALL", label: "All Types" },
+                      { value: "SYSTEM", label: "SYSTEM" },
+                      { value: "COMMENT", label: "COMMENT" },
+                      { value: "APPROVAL", label: "APPROVAL" },
+                      { value: "HR_NOTE", label: "HR_NOTE" },
+                    ]}
+                    value={filters.type}
+                    onChange={(val) => {
+                      setFilters((p) => ({ ...p, type: val }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </FieldBox>
 
             <FieldBox
               label={activeTab === "SALES" ? "Sales Status" : "Task Status"}
             >
-              <Select
-                options={
-                  activeTab === "SALES"
-                    ? [
-                        { value: "ALL", label: "All Statuses" },
-                        { value: "PENDING", label: "PENDING" },
-                        { value: "APPROVED", label: "APPROVED" },
-                        { value: "REJECTED", label: "REJECTED" },
-                        { value: "COMPLETED", label: "COMPLETED" },
-                        { value: "LOST", label: "LOST" },
-                      ]
-                    : [
-                        { value: "ALL", label: "All Statuses" },
-                        { value: "INCOMPLETE", label: "INCOMPLETE" },
-                        {
-                          value: "AWAITING APPROVAL",
-                          label: "AWAITING APPROVAL",
-                        },
-                        { value: "COMPLETE", label: "COMPLETE" },
-                        { value: "NOT APPROVED", label: "NOT APPROVED" },
-                        { value: "DELETED", label: "DELETED" },
-                      ]
-                }
-                value={
-                  filters.taskStatus === "ALL"
-                    ? { value: "ALL", label: "All Statuses" }
-                    : { value: filters.taskStatus, label: filters.taskStatus }
-                }
-                onChange={(opt) =>
-                  setFilters((p) => ({ ...p, taskStatus: opt?.value || "ALL" }))
-                }
-                placeholder="All Statuses"
-                classNamePrefix="react-select"
-                classNames={activityLogClassNames}
-                styles={portalStyles}
-                unstyled
-                isClearable={filters.taskStatus !== "ALL"}
-                menuPortalTarget={document.body}
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                className="w-full"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={
+                      filters.taskStatus === "ALL"
+                        ? "All Statuses"
+                        : filters.taskStatus
+                    }
+                    isActive={filters.taskStatus !== "ALL"}
+                    isOpen={isOpen}
+                    icon={Clock}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={
+                      activeTab === "SALES"
+                        ? [
+                            { value: "ALL", label: "All Statuses" },
+                            { value: "PENDING", label: "PENDING" },
+                            { value: "APPROVED", label: "APPROVED" },
+                            { value: "REJECTED", label: "REJECTED" },
+                            { value: "COMPLETED", label: "COMPLETED" },
+                            { value: "LOST", label: "LOST" },
+                          ]
+                        : [
+                            { value: "ALL", label: "All Statuses" },
+                            { value: "INCOMPLETE", label: "INCOMPLETE" },
+                            {
+                              value: "AWAITING APPROVAL",
+                              label: "AWAITING APPROVAL",
+                            },
+                            { value: "COMPLETE", label: "COMPLETE" },
+                            { value: "NOT APPROVED", label: "NOT APPROVED" },
+                            { value: "DELETED", label: "DELETED" },
+                          ]
+                    }
+                    value={filters.taskStatus}
+                    onChange={(val) => {
+                      setFilters((p) => ({ ...p, taskStatus: val }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </FieldBox>
 
             <FieldBox label="Author (Actor)">
-              <Select
-                options={[
-                  { value: "ALL", label: "All Actors" },
-                  { value: "SYSTEM", label: "System" },
-                  ...employees.map((emp) => ({
-                    value: emp.id,
-                    label: emp.name,
-                  })),
-                ]}
-                value={
-                  filters.authorId === "ALL"
-                    ? { value: "ALL", label: "All Actors" }
-                    : employees.find((e) => e.id === filters.authorId)
-                      ? {
-                          value: filters.authorId,
-                          label: employees.find(
-                            (e) => e.id === filters.authorId,
-                          )?.name,
-                        }
-                      : { value: "SYSTEM", label: "System" }
-                }
-                onChange={(opt) =>
-                  setFilters((p) => ({ ...p, authorId: opt?.value || "ALL" }))
-                }
-                placeholder="All Actors"
-                classNamePrefix="react-select"
-                classNames={activityLogClassNames}
-                styles={portalStyles}
-                unstyled
-                isClearable={filters.authorId !== "ALL"}
-                isSearchable
-                menuPortalTarget={document.body}
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                className="w-full"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={
+                      filters.authorId === "ALL"
+                        ? "All Actors"
+                        : employees.find((e) => e.id === filters.authorId)
+                          ? employees.find((e) => e.id === filters.authorId)
+                              .name
+                          : filters.authorId === "SYSTEM"
+                            ? "System"
+                            : "All Actors"
+                    }
+                    isActive={filters.authorId !== "ALL"}
+                    isOpen={isOpen}
+                    icon={ShieldCheck}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    showSearch
+                    options={[
+                      { value: "ALL", label: "All Actors" },
+                      { value: "SYSTEM", label: "System" },
+                      ...employees.map((emp) => ({
+                        value: emp.id,
+                        label: emp.name,
+                      })),
+                    ]}
+                    value={filters.authorId}
+                    onChange={(val) => {
+                      setFilters((p) => ({ ...p, authorId: val }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </FieldBox>
 
             <FieldBox
               label={activeTab === "SALES" ? "Sales Rep" : "Task Owner"}
             >
-              <Select
-                options={[
-                  { value: "ALL", label: "All Employees" },
-                  ...employees.map((emp) => ({
-                    value: emp.id,
-                    label: emp.name,
-                  })),
-                ]}
-                value={
-                  filters.employeeId === "ALL"
-                    ? { value: "ALL", label: "All Employees" }
-                    : {
-                        value: filters.employeeId,
-                        label:
-                          employees.find((e) => e.id === filters.employeeId)
-                            ?.name || filters.employeeId,
-                      }
-                }
-                onChange={(opt) =>
-                  setFilters((p) => ({ ...p, employeeId: opt?.value || "ALL" }))
-                }
-                placeholder="All Employees"
-                classNamePrefix="react-select"
-                classNames={activityLogClassNames}
-                styles={portalStyles}
-                unstyled
-                isClearable={filters.employeeId !== "ALL"}
-                isSearchable
-                menuPortalTarget={document.body}
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                className="w-full"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={
+                      filters.employeeId === "ALL"
+                        ? "All Employees"
+                        : employees.find((e) => e.id === filters.employeeId)
+                            ?.name || filters.employeeId
+                    }
+                    isActive={filters.employeeId !== "ALL"}
+                    isOpen={isOpen}
+                    icon={Users}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    showSearch
+                    options={[
+                      { value: "ALL", label: "All Employees" },
+                      ...employees.map((emp) => ({
+                        value: emp.id,
+                        label: emp.name,
+                      })),
+                    ]}
+                    value={filters.employeeId}
+                    onChange={(val) => {
+                      setFilters((p) => ({ ...p, employeeId: val }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </FieldBox>
 
             <FieldBox label="Department">
-              <Select
-                options={uniqueDepts.map((d) => ({
-                  value: d,
-                  label: d === "ALL" ? "All Departments" : d,
-                }))}
-                value={{
-                  value: filters.dept,
-                  label:
-                    filters.dept === "ALL" ? "All Departments" : filters.dept,
-                }}
-                onChange={(opt) =>
-                  setFilters((p) => ({
-                    ...p,
-                    dept: opt?.value || "ALL",
-                    subDept: "ALL",
-                  }))
-                }
-                placeholder="All Departments"
-                classNamePrefix="react-select"
-                classNames={activityLogClassNames}
-                styles={portalStyles}
-                unstyled
-                isClearable={filters.dept !== "ALL"}
-                menuPortalTarget={document.body}
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                className="w-full"
+                trigger={({ isOpen }) => (
+                  <FilterTrigger
+                    label={
+                      filters.dept === "ALL" ? "All Departments" : filters.dept
+                    }
+                    isActive={filters.dept !== "ALL"}
+                    isOpen={isOpen}
+                    icon={Building2}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={uniqueDepts.map((d) => ({
+                      value: d,
+                      label: d === "ALL" ? "All Departments" : d,
+                    }))}
+                    value={filters.dept}
+                    onChange={(val) => {
+                      setFilters((p) => ({
+                        ...p,
+                        dept: val,
+                        subDept: "ALL",
+                      }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </FieldBox>
 
             <FieldBox label="Sub-Department">
-              <Select
-                options={uniqueSubDepts.map((s) => ({
-                  value: s,
-                  label: s === "ALL" ? "All Sub-Depts" : s,
-                }))}
-                value={{
-                  value: filters.subDept,
-                  label:
-                    filters.subDept === "ALL"
-                      ? "All Sub-Depts"
-                      : filters.subDept,
-                }}
-                onChange={(opt) =>
-                  setFilters((p) => ({ ...p, subDept: opt?.value || "ALL" }))
-                }
-                placeholder="All Sub-Depts"
-                classNamePrefix="react-select"
-                classNames={activityLogClassNames}
-                styles={portalStyles}
-                unstyled
-                isClearable={filters.subDept !== "ALL"}
-                isDisabled={filters.dept === "ALL"}
-                menuPortalTarget={document.body}
-                menuShouldBlockScroll={false}
-              />
+              <Dropdown
+                usePortal
+                className="w-full"
+                disabled={filters.dept === "ALL"}
+                trigger={({ isOpen, disabled }) => (
+                  <FilterTrigger
+                    label={
+                      filters.subDept === "ALL"
+                        ? "All Sub-Depts"
+                        : filters.subDept
+                    }
+                    isActive={filters.subDept !== "ALL"}
+                    isOpen={isOpen}
+                    icon={Building2}
+                    disabled={disabled}
+                  />
+                )}
+              >
+                {({ close }) => (
+                  <FilterOptionList
+                    options={uniqueSubDepts.map((s) => ({
+                      value: s,
+                      label: s === "ALL" ? "All Sub-Depts" : s,
+                    }))}
+                    value={filters.subDept}
+                    onChange={(val) => {
+                      setFilters((p) => ({ ...p, subDept: val }));
+                      close();
+                    }}
+                    close={close}
+                  />
+                )}
+              </Dropdown>
             </FieldBox>
 
             <FieldBox label="Date From">
-              <DatePicker
-                selected={filters.dateFrom}
-                onChange={(date) =>
-                  setFilters((p) => ({ ...p, dateFrom: date }))
-                }
-                placeholderText="Select start date"
-                className={dateCls}
-                isClearable
-                dateFormat="MMM d, yyyy"
-              />
+              <div className="relative flex items-center">
+                <DatePicker
+                  selected={filters.dateFrom}
+                  onChange={(date) =>
+                    setFilters((p) => ({ ...p, dateFrom: date }))
+                  }
+                  placeholderText="Select start date"
+                  className={`${dateCls(!!filters.dateFrom)} pl-9`}
+                  isClearable
+                  dateFormat="MMM d, yyyy"
+                />
+                <Calendar
+                  size={14}
+                  className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateFrom ? "text-mauve-11" : "text-mauve-8"}`}
+                />
+              </div>
             </FieldBox>
 
             <FieldBox label="Date To">
-              <DatePicker
-                selected={filters.dateTo}
-                onChange={(date) => setFilters((p) => ({ ...p, dateTo: date }))}
-                placeholderText="Select end date"
-                className={dateCls}
-                isClearable
-                dateFormat="MMM d, yyyy"
-                minDate={filters.dateFrom}
-              />
+              <div className="relative flex items-center">
+                <DatePicker
+                  selected={filters.dateTo}
+                  onChange={(date) =>
+                    setFilters((p) => ({ ...p, dateTo: date }))
+                  }
+                  placeholderText="Select end date"
+                  className={`${dateCls(!!filters.dateTo)} pl-9`}
+                  isClearable
+                  dateFormat="MMM d, yyyy"
+                  minDate={filters.dateFrom}
+                />
+                <Calendar
+                  size={14}
+                  className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateTo ? "text-mauve-11" : "text-mauve-8"}`}
+                />
+              </div>
             </FieldBox>
           </div>
         </div>

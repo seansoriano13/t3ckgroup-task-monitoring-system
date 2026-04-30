@@ -194,9 +194,6 @@ export default function ChecklistTaskInput({
           >
             <Plus size={16} /> Add Item
           </button>
-          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest bg-muted px-2 py-1 rounded-md">
-            Checklist Mode Enabled
-          </span>
         </div>
       </div>
     </>
