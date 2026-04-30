@@ -77,6 +77,7 @@ export default function TasksPage() {
   const [employeeFilter, setEmployeeFilter] = useState(
     location.state?.filterEmployeeId || (!isManagement ? user?.id : "ALL"),
   );
+  const [reportedToFilter, setReportedToFilter] = useState("ALL");
 
   useEffect(() => {
     if (location.state?.filterEmployeeId) {
@@ -99,9 +100,11 @@ export default function TasksPage() {
       setSubDeptFilter(userSubDept || "ALL");
       setEmployeeFilter(user?.id || "ALL");
     } else if (isManagement && hrViewMode === "ALL") {
-      // Optional: reset to ALL when going back to Company view if they were just in personal mode
-      // But maybe they want to keep their previous filters? 
-      // Usually, switching from Personal -> Company should probably reset if it was forced.
+      // Reset to ALL when going back to Company view to prevent tasks from disappearing
+      setDeptFilter("ALL");
+      setSubDeptFilter("ALL");
+      setEmployeeFilter("ALL");
+      setReportedToFilter("ALL");
     }
   }, [isManagement, hrViewMode, isHr, userDept, userSubDept, user?.id]);
 
@@ -185,20 +188,28 @@ export default function TasksPage() {
 
   // --- BUILD DYNAMIC DROPDOWNS ---
   const uniqueDepts = useMemo(() => {
-    return [
-      ...new Set(allCategories.map((c) => c.department).filter(Boolean)),
-    ].sort();
-  }, [allCategories]);
+    const fromCats = allCategories.map((c) => c.department);
+    const fromEmps = allEmployees.map((e) => e.department);
+    return [...new Set([...fromCats, ...fromEmps].filter(Boolean))].sort();
+  }, [allCategories, allEmployees]);
 
   const uniqueSubDepts = useMemo(() => {
     const filteredCats =
       deptFilter === "ALL"
         ? allCategories
         : allCategories.filter((c) => c.department === deptFilter);
+    const filteredEmps =
+      deptFilter === "ALL"
+        ? allEmployees
+        : allEmployees.filter((e) => e.department === deptFilter);
+
+    const fromCats = filteredCats.map((c) => c.subDepartment);
+    const fromEmps = filteredEmps.map((e) => e.subDepartment || e.sub_department);
+    
     return [
-      ...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean)),
+      ...new Set([...fromCats, ...fromEmps].filter(Boolean)),
     ].sort();
-  }, [allCategories, deptFilter]);
+  }, [allCategories, allEmployees, deptFilter]);
 
   const uniqueEmployees = useMemo(() => {
     if (!isManagement) {
@@ -228,6 +239,7 @@ export default function TasksPage() {
       deptFilter,
       subDeptFilter,
       employeeFilter,
+      reportedToFilter,
       sortBy,
     },
     {
@@ -319,6 +331,8 @@ export default function TasksPage() {
         setSubDeptFilter={wrapFilter(setSubDeptFilter)}
         employeeFilter={employeeFilter}
         setEmployeeFilter={wrapFilter(setEmployeeFilter)}
+        reportedToFilter={reportedToFilter}
+        setReportedToFilter={wrapFilter(setReportedToFilter)}
         isManagement={isManagement}
         isHr={isHr}
         hrViewMode={hrViewMode}
@@ -367,7 +381,7 @@ export default function TasksPage() {
           );
 
           return (
-            <div key={statusKey} className="space-y-4">
+            <div key={statusKey} className="space-y-4 group-container scroll-mt-24">
               {/* Group Header */}
               <div className="flex items-center gap-3 border-b border-border pb-2 px-1">
                 <Dot
@@ -402,7 +416,10 @@ export default function TasksPage() {
               </div>
 
               {/* Task Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 items-stretch">
+              <div 
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 items-stretch transition-all"
+                style={{ minHeight: totalGroupPages > 1 ? "420px" : "auto" }}
+              >
                 {groupTasks.map((task) => (
                   <TaskCard
                     key={task.id}
@@ -425,9 +442,10 @@ export default function TasksPage() {
                   <div className="flex gap-1">
                     <button
                       disabled={currentGroupPage === 1}
-                      onClick={() =>
-                        setGroupPage(statusKey, currentGroupPage - 1)
-                      }
+                      onClick={(e) => {
+                        setGroupPage(statusKey, currentGroupPage - 1);
+                        e.target.closest('.group-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }}
                       className="px-3 py-1 rounded bg-muted/50 border border-border text-foreground text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
                     >
                       ←
@@ -465,9 +483,12 @@ export default function TasksPage() {
                         <button
                           key={idx}
                           disabled={p === "..."}
-                          onClick={() =>
-                            p !== "..." && setGroupPage(statusKey, p)
-                          }
+                          onClick={(e) => {
+                            if (p !== "...") {
+                              setGroupPage(statusKey, p);
+                              e.target.closest('.group-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }
+                          }}
                           className={`w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition-all border ${
                             p === currentGroupPage
                               ? "bg-primary border-primary text-primary-foreground text-primary-foreground border-primary"
@@ -482,9 +503,10 @@ export default function TasksPage() {
                     })()}
                     <button
                       disabled={currentGroupPage === totalGroupPages}
-                      onClick={() =>
-                        setGroupPage(statusKey, currentGroupPage + 1)
-                      }
+                      onClick={(e) => {
+                        setGroupPage(statusKey, currentGroupPage + 1);
+                        e.target.closest('.group-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }}
                       className="px-3 py-1 rounded bg-muted/50 border border-border text-foreground text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
                     >
                       →

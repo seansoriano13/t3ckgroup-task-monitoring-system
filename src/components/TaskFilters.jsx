@@ -33,6 +33,8 @@ export default function TaskFilters({
   setSubDeptFilter,
   employeeFilter,
   setEmployeeFilter,
+  reportedToFilter,
+  setReportedToFilter,
   isManagement,
   isHr,
   hrViewMode = "ALL",
@@ -74,10 +76,15 @@ export default function TaskFilters({
     setSearchTerm("");
     if (setStatusFilter && showStatusFilter) setStatusFilter("ALL");
     if (setPriorityFilter) setPriorityFilter("ALL");
-    if (setDeptFilter && !disableDeptFilter) setDeptFilter("ALL");
-    if (setSubDeptFilter) setSubDeptFilter("ALL");
-    if (setEmployeeFilter) setEmployeeFilter("ALL");
     setDateRange([null, null]);
+
+    // Only clear these if not in a read-only filter state (like My Tasks)
+    if (!isFiltersReadOnly) {
+      if (setDeptFilter && !disableDeptFilter) setDeptFilter("ALL");
+      if (setSubDeptFilter) setSubDeptFilter("ALL");
+      if (setEmployeeFilter) setEmployeeFilter("ALL");
+    }
+    if (setReportedToFilter) setReportedToFilter("ALL");
   };
 
   // Option Definitions
@@ -113,7 +120,12 @@ export default function TaskFilters({
   ];
 
   const employeeOptions = [
-    { value: "ALL", label: "Everyone" },
+    { value: "ALL", label: "Logged By: Everyone" },
+    ...uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name })),
+  ];
+
+  const reportedToOptions = [
+    { value: "ALL", label: "Reported To: Everyone" },
     ...uniqueEmployees.map((emp) => ({ value: emp.id, label: emp.name })),
   ];
 
@@ -131,6 +143,9 @@ export default function TaskFilters({
   const currentEmployeeLabel =
     employeeOptions.find((o) => o.value === employeeFilter)?.label ||
     employeeOptions[0].label;
+  const currentReportedToLabel =
+    reportedToOptions.find((o) => o.value === reportedToFilter)?.label ||
+    reportedToOptions[0].label;
 
   return (
     <div className="grid gap-3 md:gap-4">
@@ -181,7 +196,10 @@ export default function TaskFilters({
                       {startDate && endDate
                         ? `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
                         : startDate
-                          ? startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                          ? startDate.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
                           : "Date Range"}
                     </span>
                     {(startDate || endDate) && (
@@ -192,7 +210,19 @@ export default function TaskFilters({
                         }}
                         className="hover:text-foreground text-muted-foreground p-0.5"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
                       </button>
                     )}
                   </div>
@@ -367,7 +397,7 @@ export default function TaskFilters({
                   setDeptFilter(val);
                   setSubDeptFilter("ALL");
                 }}
-              close={close}
+                close={close}
               />
             )}
           </Dropdown>
@@ -401,7 +431,6 @@ export default function TaskFilters({
           <Dropdown
             disabled={isFiltersReadOnly}
             className="flex-1 min-w-[180px]"
-            /* popoverClassName="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-[50] min-w-full popover-enter max-h-[300px] overflow-y-auto w-[250px]" */
             trigger={({ isOpen, disabled }) => (
               <FilterTrigger
                 label={currentEmployeeLabel}
@@ -421,6 +450,30 @@ export default function TaskFilters({
               />
             )}
           </Dropdown>
+
+          {/* Reported To */}
+          {setReportedToFilter && (
+            <Dropdown
+              className="flex-1 min-w-[180px]"
+              trigger={({ isOpen }) => (
+                <FilterTrigger
+                  label={currentReportedToLabel}
+                  isActive={reportedToFilter !== "ALL"}
+                  isOpen={isOpen}
+                  icon={Users}
+                />
+              )}
+            >
+              {({ close }) => (
+                <FilterOptionList
+                  options={reportedToOptions}
+                  value={reportedToFilter}
+                  onChange={setReportedToFilter}
+                  close={close}
+                />
+              )}
+            </Dropdown>
+          )}
         </div>
       )}
     </div>

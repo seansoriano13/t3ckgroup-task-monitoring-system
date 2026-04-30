@@ -12,6 +12,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     deptFilter = "ALL",
     subDeptFilter = "ALL",
     employeeFilter = "ALL",
+    reportedToFilter = "ALL",
     sortBy = "NEWEST",
   } = filters;
 
@@ -83,7 +84,9 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       // Hierarchy (Management Only)
       let matchesDept = true,
         matchesSubDept = true,
-        matchesEmployee = true;
+        matchesEmployee = true,
+        matchesReportedTo = true;
+
       if (isManagement) {
         // If allEmployees is still loading, skip hierarchy filters rather than
         // rejecting every task (taskOwner would be undefined for all tasks).
@@ -99,6 +102,10 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
         }
       }
 
+      if (reportedToFilter !== "ALL") {
+        matchesReportedTo = task.reportedTo === reportedToFilter;
+      }
+
       return (
         matchesSearch &&
         matchesStatus &&
@@ -107,7 +114,8 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
         matchesDate &&
         matchesDept &&
         matchesSubDept &&
-        matchesEmployee
+        matchesEmployee &&
+        matchesReportedTo
       );
     });
 
@@ -152,6 +160,7 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     deptFilter,
     subDeptFilter,
     employeeFilter,
+    reportedToFilter,
     employeeMap,
     isManagement,
     sortBy,
