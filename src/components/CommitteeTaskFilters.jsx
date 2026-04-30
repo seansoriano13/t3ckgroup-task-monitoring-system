@@ -142,6 +142,7 @@ export default function CommitteeTaskFilters({
                   ? "text-foreground placeholder:text-muted-foreground font-medium"
                   : "text-foreground placeholder:text-muted-foreground"
               }`}
+              popperProps={{ strategy: "fixed" }}
             />
           </div>
 

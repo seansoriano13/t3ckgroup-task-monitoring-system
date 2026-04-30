@@ -25,10 +25,29 @@ const Dropdown = forwardRef(
     const isControlled = controlledIsOpen !== undefined;
     const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
 
+    // Compute coords from the trigger element
+    const computeCoords = () => {
+      if (!dropdownRef.current) return null;
+      const rect = dropdownRef.current.getBoundingClientRect();
+      return {
+        left: rect.left,
+        top: rect.bottom,
+        rectTop: rect.top,
+        width: rect.width,
+        right: window.innerWidth - rect.right,
+        windowHeight: window.innerHeight,
+      };
+    };
+
     const handleToggle = (e) => {
       if (disabled) return;
       if (e) {
         e.stopPropagation();
+      }
+
+      // Pre-compute coords before opening so portal positions correctly on first paint
+      if (!isOpen && usePortal) {
+        setCoords(computeCoords());
       }
 
       if (isControlled) {
@@ -39,35 +58,23 @@ const Dropdown = forwardRef(
       }
     };
 
-    const updateCoords = () => {
-      if (dropdownRef.current && isOpen && usePortal) {
-        const rect = dropdownRef.current.getBoundingClientRect();
-        setCoords({
-          left: rect.left,
-          top: rect.bottom,
-          rectTop: rect.top,
-          width: rect.width,
-          right: window.innerWidth - rect.right,
-          windowHeight: window.innerHeight,
-        });
-      }
-    };
-
     useEffect(() => {
-      updateCoords();
       if (isOpen && usePortal) {
+        // Also update coords when controlled isOpen changes from outside
+        setCoords(computeCoords());
         // Reposition on window resize
-        window.addEventListener("resize", updateCoords);
+        const handleResize = () => setCoords(computeCoords());
+        window.addEventListener("resize", handleResize);
         // Optional: hide or reposition on scroll
         const handleScroll = (e) => {
           // If clicking inside the popover causes scroll, ignore it
           if (e.target.closest?.(".popover-enter")) return;
-          updateCoords();
+          setCoords(computeCoords());
         };
         // use capture phase to catch scrolls on inner elements like overflow-x-auto
         window.addEventListener("scroll", handleScroll, true);
         return () => {
-          window.removeEventListener("resize", updateCoords);
+          window.removeEventListener("resize", handleResize);
           window.removeEventListener("scroll", handleScroll, true);
         };
       }

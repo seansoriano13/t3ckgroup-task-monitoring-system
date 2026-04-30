@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import Dot from "../../../components/ui/Dot";
-import Select from "react-select";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import { taskActivityService } from "../../../services/tasks/taskActivityService";
 import { salesActivityLogService } from "../../../services/sales/salesActivityLogService";
@@ -11,32 +8,23 @@ import { committeeTaskActivityService } from "../../../services/committeeTaskAct
 import Avatar from "../../../components/Avatar.jsx";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import HighlightText from "../../../components/HighlightText";
+import ActivityLogFilters from "../../../components/ActivityLogFilters";
 
-import Dropdown from "../../../components/ui/Dropdown";
-import {
-  FilterTrigger,
-  FilterOptionList,
-} from "../../../components/ui/FilterDropdown";
 import {
   ShieldCheck,
   MessageCircle,
   Zap,
   ChevronLeft,
   ChevronRight,
-  Filter,
   X,
-  Search,
   Activity,
   Clock,
-  ChevronDown,
   CheckSquare,
   Square,
 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge.jsx";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2 } from "lucide-react";
-import { Users } from "lucide-react";
-import { Calendar } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Dropdown from "@/components/ui/Dropdown";
 
 const PAGE_SIZE = 50;
 
@@ -140,18 +128,6 @@ function ContentDisplay({ content, search }) {
     <span className="line-clamp-2 leading-relaxed">
       <HighlightText text={content} search={search} />
     </span>
-  );
-}
-
-// ── FieldBox — mirrors LogTaskAssignmentBar's label+container pattern ────────
-function FieldBox({ label, children }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
-        {label}
-      </label>
-      {children}
-    </div>
   );
 }
 
@@ -325,28 +301,6 @@ export default function SuperAdminActivityLogPage() {
     return consolidated;
   }, [entries, filters.dept, filters.subDept]);
 
-  const uniqueDepts = useMemo(() => {
-    const s = new Set(["ALL"]);
-    employees.forEach((e) => {
-      if (typeof e.department === "string" && e.department.trim())
-        s.add(e.department);
-    });
-    return Array.from(s).sort();
-  }, [employees]);
-
-  const uniqueSubDepts = useMemo(() => {
-    const s = new Set(["ALL"]);
-    const pool =
-      filters.dept === "ALL"
-        ? employees
-        : employees.filter((e) => e.department === filters.dept);
-    pool.forEach((e) => {
-      if (typeof e.subDepartment === "string" && e.subDepartment.trim())
-        s.add(e.subDepartment);
-    });
-    return Array.from(s).sort();
-  }, [employees, filters.dept]);
-
   const hasActiveFilters =
     filters.type !== "ALL" ||
     filters.authorId !== "ALL" ||
@@ -370,14 +324,6 @@ export default function SuperAdminActivityLogPage() {
       dateTo: null,
       search: "",
     });
-
-  // Date input style — matches FilterTrigger height and premium style
-  const dateCls = (isActive) =>
-    `w-full border rounded-lg px-3 h-[40px] md:h-[46px] text-[13px] text-foreground outline-none transition-all cursor-pointer flex items-center ${
-      isActive
-        ? "bg-muted ring-1 ring-mauve-4 font-medium"
-        : "bg-card border-border hover:border-border/80"
-    }`;
 
   return (
     <ProtectedRoute requireSuperAdmin={true}>
@@ -467,344 +413,13 @@ export default function SuperAdminActivityLogPage() {
           </div>
         </div>
 
-        {/* ── Filter Panel — mirrors LogTaskPropertyBar container ─────── */}
-        <div className="bg-card border border-border rounded-2xl shadow-sm">
-          {/* Panel top bar — matches LogTaskHeader strip */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/30">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-muted border border-border shrink-0">
-                <Filter size={10} className="text-muted-foreground" />
-              </div>
-              <ChevronDown
-                size={11}
-                className="text-muted-foreground -rotate-90"
-              />
-              <span className="font-medium text-muted-foreground/80">
-                Filters
-              </span>
-              {hasActiveFilters && (
-                <span className="ml-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-                  Active
-                </span>
-              )}
-            </div>
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X size={12} /> Clear
-              </button>
-            )}
-          </div>
-
-          {/* Filter fields — react-select matching LogTaskAssignmentBar exactly */}
-          <div className="px-4 py-3.5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-4">
-            {/* Search — spans 2 cols */}
-            <div className="lg:col-span-2">
-              <FieldBox label="Search">
-                <div className="relative flex items-center">
-                  <Search
-                    size={13}
-                    className="absolute left-3 text-muted-foreground pointer-events-none shrink-0"
-                  />
-                  <input
-                    value={filters.search}
-                    onChange={(e) =>
-                      setFilters((p) => ({ ...p, search: e.target.value }))
-                    }
-                    placeholder="Search content or task description…"
-                    className="w-full bg-card border border-border rounded-lg pl-8 pr-3 h-[40px] md:h-[46px] text-[13px] text-foreground outline-none focus:ring-1 focus:ring-mauve-4 hover:border-border/80 transition-all placeholder:text-muted-foreground"
-                  />
-                </div>
-              </FieldBox>
-            </div>
-
-            <FieldBox label="Type">
-              <Dropdown
-                usePortal
-                className="w-full"
-                trigger={({ isOpen }) => (
-                  <FilterTrigger
-                    label={filters.type === "ALL" ? "All Types" : filters.type}
-                    isActive={filters.type !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Activity}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    options={[
-                      { value: "ALL", label: "All Types" },
-                      { value: "SYSTEM", label: "SYSTEM" },
-                      { value: "COMMENT", label: "COMMENT" },
-                      { value: "APPROVAL", label: "APPROVAL" },
-                      { value: "HR_NOTE", label: "HR_NOTE" },
-                    ]}
-                    value={filters.type}
-                    onChange={(val) => {
-                      setFilters((p) => ({ ...p, type: val }));
-                      close();
-                    }}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
-            </FieldBox>
-
-            <FieldBox
-              label={activeTab === "SALES" ? "Sales Status" : "Task Status"}
-            >
-              <Dropdown
-                usePortal
-                className="w-full"
-                trigger={({ isOpen }) => (
-                  <FilterTrigger
-                    label={
-                      filters.taskStatus === "ALL"
-                        ? "All Statuses"
-                        : filters.taskStatus
-                    }
-                    isActive={filters.taskStatus !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Clock}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    options={
-                      activeTab === "SALES"
-                        ? [
-                            { value: "ALL", label: "All Statuses" },
-                            { value: "PENDING", label: "PENDING" },
-                            { value: "APPROVED", label: "APPROVED" },
-                            { value: "REJECTED", label: "REJECTED" },
-                            { value: "COMPLETED", label: "COMPLETED" },
-                            { value: "LOST", label: "LOST" },
-                          ]
-                        : [
-                            { value: "ALL", label: "All Statuses" },
-                            { value: "INCOMPLETE", label: "INCOMPLETE" },
-                            {
-                              value: "AWAITING APPROVAL",
-                              label: "AWAITING APPROVAL",
-                            },
-                            { value: "COMPLETE", label: "COMPLETE" },
-                            { value: "NOT APPROVED", label: "NOT APPROVED" },
-                            { value: "DELETED", label: "DELETED" },
-                          ]
-                    }
-                    value={filters.taskStatus}
-                    onChange={(val) => {
-                      setFilters((p) => ({ ...p, taskStatus: val }));
-                      close();
-                    }}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
-            </FieldBox>
-
-            <FieldBox label="Author (Actor)">
-              <Dropdown
-                usePortal
-                className="w-full"
-                trigger={({ isOpen }) => (
-                  <FilterTrigger
-                    label={
-                      filters.authorId === "ALL"
-                        ? "All Actors"
-                        : employees.find((e) => e.id === filters.authorId)
-                          ? employees.find((e) => e.id === filters.authorId)
-                              .name
-                          : filters.authorId === "SYSTEM"
-                            ? "System"
-                            : "All Actors"
-                    }
-                    isActive={filters.authorId !== "ALL"}
-                    isOpen={isOpen}
-                    icon={ShieldCheck}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    showSearch
-                    options={[
-                      { value: "ALL", label: "All Actors" },
-                      { value: "SYSTEM", label: "System" },
-                      ...employees.map((emp) => ({
-                        value: emp.id,
-                        label: emp.name,
-                      })),
-                    ]}
-                    value={filters.authorId}
-                    onChange={(val) => {
-                      setFilters((p) => ({ ...p, authorId: val }));
-                      close();
-                    }}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
-            </FieldBox>
-
-            <FieldBox
-              label={activeTab === "SALES" ? "Sales Rep" : "Task Owner"}
-            >
-              <Dropdown
-                usePortal
-                className="w-full"
-                trigger={({ isOpen }) => (
-                  <FilterTrigger
-                    label={
-                      filters.employeeId === "ALL"
-                        ? "All Employees"
-                        : employees.find((e) => e.id === filters.employeeId)
-                            ?.name || filters.employeeId
-                    }
-                    isActive={filters.employeeId !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Users}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    showSearch
-                    options={[
-                      { value: "ALL", label: "All Employees" },
-                      ...employees.map((emp) => ({
-                        value: emp.id,
-                        label: emp.name,
-                      })),
-                    ]}
-                    value={filters.employeeId}
-                    onChange={(val) => {
-                      setFilters((p) => ({ ...p, employeeId: val }));
-                      close();
-                    }}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
-            </FieldBox>
-
-            <FieldBox label="Department">
-              <Dropdown
-                usePortal
-                className="w-full"
-                trigger={({ isOpen }) => (
-                  <FilterTrigger
-                    label={
-                      filters.dept === "ALL" ? "All Departments" : filters.dept
-                    }
-                    isActive={filters.dept !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Building2}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    options={uniqueDepts.map((d) => ({
-                      value: d,
-                      label: d === "ALL" ? "All Departments" : d,
-                    }))}
-                    value={filters.dept}
-                    onChange={(val) => {
-                      setFilters((p) => ({
-                        ...p,
-                        dept: val,
-                        subDept: "ALL",
-                      }));
-                      close();
-                    }}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
-            </FieldBox>
-
-            <FieldBox label="Sub-Department">
-              <Dropdown
-                usePortal
-                className="w-full"
-                disabled={filters.dept === "ALL"}
-                trigger={({ isOpen, disabled }) => (
-                  <FilterTrigger
-                    label={
-                      filters.subDept === "ALL"
-                        ? "All Sub-Depts"
-                        : filters.subDept
-                    }
-                    isActive={filters.subDept !== "ALL"}
-                    isOpen={isOpen}
-                    icon={Building2}
-                    disabled={disabled}
-                  />
-                )}
-              >
-                {({ close }) => (
-                  <FilterOptionList
-                    options={uniqueSubDepts.map((s) => ({
-                      value: s,
-                      label: s === "ALL" ? "All Sub-Depts" : s,
-                    }))}
-                    value={filters.subDept}
-                    onChange={(val) => {
-                      setFilters((p) => ({ ...p, subDept: val }));
-                      close();
-                    }}
-                    close={close}
-                  />
-                )}
-              </Dropdown>
-            </FieldBox>
-
-            <FieldBox label="Date From">
-              <div className="relative flex items-center">
-                <DatePicker
-                  selected={filters.dateFrom}
-                  onChange={(date) =>
-                    setFilters((p) => ({ ...p, dateFrom: date }))
-                  }
-                  placeholderText="Select start date"
-                  className={`${dateCls(!!filters.dateFrom)} pl-9`}
-                  isClearable
-                  dateFormat="MMM d, yyyy"
-                />
-                <Calendar
-                  size={14}
-                  className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateFrom ? "text-mauve-11" : "text-mauve-8"}`}
-                />
-              </div>
-            </FieldBox>
-
-            <FieldBox label="Date To">
-              <div className="relative flex items-center">
-                <DatePicker
-                  selected={filters.dateTo}
-                  onChange={(date) =>
-                    setFilters((p) => ({ ...p, dateTo: date }))
-                  }
-                  placeholderText="Select end date"
-                  className={`${dateCls(!!filters.dateTo)} pl-9`}
-                  isClearable
-                  dateFormat="MMM d, yyyy"
-                  minDate={filters.dateFrom}
-                />
-                <Calendar
-                  size={14}
-                  className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateTo ? "text-mauve-11" : "text-mauve-8"}`}
-                />
-              </div>
-            </FieldBox>
-          </div>
-        </div>
+        {/* ── Filter Panel ─────────────────────────────────────────── */}
+        <ActivityLogFilters
+          filters={filters}
+          setFilters={setFilters}
+          activeTab={activeTab}
+          employees={employees}
+        />
 
         {/* ── Entry count ───────────────────────────────────────────── */}
         {!isLoading && !isError && filteredEntries.length > 0 && (
@@ -933,7 +548,7 @@ export default function SuperAdminActivityLogPage() {
                                   ) : (
                                     <Square
                                       size={13}
-                                      className="shrink-0 text-muted-foreground/50 mt-[1px]"
+                                      className="shrink-0 text-muted-foreground/50 mt-px"
                                     />
                                   )}
                                   <span
