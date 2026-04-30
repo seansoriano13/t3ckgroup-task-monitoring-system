@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { employeeService } from "../../../services/employeeService";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
@@ -6,44 +6,30 @@ import toast from "react-hot-toast";
 import { useAuth } from "../../../context/AuthContext";
 import { storageService } from "../../../services/storageService";
 import HRCategoriesConfig from "../../../components/HRCategoriesConfig.jsx";
-import {
-  Search,
-  UserPlus,
-  Edit,
-  Trash2,
-  Shield,
-  XSquare,
-  Building2,
-  Briefcase,
-  ChevronDown,
-  Info,
-} from "lucide-react";
+import { UserPlus, Edit, Trash2, Shield } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
-import { ListCheck } from "lucide-react";
-import Dropdown from "../../../components/ui/Dropdown";
-import {
-  FilterTrigger,
-  FilterOptionList,
-} from "../../../components/ui/FilterDropdown";
 import { Dialog, DialogContent } from "../../../components/ui/dialog";
-import { Users } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import PageHeader from "../../../components/ui/PageHeader";
 import PageContainer from "../../../components/ui/PageContainer";
 import TabGroup from "../../../components/ui/TabGroup";
 import HighlightText from "../../../components/HighlightText";
 import Avatar from "@/components/Avatar";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
-import PrimaryButton from "@/components/PrimaryButton";
 import { Button } from "@/components/ui/button";
 import HRFormModal from "../../../components/hr/HRFormModal";
 import EmployeeForm from "../../../components/hr/EmployeeForm";
+import HRFilters from "../../../components/HRFilters";
 
 export default function EmployeeManagement() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("employees");
   const [searchTerm, setSearchTerm] = useState("");
+  const [deptFilter, setDeptFilter] = useState("ALL");
+  const [subDeptFilter, setSubDeptFilter] = useState("ALL");
+  const [roleFilter, setRoleFilter] = useState("ALL");
+  const [roleFlagFilter, setRoleFlagFilter] = useState("ALL");
+  const [sortBy, setSortBy] = useState("NAME_ASC");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const avatarMap = useEmployeeAvatarMap();
@@ -57,13 +43,73 @@ export default function EmployeeManagement() {
     queryFn: () => employeeService.getAllEmployees(),
   });
 
+  // Derived option lists
+  const uniqueDepts = useMemo(
+    () =>
+      [...new Set(employees.map((e) => e.department).filter(Boolean))].sort(),
+    [employees],
+  );
+  const uniqueSubDepts = useMemo(() => {
+    const base =
+      deptFilter === "ALL"
+        ? employees
+        : employees.filter((e) => e.department === deptFilter);
+    return [
+      ...new Set(base.map((e) => e.subDepartment).filter(Boolean)),
+    ].sort();
+  }, [employees, deptFilter]);
+  const uniqueRoles = useMemo(
+    () => [...new Set(employees.map((e) => e.role).filter(Boolean))].sort(),
+    [employees],
+  );
+
   const filteredEmployees = useMemo(() => {
-    return employees.filter(
+    const q = searchTerm.toLowerCase();
+    let list = employees.filter(
       (emp) =>
-        emp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+        emp.name?.toLowerCase().includes(q) ||
+        emp.email?.toLowerCase().includes(q),
     );
-  }, [employees, searchTerm]);
+
+    if (deptFilter !== "ALL")
+      list = list.filter((e) => e.department === deptFilter);
+    if (subDeptFilter !== "ALL")
+      list = list.filter((e) => e.subDepartment === subDeptFilter);
+    if (roleFilter !== "ALL") list = list.filter((e) => e.role === roleFilter);
+    if (roleFlagFilter !== "ALL") {
+      list = list.filter((e) => {
+        if (roleFlagFilter === "SUPER_ADMIN") return e.isSuperAdmin;
+        if (roleFlagFilter === "HR") return e.isHr;
+        if (roleFlagFilter === "HEAD") return e.isHead;
+        if (roleFlagFilter === "STANDARD")
+          return !e.isSuperAdmin && !e.isHr && !e.isHead;
+        return true;
+      });
+    }
+
+    if (sortBy === "NAME_ASC")
+      list = [...list].sort((a, b) =>
+        (a.name || "").localeCompare(b.name || ""),
+      );
+    else if (sortBy === "NAME_DESC")
+      list = [...list].sort((a, b) =>
+        (b.name || "").localeCompare(a.name || ""),
+      );
+    else if (sortBy === "DEPT")
+      list = [...list].sort((a, b) =>
+        (a.department || "").localeCompare(b.department || ""),
+      );
+
+    return list;
+  }, [
+    employees,
+    searchTerm,
+    deptFilter,
+    subDeptFilter,
+    roleFilter,
+    roleFlagFilter,
+    sortBy,
+  ]);
 
   const deleteMutation = useMutation({
     mutationFn: (id) => employeeService.deleteEmployee(id, user?.id || null),
@@ -102,41 +148,51 @@ export default function EmployeeManagement() {
           description="Manage system access, roles, departments, and task categories."
         />
 
-        {/* Tabs */}
-        <TabGroup
-          variant="pill"
-          tabs={[
-            { value: "employees", label: "Employees" },
-            { value: "categories", label: "Categories Config" },
-          ]}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          size="md"
-        />
+        <div className="flex-between">
+          {/* Tabs */}
+          <TabGroup
+            variant="pill"
+            tabs={[
+              { value: "employees", label: "Employees" },
+              { value: "categories", label: "Categories Config" },
+            ]}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            size="md"
+          />
+
+          <Button
+            className="h-[46px] px-6 rounded-xl shadow-lg shadow-primary/20 shrink-0"
+            onClick={handleAddNew}
+          >
+            <UserPlus size={16} />
+            Add Employee
+          </Button>
+        </div>
 
         {activeTab === "employees" ? (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-card border border-border p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm relative z-20">
-              <div className="relative flex-1 md:max-w-sm">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  placeholder="Search by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-muted/40 border border-border text-foreground rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-4 transition-all text-sm"
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Filter Bar + Add Button */}
+            <div className="flex flex-col xl:flex-row gap-3 items-start xl:items-end">
+              <div className="flex-1 w-full">
+                <HRFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  deptFilter={deptFilter}
+                  setDeptFilter={setDeptFilter}
+                  subDeptFilter={subDeptFilter}
+                  setSubDeptFilter={setSubDeptFilter}
+                  roleFilter={roleFilter}
+                  setRoleFilter={setRoleFilter}
+                  roleFlagFilter={roleFlagFilter}
+                  setRoleFlagFilter={setRoleFlagFilter}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  uniqueDepts={uniqueDepts}
+                  uniqueSubDepts={uniqueSubDepts}
+                  uniqueRoles={uniqueRoles}
                 />
               </div>
-              <Button
-                className={"h-9 px-6 rounded-xl shadow-lg shadow-primary/20"}
-                onClick={handleAddNew}
-              >
-                <UserPlus size={16} />
-                <p>Add Employee</p>
-              </Button>
             </div>
 
             <div className="bg-card border border-border rounded-2xl shadow-sm overflow-x-auto">
@@ -194,13 +250,22 @@ export default function EmployeeManagement() {
                         </td>
 
                         <td className="p-4 text-sm text-muted-foreground">
-                          {emp.department || "-"}
+                          <HighlightText
+                            text={emp.department || "-"}
+                            search={searchTerm}
+                          />
                         </td>
                         <td className="p-4 text-sm text-muted-foreground">
-                          {emp.subDepartment || "-"}
+                          <HighlightText
+                            text={emp.subDepartment || "-"}
+                            search={searchTerm}
+                          />
                         </td>
                         <td className="p-4 text-sm text-foreground font-semibold">
-                          {emp.role || "-"}
+                          <HighlightText
+                            text={emp.role || "-"}
+                            search={searchTerm}
+                          />
                         </td>
                         <td className="p-4 text-xs flex gap-1">
                           {emp.isSuperAdmin && (

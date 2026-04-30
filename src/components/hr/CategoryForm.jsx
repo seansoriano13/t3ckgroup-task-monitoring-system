@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import DeptSubDeptSelector from "./DeptSubDeptSelector";
+import { useMemo } from "react";
 
 export default function CategoryForm({
   initialData,
@@ -65,7 +66,9 @@ export default function CategoryForm({
             type="text"
             value={formData.categoryId}
             disabled={isEditing}
-            onChange={(e) => setFormData(prev => ({ ...prev, categoryId: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, categoryId: e.target.value }))
+            }
             className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-8/10 transition-all text-foreground font-medium disabled:opacity-60 disabled:cursor-not-allowed"
           />
         </div>
@@ -78,7 +81,9 @@ export default function CategoryForm({
             required
             type="text"
             value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, description: e.target.value }))
+            }
             className="w-full bg-muted/40 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-mauve-8 focus:ring-4 focus:ring-mauve-8/10 transition-all text-foreground font-medium"
           />
         </div>
@@ -87,8 +92,12 @@ export default function CategoryForm({
       <DeptSubDeptSelector
         department={formData.department}
         subDepartment={formData.subDepartment}
-        onDepartmentChange={(val) => setFormData(prev => ({ ...prev, department: val }))}
-        onSubDepartmentChange={(val) => setFormData(prev => ({ ...prev, subDepartment: val }))}
+        onDepartmentChange={(val) =>
+          setFormData((prev) => ({ ...prev, department: val }))
+        }
+        onSubDepartmentChange={(val) =>
+          setFormData((prev) => ({ ...prev, subDepartment: val }))
+        }
         uniqueDepts={uniqueDepts}
         uniqueSubDepts={uniqueSubDepts}
       />

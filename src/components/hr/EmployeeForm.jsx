@@ -80,25 +80,25 @@ export default function EmployeeForm({
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-5">
-      <div className="space-y-4">
-        <div className="group">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
-            Full Name
-          </label>
-          <input
-            required
-            type="text"
-            placeholder="e.g. Juan Dela Cruz"
-            value={formData.name}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, name: e.target.value }))
-            }
-            className="w-full bg-muted/30 border border-border rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 transition-all font-medium"
-          />
-        </div>
+      {/* 1. EMPLOYEE NAME */}
+      <div className="mb-2">
+        <input
+          required
+          type="text"
+          placeholder="Employee Full Name"
+          value={formData.name}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, name: e.target.value }))
+          }
+          className="w-full text-2xl font-semibold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/40 border-none pb-1"
+          autoComplete="off"
+        />
+      </div>
 
-        <div className="group">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+      {/* 2. ROLE & EMAIL */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        <div className="bg-muted/30 border border-border rounded-xl p-3 flex flex-col group focus-within:border-mauve-7 focus-within:ring-1 ring-mauve-7 transition-all">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
             Google Auth Email
           </label>
           <input
@@ -109,12 +109,12 @@ export default function EmployeeForm({
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, email: e.target.value }))
             }
-            className="w-full bg-muted/30 border border-border rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 transition-all font-medium"
+            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none font-medium"
           />
         </div>
 
-        <div className="group">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+        <div className="bg-muted/30 border border-border rounded-xl p-3 flex flex-col group focus-within:border-mauve-7 focus-within:ring-1 ring-mauve-7 transition-all">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
             Job Role / Title
           </label>
           <input
@@ -124,7 +124,7 @@ export default function EmployeeForm({
               setFormData((prev) => ({ ...prev, role: e.target.value }))
             }
             placeholder="e.g. Marketing Assistant"
-            className="w-full bg-muted/30 border border-border rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 transition-all font-medium"
+            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none font-medium"
           />
         </div>
       </div>
@@ -142,11 +142,11 @@ export default function EmployeeForm({
         uniqueSubDepts={uniqueSubDepts}
       />
 
-      <div className="space-y-2 pt-2">
-        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">
-          System Access Rights
+      <div className="space-y-3 pt-4 mt-2 border-t border-border/50">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+          <Shield size={12} /> System Access Rights
         </label>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Dept Head */}
           <AccessSwitch
             label="Department Head"
@@ -188,7 +188,7 @@ export default function EmployeeForm({
           {/* Sales Flow */}
           <AccessSwitch
             label="Sales Flow"
-            description="Enable sales tracking and quota modules"
+            description="Enable sales activity scheduling and monitoring"
             icon={Briefcase}
             checked={formData.has_sales_flow}
             onChange={(val) =>

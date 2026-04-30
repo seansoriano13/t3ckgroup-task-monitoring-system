@@ -1,5 +1,5 @@
 import { Dialog, DialogContent } from "../ui/dialog";
-import { XSquare } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 
 /**
@@ -11,7 +11,7 @@ export default function HRFormModal({
   title,
   subtitle,
   icon: Icon,
-  iconColor = "text-violet-9",
+  iconColor = "text-mauve-9",
   formId,
   isPending,
   submitLabel = "Save Changes",
@@ -24,49 +24,68 @@ export default function HRFormModal({
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-border shrink-0 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-black text-foreground flex items-center gap-2">
-              {Icon && <Icon size={20} className={iconColor} />}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/60 shrink-0">
+          <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+            {Icon && (
+              <div
+                className={`w-[18px] h-[18px] rounded flex items-center justify-center bg-primary/10 ${iconColor} shrink-0`}
+              >
+                <Icon size={11} strokeWidth={2.5} />
+              </div>
+            )}
+            <ChevronDown
+              size={11}
+              className="text-muted-foreground/50 -rotate-90"
+            />
+            <span className="font-medium text-muted-foreground/80">
               {title}
-            </h2>
+            </span>
             {subtitle && (
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
-                {subtitle}
-              </p>
+              <>
+                <span className="text-muted-foreground/30">•</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60">
+                  {subtitle}
+                </span>
+              </>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-muted rounded-xl transition-colors text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
           >
-            <XSquare size={20} />
+            <X size={15} />
           </button>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 min-h-0">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto p-5 min-h-0">{children}</div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-border bg-muted/30 flex justify-end gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-3.5 bg-muted hover:bg-muted/70 text-foreground font-black rounded-2xl transition-all text-[11px] uppercase tracking-widest active:scale-95"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            form={formId}
-            disabled={isPending}
-            className="px-10 py-3.5 bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-2xl transition-all shadow-xl shadow-primary/20 disabled:opacity-50 text-[11px] uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2"
-          >
-            {isPending ? <Spinner size="sm" /> : null}
-            {isPending ? "Saving..." : submitLabel}
-          </button>
+        <div className="px-5 py-4 border-t border-border bg-muted/30 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <kbd className="px-1.5 py-0.5 bg-muted/80 border border-border rounded font-sans text-[9px]">
+              Esc
+            </kbd>
+            <span>to close</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-[13px] font-bold text-muted-foreground/80 hover:text-foreground h-9 rounded-xl px-4 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form={formId}
+              disabled={isPending}
+              className="h-9 px-6 rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary-hover text-primary-foreground font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-[13px]"
+            >
+              {isPending ? <Spinner size="sm" /> : null}
+              {isPending ? "Saving..." : submitLabel}
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
