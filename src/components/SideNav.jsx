@@ -102,7 +102,11 @@ export default function SideNav() {
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
       { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
-      { label: "Task Verification", link: "/approvals/hr-verification", icon: ShieldCheck },
+      {
+        label: "Task Verification",
+        link: "/approvals/hr-verification",
+        icon: ShieldCheck,
+      },
       { label: "Committee Tasks", link: "/committee", icon: UsersRound },
       { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
       { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
@@ -140,7 +144,11 @@ export default function SideNav() {
 
       if (isMasterHead) {
         navLinks.push(
-          { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
+          {
+            label: "Task Approval",
+            link: "/approvals/tasks",
+            icon: ShieldCheck,
+          },
           {
             label: "Sales Approval",
             link: "/approvals/sales",
@@ -362,7 +370,7 @@ export default function SideNav() {
                 )}
               >
                 {({ close }) => (
-                  <div className="p-1.5 min-w-[180px] flex flex-col gap-0.5 bg-sidebar border border-sidebar-border rounded-xl shadow-2xl">
+                  <div className="p-1.5 min-w-[180px] flex flex-col gap-0.5 bg-mauve-3  rounded-xl">
                     <button
                       onClick={() => {
                         close();

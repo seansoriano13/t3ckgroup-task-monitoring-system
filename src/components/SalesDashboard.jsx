@@ -35,6 +35,7 @@ export default function SalesDashboard({ globalRange }) {
   const monthKeys = globalRange?.monthKeys || [];
   const isMonthly = rangeMode === "MONTHLY";
   const { data: leaderboardData, isLoading: isLdrLoading } = useQuery({
+    queryKey: ["salesLeaderboard", startDate, endDate, monthKeys],
     queryFn: () =>
       salesService.getLeaderboardData(startDate, endDate, monthKeys),
     enabled: !!startDate && !!endDate,
@@ -101,7 +102,6 @@ export default function SalesDashboard({ globalRange }) {
     return Object.values(byProd).sort((a, b) => b.won - a.won);
   }, [revenueLogs]);
 
-  const printReport = () => window.print();
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 pb-6 px-2 sm:px-0">

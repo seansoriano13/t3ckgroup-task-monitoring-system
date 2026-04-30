@@ -388,44 +388,92 @@ export default function ActivityLogFilters({
         </FieldBox>
 
         <FieldBox label="Date From">
-          <div className="relative flex items-center">
-            <DatePicker
-              selected={filters.dateFrom}
-              onChange={(date) =>
-                setFilters((p) => ({ ...p, dateFrom: date }))
-              }
-              placeholderText="Select start date"
-              className={`${dateCls(!!filters.dateFrom)} pl-9`}
-              isClearable
-              dateFormat="MMM d, yyyy"
-              popperProps={{ strategy: "fixed" }}
-            />
-            <Calendar
-              size={14}
-              className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateFrom ? "text-mauve-11" : "text-mauve-8"}`}
-            />
-          </div>
+          <Dropdown
+            usePortal
+            placement="bottom-start"
+            trigger={({ isOpen }) => (
+              <div className="relative flex items-center group">
+                <div className={`${dateCls(!!filters.dateFrom || isOpen)} pl-9 w-full flex items-center justify-between`}>
+                  <span className={!filters.dateFrom ? "text-muted-foreground" : ""}>
+                    {filters.dateFrom ? new Date(filters.dateFrom).toLocaleDateString("en-US", {month: "short", day:"numeric", year:"numeric"}) : "Select start date"}
+                  </span>
+                  {filters.dateFrom && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters((p) => ({ ...p, dateFrom: null }));
+                      }}
+                      className="hover:text-foreground text-muted-foreground p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <Calendar
+                  size={14}
+                  className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateFrom || isOpen ? "text-mauve-11" : "text-mauve-8"}`}
+                />
+              </div>
+            )}
+          >
+            {({ close }) => (
+              <div className="p-1">
+                <DatePicker
+                  selected={filters.dateFrom}
+                  onChange={(date) => {
+                    setFilters((p) => ({ ...p, dateFrom: date }));
+                    close();
+                  }}
+                  inline
+                />
+              </div>
+            )}
+          </Dropdown>
         </FieldBox>
 
         <FieldBox label="Date To">
-          <div className="relative flex items-center">
-            <DatePicker
-              selected={filters.dateTo}
-              onChange={(date) =>
-                setFilters((p) => ({ ...p, dateTo: date }))
-              }
-              placeholderText="Select end date"
-              className={`${dateCls(!!filters.dateTo)} pl-9`}
-              isClearable
-              dateFormat="MMM d, yyyy"
-              minDate={filters.dateFrom}
-              popperProps={{ strategy: "fixed" }}
-            />
-            <Calendar
-              size={14}
-              className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateTo ? "text-mauve-11" : "text-mauve-8"}`}
-            />
-          </div>
+          <Dropdown
+            usePortal
+            placement="bottom-start"
+            trigger={({ isOpen }) => (
+              <div className="relative flex items-center group">
+                <div className={`${dateCls(!!filters.dateTo || isOpen)} pl-9 w-full flex items-center justify-between`}>
+                  <span className={!filters.dateTo ? "text-muted-foreground" : ""}>
+                    {filters.dateTo ? new Date(filters.dateTo).toLocaleDateString("en-US", {month: "short", day:"numeric", year:"numeric"}) : "Select end date"}
+                  </span>
+                  {filters.dateTo && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters((p) => ({ ...p, dateTo: null }));
+                      }}
+                      className="hover:text-foreground text-muted-foreground p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <Calendar
+                  size={14}
+                  className={`absolute left-3 transition-colors pointer-events-none z-10 ${filters.dateTo || isOpen ? "text-mauve-11" : "text-mauve-8"}`}
+                />
+              </div>
+            )}
+          >
+            {({ close }) => (
+              <div className="p-1">
+                <DatePicker
+                  selected={filters.dateTo}
+                  onChange={(date) => {
+                    setFilters((p) => ({ ...p, dateTo: date }));
+                    close();
+                  }}
+                  minDate={filters.dateFrom}
+                  inline
+                />
+              </div>
+            )}
+          </Dropdown>
         </FieldBox>
       </div>
     </div>

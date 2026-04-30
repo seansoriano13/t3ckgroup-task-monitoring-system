@@ -216,58 +216,88 @@ export default function SalesFilters({
                   )}
                 </Dropdown>
 
-                <div className="relative flex items-center px-2">
-                  <CalendarIcon
-                    size={14}
-                    className={`${selectedDateFilter ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
-                  />
-                  <DatePicker
-                    selected={
-                      selectedDateFilter ? new Date(selectedDateFilter) : null
-                    }
-                    onChange={(date) => {
-                      if (!date) {
-                        setSelectedDateFilter("");
-                        return;
-                      }
-                      if (timeframe === "YEARLY") {
-                        setSelectedDateFilter(date.getFullYear().toString());
-                      } else if (timeframe === "MONTHLY") {
-                        const m = String(date.getMonth() + 1).padStart(2, "0");
-                        setSelectedDateFilter(`${date.getFullYear()}-${m}`);
-                      } else {
-                        const y = date.getFullYear();
-                        const m = String(date.getMonth() + 1).padStart(2, "0");
-                        const d = String(date.getDate()).padStart(2, "0");
-                        setSelectedDateFilter(`${y}-${m}-${d}`);
-                      }
-                    }}
-                    showMonthYearPicker={timeframe === "MONTHLY"}
-                    showYearPicker={timeframe === "YEARLY"}
-                    dateFormat={
-                      timeframe === "YEARLY"
-                        ? "yyyy"
-                        : timeframe === "MONTHLY"
-                          ? "MMMM yyyy"
-                          : "MMM d, yyyy"
-                    }
-                    isClearable={true}
-                    portalId="root"
-                    placeholderText={
-                      timeframe === "YEARLY"
-                        ? "Select Year"
-                        : timeframe === "MONTHLY"
-                          ? "Select Month"
-                          : "Select Date"
-                    }
-                    className={`bg-transparent outline-none w-[110px] text-[13px] cursor-pointer ${
-                      selectedDateFilter
-                        ? "text-foreground placeholder:text-muted-foreground font-medium"
-                        : "text-foreground placeholder:text-muted-foreground"
-                    }`}
-                    popperProps={{ strategy: "fixed" }}
-                  />
-                </div>
+                <Dropdown
+                  usePortal={true}
+                  placement="bottom-start"
+                  trigger={({ isOpen }) => (
+                    <div className="relative flex items-center px-2 cursor-pointer h-full group">
+                      <CalendarIcon
+                        size={14}
+                        className={`${selectedDateFilter || isOpen ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
+                      />
+                      <div
+                        className={`bg-transparent outline-none w-[110px] text-[13px] flex items-center justify-between ${
+                          selectedDateFilter
+                            ? "text-foreground font-medium"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        <span className="truncate">
+                          {selectedDateFilter
+                            ? timeframe === "YEARLY"
+                              ? selectedDateFilter
+                              : timeframe === "MONTHLY"
+                                ? new Date(selectedDateFilter).toLocaleDateString("en-US", {
+                                    month: "long",
+                                    year: "numeric",
+                                  })
+                                : new Date(selectedDateFilter).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })
+                            : timeframe === "YEARLY"
+                              ? "Select Year"
+                              : timeframe === "MONTHLY"
+                                ? "Select Month"
+                                : "Select Date"}
+                        </span>
+                        {selectedDateFilter && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDateFilter("");
+                            }}
+                            className="hover:text-foreground text-muted-foreground p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                >
+                  {({ close }) => (
+                    <div className="p-1">
+                      <DatePicker
+                        selected={
+                          selectedDateFilter ? new Date(selectedDateFilter) : null
+                        }
+                        onChange={(date) => {
+                          if (!date) {
+                            setSelectedDateFilter("");
+                            return;
+                          }
+                          if (timeframe === "YEARLY") {
+                            setSelectedDateFilter(date.getFullYear().toString());
+                          } else if (timeframe === "MONTHLY") {
+                            const m = String(date.getMonth() + 1).padStart(2, "0");
+                            setSelectedDateFilter(`${date.getFullYear()}-${m}`);
+                          } else {
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, "0");
+                            const d = String(date.getDate()).padStart(2, "0");
+                            setSelectedDateFilter(`${y}-${m}-${d}`);
+                          }
+                          close();
+                        }}
+                        showMonthYearPicker={timeframe === "MONTHLY"}
+                        showYearPicker={timeframe === "YEARLY"}
+                        inline
+                      />
+                    </div>
+                  )}
+                </Dropdown>
               </div>
             )}
 

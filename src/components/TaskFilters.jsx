@@ -155,32 +155,75 @@ export default function TaskFilters({
         <div className="flex items-center gap-2 w-full xl:w-auto flex-wrap justify-between xl:justify-start relative z-10">
           <div className="flex gap-2 items-center flex-wrap">
             {/* DATE PICKER */}
-            <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-all shrink-0 ${
-                startDate || endDate
-                  ? "bg-muted ring-1 ring-mauve-4 font-medium"
-                  : "bg-card border-border hover:border-border/80 text-foreground"
-              }`}
+            <Dropdown
+              usePortal={true}
+              placement="bottom-start"
+              trigger={({ isOpen }) => (
+                <div
+                  className={`flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-all shrink-0 cursor-pointer ${
+                    startDate || endDate || isOpen
+                      ? "bg-muted ring-1 ring-mauve-4 font-medium"
+                      : "bg-card border-border hover:border-border/80 text-foreground"
+                  }`}
+                >
+                  <CalendarIcon
+                    size={16}
+                    className={`${startDate || endDate || isOpen ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
+                  />
+                  <div
+                    className={`bg-transparent outline-none w-[170px] text-[13px] flex items-center justify-between ${
+                      startDate || endDate
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    <span className="truncate">
+                      {startDate && endDate
+                        ? `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                        : startDate
+                          ? startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                          : "Date Range"}
+                    </span>
+                    {(startDate || endDate) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDateRange([null, null]);
+                        }}
+                        className="hover:text-foreground text-muted-foreground p-0.5"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             >
-              <CalendarIcon
-                size={16}
-                className={`${startDate || endDate ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
-              />
-              <DatePicker
-                selectsRange={true}
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(update) => setDateRange(update)}
-                isClearable={true}
-                placeholderText="Date Range"
-                className={`bg-transparent outline-none w-[170px] text-[13px] cursor-pointer ${
-                  startDate || endDate
-                    ? "text-foreground placeholder:text-muted-foreground font-medium"
-                    : "text-foreground placeholder:text-muted-foreground"
-                }`}
-                popperProps={{ strategy: "fixed" }}
-              />
-            </div>
+              {({ close }) => (
+                <div className="p-1">
+                  <DatePicker
+                    selectsRange={true}
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={(update) => setDateRange(update)}
+                    inline
+                  />
+                  <div className="flex justify-end mt-2 pt-2 border-t border-border">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        close();
+                      }}
+                      style={{ backgroundColor: "var(--primary)" }}
+                      className="px-4 py-1.5 text-primary-foreground rounded-lg text-[11px] font-bold hover:opacity-90 transition-all shadow-sm"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
+            </Dropdown>
 
             {/* SORTING */}
             {sortBy !== undefined && setSortBy && (

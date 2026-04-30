@@ -120,31 +120,66 @@ export default function CommitteeTaskFilters({
             )}
           </Dropdown>
 
-          {/* Due Date Picker */}
-          <div
-            className={`bg-card flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 flex-1 min-w-[150px] ${
-              dueDate
-                ? "text-foreground border-primary/20 font-medium"
-                : "border-border hover:border-border/80 text-foreground"
-            }`}
+          <Dropdown
+            usePortal
+            placement="bottom-start"
+            className="flex-1 min-w-[150px]"
+            trigger={({ isOpen }) => (
+              <div
+                className={`bg-card flex items-center border rounded-lg px-3 py-2.5 h-[40px] md:h-[46px] shadow-sm transition-colors shrink-0 cursor-pointer w-full group ${
+                  dueDate || isOpen
+                    ? "text-foreground border-primary/20 font-medium ring-1 ring-mauve-4 bg-muted"
+                    : "border-border hover:border-border/80 text-foreground"
+                }`}
+              >
+                <CalendarIcon
+                  size={16}
+                  className={`${dueDate || isOpen ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
+                />
+                <div
+                  className={`bg-transparent outline-none w-full text-[13px] flex items-center justify-between ${
+                    dueDate
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  <span className="truncate">
+                    {dueDate
+                      ? dueDate.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Due Date"}
+                  </span>
+                  {dueDate && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDueDate(null);
+                      }}
+                      className="hover:text-foreground text-muted-foreground p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           >
-            <CalendarIcon
-              size={16}
-              className={`${dueDate ? "text-foreground" : "text-muted-foreground"} mr-2 shrink-0`}
-            />
-            <DatePicker
-              selected={dueDate}
-              onChange={(date) => setDueDate(date)}
-              isClearable={true}
-              placeholderText="Due Date"
-              className={`bg-transparent outline-none w-full text-[13px] cursor-pointer ${
-                dueDate
-                  ? "text-foreground placeholder:text-muted-foreground font-medium"
-                  : "text-foreground placeholder:text-muted-foreground"
-              }`}
-              popperProps={{ strategy: "fixed" }}
-            />
-          </div>
+            {({ close }) => (
+              <div className="p-1">
+                <DatePicker
+                  selected={dueDate}
+                  onChange={(date) => {
+                    setDueDate(date);
+                    close();
+                  }}
+                  inline
+                />
+              </div>
+            )}
+          </Dropdown>
 
           {/* Clear All */}
           {isAnyFilterActive && (
