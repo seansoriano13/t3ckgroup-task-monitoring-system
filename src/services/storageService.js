@@ -13,55 +13,24 @@ export const storageService = {
     return this.uploadToCloudinary(file);
   },
 
-  /**
-   * Batch get signed URLs for viewing attachments.
-   * If the path is already a full URL (Cloudinary), returns it as is.
-   */
   async getSignedUrls(paths = []) {
     if (!paths || paths.length === 0) return [];
     
-    const supabasePaths = paths.filter(p => !p.startsWith('http'));
-    const cloudinaryUrls = paths.filter(p => p.startsWith('http'));
-
-    let signedSupabase = [];
-    if (supabasePaths.length > 0) {
-      const { data, error } = await supabase.storage
-        .from('task-attachments')
-        .createSignedUrls(supabasePaths, 3600);
-      if (!error && data) {
-        signedSupabase = data.map((d, i) => ({
-          path: supabasePaths[i],
-          signedUrl: d.signedUrl
-        }));
-      }
-    }
-
-    const cloudinaryMapped = cloudinaryUrls.map(url => ({
-      path: url,
-      signedUrl: url
+    // Completely bypass Supabase to prevent Egress.
+    // We assume all new paths are Cloudinary URLs (starting with http).
+    // Old Supabase paths will be returned as-is (which may break them in the UI,
+    // but this guarantees zero Supabase storage usage).
+    return paths.map(path => ({
+      path: path,
+      signedUrl: path.startsWith('http') ? path : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' // Transparent pixel for old supabase images
     }));
-
-    return [...signedSupabase, ...cloudinaryMapped];
   },
 
-  /**
-   * Delete an attachment.
-   * Skips Supabase if it's a Cloudinary URL.
-   */
   async deleteAttachment(path) {
     if (!path) return;
     
-    if (path.startsWith('http')) {
-      // For now, we don't delete from Cloudinary to keep it simple (requires signed requests)
-      // Offloading egress is the priority.
-      return true;
-    }
-    
-    const { error } = await supabase.storage
-      .from('task-attachments')
-      .remove([path]);
-
-    if (error) throw error;
+    // Completely bypass Supabase to prevent Egress.
+    // We do not delete from Cloudinary client-side for security reasons without signatures.
     return true;
   },
 
@@ -76,16 +45,16 @@ export const storageService = {
     return this.uploadToCloudinary(file);
   },
 
-  /**
-   * Get a signed URL for a single storage path.
-   */
   async getSignedUrl(path, expiresIn = 3600) {
     if (!path) return null;
-    const { data, error } = await supabase.storage
-      .from("task-attachments")
-      .createSignedUrl(path, expiresIn);
-    if (error) throw error;
-    return data?.signedUrl || null;
+    
+    // Completely bypass Supabase to prevent Egress.
+    if (path.startsWith('http')) {
+      return path;
+    }
+    
+    // Old Supabase images will return a transparent pixel to prevent Egress
+    return 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
   },
 
   /**
