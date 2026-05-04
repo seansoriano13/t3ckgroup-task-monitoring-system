@@ -795,6 +795,7 @@ export default function SalesSchedulePage() {
           deletePlanMutation={deletePlanMutation}
           submitMutation={submitMutation}
           saveMutation={saveMutation}
+          plannedCount={plannedCount}
           allDaysFilled={allDaysFilled}
           isRequestingAmendment={isRequestingAmendment}
           setIsRequestingAmendment={setIsRequestingAmendment}

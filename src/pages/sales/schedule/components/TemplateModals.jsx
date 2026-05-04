@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Trash2 } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
+import { Tooltip } from "../../../../components/ui/Tooltip";
 
 export function SaveTemplateModal({ isOpen, onClose, onSave, isSaving }) {
   const [templateName, setTemplateName] = useState("");
@@ -85,14 +86,15 @@ export function ManageTemplatesModal({ isOpen, onClose, customTemplates, onDelet
                       {template.template_payload?.account_name && ` • ${template.template_payload.account_name}`}
                     </p>
                   </div>
-                  <button
-                    onClick={() => onDelete(template.id)}
-                    disabled={isDeletingId === template.id}
-                    className="p-2 text-mauve-8 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0 disabled:opacity-50"
-                    title="Delete template"
-                  >
-                    {isDeletingId === template.id ? <Spinner size="sm" /> : <Trash2 size={16} />}
-                  </button>
+                  <Tooltip content="Delete template">
+                    <button
+                      onClick={() => onDelete(template.id)}
+                      disabled={isDeletingId === template.id}
+                      className="p-2 text-mauve-8 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+                    >
+                      {isDeletingId === template.id ? <Spinner size="sm" /> : <Trash2 size={16} />}
+                    </button>
+                  </Tooltip>
                 </div>
               ))}
             </div>

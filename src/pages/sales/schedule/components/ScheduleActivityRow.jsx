@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Trash2, ChevronDown, Wand2, MoreVertical } from "lucide-react";
 import Select from "react-select";
 import { inlineSelectStyles } from "../../../../styles/selectStyles";
+import { Tooltip } from "../../../../components/ui/Tooltip";
 
 export function ScheduleActivityRow({
   data,
@@ -24,41 +25,41 @@ export function ScheduleActivityRow({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
-  
+
   const isFilled = data.activity_type !== "None" || !!data.account_name;
 
   // react-select styling
 
   const options = useMemo(() => {
     const opts = [];
-    
+
     if (availableCategories.length > 0) {
       opts.push({
         label: "Categories",
         options: availableCategories.map((cat) => ({ value: cat, label: cat })),
       });
     }
-    
+
     if (scheduleTemplates.length > 0) {
       opts.push({
         label: "Standard Templates",
-        options: scheduleTemplates.map((tpl) => ({ 
-          value: `std_tpl:${tpl.id}`, 
-          label: tpl.label 
+        options: scheduleTemplates.map((tpl) => ({
+          value: `std_tpl:${tpl.id}`,
+          label: tpl.label,
         })),
       });
     }
-    
+
     if (customTemplates.length > 0) {
       opts.push({
         label: "My Custom Templates",
-        options: customTemplates.map((tpl, idx) => ({ 
-          value: `cstm_tpl:${idx}`, 
-          label: tpl.template_name 
+        options: customTemplates.map((tpl, idx) => ({
+          value: `cstm_tpl:${idx}`,
+          label: tpl.template_name,
         })),
       });
     }
-    
+
     return opts;
   }, [availableCategories, scheduleTemplates, customTemplates]);
 
@@ -82,7 +83,7 @@ export function ScheduleActivityRow({
       if (tpl && tpl.template_payload) {
         Object.entries(tpl.template_payload).forEach(([field, value]) => {
           if (value !== undefined) {
-             onChange(field, value);
+            onChange(field, value);
           }
         });
       }
@@ -110,10 +111,12 @@ export function ScheduleActivityRow({
       {/* Accordion Header */}
       <div
         onClick={() => !disabled && setIsExpanded(!isExpanded)}
-        className={`p-3 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors rounded-xl ${disabled && "cursor-not-allowed opacity-80"}`}
+        className={`p-3 flex items-center justify-between cursor-pointer hover:bg-mauve-3 transition-colors rounded-xl ${disabled && "cursor-not-allowed opacity-80"}`}
       >
         <div className="flex gap-3 items-center flex-1 max-w-[65%] pr-2">
-          <span className={`${isFilled ? "bg-violet-3 text-violet-10" : "bg-muted text-muted-foreground"} font-black w-6 h-6 flex items-center justify-center rounded-full text-[10px] shrink-0 transition-colors`}>
+          <span
+            className={`${isFilled ? "bg-mauve-3 text-mauve-10" : "bg-muted text-muted-foreground"} font-black w-6 h-6 flex items-center justify-center rounded-full text-[10px] shrink-0 transition-colors`}
+          >
             {slotNum}
           </span>
           <div className="max-w-[170px] w-full shrink-0">
@@ -133,24 +136,27 @@ export function ScheduleActivityRow({
           {isFilled && (
             <span className="text-sm text-foreground font-semibold truncate hidden sm:block flex-1">
               {data.account_name || (
-                <span className="text-muted-foreground italic text-xs">Unnamed Account</span>
+                <span className="text-muted-foreground italic text-xs">
+                  Unnamed Account
+                </span>
               )}
             </span>
           )}
         </div>
         <div className="flex gap-1.5 items-center">
           {!disabled && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onUseSmartSuggestion();
-              }}
-              className="p-1.5 text-muted-foreground hover:text-violet-10 hover:bg-violet-2 rounded-lg transition-all"
-              title="Smart Fill (Use previous entry)"
-            >
-              <Wand2 size={16} />
-            </button>
+            <Tooltip content="Smart Fill (Use previous entry)">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUseSmartSuggestion();
+                }}
+                className="p-1.5 text-muted-foreground hover:text-red-9 hover:bg-mauve-3 rounded-lg transition-all"
+              >
+                <Wand2 size={16} />
+              </button>
+            </Tooltip>
           )}
           <ChevronDown
             size={18}
@@ -168,13 +174,16 @@ export function ScheduleActivityRow({
               <MoreVertical size={18} />
             </button>
             {showMenu && (
-              <div 
+              <div
                 className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-xl shadow-xl py-1 z-10"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
                   type="button"
-                  onClick={() => { setShowMenu(false); onDuplicateSlot(); }}
+                  onClick={() => {
+                    setShowMenu(false);
+                    onDuplicateSlot();
+                  }}
                   disabled={disabled}
                   className="w-full text-left px-3 py-2 text-[13px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -182,7 +191,10 @@ export function ScheduleActivityRow({
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowMenu(false); canDelete ? onDelete() : onClearSlot(); }}
+                  onClick={() => {
+                    setShowMenu(false);
+                    canDelete ? onDelete() : onClearSlot();
+                  }}
                   disabled={disabled}
                   className="w-full text-left px-3 py-2 text-[13px] font-semibold text-destructive/80 hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -191,7 +203,10 @@ export function ScheduleActivityRow({
                 {isFilled && (
                   <button
                     type="button"
-                    onClick={() => { setShowMenu(false); onSaveCustomTemplate(); }}
+                    onClick={() => {
+                      setShowMenu(false);
+                      onSaveCustomTemplate();
+                    }}
                     className="w-full text-left px-3 py-2 text-[13px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   >
                     Save as Custom Template
@@ -245,24 +260,52 @@ export function ScheduleActivityRow({
           {(!compactMode || showAdvanced) && (
             <>
               <div>
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Contact Person</label>
-                <input type="text" disabled={disabled} value={data.contact_person} onChange={(e) => onChange("contact_person", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
+                  Contact Person
+                </label>
+                <input
+                  type="text"
+                  disabled={disabled}
+                  value={data.contact_person}
+                  onChange={(e) => onChange("contact_person", e.target.value)}
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
+                />
               </div>
               <div>
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Contact Number</label>
-                <input type="text" disabled={disabled} value={data.contact_number} onChange={(e) => onChange("contact_number", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
+                  Contact Number
+                </label>
+                <input
+                  type="text"
+                  disabled={disabled}
+                  value={data.contact_number}
+                  onChange={(e) => onChange("contact_number", e.target.value)}
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
+                />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Email Address</label>
-                <input type="email" disabled={disabled} value={data.email_address} onChange={(e) => onChange("email_address", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  disabled={disabled}
+                  value={data.email_address}
+                  onChange={(e) => onChange("email_address", e.target.value)}
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
+                />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Address</label>
-                <input type="text" disabled={disabled} value={data.address} onChange={(e) => onChange("address", e.target.value)}
-                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all" />
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  disabled={disabled}
+                  value={data.address}
+                  onChange={(e) => onChange("address", e.target.value)}
+                  className="w-full bg-muted/40 border border-border rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
+                />
               </div>
             </>
           )}
@@ -273,17 +316,37 @@ export function ScheduleActivityRow({
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Reference No. (SQ/TRM)</label>
-                <input type="text" disabled={disabled} value={data.reference_number || ""} onChange={(e) => onChange("reference_number", e.target.value)}
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
+                  Reference No. (SQ/TRM)
+                </label>
+                <input
+                  type="text"
+                  disabled={disabled}
+                  value={data.reference_number || ""}
+                  onChange={(e) => onChange("reference_number", e.target.value)}
                   placeholder="e.g. SQ-2026-001"
-                  className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground" />
+                  className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
+                />
               </div>
               <div>
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">Est. Expense (₱)</label>
-                <input type="number" disabled={disabled} value={data.expense_amount || ""}
-                  onChange={(e) => onChange("expense_amount", e.target.value === "" ? "" : Number(e.target.value))}
-                  placeholder="0.00" min="0" step="0.01"
-                  className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground" />
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] block mb-1.5">
+                  Est. Expense (₱)
+                </label>
+                <input
+                  type="number"
+                  disabled={disabled}
+                  value={data.expense_amount || ""}
+                  onChange={(e) =>
+                    onChange(
+                      "expense_amount",
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    )
+                  }
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  className="w-full bg-amber-2/50 border border-amber-6 rounded-xl px-3 py-2 text-sm text-foreground font-medium outline-none focus:border-amber-8 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-muted-foreground"
+                />
               </div>
             </div>
           </div>

@@ -16,6 +16,7 @@
  */
 
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function TabGroup({
   tabs = [],
@@ -32,7 +33,7 @@ export default function TabGroup({
 
   // Wrapper classes
   const wrapperCls = cn(
-    "flex overflow-x-auto shrink-0",
+    "flex overflow-x-auto shrink-0 relative",
     variant === "pill" && "bg-muted p-1 rounded-xl w-fit",
     (variant === "primary" ||
       variant === "success" ||
@@ -45,24 +46,22 @@ export default function TabGroup({
 
   // Per-button classes
   const btnBase = cn(
-    "flex items-center justify-center gap-1.5 font-bold whitespace-nowrap transition-all",
+    "relative flex items-center justify-center gap-1.5 font-bold whitespace-nowrap transition-all outline-none",
     size === "sm" && "px-4 py-1.5 text-xs",
     size === "md" && "px-4 py-2 text-xs",
     fullWidth && "flex-1",
   );
 
   const btnActive = {
-    pill: "bg-card text-foreground shadow-sm rounded-lg",
-    primary:
-      "bg-primary text-primary-foreground shadow-md shadow-primary/15 rounded-lg",
-    success: "bg-green-10 text-white shadow-md shadow-green-9/20 rounded-lg",
-    destructive:
-      "bg-destructive text-destructive-foreground shadow-md shadow-destructive/15 rounded-lg",
+    pill: "text-foreground",
+    primary: "text-primary-foreground",
+    success: "text-white",
+    destructive: "text-destructive-foreground",
     underline: "border-b-2 border-mauve-10 text-foreground -mb-px",
   };
 
   const btnInactive = {
-    pill: "text-muted-foreground hover:text-foreground hover:bg-card/50 rounded-lg",
+    pill: "text-muted-foreground hover:text-foreground hover:bg-card/30 rounded-lg",
     primary:
       "text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg",
     success:
@@ -73,51 +72,74 @@ export default function TabGroup({
       "border-b-2 border-transparent text-muted-foreground hover:text-foreground pb-3",
   };
 
+  // Indicator background classes
+  const indicatorCls = {
+    pill: "bg-card shadow-sm rounded-lg",
+    primary: "bg-primary shadow-md shadow-primary/15 rounded-lg",
+    success: "bg-green-10 shadow-md shadow-green-9/20 rounded-lg",
+    destructive: "bg-destructive shadow-md shadow-destructive/15 rounded-lg",
+    underline: "", // Handle underline separately if needed, but underline uses border
+  };
+
   return (
-    <div className={wrapperCls}>
-      {normalised.map(
-        ({
-          value,
-          label,
-          icon: Icon,
-          badge,
-          activeClass,
-          variant: tabVariant,
-        }) => {
-          const isActive = activeTab === value;
-          const currentVariant = tabVariant || variant;
-          return (
-            <button
-              key={value}
-              onClick={() => onChange(value)}
-              className={cn(
-                btnBase,
-                isActive
-                  ? activeClass || btnActive[currentVariant]
-                  : btnInactive[currentVariant],
-                variant === "underline" && size === "sm" && "pb-3",
-              )}
-            >
-              {Icon && <Icon size={14} />}
-              <span>{label}</span>
-              {badge != null && badge > 0 && (
-                <span
-                  className={cn(
-                    "ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-black",
-                    isActive
-                      ? variant === "success"
-                        ? "bg-white/20 text-white"
-                        : "bg-primary/10 text-primary"
-                      : "bg-muted-foreground/20 text-muted-foreground",
+    <motion.div layout className={wrapperCls}>
+      <AnimatePresence>
+        {normalised.map(
+          ({
+            value,
+            label,
+            icon: Icon,
+            badge,
+            activeClass,
+            variant: tabVariant,
+          }) => {
+            const isActive = activeTab === value;
+            const currentVariant = tabVariant || variant;
+            return (
+              <button
+                key={value}
+                onClick={() => onChange(value)}
+                className={cn(
+                  btnBase,
+                  isActive
+                    ? activeClass || btnActive[currentVariant]
+                    : btnInactive[currentVariant],
+                  variant === "underline" && size === "sm" && "pb-3",
+                )}
+              >
+                {isActive && currentVariant !== "underline" && (
+                  <motion.div
+                    layoutId={`tab-indicator-${variant}`}
+                    className={cn(
+                      "absolute inset-0 z-0",
+                      indicatorCls[currentVariant],
+                    )}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  {Icon && <Icon size={14} />}
+                  <span>{label}</span>
+                  {badge != null && badge > 0 && (
+                    <span
+                      className={cn(
+                        "ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-black transition-colors",
+                        isActive
+                          ? variant === "success"
+                            ? "bg-white/20 text-white"
+                            : "bg-primary/10 text-primary"
+                          : "bg-muted-foreground/20 text-muted-foreground",
+                      )}
+                    >
+                      {badge}
+                    </span>
                   )}
-                >
-                  {badge}
                 </span>
-              )}
-            </button>
-          );
-        },
-      )}
-    </div>
+              </button>
+            );
+          },
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

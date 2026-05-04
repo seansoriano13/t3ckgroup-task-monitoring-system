@@ -6,6 +6,7 @@ import {
   X,
   HelpCircle,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import DatePicker from "react-datepicker";
@@ -14,6 +15,8 @@ import { getStartOfWeek, formatDateToYMD } from "../utils";
 import { confirmDeleteToast } from "../../../../components/ui/CustomToast";
 
 import PageHeader from "../../../../components/ui/PageHeader";
+import { Tooltip } from "../../../../components/ui/Tooltip";
+import { cn } from "@/lib/utils";
 
 export function ScheduleHeader({
   isLocked,
@@ -29,6 +32,7 @@ export function ScheduleHeader({
   deletePlanMutation,
   submitMutation,
   saveMutation,
+  plannedCount,
   allDaysFilled,
   isRequestingAmendment,
   setIsRequestingAmendment,
@@ -71,40 +75,43 @@ export function ScheduleHeader({
         {!isLocked || plan.status === "REVISION" ? (
           <>
             {plan?.id && (
-              <button
-                onClick={() => {
-                  const msg =
-                    plan.status === "REVISION"
-                      ? "Discard all current changes and revert to previously approved state?"
-                      : "Are you sure you want to completely delete this Draft plan?";
-                  const title =
-                    plan.status === "REVISION"
-                      ? "Discard Amendment?"
-                      : "Delete Draft Plan?";
-                  confirmDeleteToast(title, msg, () =>
-                    deletePlanMutation.mutate(),
-                  );
-                }}
-                disabled={
-                  deletePlanMutation.isPending ||
-                  submitMutation.isPending ||
-                  saveMutation.isPending
-                }
-                className="p-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-transparent hover:border-destructive/20"
-                title={
+              <Tooltip
+                content={
                   plan.status === "REVISION"
                     ? "Discard Amendment"
                     : "Delete Draft"
                 }
               >
-                {deletePlanMutation.isPending ? (
-                  <Spinner size="sm" />
-                ) : plan.status === "REVISION" ? (
-                  <X size={16} />
-                ) : (
-                  <Trash2 size={16} />
-                )}
-              </button>
+                <button
+                  onClick={() => {
+                    const msg =
+                      plan.status === "REVISION"
+                        ? "Discard all current changes and revert to previously approved state?"
+                        : "Are you sure you want to completely delete this Draft plan?";
+                    const title =
+                      plan.status === "REVISION"
+                        ? "Discard Amendment?"
+                        : "Delete Draft Plan?";
+                    confirmDeleteToast(title, msg, () =>
+                      deletePlanMutation.mutate(),
+                    );
+                  }}
+                  disabled={
+                    deletePlanMutation.isPending ||
+                    submitMutation.isPending ||
+                    saveMutation.isPending
+                  }
+                  className="p-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all border border-transparent hover:border-destructive/20"
+                >
+                  {deletePlanMutation.isPending ? (
+                    <Spinner size="sm" />
+                  ) : plan.status === "REVISION" ? (
+                    <X size={16} />
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                </button>
+              </Tooltip>
             )}
 
             <button
@@ -114,7 +121,29 @@ export function ScheduleHeader({
                 deletePlanMutation.isPending ||
                 submitMutation.isPending
               }
-              className="px-4 py-2 bg-card hover:bg-muted border border-border text-foreground rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm h-10"
+              className="px-4 py-2 border border-border rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm h-10 cursor-pointer bg-card hover:bg-muted text-foreground"
+            >
+              {saveMutation.isPending ? (
+                <Spinner size="sm" />
+              ) : (
+                <Save size={16} />
+              )}
+              Save Draft
+            </button>
+
+            <button
+              onClick={() => submitMutation.mutate()}
+              disabled={
+                submitMutation.isPending ||
+                saveMutation.isPending ||
+                plannedCount === 0
+              }
+              className={cn(
+                "px-4 py-2 border border-border rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm h-10",
+                plannedCount === 0
+                  ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+                  : "bg-card hover:bg-muted text-foreground cursor-pointer",
+              )}
             >
               {saveMutation.isPending ? (
                 <Spinner size="sm" />
@@ -143,12 +172,11 @@ export function ScheduleHeader({
                   ? "Submit Amendments"
                   : "Submit Plan"}
               </button>
-              <div
-                className="px-2 text-muted-foreground hover:text-muted-foreground cursor-help transition-colors"
-                title="Remember to submit your schedule by Friday End of Day for the following week! Note: Mon-Sat require at least 1 activity each to unlock submission. Sunday is optional."
-              >
-                <HelpCircle size={16} />
-              </div>
+              <Tooltip content="Remember to submit your schedule by Friday End of Day for the following week! Note: Mon-Sat require at least 1 activity each to unlock submission. Sunday is optional.">
+                <div className="px-2 text-muted-foreground hover:text-muted-foreground cursor-help transition-colors">
+                  <HelpCircle size={16} />
+                </div>
+              </Tooltip>
             </div>
           </>
         ) : /* LOCKED ACTIONS */
@@ -193,10 +221,7 @@ export function ScheduleHeader({
         <div className="bg-amber-2 border border-amber-6 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
           <div className="flex items-center gap-3">
             <div className="bg-amber-3 p-2 rounded-xl">
-              <AlertTriangle
-                size={20}
-                className="text-amber-10"
-              />
+              <AlertTriangle size={20} className="text-amber-10" />
             </div>
             <div>
               <p className="text-sm font-black text-amber-12 uppercase tracking-tight">
@@ -302,23 +327,24 @@ export function ScheduleHeader({
 
         {/* Readiness Metrics */}
         <div className="flex items-center gap-3">
-          <span
-            className="text-[11px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2 cursor-help select-none"
-            title={`Missing Days: ${weekSummary.missingDays} | Unplanned Ratio: ${unplannedRatio}%`}
+          <Tooltip
+            content={`Missing Days: ${weekSummary.missingDays} | Unplanned Ratio: ${unplannedRatio}%`}
           >
-            <CheckCircle2
-              size={16}
-              className={
-                weekSummary.daysReady >= totalDaysRequired
-                  ? "text-green-9"
-                  : "text-muted-foreground"
-              }
-            />
-            Readiness:{" "}
-            <span className="text-foreground font-black">
-              {weekSummary.daysReady}/{totalDaysRequired}
+            <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2 cursor-help select-none">
+              <CheckCircle2
+                size={16}
+                className={
+                  weekSummary.daysReady >= totalDaysRequired
+                    ? "text-green-9"
+                    : "text-muted-foreground"
+                }
+              />
+              Readiness:{" "}
+              <span className="text-foreground font-black">
+                {weekSummary.daysReady}/{totalDaysRequired}
+              </span>
             </span>
-          </span>
+          </Tooltip>
           <div className="w-[120px] h-2.5 bg-muted rounded-full overflow-hidden shadow-inner border border-border/30">
             <div
               className={`h-full transition-all duration-700 ease-out ${readinessPercent === 100 ? "bg-green-9 shadow-[0_0_10px_rgba(16,185,129,0.4)]" : "bg-primary"}`}
