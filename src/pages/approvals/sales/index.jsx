@@ -747,6 +747,8 @@ export default function SalesHeadApprovalsPage() {
   );
 }
 
+const DATE_GROUP_LIMIT = 5;
+
 function EmployeeBlock({
   empGroup,
   mode,
@@ -760,8 +762,22 @@ function EmployeeBlock({
   onToggleDaySelection,
   searchTerm,
 }) {
+  const totalActivities = empGroup.dates.reduce(
+    (acc, d) => acc + d.activities.length,
+    0,
+  );
+  const isBloated = totalActivities > 30;
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(!isBloated);
+  const [showAllDates, setShowAllDates] = useState(false);
+
+  // When a search is active, bypass the date limit so no results are hidden
+  const bypassLimit = !!searchTerm;
+  const visibleDates =
+    bypassLimit || showAllDates
+      ? empGroup.dates
+      : empGroup.dates.slice(0, DATE_GROUP_LIMIT);
+  const hiddenCount = empGroup.dates.length - DATE_GROUP_LIMIT;
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all">
@@ -770,15 +786,24 @@ function EmployeeBlock({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <Avatar name={empGroup.employeeName} src={empGroup.avatarPath} size="lg" className="bg-primary/10 text-primary border-primary/20 shadow-inner" />
+          <Avatar
+            name={empGroup.employeeName}
+            src={empGroup.avatarPath}
+            size="lg"
+            className="bg-primary/10 text-primary border-primary/20 shadow-inner"
+          />
           <div>
             <h2 className="text-lg font-bold text-foreground leading-tight">
               <HighlightText text={empGroup.employeeName} search={searchTerm} />
             </h2>
-
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">
-              {empGroup.dates.reduce((acc, d) => acc + d.activities.length, 0)}{" "}
+              {totalActivities}{" "}
               {mode === "PENDING" ? "Items Pending" : "Items Verified"}
+              {isBloated && (
+                <span className="ml-2 normal-case tracking-normal text-amber-600 font-bold">
+                  · {empGroup.dates.length} days
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -789,7 +814,7 @@ function EmployeeBlock({
 
       {isExpanded && (
         <div className="divide-y divide-border">
-          {empGroup.dates.map((dateGroup) => (
+          {visibleDates.map((dateGroup) => (
             <DateGroupBlock
               key={dateGroup.date}
               dateGroup={dateGroup}
@@ -804,8 +829,28 @@ function EmployeeBlock({
               onToggleDaySelection={onToggleDaySelection}
               searchTerm={searchTerm}
             />
-
           ))}
+
+          {!bypassLimit && hiddenCount > 0 && (
+            <div className="px-6 py-4 flex items-center justify-center">
+              <button
+                onClick={() => setShowAllDates((prev) => !prev)}
+                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted border border-border rounded-lg px-4 py-2 transition-colors cursor-pointer"
+              >
+                {showAllDates ? (
+                  <>
+                    <ChevronUp size={15} />
+                    Show less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={15} />
+                    Show {hiddenCount} more {hiddenCount === 1 ? "day" : "days"}
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

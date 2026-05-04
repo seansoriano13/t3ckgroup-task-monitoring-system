@@ -172,7 +172,13 @@ export const taskMutationService = {
       payload?.status === TASK_STATUS.NOT_APPROVED &&
       payload?.evaluatedBy === undefined;
 
-    if (isHeadApprove) {
+    const isHeadReEval =
+      payload?.status === TASK_STATUS.COMPLETE &&
+      payload?.evaluatedBy !== undefined &&
+      current?.status === TASK_STATUS.COMPLETE &&
+      current?.hr_verified === false;
+
+    if (isHeadApprove && !isHeadReEval) {
       if (current?.status !== TASK_STATUS.INCOMPLETE && current?.status !== TASK_STATUS.AWAITING_APPROVAL) {
         throw new Error(
           `Invalid pipeline transition: can only approve tasks from INCOMPLETE or AWAITING APPROVAL`,
@@ -384,7 +390,7 @@ export const taskMutationService = {
       }
 
 
-      if (isHeadApprove) {
+      if (isHeadApprove && !isHeadReEval) {
         taskActivityService.upsertActivityEntry(
           taskId,
           payload.editedBy,
@@ -392,6 +398,17 @@ export const taskMutationService = {
           "APPROVED",
           payload.activityMessage || payload.remarks || `Task approved by ${editorName}`,
           { event: "APPROVED", grade: payload.grade }
+        );
+      }
+
+      if (isHeadReEval) {
+        taskActivityService.upsertActivityEntry(
+          taskId,
+          payload.editedBy,
+          "APPROVAL",
+          "GRADE_UPDATED",
+          payload.activityMessage || `${editorName} updated the grade to ${payload.grade}${payload.remarks ? ` — "${payload.remarks}"` : ""}.`,
+          { event: "GRADE_UPDATED", grade: payload.grade }
         );
       }
 

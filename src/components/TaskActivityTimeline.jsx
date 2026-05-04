@@ -247,7 +247,10 @@ export default function TaskActivityTimeline({
     }
   };
 
-  const showLegacy = comments.length === 0 && (legacyRemarks || legacyHrRemarks);
+  // Only show legacy block when the task has NO real activity entries at all.
+  // Modern tasks always get an APPROVED/HR_VERIFIED entry in history, so
+  // history.length > 0 means this is not a legacy task.
+  const showLegacy = comments.length === 0 && history.length === 0 && (legacyRemarks || legacyHrRemarks);
 
   return (
     <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-card mt-4">

@@ -36,13 +36,18 @@ export function ApprovalRow({
   isReplied,
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
-  const [grade, setGrade] = useState(task.grade || null);
+  const [grade, setGrade] = useState(task.grade ? Number(task.grade) : null);
   const [remarks, setRemarks] = useState(isVerifiedTab ? task.remarks || "" : "");
   const [hrRemarks, setHrRemarks] = useState(isVerifiedTab ? task.hrRemarks || "" : "");
   const [isEditing, setIsEditing] = useState(false);
   const isReadOnly = isVerifiedTab && !isEditing;
   const rowRef = useRef(null);
   const avatarMap = useEmployeeAvatarMap();
+
+  // Keep grade in sync if the task prop refreshes from React Query
+  useEffect(() => {
+    setGrade(task.grade ? Number(task.grade) : null);
+  }, [task.grade]);
 
   useEffect(() => {
     if (defaultExpanded) {

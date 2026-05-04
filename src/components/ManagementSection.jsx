@@ -48,7 +48,7 @@ const ManagementSection = ({
             )}
           >
             {({ close }) => (
-              <FilterOptionLista
+              <FilterOptionList
                 options={uniqueDepts.map((d) => ({ value: d, label: d }))}
                 value={formData.department}
                 onChange={(val) => {
@@ -67,7 +67,11 @@ const ManagementSection = ({
       </FieldBox>
 
       {/* 2. Sub-Department */}
-      <FieldBox label="Sub-Department" isEditing={isEditing} noBorder={isEditing}>
+      <FieldBox
+        label="Sub-Department"
+        isEditing={isEditing}
+        noBorder={isEditing}
+      >
         {isEditing ? (
           <Dropdown
             usePortal
@@ -104,7 +108,11 @@ const ManagementSection = ({
 
       {/* 3. Assignee */}
       <div className="col-span-2">
-        <FieldBox label="Employee (Assignee)" isEditing={isEditing} noBorder={isEditing}>
+        <FieldBox
+          label="Employee (Assignee)"
+          isEditing={isEditing}
+          noBorder={isEditing}
+        >
           {isEditing ? (
             <Dropdown
               usePortal

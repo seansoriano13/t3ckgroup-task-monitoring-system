@@ -56,6 +56,7 @@ export default function TaskDetails({
   });
 
   const [approvalGrade, setApprovalGrade] = useState(null);
+  const [editGrade, setEditGrade] = useState(null);
   const [descriptionType, setDescriptionType] = useState("description");
 
   // 🔥 FULL TASK FETCH: Fetch complete details ONLY when drawer is open
@@ -111,6 +112,7 @@ export default function TaskDetails({
 
       queueMicrotask(() => {
         setApprovalGrade(null);
+        setEditGrade(activeTask?.grade ? Number(activeTask.grade) : null);
         timelineMessageRef.current = "";
 
         let initialDescriptionType = "description";
@@ -163,6 +165,14 @@ export default function TaskDetails({
   const isSuperAdmin =
     user?.is_super_admin === true || user?.isSuperAdmin === true;
   const canEvaluate = isHead || isSuperAdmin;
+
+  // Re-evaluation: head is editing a task already approved but not yet HR-verified.
+  // Note: isComplete is declared after the early return guard, so we inline the check here.
+  const canReEvalGrade =
+    canEvaluate &&
+    task?.status === TASK_STATUS.COMPLETE &&
+    !task?.hrVerified &&
+    isEditing;
 
   // Custom Data Hook
   const topologyData = useTaskTopology(
@@ -302,7 +312,16 @@ export default function TaskDetails({
     // eslint-disable-next-line no-unused-vars
     const { department, subDepartment, status, grade, ...dbPayload } = formData;
 
-    executeUpdate({ id: task.id, ...dbPayload, editedBy: user.id });
+    const payload = { id: task.id, ...dbPayload, editedBy: user.id };
+
+    // If re-evaluating a COMPLETE, non-HR-verified task, include grade fields
+    if (canReEvalGrade && editGrade !== null) {
+      payload.grade = editGrade;
+      payload.evaluatedBy = user.id;
+      payload.status = TASK_STATUS.COMPLETE;
+    }
+
+    executeUpdate(payload);
   };
 
   const handleApprove = () => {
@@ -687,6 +706,22 @@ export default function TaskDetails({
                 readOnly={!canEdit || !isOwner}
               />
             </div>
+
+            {/* --- GRADE EDIT (Re-evaluation during edit mode) --- */}
+            {canReEvalGrade && (
+              <div className="flex flex-col gap-1.5 pt-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-1.5">
+                  Performance Grade
+                  <span className="font-normal normal-case tracking-normal text-muted-foreground/70">(editing)</span>
+                </label>
+                <GradeSelector
+                  grade={editGrade}
+                  onSelect={setEditGrade}
+                  canEvaluate={true}
+                  finalized={false}
+                />
+              </div>
+            )}
 
             {/* --- GRADE SELECTOR (for evaluation) --- */}
             {!isEditing && (
