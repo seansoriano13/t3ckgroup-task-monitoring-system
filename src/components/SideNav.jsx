@@ -283,7 +283,7 @@ export default function SideNav() {
               )}
             >
               {({ close }) => (
-                <div className="p-1.5 min-w-[215px] flex flex-col gap-0.5 bg-sidebar border border-sidebar-border rounded-xl shadow-2xl">
+                <div className="p-1.5 min-w-[215px] flex flex-col gap-0.5 bg-muted rounded-xl ">
                   {profileOptions.map((option) => (
                     <button
                       key={option.value}
@@ -291,7 +291,7 @@ export default function SideNav() {
                         handleProfileSelect(option);
                         close();
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sidebar-foreground text-sm font-semibold text-foreground hover:bg-sidebar-accent transition-colors text-left"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-foreground text-sm font-semibold hover:bg-sidebar-accent transition-colors text-left"
                     >
                       <span>{option.label}</span>
                     </button>
