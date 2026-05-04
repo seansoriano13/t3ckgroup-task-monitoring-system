@@ -383,7 +383,7 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 bg-violet-2 border border-mauve-3 rounded-xl flex items-center justify-center text-violet-9">
+                <div className="w-10 h-10 bg-violet-2 border border-mauve-3 rounded-xl flex items-center justify-center text-mauve-12">
                   <Building2 size={20} />
                 </div>
                 <div>
@@ -435,11 +435,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <p className="text-2xl font-black text-foreground">
-                    {isStatsLoading ? (
-                      <Spinner size="sm" />
-                    ) : (
-                      stats?.primary
-                    )}
+                    {isStatsLoading ? <Spinner size="sm" /> : stats?.primary}
                   </p>
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     {stats?.primaryLabel || "Metrics"}
@@ -452,11 +448,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <p className="text-2xl font-black text-green-10">
-                    {isStatsLoading ? (
-                      <Spinner size="sm" />
-                    ) : (
-                      stats?.secondary
-                    )}
+                    {isStatsLoading ? <Spinner size="sm" /> : stats?.secondary}
                   </p>
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">
                     {stats?.secondaryLabel || "Completed"}
@@ -670,11 +662,7 @@ export default function ProfilePage() {
             disabled={isSaving}
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/15 transition disabled:opacity-70"
           >
-            {isSaving ? (
-              <Spinner size="sm" />
-            ) : (
-              <Save size={16} />
-            )}
+            {isSaving ? <Spinner size="sm" /> : <Save size={16} />}
             Save dashboard settings
           </button>
         </div>
