@@ -79,13 +79,13 @@ export default function TasksPage() {
   );
   const [reportedToFilter, setReportedToFilter] = useState("ALL");
 
+  // Clear nav state so back-nav doesn't re-apply deep-link filters
   useEffect(() => {
     if (location.state?.filterEmployeeId) {
       const newState = { ...location.state };
       delete newState.filterEmployeeId;
       navigate(location.pathname, { replace: true, state: newState });
     }
-    // Clear the presetFilter from history so back-nav doesn't re-apply it
     if (location.state?.presetFilter) {
       const newState = { ...location.state };
       delete newState.presetFilter;
@@ -93,20 +93,35 @@ export default function TasksPage() {
     }
   }, [location.state, navigate, location.pathname]);
 
-  // Sync filters for non-management or HR-personal mode
+  // For non-management users, lock filters to their own account once user is loaded.
+  // This effect intentionally only reacts to user?.id becoming available — it does
+  // NOT include isManagement so management users are never affected.
   useEffect(() => {
-    if (!isManagement || (isHr && hrViewMode === "PERSONAL")) {
+    if (!user?.id) return; // wait until auth resolves
+    if (!isManagement) {
+      setDeptFilter(userDept || "ALL");
+      setSubDeptFilter(userSubDept || "ALL");
+      setEmployeeFilter(user.id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // deliberately exclude isManagement — roles don't change mid-session
+
+  // Explicit handler for HR tab toggle — this is the ONLY place management
+  // filters should be auto-reset; avoids any effect-based race condition.
+  const handleHrViewModeChange = (newMode) => {
+    setHrViewMode(newMode);
+    if (newMode === "PERSONAL") {
       setDeptFilter(userDept || "ALL");
       setSubDeptFilter(userSubDept || "ALL");
       setEmployeeFilter(user?.id || "ALL");
-    } else if (isManagement && hrViewMode === "ALL") {
-      // Reset to ALL when going back to Company view to prevent tasks from disappearing
+      setReportedToFilter("ALL");
+    } else {
       setDeptFilter("ALL");
       setSubDeptFilter("ALL");
       setEmployeeFilter("ALL");
       setReportedToFilter("ALL");
     }
-  }, [isManagement, hrViewMode, isHr, userDept, userSubDept, user?.id]);
+  };
 
   // --- DB DATA STATES FOR DROPDOWNS ---
   const [allEmployees, setAllEmployees] = useState([]);
@@ -173,12 +188,13 @@ export default function TasksPage() {
         // Task may be soft-deleted — fetch it directly
         import("../../services/tasks/taskQueryService.js").then(
           ({ taskQueryService }) => {
-            taskQueryService.getTaskById(openId)
+            taskQueryService
+              .getTaskById(openId)
               .then((task) => {
                 if (task) setViewTask(task);
               })
               .catch(() => {});
-          }
+          },
         );
         navigate(location.pathname, { replace: true, state: {} });
       }
@@ -216,11 +232,11 @@ export default function TasksPage() {
         : allEmployees.filter((e) => e.department === deptFilter);
 
     const fromCats = filteredCats.map((c) => c.subDepartment);
-    const fromEmps = filteredEmps.map((e) => e.subDepartment || e.sub_department);
-    
-    return [
-      ...new Set([...fromCats, ...fromEmps].filter(Boolean)),
-    ].sort();
+    const fromEmps = filteredEmps.map(
+      (e) => e.subDepartment || e.sub_department,
+    );
+
+    return [...new Set([...fromCats, ...fromEmps].filter(Boolean))].sort();
   }, [allCategories, allEmployees, deptFilter]);
 
   const uniqueEmployees = useMemo(() => {
@@ -322,7 +338,7 @@ export default function TasksPage() {
               { value: "PERSONAL", label: "My Tasks" },
             ]}
             activeTab={hrViewMode}
-            onChange={setHrViewMode}
+            onChange={handleHrViewModeChange}
           />
         )}
       </PageHeader>
@@ -393,7 +409,10 @@ export default function TasksPage() {
           );
 
           return (
-            <div key={statusKey} className="space-y-4 group-container scroll-mt-24">
+            <div
+              key={statusKey}
+              className="space-y-4 group-container scroll-mt-24"
+            >
               {/* Group Header */}
               <div className="flex items-center gap-3 border-b border-border pb-2 px-1">
                 <Dot
@@ -428,7 +447,7 @@ export default function TasksPage() {
               </div>
 
               {/* Task Cards */}
-              <div 
+              <div
                 className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 items-stretch transition-all"
                 style={{ minHeight: totalGroupPages > 1 ? "420px" : "auto" }}
               >
@@ -456,7 +475,12 @@ export default function TasksPage() {
                       disabled={currentGroupPage === 1}
                       onClick={(e) => {
                         setGroupPage(statusKey, currentGroupPage - 1);
-                        e.target.closest('.group-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        e.target
+                          .closest(".group-container")
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "nearest",
+                          });
                       }}
                       className="px-3 py-1 rounded bg-muted/50 border border-border text-foreground text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
                     >
@@ -498,7 +522,12 @@ export default function TasksPage() {
                           onClick={(e) => {
                             if (p !== "...") {
                               setGroupPage(statusKey, p);
-                              e.target.closest('.group-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                              e.target
+                                .closest(".group-container")
+                                ?.scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "nearest",
+                                });
                             }
                           }}
                           className={`w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition-all border ${
@@ -517,7 +546,12 @@ export default function TasksPage() {
                       disabled={currentGroupPage === totalGroupPages}
                       onClick={(e) => {
                         setGroupPage(statusKey, currentGroupPage + 1);
-                        e.target.closest('.group-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        e.target
+                          .closest(".group-container")
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "nearest",
+                          });
                       }}
                       className="px-3 py-1 rounded bg-muted/50 border border-border text-foreground text-xs font-bold disabled:opacity-30 active:scale-95 transition-all"
                     >
@@ -552,7 +586,6 @@ export default function TasksPage() {
         onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
         searchTerm={searchTerm}
       />
-
     </PageContainer>
   );
 }
