@@ -26,6 +26,7 @@ export function useSalesRecordsFilters(user) {
   const [filterEmp, setFilterEmp] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterType, setFilterType] = useState("ALL");
+  const [filterOutcome, setFilterOutcome] = useState("ALL");
   const [timeframe, setTimeframe] = useState("MONTHLY");
   const [selectedDateFilter, setSelectedDateFilter] = useState("");
   const [sortBy, setSortBy] = useState("NEWEST");
@@ -80,6 +81,7 @@ export function useSalesRecordsFilters(user) {
       timeframe: activeTab === "ACTIVITIES" ? timeframe : revTimeframe,
       filterStatus: activeTab === "ACTIVITIES" ? filterStatus : revFilterStatus,
       filterType,
+      filterOutcome,
       filterRecordType: revFilterRecordType,
       sortBy: activeTab === "ACTIVITIES" ? sortBy : revSortBy,
       activePreset,
@@ -90,6 +92,7 @@ export function useSalesRecordsFilters(user) {
     timeframe,
     filterStatus,
     filterType,
+    filterOutcome,
     revFilterRecordType,
     sortBy,
     activePreset,
@@ -378,6 +381,13 @@ export function useSalesRecordsFilters(user) {
         const fType = filterType.replace(/[-_]/g, " ").toUpperCase();
         return aType === fType;
       });
+    if (filterOutcome !== "ALL") {
+      if (filterOutcome === "PENDING") {
+        filtered = filtered.filter((a) => !a.sales_outcome);
+      } else {
+        filtered = filtered.filter((a) => a.sales_outcome === filterOutcome);
+      }
+    }
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -415,6 +425,7 @@ export function useSalesRecordsFilters(user) {
     filterEmp,
     filterStatus,
     filterType,
+    filterOutcome,
     searchTerm,
     selectedDateFilter,
     activePreset,
@@ -777,6 +788,8 @@ export function useSalesRecordsFilters(user) {
     setFilterStatus: wrapActFilter(setFilterStatus),
     filterType,
     setFilterType: wrapActFilter(setFilterType),
+    filterOutcome,
+    setFilterOutcome: wrapActFilter(setFilterOutcome),
     timeframe,
     setTimeframe: wrapActFilter(setTimeframe),
     selectedDateFilter,

@@ -33,6 +33,8 @@ export default function SalesRecordsPage() {
     setFilterStatus,
     filterType,
     setFilterType,
+    filterOutcome,
+    setFilterOutcome,
     timeframe,
     setTimeframe,
     selectedDateFilter,
@@ -181,6 +183,8 @@ export default function SalesRecordsPage() {
           setFilterStatus={activeTab === "ACTIVITIES" ? setFilterStatus : setRevFilterStatus}
           filterType={filterType}
           setFilterType={setFilterType}
+          filterOutcome={filterOutcome}
+          setFilterOutcome={setFilterOutcome}
           filterRecordType={revFilterRecordType}
           setFilterRecordType={setRevFilterRecordType}
           canViewAllSales={canViewAllSales}

@@ -24,13 +24,30 @@ export const salesVerificationService = {
   },
 
   async verifyActivity(activityId, headRemarks, verifiedBy, userObj) {
+    const { data: actCheck } = await supabase
+      .from("sales_activities")
+      .select("status")
+      .eq("id", activityId)
+      .single();
+
+    const isCurrentlyIncomplete =
+      actCheck?.status === "INCOMPLETE" || actCheck?.status === "REJECTED" || !actCheck?.status;
+    const now = new Date().toISOString();
+
+    const updatePayload = {
+      head_remarks: headRemarks,
+      head_verified_at: now,
+      head_verified_by: verifiedBy,
+    };
+
+    if (isCurrentlyIncomplete) {
+      updatePayload.status = REVENUE_STATUS.APPROVED;
+      updatePayload.completed_at = now;
+    }
+
     const { data, error } = await supabase
       .from("sales_activities")
-      .update({
-        head_remarks: headRemarks,
-        head_verified_at: new Date().toISOString(),
-        head_verified_by: verifiedBy,
-      })
+      .update(updatePayload)
       .eq("id", activityId)
       .select()
       .single();
@@ -62,16 +79,27 @@ export const salesVerificationService = {
 
   async bulkVerifyActivities(activityIds, headRemarks, verifiedBy) {
     if (!activityIds || activityIds.length === 0) return [];
+    const now = new Date().toISOString();
+
     const { data, error } = await supabase
       .from("sales_activities")
       .update({
         head_remarks: headRemarks,
-        head_verified_at: new Date().toISOString(),
+        head_verified_at: now,
         head_verified_by: verifiedBy,
       })
       .in("id", activityIds)
       .select();
     if (error) throw error;
+
+    await supabase
+      .from("sales_activities")
+      .update({
+        status: REVENUE_STATUS.APPROVED,
+        completed_at: now,
+      })
+      .in("id", activityIds)
+      .in("status", ["INCOMPLETE", "REJECTED"]);
 
     // LOG TO TIMELINE
     Promise.allSettled(

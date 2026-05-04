@@ -1,4 +1,4 @@
-import { DollarSign, AlertTriangle, Trash2, Tag } from "lucide-react";
+import { DollarSign, AlertTriangle, Trash2, Tag, Image as ImageIcon, X, CheckCircle2 } from "lucide-react";
 import Dot from "./ui/Dot";
 import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
@@ -11,6 +11,8 @@ import { activeChatService } from "../services/tasks/activeChatService";
 import CloudinaryImageAttachment from "./CloudinaryImageAttachment";
 import SalesHeader from "./SalesHeader";
 import { FieldBox } from "./FieldBox";
+import { storageService } from "../services/storageService";
+import Spinner from "./ui/Spinner";
 
 export default function SalesTaskDetailsModal({
   isOpen,
@@ -26,6 +28,9 @@ export default function SalesTaskDetailsModal({
     activity?.sales_outcome || "",
   );
 
+  const [executionDetails, setExecutionDetails] = useState("");
+  const [selectedImages, setSelectedImages] = useState([]);
+
   const isActivityCompleted =
     activity?.status === "DONE" ||
     activity?.status === "APPROVED" ||
@@ -36,6 +41,8 @@ export default function SalesTaskDetailsModal({
     if (activity?.id) {
       queueMicrotask(() => {
         setLocalOutcome(activity.sales_outcome || "");
+        setExecutionDetails("");
+        setSelectedImages([]);
       });
     }
   }, [activity?.id, activity?.sales_outcome]);
@@ -49,6 +56,28 @@ export default function SalesTaskDetailsModal({
       setTimeout(() => modalRef.current?.focus({ preventScroll: true }), 100);
     }
   }, [isOpen, activity?.id, user?.id]);
+
+  const executeMutation = useMutation({
+    mutationFn: async ({ details, images }) => {
+      let attachmentsArray = activity.attachments || [];
+      if (images && images.length > 0) {
+        if (images.length > 10) throw new Error("Max 10 images");
+        const uploadPromises = Array.from(images).map(file => storageService.uploadToCloudinary(file));
+        const newAttachments = await Promise.all(uploadPromises);
+        attachmentsArray = [...attachmentsArray, ...newAttachments];
+      }
+      return salesService.markActivityDone(activity.id, details, attachmentsArray);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dailyActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["allSalesActivities"] });
+      queryClient.invalidateQueries({ queryKey: ["superAdminActivityLog"] });
+      toast.success("Activity marked as complete!");
+      setExecutionDetails("");
+      setSelectedImages([]);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const outcomeMutation = useMutation({
     mutationFn: ({ id, outcome }) =>
@@ -283,9 +312,54 @@ export default function SalesTaskDetailsModal({
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                 Actual Execution Details
               </label>
-              <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground text-[15px] whitespace-pre-wrap leading-relaxed shadow-sm">
-                {activity.details_daily || "Not executed yet."}
-              </div>
+              {isActivityCompleted ? (
+                <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground text-[15px] whitespace-pre-wrap leading-relaxed shadow-sm">
+                  {activity.details_daily || "No details provided."}
+                </div>
+              ) : !isAdminView && user?.id === activity.employee_id ? (
+                <div className="bg-muted/30 p-4 rounded-2xl border border-border text-foreground shadow-sm flex flex-col gap-3">
+                  <textarea
+                    placeholder="Enter execution details..."
+                    value={executionDetails}
+                    onChange={(e) => setExecutionDetails(e.target.value)}
+                    className="w-full bg-card border border-border rounded-xl p-3 text-sm text-foreground outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all min-h-[100px] custom-scrollbar"
+                  />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <label className="text-[10px] font-black text-muted-foreground hover:text-foreground bg-card px-3 py-1.5 rounded-xl cursor-pointer border border-border flex items-center gap-1.5 transition-all hover:border-mauve-6">
+                        <ImageIcon size={12} /> {selectedImages.length > 0 ? `${selectedImages.length} Photo(s)` : 'Attach Photos'}
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          multiple
+                          onChange={(e) => setSelectedImages(Array.from(e.target.files))}
+                        />
+                      </label>
+                      {selectedImages.length > 0 && (
+                        <button 
+                          onClick={() => setSelectedImages([])}
+                          className="text-destructive hover:bg-destructive/10 p-1 rounded"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => executeMutation.mutate({ details: executionDetails, images: selectedImages })}
+                      disabled={executeMutation.isPending || !!activity.is_deleted || !!activity.delete_requested_by}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-9 text-primary-foreground rounded-xl text-xs font-bold transition-all border border-green-500 shadow-green-500/25 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-10"
+                    >
+                      {executeMutation.isPending ? <Spinner size="sm" /> : <CheckCircle2 size={16} />}
+                      Complete Activity
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-muted/30 p-6 rounded-2xl border border-border text-muted-foreground text-[15px] italic shadow-sm">
+                  Not executed yet.
+                </div>
+              )}
             </div>
 
             {/* Attachments */}

@@ -9,6 +9,7 @@ import {
   Activity,
   FileText,
   CheckCircle2,
+  Trophy,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -33,6 +34,8 @@ export default function SalesFilters({
   setFilterStatus,
   filterType,
   setFilterType,
+  filterOutcome,
+  setFilterOutcome,
   canViewAllSales = true,
   user,
   uniqueEmployees = [],
@@ -47,6 +50,7 @@ export default function SalesFilters({
     (canViewAllSales ? filterEmp !== "ALL" : filterEmp !== user?.id) ||
       filterStatus !== "ALL" ||
       (activeTab === "ACTIVITIES" && filterType !== "ALL") ||
+      (activeTab === "ACTIVITIES" && filterOutcome !== "ALL") ||
       (activeTab === "REVENUE" && filterRecordType !== "ALL"),
   );
 
@@ -59,6 +63,7 @@ export default function SalesFilters({
     (canViewAllSales ? filterEmp !== "ALL" : filterEmp !== user?.id) ||
     filterStatus !== "ALL" ||
     (activeTab === "ACTIVITIES" && filterType !== "ALL") ||
+    (activeTab === "ACTIVITIES" && filterOutcome !== "ALL") ||
     (activeTab === "REVENUE" && filterRecordType !== "ALL") ||
     selectedDateFilter !== "" ||
     searchTerm !== "";
@@ -68,7 +73,10 @@ export default function SalesFilters({
     setSelectedDateFilter("");
     if (canViewAllSales) setFilterEmp("ALL");
     setFilterStatus("ALL");
-    if (activeTab === "ACTIVITIES") setFilterType("ALL");
+    if (activeTab === "ACTIVITIES") {
+      setFilterType("ALL");
+      setFilterOutcome("ALL");
+    }
     if (activeTab === "REVENUE") setFilterRecordType("ALL");
   };
 
@@ -112,6 +120,13 @@ export default function SalesFilters({
     { value: "None", label: "Blank / None" },
   ];
 
+  const outcomeOptions = [
+    { value: "ALL", label: "All Outcomes" },
+    { value: "COMPLETED", label: "WON" },
+    { value: "LOST", label: "LOST" },
+    { value: "PENDING", label: "Pending" },
+  ];
+
   const recordTypeOptions = [
     { value: "ALL", label: "All" },
     { value: "SALES_ORDER", label: "Sales Orders" },
@@ -133,6 +148,9 @@ export default function SalesFilters({
   const currentTypeLabel =
     typeOptions.find((o) => o.value === filterType)?.label ||
     "All Activity Types";
+  const currentOutcomeLabel =
+    outcomeOptions.find((o) => o.value === filterOutcome)?.label ||
+    "All Outcomes";
   const currentRecordTypeLabel =
     recordTypeOptions.find((o) => o.value === filterRecordType)?.label ||
     "All Record Types";
@@ -422,6 +440,30 @@ export default function SalesFilters({
                   options={typeOptions}
                   value={filterType}
                   onChange={setFilterType}
+                  close={close}
+                />
+              )}
+            </Dropdown>
+          )}
+
+          {/* Outcome Filter */}
+          {activeTab === "ACTIVITIES" && (
+            <Dropdown
+              className="flex-1 min-w-[170px]"
+              trigger={({ isOpen }) => (
+                <FilterTrigger
+                  label={currentOutcomeLabel}
+                  isActive={filterOutcome !== "ALL"}
+                  isOpen={isOpen}
+                  icon={Trophy}
+                />
+              )}
+            >
+              {({ close }) => (
+                <FilterOptionList
+                  options={outcomeOptions}
+                  value={filterOutcome}
+                  onChange={setFilterOutcome}
                   close={close}
                 />
               )}
