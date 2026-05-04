@@ -122,6 +122,33 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
     }
   };
 
+  const handleItemClick = (e, index) => {
+    e.stopPropagation();
+    if (!onSilentUpdate) return;
+
+    let newDesc;
+    if (Array.isArray(parsedDesc)) {
+      newDesc = parsedDesc.map((item, i) =>
+        i === index ? { ...item, checked: !item.checked } : item
+      );
+    } else if (parsedDesc && Array.isArray(parsedDesc.items)) {
+      newDesc = {
+        ...parsedDesc,
+        items: parsedDesc.items.map((item, i) =>
+          i === index ? { ...item, checked: !item.checked } : item
+        ),
+      };
+    } else {
+      return;
+    }
+
+    const payloadDesc =
+      typeof task.taskDescription === "string"
+        ? JSON.stringify(newDesc)
+        : newDesc;
+    handleInlineCheck(payloadDesc);
+  };
+
   let displayTitle = "";
   let displaySnippet = "";
 
@@ -158,7 +185,10 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
             <>
               <div
                 className={`flex items-center gap-1 text-muted-foreground min-w-0 ${
-                  searchTerm && task.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())
+                  searchTerm &&
+                  task.projectTitle
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase())
                     ? "relative z-10"
                     : ""
                 }`}
@@ -167,20 +197,26 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
                 <FolderKanban size={11} className="shrink-0" />
                 <span
                   className={`text-[10px] font-bold uppercase tracking-wider ${
-                    searchTerm && task.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())
+                    searchTerm &&
+                    task.projectTitle
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase())
                       ? "absolute left-[15px] top-1/2 -translate-y-1/2 bg-card/95 backdrop-blur-sm py-0.5 px-1.5 whitespace-nowrap rounded-md shadow-sm border border-border/50 text-foreground"
                       : "truncate"
                   }`}
                 >
                   <HighlightText text={task.projectTitle} search={searchTerm} />
                 </span>
-                
+
                 {/* Invisible spacer to maintain some layout structure when absolute */}
-                {searchTerm && task.projectTitle.toLowerCase().includes(searchTerm.toLowerCase()) && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-0 pointer-events-none select-none truncate max-w-[40px]">
-                    {task.projectTitle}
-                  </span>
-                )}
+                {searchTerm &&
+                  task.projectTitle
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-0 pointer-events-none select-none truncate max-w-[40px]">
+                      {task.projectTitle}
+                    </span>
+                  )}
               </div>
               <span className="text-mauve-7 text-[10px] shrink-0">•</span>
             </>
@@ -257,10 +293,11 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
               {previewItems.map((item, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] ${
+                  onClick={(e) => handleItemClick(e, i)}
+                  className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] cursor-pointer hover:opacity-80 ${
                     item.checked
                       ? "bg-muted/20 border-transparent"
-                      : "bg-card shadow-sm border-border/40"
+                      : "bg-card shadow-sm border-border/40 hover:border-mauve-8"
                   }`}
                 >
                   {item.checked ? (
@@ -302,10 +339,11 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
                   {hiddenItems.map((item, i) => (
                     <div
                       key={i + 2}
-                      className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] ${
+                      onClick={(e) => handleItemClick(e, i + 2)}
+                      className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] cursor-pointer hover:opacity-80 ${
                         item.checked
                           ? "bg-muted/20 border-transparent"
-                          : "bg-card shadow-sm border-border/40"
+                          : "bg-card shadow-sm border-border/40 hover:border-mauve-8"
                       }`}
                     >
                       {item.checked ? (
