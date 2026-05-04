@@ -45,6 +45,8 @@ export type Path =
   | `/sales/schedule/components/ScheduleTabs`
   | `/sales/schedule/components/TemplateModals`
   | `/settings`
+  | `/settings/FAQEditor`
+  | `/settings/FAQModal`
   | `/super-admin`
   | `/super-admin/activity-log`
   | `/tasks`

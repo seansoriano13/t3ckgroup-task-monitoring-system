@@ -1,4 +1,6 @@
-import { Bell, Moon, Sun, LogOut, Shield } from "lucide-react";
+import { Bell, Moon, Sun, LogOut, Shield, HelpCircle } from "lucide-react";
+import { useState } from "react";
+import FAQModal from "./FAQModal";
 import Spinner from "@/components/ui/Spinner";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
@@ -41,6 +43,7 @@ export default function SettingsPage() {
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
+  const [showFAQ, setShowFAQ] = useState(false);
 
   const isHr = user?.is_hr === true || user?.isHr === true;
   const isSuperAdmin = user?.isSuperAdmin;
@@ -65,10 +68,22 @@ export default function SettingsPage() {
 
   return (
     <PageContainer maxWidth="4xl" className="pt-4">
-      <PageHeader
-        title="Settings"
-        description="Configure your portal experience."
-      />
+      <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
+
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <PageHeader
+          title="Settings"
+          description="Configure your portal experience."
+        />
+        <button
+          id="open-faq-btn"
+          onClick={() => setShowFAQ(true)}
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all shadow-sm"
+        >
+          <HelpCircle size={15} />
+          Help & FAQ
+        </button>
+      </div>
 
       <div className="space-y-6">
         {/* PREFERENCES SECTION */}
@@ -223,6 +238,17 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* FAQ floating hint */}
+      <div className="mt-8 flex items-center justify-center">
+        <button
+          onClick={() => setShowFAQ(true)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
+        >
+          <HelpCircle size={12} />
+          Have questions? View the Help & FAQ
+        </button>
       </div>
     </PageContainer>
   );
