@@ -239,48 +239,59 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
         }}
       >
         <div ref={panelRef} className="relative pointer-events-auto">
-          {/* FAB TRIGGER BUTTON — the stable handle */}
-          <button
-            onClick={() => setOpen((v) => !v)}
-            title="Drag to reposition"
-            className={`drag-handle cursor-grab active:cursor-grabbing pointer-events-auto flex items-center gap-2.5 px-3 py-2 rounded-2xl shadow-lg transition-all duration-300 active:scale-95 border text-sm ${
+          {/* FAB TRIGGER CONTAINER — separates drag handle from click trigger */}
+          <div
+            className={`pointer-events-auto flex items-center gap-1.5 pl-1.5 pr-3 py-1.5 rounded-2xl shadow-lg transition-all duration-300 border text-sm ${
               open
                 ? "bg-card text-foreground border-border ring-2 ring-primary/10 shadow-xl"
                 : "bg-card text-foreground border-border hover:border-border/80 hover:bg-accent/50"
             }`}
           >
-            <GripVertical
-              size={12}
-              className="text-muted-foreground/30 group-hover:text-muted-foreground/50 transition-colors -ml-0.5"
-            />
+            {/* DRAG HANDLE */}
             <div
-              className={`p-1.5 rounded-lg transition-colors ${open ? "bg-primary/10" : "bg-muted"}`}
+              title="Drag to reposition"
+              className="drag-handle cursor-grab active:cursor-grabbing p-1.5 rounded-xl hover:bg-muted/80 transition-colors flex items-center justify-center -ml-0.5 group"
             >
-              <Calendar
+              <GripVertical
                 size={14}
-                className={open ? "text-primary" : "text-muted-foreground"}
+                className="text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors"
               />
             </div>
-            <div className="flex items-center gap-2 leading-none">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                {mode === "MONTHLY"
-                  ? "Month"
-                  : mode === "QUARTERLY"
-                    ? "Quarter"
-                    : mode === "YEARLY"
-                      ? "Year"
-                      : "Range"}
-              </span>
-              <span className="w-px h-3 bg-border" />
-              <span className="text-sm font-bold text-foreground">
-                {rangeData.label}
-              </span>
-            </div>
-            <LayoutGrid
-              size={13}
-              className={`ml-1 transition-colors ${open ? "text-primary" : "text-muted-foreground/50"}`}
-            />
-          </button>
+
+            {/* CLICKABLE TRIGGER */}
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="flex items-center gap-2.5 flex-1 outline-none group/btn active:scale-95 transition-transform"
+            >
+              <div
+                className={`p-1.5 rounded-lg transition-colors ${open ? "bg-primary/10" : "bg-muted group-hover/btn:bg-muted/80"}`}
+              >
+                <Calendar
+                  size={14}
+                  className={open ? "text-primary" : "text-muted-foreground"}
+                />
+              </div>
+              <div className="flex items-center gap-2 leading-none">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  {mode === "MONTHLY"
+                    ? "Month"
+                    : mode === "QUARTERLY"
+                      ? "Quarter"
+                      : mode === "YEARLY"
+                        ? "Year"
+                        : "Range"}
+                </span>
+                <span className="w-px h-3 bg-border" />
+                <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                  {rangeData.label}
+                </span>
+              </div>
+              <LayoutGrid
+                size={13}
+                className={`ml-1 transition-colors ${open ? "text-primary" : "text-muted-foreground/50"}`}
+              />
+            </button>
+          </div>
 
           {/* EXPANDED PANEL — Absolutely positioned relative to the button */}
           {open && (

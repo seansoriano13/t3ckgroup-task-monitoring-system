@@ -13,6 +13,7 @@ import { ICON_MAP } from "./faqData";
 import { loadFAQFromDB } from "../../services/faqService";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
+import HighlightText from "../../components/HighlightText";
 
 // ─── Role helpers ──────────────────────────────────────────────────────────────
 const ROLE_LABELS = {
@@ -40,7 +41,7 @@ function getAnswerForRole(item, roleKey) {
 }
 
 // ─── Single accordion item ─────────────────────────────────────────────────────
-function FAQItem({ question, answer, isOpen, onToggle, hasRoleCustom }) {
+function FAQItem({ question, answer, isOpen, onToggle, hasRoleCustom, searchTerm }) {
   const lines = answer.split("\n");
   return (
     <div
@@ -65,7 +66,7 @@ function FAQItem({ question, answer, isOpen, onToggle, hasRoleCustom }) {
         <span
           className={`text-sm font-semibold leading-snug transition-colors ${isOpen ? "text-foreground" : "text-foreground/80"}`}
         >
-          {question}
+          <HighlightText text={question} search={searchTerm} />
         </span>
         {hasRoleCustom && (
           <span className="ml-auto shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
@@ -82,7 +83,7 @@ function FAQItem({ question, answer, isOpen, onToggle, hasRoleCustom }) {
                 key={idx}
                 className="text-sm text-muted-foreground leading-relaxed"
               >
-                {line}
+                <HighlightText text={line} search={searchTerm} />
               </p>
             ))}
           </div>
@@ -352,6 +353,7 @@ export default function FAQModal({ isOpen, onClose }) {
                           }
                           isOpen={openItem === `search-${idx}`}
                           onToggle={() => toggleItem(`search-${idx}`)}
+                          searchTerm={searchQuery}
                         />
                       </div>
                     ))}
