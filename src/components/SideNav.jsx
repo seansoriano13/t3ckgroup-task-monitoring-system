@@ -27,7 +27,7 @@ import { notificationService } from "../services/notificationService";
 import { activeChatService } from "../services/tasks/activeChatService";
 import NotificationDrawer from "./NotificationDrawer";
 import ComprehensiveChatModal from "./ComprehensiveChatModal";
-import BroadcastDrawer from "./BroadcastDrawer";
+
 import GlobalDetailManager from "./GlobalDetailManager";
 import { useLocation, Link, useNavigate, NavLink } from "react-router";
 import Avatar from "./Avatar";
@@ -39,6 +39,7 @@ import { committeeTaskService } from "../services/committeeTaskService";
 import { employeeService } from "../services/employeeService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import BroadcastModal from "./BroadcastModal";
 
 export default function SideNav() {
   const { user } = useAuth();
@@ -476,7 +477,7 @@ export default function SideNav() {
         onClose={() => setIsChatsOpen(false)}
       />
       <GlobalDetailManager />
-      <BroadcastDrawer
+      <BroadcastModal
         isOpen={isBroadcastOpen}
         onClose={() => setIsBroadcastOpen(false)}
       />

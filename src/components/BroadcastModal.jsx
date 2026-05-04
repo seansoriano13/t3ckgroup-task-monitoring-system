@@ -47,8 +47,8 @@ const TYPE_OPTIONS = [
     label: "New Feature",
     icon: Rocket,
     description: "Product update or new release",
-    color: "text-mauve-11",
-    bg: "bg-mauve-2 border-mauve-4",
+    color: "text-blue-11",
+    bg: "bg-blue-2 border-blue-4",
   },
   {
     value: "fix",
