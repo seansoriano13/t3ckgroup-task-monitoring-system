@@ -18,6 +18,7 @@ import { taskService } from "../services/taskService.js";
 import { TASK_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
 import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
+import HighlightText from "./HighlightText";
 
 export default function EmployeePipelineMatrix({ selectedRange }) {
   const navigate = useNavigate();
@@ -253,7 +254,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                       color: "#111827",
                     }}
                   >
-                    {emp.name}
+                    <HighlightText text={emp.name} search={searchTerm} />
                   </h3>
                   <p
                     className="line-clamp-1"
@@ -263,7 +264,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                       color: "#6B7280",
                     }}
                   >
-                    {emp.subDept}
+                    <HighlightText text={emp.subDept} search={searchTerm} />
                   </p>
                 </div>
               </div>
