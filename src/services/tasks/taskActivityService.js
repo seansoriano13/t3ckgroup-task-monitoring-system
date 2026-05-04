@@ -234,14 +234,15 @@ export const taskActivityService = {
   /**
    * Generic upsert for activity logs to prevent timeline noise.
    * Finds the most recent log for the task matching the given `type`, `author_id`, and `metadataEvent`.
-   * If it exists, updates it. If not, inserts a new one.
+   * If it exists AND was created within `windowMs` (default 2 hours), updates it.
+   * If not, or if it's older than the window, inserts a new one.
    */
-  async upsertActivityEntry(taskId, authorId, type, metadataEvent, content, metadata = null) {
+  async upsertActivityEntry(taskId, authorId, type, metadataEvent, content, metadata = null, windowMs = 7200000) {
     if (!taskId) return;
     try {
       let query = supabase
         .from("task_activity")
-        .select("id, metadata")
+        .select("id, metadata, created_at")
         .eq("task_id", taskId)
         .eq("type", type)
         .eq("metadata->>event", metadataEvent)
@@ -255,10 +256,20 @@ export const taskActivityService = {
       }
 
       const { data: existingLogs } = await query;
+      let shouldUpdate = false;
+      let existingLog = null;
 
       if (existingLogs && existingLogs.length > 0) {
-        const existingLog = existingLogs[0];
+        existingLog = existingLogs[0];
+        const logTime = new Date(existingLog.created_at).getTime();
+        const now = new Date().getTime();
         
+        if (now - logTime <= windowMs) {
+          shouldUpdate = true;
+        }
+      }
+
+      if (shouldUpdate) {
         // Preserve the original 'old' value if present, so the diff reflects the entire session
         const newMetadata = {
           ...metadata,
@@ -339,7 +350,7 @@ export const taskActivityService = {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "task_activity",
           filter: `task_id=eq.${taskId}`,
@@ -347,6 +358,11 @@ export const taskActivityService = {
         async (payload) => {
           // Re-fetch with author join since realtime doesn't include joins
           try {
+            if (payload.eventType === "DELETE") {
+              onNewEntry({ type: "DELETE" });
+              return;
+            }
+            
             const { data } = await supabase
               .from("task_activity")
               .select(

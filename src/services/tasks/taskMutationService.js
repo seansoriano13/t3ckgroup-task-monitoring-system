@@ -502,6 +502,9 @@ export const taskMutationService = {
         // Task description
         if (payload.taskDescription !== undefined && payload.taskDescription !== current.task_description) {
           const isChecklist = (val) => {
+            if (typeof val === "object" && val !== null) {
+              return Array.isArray(val) || Array.isArray(val.items);
+            }
             if (typeof val !== "string") return false;
             const trimmed = val.trim();
             return (trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"));
@@ -511,11 +514,11 @@ export const taskMutationService = {
             let oldItems = [];
             let newItems = [];
             try {
-              const parsedOld = JSON.parse(current.task_description);
-              oldItems = Array.isArray(parsedOld) ? parsedOld : (parsedOld.items || []);
+              const parsedOld = typeof current.task_description === "string" ? JSON.parse(current.task_description) : current.task_description;
+              oldItems = Array.isArray(parsedOld) ? parsedOld : (parsedOld?.items || []);
               
-              const parsedNew = JSON.parse(payload.taskDescription);
-              newItems = Array.isArray(parsedNew) ? parsedNew : (parsedNew.items || []);
+              const parsedNew = typeof payload.taskDescription === "string" ? JSON.parse(payload.taskDescription) : payload.taskDescription;
+              newItems = Array.isArray(parsedNew) ? parsedNew : (parsedNew?.items || []);
             } catch (e) {}
 
             let checkedItemText = "";
