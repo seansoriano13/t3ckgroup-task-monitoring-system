@@ -82,17 +82,31 @@ export default function TasksList({ selectedRange }) {
 
   // 🔥 DEEP LINKING NOTIFICATION HOOK
   useEffect(() => {
-    if (location.state?.openTaskId && rawTasks.length > 0) {
-      const targetTask = rawTasks.find(
-        (t) => t.id === location.state.openTaskId,
-      );
+    if (!location.state?.openTaskId) return;
+    const openId = location.state.openTaskId;
+    if (rawTasks.length > 0) {
+      const targetTask = rawTasks.find((t) => t.id === openId);
       if (targetTask) {
         queueMicrotask(() => {
           setSelectedTask(targetTask);
           setIsDrawerOpen(true);
-          // Clear state to prevent re-firing on hot reload
           navigate(location.pathname, { replace: true, state: {} });
         });
+      } else {
+        // Task may be soft-deleted — fetch it directly
+        import("../services/tasks/taskQueryService.js").then(
+          ({ taskQueryService }) => {
+            taskQueryService.getTaskById(openId)
+              .then((task) => {
+                if (task) {
+                  setSelectedTask(task);
+                  setIsDrawerOpen(true);
+                }
+              })
+              .catch(() => {});
+          }
+        );
+        navigate(location.pathname, { replace: true, state: {} });
       }
     }
   }, [location.state, rawTasks, navigate, location.pathname]);

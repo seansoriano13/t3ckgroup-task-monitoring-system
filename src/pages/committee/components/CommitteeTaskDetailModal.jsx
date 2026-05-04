@@ -36,6 +36,7 @@ import { committeeTaskService } from "@/services/committeeTaskService";
 import { MessageCircle } from "lucide-react";
 import HistoryTimeline from "@/components/HistoryTimeline";
 
+
 const COMMITTEE_ROLES = ["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"];
 
 export default function CommitteeTaskDetailModal({
@@ -128,8 +129,7 @@ export default function CommitteeTaskDetailModal({
 
   const { data: logs = [], isLoading: isLoadingLogs } = useQuery({
     queryKey: ["committeeHistory", task?.id],
-    queryFn: () =>
-      committeeTaskService.getCommitteeTaskHistory(task.id),
+    queryFn: () => committeeTaskService.getCommitteeTaskHistory(task.id),
     enabled: !!task?.id && isOpen && activeTab === "history",
   });
 
@@ -261,7 +261,7 @@ export default function CommitteeTaskDetailModal({
                 );
               }}
               title="Open Conversation"
-              className="p-1.5 rounded-md text-violet-9 hover:bg-violet-2 hover:text-violet-10 transition-colors mr-1"
+              className="p-1.5 rounded-md text-mauve-9 hover:bg-mauve-3 hover:text-mauve-11 transition-colors mr-1"
             >
               <MessageCircle size={15} />
             </button>
@@ -317,10 +317,7 @@ export default function CommitteeTaskDetailModal({
               {task.description && (
                 <div className="animate-content-in stagger-1 mb-2">
                   <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
-                    <HighlightText
-                      text={task.description}
-                      search={searchTerm}
-                    />
+                    {task.description}
                   </p>
                 </div>
               )}
@@ -581,10 +578,7 @@ export default function CommitteeTaskDetailModal({
                                 </div>
                               ) : (
                                 <div className="text-[13px] text-foreground bg-muted/20 p-4 rounded-xl border border-border/50 leading-relaxed min-h-[80px] whitespace-pre-wrap">
-                                  <HighlightText
-                                    text={member.task_description}
-                                    search={searchTerm}
-                                  />
+                                  {member.task_description}
                                 </div>
                               )}
                             </div>

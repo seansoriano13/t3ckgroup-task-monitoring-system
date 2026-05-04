@@ -32,6 +32,37 @@ import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import Dot from "./ui/Dot";
 import { handleNotificationRoute } from "../utils/notificationRouter";
 
+// ─── Relative Timestamp ───────────────────────────────────────────────────────
+function getRelativeTime(dateStr) {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHrs = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+
+  if (diffSec < 60) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffWeeks < 5) return `${diffWeeks}w ago`;
+  if (diffMonths < 12) return `${diffMonths}mo ago`;
+  return new Date(dateStr).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function getFullDate(dateStr) {
+  return new Date(dateStr).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 // ─── Icon Map ─────────────────────────────────────────────────────────────────
 const TYPE_ICONS = {
   TASK_GRADED: <CheckCircle2 size={18} className="text-green-500" />,
@@ -194,7 +225,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99]"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-99"
           onClick={onClose}
         />
       )}
@@ -344,10 +375,9 @@ function NotifItem({
             {notif.message}
           </p>
           <div className="mt-1.5 text-[12px] text-muted-foreground flex items-center gap-1.5">
-            {new Date(notif.created_at).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}
+            <span title={getFullDate(notif.created_at)} className="cursor-default">
+              {getRelativeTime(notif.created_at)}
+            </span>
             {notif.sender && (
               <>
                 <span>•</span>

@@ -150,6 +150,7 @@ export default function CommitteeTasksList({ selectedRange }) {
                 task={task}
                 currentUserId={user?.id}
                 isSuperAdmin={isSuperAdmin}
+                searchTerm={searchTerm}
                 onView={() => {
                   window.dispatchEvent(
                     new CustomEvent("OPEN_ENTITY_DETAILS", {

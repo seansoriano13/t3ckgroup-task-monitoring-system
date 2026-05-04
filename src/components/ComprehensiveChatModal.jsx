@@ -502,6 +502,11 @@ export default function ComprehensiveChatModal({
   }, [messages]);
 
   // -- Handlers ----------------------------------------------
+  const handleClose = () => {
+    setInternalOpen(false);
+    onClose();
+  };
+
   const handleChatSelect = (chat) => {
     if (selectionMode) {
       const key = `${chat.entity_type}_${chat.entity_id}`;
@@ -573,8 +578,7 @@ export default function ComprehensiveChatModal({
       open={internalOpen}
       onOpenChange={(open) => {
         if (!open) {
-          setInternalOpen(false);
-          onClose();
+          handleClose();
         }
       }}
     >
@@ -614,7 +618,7 @@ export default function ComprehensiveChatModal({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="md:hidden"
                 >
                   <X size={18} />
@@ -701,7 +705,7 @@ export default function ComprehensiveChatModal({
                         ? "hover:bg-muted"
                         : selectedChat?.entity_id === chat.entity_id &&
                             selectedChat?.entity_type === chat.entity_type
-                          ? "bg-mauve-4 border-mauve-4 ring-1 ring-mauve-6"
+                          ? "bg-mauve-3 border-mauve-3 ring-1 ring-mauve-6"
                           : "bg-transparent border-transparent hover:bg-card hover:border-border",
                     )}
                   >
@@ -762,13 +766,23 @@ export default function ComprehensiveChatModal({
                         </span>
                       </div>
                       <h4 className="text-[13px] font-bold truncate leading-tight mb-1">
-                        <HighlightText text={chat.title || ""} search={searchQuery} />
+                        <HighlightText
+                          text={chat.title || ""}
+                          search={searchQuery}
+                        />
                       </h4>
                       <p className="text-xs text-muted-foreground truncate leading-relaxed">
                         <span className="font-bold text-foreground/80">
-                          <HighlightText text={chat.latest_author || ""} search={searchQuery} />:
+                          <HighlightText
+                            text={chat.latest_author || ""}
+                            search={searchQuery}
+                          />
+                          :
                         </span>{" "}
-                        <HighlightText text={chat.latest_message || ""} search={searchQuery} />
+                        <HighlightText
+                          text={chat.latest_message || ""}
+                          search={searchQuery}
+                        />
                       </p>
                     </div>
                     {chat.is_unread && !selectionMode && (
@@ -849,7 +863,7 @@ export default function ComprehensiveChatModal({
                       </>
                     )}
                   </Button>
-                  <Button variant="ghost" size="icon-sm" onClick={onClose}>
+                  <Button variant="ghost" size="icon-sm" onClick={handleClose}>
                     <X size={20} />
                   </Button>
                 </div>
@@ -898,8 +912,7 @@ export default function ComprehensiveChatModal({
               >
                 {isLoadingMessages ? (
                   <div className="flex items-center justify-center h-full gap-2 text-muted-foreground italic text-xs">
-                    <Spinner size="sm" /> Fetching
-                    history...
+                    <Spinner size="sm" /> Fetching history...
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full opacity-30 select-none">

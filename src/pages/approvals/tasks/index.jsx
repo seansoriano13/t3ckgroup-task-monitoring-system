@@ -137,13 +137,20 @@ export default function TaskApprovalsPage() {
 
   // DEEP LINK HOOK
   useEffect(() => {
-    if (location.state?.openTaskId && rawTasks.length > 0) {
-      const targetTask = rawTasks.find(
-        (t) => t.id === location.state.openTaskId,
-      );
+    if (!location.state?.openTaskId) return;
+    const openId = location.state.openTaskId;
+    if (rawTasks.length > 0) {
+      const targetTask = rawTasks.find((t) => t.id === openId);
       queueMicrotask(() => {
-        setAutoOpenId(location.state.openTaskId);
-        if (targetTask) setViewTask(targetTask);
+        setAutoOpenId(openId);
+        if (targetTask) {
+          setViewTask(targetTask);
+        } else {
+          // Task may be soft-deleted — fetch it directly
+          taskQueryService.getTaskById(openId)
+            .then((task) => { if (task) setViewTask(task); })
+            .catch(() => {});
+        }
       });
       navigate(location.pathname, { replace: true, state: {} });
     }
