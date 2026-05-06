@@ -219,7 +219,12 @@ export default function ComprehensiveChatModal({
     setInternalOpen(isOpen);
   }, [isOpen]);
 
-  // -- Data: Active Chats ------------------------------------
+  // Hide FloatingMonthPicker while chat modal is open
+  useEffect(() => {
+    window.dispatchEvent(new Event(internalOpen ? "FLOATING_PICKER_HIDE" : "FLOATING_PICKER_SHOW"));
+  }, [internalOpen]);
+
+
   const { data: activeChats = [], isLoading: isLoadingList } = useQuery({
     queryKey: ["activeChats", user?.id],
     queryFn: () => activeChatService.getActiveChats(user?.id),

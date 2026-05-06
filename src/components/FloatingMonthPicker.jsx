@@ -42,6 +42,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   const isInternalChange = useRef(false);
   const now = new Date();
 
+
   // Internal state for selection
   const [mode, setMode] = useState(selectedRange?.mode || "MONTHLY");
   const [month, setMonth] = useState(
@@ -221,7 +222,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   };
 
   const content = (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[49] pointer-events-none">
       <Draggable
         handle=".drag-handle"
         nodeRef={panelRef}
