@@ -16,6 +16,27 @@ const formatTime = (isoString) => {
   });
 };
 
+const isIsoDateString = (val) => {
+  if (typeof val !== 'string') return false;
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val) && !isNaN(Date.parse(val));
+};
+
+const displayValue = (val) => {
+  if (val === null || val === undefined) return "None";
+  const str = String(val);
+  if (isIsoDateString(str)) {
+    return new Date(str).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
+  return str;
+};
+
 /**
  * Standardized History Item Renderer
  */
@@ -102,6 +123,48 @@ function HistoryItem({ log, type = "TASK" }) {
       );
     }
 
+    // Attachments Diff
+    if (details.field === "attachments" && Array.isArray(details.old) && Array.isArray(details.new)) {
+      return (
+        <div className="mt-3 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-1">Before</span>
+              <div className="p-3 rounded-xl border border-border bg-muted/30">
+                {details.old.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No attachments</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {details.old.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer" className="block w-12 h-12 rounded-md overflow-hidden border border-border hover:opacity-80 transition-opacity">
+                        <img src={url} alt={`Attachment ${i}`} className="w-full h-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-9 px-1">After</span>
+              <div className="p-3 rounded-xl border border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/10 shadow-sm">
+                {details.new.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No attachments</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {details.new.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer" className="block w-12 h-12 rounded-md overflow-hidden border border-blue-500/30 hover:opacity-80 transition-opacity">
+                        <img src={url} alt={`Attachment ${i}`} className="w-full h-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Standard Before/After Diff
     if (details.old !== undefined && details.new !== undefined && details.old !== details.new) {
       return (
@@ -109,14 +172,14 @@ function HistoryItem({ log, type = "TASK" }) {
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Before</p>
             <p className="text-xs text-muted-foreground line-through truncate">
-              {String(details.old || "None")}
+              {displayValue(details.old)}
             </p>
           </div>
           <ChevronRight size={14} className="text-muted-foreground/40 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold text-blue-9 uppercase tracking-widest mb-1">After</p>
             <p className="text-xs text-foreground font-bold truncate">
-              {String(details.new || "None")}
+              {displayValue(details.new)}
             </p>
           </div>
         </div>

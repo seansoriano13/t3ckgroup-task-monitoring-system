@@ -180,11 +180,11 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
     >
       {/* Row 1: The Eyebrow (Context) */}
       <div className="flex justify-between items-center gap-3 mb-3">
-        <div className="flex items-center gap-2 truncate mr-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
           {task.projectTitle && (
             <>
               <div
-                className={`flex items-center gap-1 text-muted-foreground min-w-0 ${
+                className={`flex items-center gap-1 text-muted-foreground min-w-0 shrink ${
                   searchTerm &&
                   task.projectTitle
                     .toLowerCase()
@@ -223,7 +223,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
           )}
 
           <div
-            className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold shrink-0 truncate"
+            className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold shrink min-w-0 truncate"
             title={
               task.categoryId ? task.categoryId.replace(" TASK", "") : "TASK"
             }
@@ -289,7 +289,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
             )}
 
             {/* Always-visible first 2 items */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 relative z-10">
               {previewItems.map((item, i) => (
                 <div
                   key={i}

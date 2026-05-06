@@ -263,6 +263,13 @@ export default function TaskDetails({
     taskDept?.toUpperCase() === "MARKETING" ||
     task?.categoryDesc?.toUpperCase()?.includes("MARKETING");
 
+  const selectedCategoryObj = topologyData?.filteredCategories?.find(
+    (c) => c.category_id === formData.categoryId,
+  );
+  const isOthersGlobal =
+    selectedCategoryObj?.category_id?.toUpperCase().includes("OTHERS") ||
+    selectedCategoryObj?.description?.toUpperCase().includes("OTHERS");
+
   const isComplete = task.status === TASK_STATUS.COMPLETE;
   const isNotApproved = task.status === TASK_STATUS.NOT_APPROVED;
   const isFinalized = isComplete || isNotApproved;
@@ -593,6 +600,22 @@ export default function TaskDetails({
                     {formData.paymentVoucher}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* --- OTHERS DETAILS --- */}
+            {isEditing && isOthersGlobal && (
+              <div className="flex flex-col gap-1.5 pt-2 animate-slide-down">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                  Others Details
+                </label>
+                <Textarea
+                  name="remarks"
+                  value={formData.remarks || ""}
+                  onChange={handleChange}
+                  placeholder="Specify details..."
+                  className="w-full bg-card border border-border text-foreground rounded-xl p-3 outline-none transition-all h-20 resize-none text-[13px] shadow-sm"
+                />
               </div>
             )}
 

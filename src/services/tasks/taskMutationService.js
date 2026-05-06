@@ -678,7 +678,7 @@ export const taskMutationService = {
             taskActivityService.addSystemEvent(
               taskId,
               attMsg,
-              { event: "TASK_EDITED", field: "attachments", old_count: oldCount, new_count: newCount }
+              { event: "TASK_EDITED", field: "attachments", old_count: oldCount, new_count: newCount, old: current.attachment_urls || [], new: payload.attachments || [] }
             );
           }
         }
