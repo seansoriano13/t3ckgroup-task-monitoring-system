@@ -85,7 +85,7 @@ export function ChecklistItem({
 
   const handleCheck = async () => {
     if (disabledUI || isUploading) return;
-    
+
     let attachmentsArray = [];
     if (selectedImages && selectedImages.length > 0) {
       if (selectedImages.length > 10) {
@@ -94,7 +94,9 @@ export function ChecklistItem({
       }
       setIsUploading(true);
       try {
-        const uploadPromises = Array.from(selectedImages).map(file => storageService.uploadToCloudinary(file));
+        const uploadPromises = Array.from(selectedImages).map((file) =>
+          storageService.uploadToCloudinary(file),
+        );
         attachmentsArray = await Promise.all(uploadPromises);
       } catch (err) {
         toast.error("Failed to attach image: " + err.message);
@@ -112,7 +114,7 @@ export function ChecklistItem({
   return (
     <div
       ref={itemRef}
-      className={`p-4 flex gap-4 border-l-4 transition-all duration-500 ${justChecked ? "animate-check-flash" : ""} ${
+      className={`p-4 flex gap-3 border-l-4 transition-all duration-500 ${justChecked ? "animate-check-flash" : ""} ${
         isHighlighted
           ? "border-l-violet-9 bg-violet-2/60"
           : isLost
@@ -124,10 +126,23 @@ export function ChecklistItem({
                 : "border-l-transparent"
       } ${isDone || isPendingApproval ? "opacity-60 hover:opacity-100" : "hover:bg-muted/40"}`}
     >
+      {/* Index Numbering */}
+      <div className="grid items-center mt-1 shrink-0 min-w-[16px] text-right">
+        <span
+          className={` font-black transition-all ${
+            isDone || isPendingApproval
+              ? "text-muted-foreground opacity-70"
+              : "text-mauve-10"
+          }`}
+        >
+          {index}.
+        </span>
+      </div>
+
       <button
         disabled={isDone || isPendingApproval || disabledUI}
         onClick={handleCheck}
-        className="mt-1 shrink-0 transition-transform active:scale-75 disabled:cursor-not-allowed"
+        className="mt-0.5 shrink-0 transition-transform active:scale-75 disabled:cursor-not-allowed group"
       >
         {isUploading ? (
           <Spinner size="md" />
@@ -147,27 +162,16 @@ export function ChecklistItem({
           </div>
         ) : (
           <Circle
-            size={24}
-            className={`text-muted-foreground transition-transform ${justChecked ? "scale-110" : ""}`}
+            size={22}
+            className={`text-muted-foreground transition-transform group-hover:text-mauve-12 ${justChecked ? "scale-110" : ""}`}
           />
         )}
       </button>
 
-      {/* Index Numbering */}
-      <div className="mt-1 shrink-0">
-        <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-[10px] font-black border transition-all ${
-          isDone || isPendingApproval
-            ? "bg-muted text-mauve-4 border-mauve-4"
-            : "bg-violet-2 text-violet-10 border-mauve-5"
-        }`}>
-          {index}
-        </span>
-      </div>
-
       <div className="flex-1 min-w-0">
         <div
           onClick={() => onView(data)}
-          className={`font-bold text-base cursor-pointer hover:text-violet-10 transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-muted-foreground" : "text-foreground"}`}
+          className={`font-bold text-base cursor-pointer hover:text-mauve-12 transition-all flex items-center flex-wrap gap-2 ${isDone || isPendingApproval ? "line-through text-muted-foreground" : "text-foreground"}`}
         >
           <span>{data.account_name}</span>
           {data.is_unplanned && (
@@ -247,22 +251,51 @@ export function ChecklistItem({
                 <button
                   className={`flex items-center gap-1.5 text-[10px] font-black uppercase bg-card border ${isOpen ? "border-mauve-8" : "border-border"} rounded-lg px-2 py-1 outline-none cursor-pointer transition-colors ${outcomeMutation.isPending ? "opacity-50" : ""}`}
                 >
-                  {data.sales_outcome === "COMPLETED" ? "WON" : data.sales_outcome === "LOST" ? "LOST" : "Pending"}
+                  {data.sales_outcome === "COMPLETED"
+                    ? "WON"
+                    : data.sales_outcome === "LOST"
+                      ? "LOST"
+                      : "Pending"}
                   <ChevronDown size={12} className="opacity-50" />
                 </button>
               )}
             >
               {({ close }) => (
                 <div className="flex flex-col p-1 w-24">
-                  <button onClick={() => { outcomeMutation.mutate({ id: data.id, outcome: null }); close(); }} className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded transition-colors">Pending</button>
-                  <button onClick={() => { outcomeMutation.mutate({ id: data.id, outcome: "COMPLETED" }); close(); }} className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded text-green-10 transition-colors">WON</button>
-                  <button onClick={() => { outcomeMutation.mutate({ id: data.id, outcome: "LOST" }); close(); }} className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded text-destructive transition-colors">LOST</button>
+                  <button
+                    onClick={() => {
+                      outcomeMutation.mutate({ id: data.id, outcome: null });
+                      close();
+                    }}
+                    className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded transition-colors"
+                  >
+                    Pending
+                  </button>
+                  <button
+                    onClick={() => {
+                      outcomeMutation.mutate({
+                        id: data.id,
+                        outcome: "COMPLETED",
+                      });
+                      close();
+                    }}
+                    className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded text-green-10 transition-colors"
+                  >
+                    WON
+                  </button>
+                  <button
+                    onClick={() => {
+                      outcomeMutation.mutate({ id: data.id, outcome: "LOST" });
+                      close();
+                    }}
+                    className="text-[10px] font-black uppercase text-left px-2 py-1.5 hover:bg-mauve-4 rounded text-destructive transition-colors"
+                  >
+                    LOST
+                  </button>
                 </div>
               )}
             </Dropdown>
-            {outcomeMutation.isPending && (
-              <Spinner size="sm" />
-            )}
+            {outcomeMutation.isPending && <Spinner size="sm" />}
           </div>
         )}
 
@@ -277,8 +310,8 @@ export function ChecklistItem({
                 className="flex-1 bg-muted/40 border border-border rounded-xl p-2 text-xs text-foreground font-medium outline-none focus:border-mauve-8 focus:ring-2 focus:ring-mauve-3 transition-all"
                 autoFocus
               />
-              <button 
-                onClick={() => setIsEditing(false)} 
+              <button
+                onClick={() => setIsEditing(false)}
                 className="text-[10px] uppercase font-black text-muted-foreground hover:text-foreground bg-muted px-2.5 py-1.5 rounded-lg border border-border transition-colors"
               >
                 Close
@@ -287,17 +320,22 @@ export function ChecklistItem({
             {/* Attachment Uploader */}
             <div className="flex items-center gap-2">
               <label className="text-[10px] font-black text-muted-foreground hover:text-foreground bg-muted px-3 py-1.5 rounded-xl cursor-pointer border border-border flex items-center gap-1.5 transition-all hover:border-mauve-6">
-                <ImageIcon size={12} /> {selectedImages.length > 0 ? `${selectedImages.length} Photo(s)` : 'Attach Photos'}
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
+                <ImageIcon size={12} />{" "}
+                {selectedImages.length > 0
+                  ? `${selectedImages.length} Photo(s)`
+                  : "Attach Photos"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
                   multiple
-                  onChange={(e) => setSelectedImages(Array.from(e.target.files))}
+                  onChange={(e) =>
+                    setSelectedImages(Array.from(e.target.files))
+                  }
                 />
               </label>
               {selectedImages.length > 0 && (
-                <button 
+                <button
                   onClick={() => setSelectedImages([])}
                   className="text-destructive hover:bg-destructive/10 p-1 rounded"
                 >
@@ -309,7 +347,7 @@ export function ChecklistItem({
         ) : !isDone ? (
           <button
             onClick={() => setIsEditing(true)}
-           className="mt-1 text-[10px] font-black text-muted-foreground hover:text-violet-10 uppercase tracking-widest transition-colors"
+            className="mt-1 text-[10px] font-black text-muted-foreground hover:text-mauve-12 uppercase tracking-widest transition-colors"
           >
             {details ? `Note: ${details}` : "+ Add Note (Optional)"}
           </button>
@@ -324,7 +362,7 @@ export function ChecklistItem({
 
       <button
         onClick={() => onView(data)}
-        className="mt-1 shrink-0 text-muted-foreground hover:text-violet-9 transition-colors p-1 rounded-lg hover:bg-violet-2"
+        className="mt-1 shrink-0 text-muted-foreground hover:text-mauve-12 transition-colors p-1 rounded-lg hover:bg-mauve-2"
         title="View Details"
       >
         <Maximize2 size={18} />

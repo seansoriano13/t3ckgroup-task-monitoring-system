@@ -58,6 +58,7 @@ export function DailyCoverageTabs({
         variant="primary"
         size="md"
         fullWidth
+        className="[&_.bg-green-10]:!bg-mauve-10 [&_.bg-green-10]:!shadow-mauve-9/20"
       />
     </div>
   );

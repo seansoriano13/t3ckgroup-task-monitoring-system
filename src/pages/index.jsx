@@ -65,7 +65,11 @@ export default function Dashboard() {
 
             <div className="grid gap-8 relative mt-10">
               <DashboardStats selectedRange={globalRange} />
-              <EmployeePipelineMatrix selectedRange={globalRange} />
+              {(user?.is_hr || user?.isHr || user?.isSuperAdmin || user?.is_head || user?.isHead) ? (
+                <EmployeePipelineMatrix selectedRange={globalRange} />
+              ) : (
+                <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
+              )}
               <CommitteeTasksList selectedRange={globalRange} />
               <TasksList selectedRange={globalRange} />
             </div>

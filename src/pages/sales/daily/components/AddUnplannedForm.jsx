@@ -32,7 +32,7 @@ export function AddUnplannedForm({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-[10px] font-black text-muted-foreground hover:text-violet-10 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
+        className="w-full text-[10px] font-black text-muted-foreground hover:text-mauve-12 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
       >
         <Plus size={14} /> NEW UNPLANNED ITEM
       </button>
@@ -82,7 +82,7 @@ export function AddUnplannedForm({
   return (
     <div className="animate-in fade-in slide-in-from-top-2 p-5 bg-card rounded-2xl border border-border mt-2 space-y-4 shadow-lg relative w-full overflow-hidden">
       <div className="flex justify-between items-center border-b border-border pb-3 mb-2">
-        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-10 flex items-center gap-1.5">
+        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-mauve-10 flex items-center gap-1.5">
           <Plus size={13} /> Unplanned Entry
         </h4>
       </div>
@@ -190,7 +190,9 @@ export function AddUnplannedForm({
           <div className="sm:col-span-2">
             <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] flex items-center gap-1 w-full justify-between mb-1.5">
               Execution Details
-              <span className="text-[9px] font-medium text-muted-foreground italic lowercase">(optional remarks)</span>
+              <span className="text-[9px] font-medium text-muted-foreground italic lowercase">
+                (optional remarks)
+              </span>
             </label>
             <textarea
               placeholder="What occurred?"
@@ -263,9 +265,7 @@ export function AddUnplannedForm({
                 <X size={16} />
               </button>
             )}
-            {isUploading && (
-              <Spinner size="sm" />
-            )}
+            {isUploading && <Spinner size="sm" />}
           </div>
         </div>
       </div>
@@ -286,8 +286,6 @@ export function AddUnplannedForm({
           {isUploading ? "Uploading..." : "Add Item"}
         </button>
       </div>
-
-
     </div>
   );
 }
