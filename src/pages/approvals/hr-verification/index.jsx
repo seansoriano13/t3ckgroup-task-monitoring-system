@@ -50,8 +50,11 @@ export default function HrVerificationPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("OLDEST");
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, endDate] = dateRange;
+  const [timeframe, setTimeframe] = useState("MONTHLY");
+  const [selectedDateFilter, setSelectedDateFilter] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  });
   const [statusFilter] = useState(TASK_STATUS.COMPLETE);
   const [deptFilter, setDeptFilter] = useState("ALL");
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
@@ -95,7 +98,7 @@ export default function HrVerificationPage() {
   useEffect(() => {
     setCurrentPage(1);
     setSelectedTaskIds([]);
-  }, [searchQuery, priorityFilter, sortBy, dateRange, deptFilter, subDeptFilter, employeeFilter, activeTab]);
+  }, [searchQuery, priorityFilter, sortBy, timeframe, selectedDateFilter, deptFilter, subDeptFilter, employeeFilter, activeTab]);
 
   useEffect(() => {
     const fetchTopology = async () => {
@@ -168,12 +171,30 @@ export default function HrVerificationPage() {
     if (priorityFilter !== "ALL") {
       result = result.filter((t) => t.priority === priorityFilter);
     }
-    if (startDate && endDate) {
-      const filterStart = new Date(startDate).setHours(0, 0, 0, 0);
-      const filterEnd = new Date(endDate).setHours(23, 59, 59, 999);
+    if (selectedDateFilter) {
       result = result.filter((t) => {
-        const taskDate = new Date(t.createdAt).getTime();
-        return taskDate >= filterStart && taskDate <= filterEnd;
+        const taskDate = new Date(t.createdAt);
+        const taskDateStr = taskDate.toISOString().split("T")[0]; // YYYY-MM-DD
+
+        if (timeframe === "DAILY") {
+          return taskDateStr === selectedDateFilter;
+        } else if (timeframe === "MONTHLY" || timeframe === "YEARLY") {
+          return taskDateStr.startsWith(selectedDateFilter);
+        } else if (timeframe === "WEEKLY") {
+          const [y, m, d] = selectedDateFilter.split("-").map(Number);
+          const selectedD = new Date(y, m - 1, d);
+          const day = selectedD.getDay();
+          const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
+          const startOfWeek = new Date(selectedD);
+          startOfWeek.setDate(diff);
+          startOfWeek.setHours(0, 0, 0, 0);
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23, 59, 59, 999);
+
+          return taskDate >= startOfWeek && taskDate <= endOfWeek;
+        }
+        return true;
       });
     }
     if (deptFilter !== "ALL" || subDeptFilter !== "ALL" || employeeFilter !== "ALL") {
@@ -194,7 +215,7 @@ export default function HrVerificationPage() {
     return result;
   }, [
     activeRawData, searchQuery, priorityFilter, sortBy,
-    startDate, endDate, deptFilter, subDeptFilter, employeeFilter, allEmployees,
+    timeframe, selectedDateFilter, deptFilter, subDeptFilter, employeeFilter, allEmployees,
   ]);
 
   const editTaskMutation = useMutation({
@@ -336,8 +357,10 @@ export default function HrVerificationPage() {
               setStatusFilter={() => {}} 
               priorityFilter={priorityFilter}
               setPriorityFilter={setPriorityFilter}
-              dateRange={dateRange}
-              setDateRange={setDateRange}
+              timeframe={timeframe}
+              setTimeframe={setTimeframe}
+              selectedDateFilter={selectedDateFilter}
+              setSelectedDateFilter={setSelectedDateFilter}
               deptFilter={deptFilter}
               setDeptFilter={setDeptFilter}
               subDeptFilter={subDeptFilter}

@@ -7,8 +7,8 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     statusFilter = "ALL",
     priorityFilter = "ALL",
     hrFilter = "ALL",
-    startDate = null,
-    endDate = null,
+    timeframe = "DAILY",
+    selectedDateFilter = "",
     deptFilter = "ALL",
     subDeptFilter = "ALL",
     employeeFilter = "ALL",
@@ -72,13 +72,30 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
       if (hrFilter === "PENDING")
         matchesHr = task.status === TASK_STATUS.COMPLETE && !task.hrVerified;
 
-      // Date Range
+      // Date Filter
       let matchesDate = true;
-      if (startDate && endDate) {
+      if (selectedDateFilter) {
         const taskDate = new Date(task.createdAt);
-        const filterStart = new Date(startDate).setHours(0, 0, 0, 0);
-        const filterEnd = new Date(endDate).setHours(23, 59, 59, 999);
-        matchesDate = taskDate >= filterStart && taskDate <= filterEnd;
+        const taskDateStr = taskDate.toISOString().split("T")[0]; // YYYY-MM-DD
+
+        if (timeframe === "DAILY") {
+          matchesDate = taskDateStr === selectedDateFilter;
+        } else if (timeframe === "MONTHLY" || timeframe === "YEARLY") {
+          matchesDate = taskDateStr.startsWith(selectedDateFilter);
+        } else if (timeframe === "WEEKLY") {
+          const [y, m, d] = selectedDateFilter.split("-").map(Number);
+          const selectedD = new Date(y, m - 1, d);
+          const day = selectedD.getDay();
+          const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
+          const startOfWeek = new Date(selectedD);
+          startOfWeek.setDate(diff);
+          startOfWeek.setHours(0, 0, 0, 0);
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23, 59, 59, 999);
+
+          matchesDate = taskDate >= startOfWeek && taskDate <= endOfWeek;
+        }
       }
 
       // Hierarchy (Management Only)
@@ -158,8 +175,8 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
     statusFilter,
     priorityFilter,
     hrFilter,
-    startDate,
-    endDate,
+    timeframe,
+    selectedDateFilter,
     deptFilter,
     subDeptFilter,
     employeeFilter,

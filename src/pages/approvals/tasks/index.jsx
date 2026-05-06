@@ -58,8 +58,11 @@ export default function TaskApprovalsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("OLDEST");
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, endDate] = dateRange;
+  const [timeframe, setTimeframe] = useState("MONTHLY");
+  const [selectedDateFilter, setSelectedDateFilter] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  });
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [deptFilter, setDeptFilter] = useState("ALL");
   const [subDeptFilter, setSubDeptFilter] = useState("ALL");
@@ -82,7 +85,8 @@ export default function TaskApprovalsPage() {
     searchQuery,
     priorityFilter,
     sortBy,
-    dateRange,
+    timeframe,
+    selectedDateFilter,
     statusFilter,
     deptFilter,
     subDeptFilter,
@@ -302,12 +306,30 @@ export default function TaskApprovalsPage() {
       else if (statusFilter === "NOT APPROVED")
         result = result.filter((t) => t.status === TASK_STATUS.NOT_APPROVED);
     }
-    if (startDate && endDate) {
-      const filterStart = new Date(startDate).setHours(0, 0, 0, 0);
-      const filterEnd = new Date(endDate).setHours(23, 59, 59, 999);
+    if (selectedDateFilter) {
       result = result.filter((t) => {
-        const taskDate = new Date(t.createdAt).getTime();
-        return taskDate >= filterStart && taskDate <= filterEnd;
+        const taskDate = new Date(t.createdAt);
+        const taskDateStr = taskDate.toISOString().split("T")[0]; // YYYY-MM-DD
+
+        if (timeframe === "DAILY") {
+          return taskDateStr === selectedDateFilter;
+        } else if (timeframe === "MONTHLY" || timeframe === "YEARLY") {
+          return taskDateStr.startsWith(selectedDateFilter);
+        } else if (timeframe === "WEEKLY") {
+          const [y, m, d] = selectedDateFilter.split("-").map(Number);
+          const selectedD = new Date(y, m - 1, d);
+          const day = selectedD.getDay();
+          const diff = selectedD.getDate() - day + (day === 0 ? -6 : 1);
+          const startOfWeek = new Date(selectedD);
+          startOfWeek.setDate(diff);
+          startOfWeek.setHours(0, 0, 0, 0);
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23, 59, 59, 999);
+
+          return taskDate >= startOfWeek && taskDate <= endOfWeek;
+        }
+        return true;
       });
     }
     if (
@@ -346,8 +368,8 @@ export default function TaskApprovalsPage() {
     priorityFilter,
     sortBy,
     statusFilter,
-    startDate,
-    endDate,
+    timeframe,
+    selectedDateFilter,
     deptFilter,
     subDeptFilter,
     employeeFilter,
@@ -560,8 +582,10 @@ export default function TaskApprovalsPage() {
           setStatusFilter={setStatusFilter}
           priorityFilter={priorityFilter}
           setPriorityFilter={setPriorityFilter}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
+          timeframe={timeframe}
+          setTimeframe={setTimeframe}
+          selectedDateFilter={selectedDateFilter}
+          setSelectedDateFilter={setSelectedDateFilter}
           deptFilter={deptFilter}
           setDeptFilter={setDeptFilter}
           subDeptFilter={subDeptFilter}

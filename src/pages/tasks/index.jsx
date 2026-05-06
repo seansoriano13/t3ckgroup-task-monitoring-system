@@ -60,9 +60,12 @@ export default function TasksPage() {
     !!location.state?.presetFilter,
   );
 
-  // Date Picker State ([startDate, endDate])
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, endDate] = dateRange;
+  // Date Filter State
+  const [timeframe, setTimeframe] = useState("MONTHLY");
+  const [selectedDateFilter, setSelectedDateFilter] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  });
 
   // 2. Filter State (Management Cascading)
   // Pre-fill with user's dept/subdept if they are a HEAD, otherwise default to "ALL"
@@ -264,8 +267,8 @@ export default function TasksPage() {
       statusFilter,
       priorityFilter,
       hrFilter: "ALL", // Default to ALL since standard tasks view doesn't use it yet
-      startDate,
-      endDate,
+      timeframe,
+      selectedDateFilter,
       deptFilter,
       subDeptFilter,
       employeeFilter,
@@ -284,8 +287,13 @@ export default function TasksPage() {
     setGroupPages({});
   };
 
-  const handleDateRangeChange = (update) => {
-    setDateRange(update);
+  const handleDateFilterChange = (val) => {
+    setSelectedDateFilter(val);
+    setGroupPages({});
+  };
+
+  const handleTimeframeChange = (val) => {
+    setTimeframe(val);
     setGroupPages({});
   };
 
@@ -353,8 +361,10 @@ export default function TasksPage() {
         setStatusFilter={wrapFilter(setStatusFilter)}
         priorityFilter={priorityFilter}
         setPriorityFilter={wrapFilter(setPriorityFilter)}
-        dateRange={dateRange}
-        setDateRange={handleDateRangeChange}
+        timeframe={timeframe}
+        setTimeframe={handleTimeframeChange}
+        selectedDateFilter={selectedDateFilter}
+        setSelectedDateFilter={handleDateFilterChange}
         deptFilter={deptFilter}
         setDeptFilter={wrapFilter(setDeptFilter)}
         subDeptFilter={subDeptFilter}
