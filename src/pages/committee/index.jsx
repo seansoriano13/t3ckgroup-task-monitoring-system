@@ -16,6 +16,7 @@ import CommitteeTaskDetailModal from "./components/CommitteeTaskDetailModal";
 import RateEmployeesModal from "./components/RateEmployeesModal";
 import CommitteeTaskFilters from "../../components/CommitteeTaskFilters";
 import { useCommitteeTaskFilters } from "../../hooks/useCommitteeTaskFilters";
+import { useMemo } from "react";
 
 export default function CommitteeTasksPage() {
   const { user } = useAuth();
@@ -48,7 +49,11 @@ export default function CommitteeTasksPage() {
   const [creatorFilter, setCreatorFilter] = useState("ALL");
   const [dueDate, setDueDate] = useState(null);
 
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const selectedTask = useMemo(() => {
+    return committeeTasks.find((t) => t.id === selectedTaskId) || null;
+  }, [committeeTasks, selectedTaskId]);
+
   const [isRateOpen, setIsRateOpen] = useState(false);
 
   // --- Filtering ---
@@ -71,7 +76,7 @@ export default function CommitteeTasksPage() {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Task marked as done!");
       // If the selected task was auto-completed, let's close or refresh it
-      setSelectedTask(null);
+      setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -93,7 +98,7 @@ export default function CommitteeTasksPage() {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Ratings submitted and task completed!");
       setIsRateOpen(false);
-      setSelectedTask(null);
+      setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -103,7 +108,7 @@ export default function CommitteeTasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Committee Task deleted.");
-      setSelectedTask(null);
+      setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -155,18 +160,7 @@ export default function CommitteeTasksPage() {
         selectedTask?.id,
         user?.id,
       ),
-    onSuccess: (_, variables) => {
-      setSelectedTask((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          members: prev.members.map((m) =>
-            m.id === variables.memberId
-              ? { ...m, task_description: variables.description }
-              : m,
-          ),
-        };
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
     },
   });
@@ -177,7 +171,7 @@ export default function CommitteeTasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Committee Task verified!");
-      setSelectedTask(null);
+      setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -188,7 +182,7 @@ export default function CommitteeTasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
       toast.success("Committee Task rejected and sent back.");
-      setSelectedTask(null);
+      setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -239,7 +233,7 @@ export default function CommitteeTasksPage() {
               task={task}
               currentUserId={user?.id}
               isSuperAdmin={isSuperAdmin}
-              onView={() => setSelectedTask(task)}
+              onView={() => setSelectedTaskId(task.id)}
               searchTerm={searchTerm}
             />
           ))}
@@ -261,8 +255,8 @@ export default function CommitteeTasksPage() {
       {/* MODALS */}
 
       <CommitteeTaskDetailModal
-        isOpen={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
+        isOpen={!!selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
         task={selectedTask}
         currentUserId={user?.id}
         isSuperAdmin={isSuperAdmin}
@@ -271,7 +265,7 @@ export default function CommitteeTasksPage() {
         onMarkDone={(memberId) => markDoneMutation.mutate(memberId)}
         onRevertDone={(memberId) => revertDoneMutation.mutate(memberId)}
         onOpenRateModal={() => setIsRateOpen(true)}
-        onDelete={() => deleteMutation.mutate(selectedTask.id)}
+        onDelete={() => deleteMutation.mutate(selectedTaskId)}
         onAddMember={(payload) => addMemberMutation.mutateAsync(payload)}
         onUpdateMember={(memberId, payload) =>
           updateMemberMutation.mutateAsync({ memberId, payload })
@@ -283,10 +277,10 @@ export default function CommitteeTasksPage() {
           updateMemberTaskDescMutation.mutate({ memberId, description })
         }
         onVerify={() =>
-          verifyMutation.mutate({ id: selectedTask.id, remarks: "" })
+          verifyMutation.mutate({ id: selectedTaskId, remarks: "" })
         }
         onReject={(remarks) =>
-          rejectMutation.mutate({ id: selectedTask.id, remarks })
+          rejectMutation.mutate({ id: selectedTaskId, remarks })
         }
         isMarkingDone={markDoneMutation.isPending}
         isReverting={revertDoneMutation.isPending}
@@ -300,7 +294,7 @@ export default function CommitteeTasksPage() {
       />
 
 
-      {selectedTask && canManage && (
+      {selectedTaskId && canManage && (
         <RateEmployeesModal
           isOpen={isRateOpen}
           onClose={() => setIsRateOpen(false)}

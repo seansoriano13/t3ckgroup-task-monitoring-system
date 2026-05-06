@@ -16,10 +16,8 @@ export default function ChecklistTaskRenderer({
 
   useEffect(() => {
     if (!description) {
-      queueMicrotask(() => {
-        setItems([]);
-        setTitle("");
-      });
+      setItems([]);
+      setTitle("");
       return;
     }
 
@@ -28,22 +26,18 @@ export default function ChecklistTaskRenderer({
       if (trimmed.startsWith("[")) {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
-          queueMicrotask(() => {
-            setItems(parsed);
-            setIsJson(true);
-            setIsObjectFormat(false);
-          });
+          setItems(parsed);
+          setIsJson(true);
+          setIsObjectFormat(false);
           return;
         }
       } else if (trimmed.startsWith("{")) {
         const parsed = JSON.parse(trimmed);
         if (parsed && Array.isArray(parsed.items)) {
-          queueMicrotask(() => {
-            setTitle(parsed.title || "");
-            setItems(parsed.items);
-            setIsJson(true);
-            setIsObjectFormat(true);
-          });
+          setTitle(parsed.title || "");
+          setItems(parsed.items);
+          setIsJson(true);
+          setIsObjectFormat(true);
           return;
         }
       }
@@ -51,7 +45,7 @@ export default function ChecklistTaskRenderer({
       console.error(e);
     }
 
-    queueMicrotask(() => setIsJson(false));
+    setIsJson(false);
   }, [description]);
 
   const handleCheck = (indexToToggle) => {

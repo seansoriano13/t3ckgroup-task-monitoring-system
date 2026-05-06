@@ -36,7 +36,6 @@ import { committeeTaskService } from "@/services/committeeTaskService";
 import { MessageCircle } from "lucide-react";
 import HistoryTimeline from "@/components/HistoryTimeline";
 
-
 const COMMITTEE_ROLES = ["EVENT", "CREATIVE", "DEMO", "BAC", "ODOO", "OTHERS"];
 
 export default function CommitteeTaskDetailModal({
@@ -361,7 +360,7 @@ export default function CommitteeTaskDetailModal({
                     return (
                       <div
                         key={member.id}
-                        className={`p-5 border rounded-2xl flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300 transform origin-center ${isMe ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}
+                        className={`p-5 border rounded-2xl flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300 transform origin-center ${isMe ? "border-primary/10 bg-primary/1" : "border-border bg-card"}`}
                       >
                         {editingMemberId === member.id ? (
                           // EDIT MODE
