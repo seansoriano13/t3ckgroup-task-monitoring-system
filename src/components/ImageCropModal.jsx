@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw, Check, CropIcon } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
+import ModalOverlay from "@/components/ui/ModalOverlay";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONSTANTS
@@ -227,21 +228,18 @@ export default function ImageCropModal({ file, isOpen, onConfirm, onCancel }) {
     }
   };
 
-  if (!isOpen) return null;
-
   // ── Canvas display size (responsive) ──────────────────────────────────────
   // We use a fixed logical size of 280px; the canvas element is sized via CSS.
   const CANVAS_LOGICAL = 280;
 
   return (
-    /* Backdrop */
-    <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onMouseUp={onPointerUp}
-      onTouchEnd={onPointerUp}
-    >
+    <ModalOverlay isOpen={isOpen} onClose={onCancel} zIndex="z-[90]" className="[&]:cursor-default" >
       {/* Panel — LogTaskModal design language */}
-      <div className="relative w-[340px] max-w-[95vw] rounded-2xl bg-popover ring-1 ring-foreground/10 shadow-[0_10px_40px_-10px_rgba(79,70,229,0.18)] flex flex-col overflow-hidden animate-slide-down">
+      <div
+        className="relative w-[340px] max-w-[95vw] rounded-2xl bg-popover ring-1 ring-foreground/10 shadow-[0_10px_40px_-10px_rgba(79,70,229,0.18)] flex flex-col overflow-hidden animate-slide-down"
+        onMouseUp={onPointerUp}
+        onTouchEnd={onPointerUp}
+      >
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-mauve-3/40 shrink-0">
@@ -372,6 +370,6 @@ export default function ImageCropModal({ file, isOpen, onConfirm, onCancel }) {
           </div>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

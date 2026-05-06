@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import ModalOverlay from "../../components/ui/ModalOverlay";
 import {
   X,
   ChevronDown,
@@ -195,15 +195,8 @@ export default function FAQModal({ isOpen, onClose }) {
     setOpenItem((prev) => (prev === key ? null : key));
   const totalItems = categories.reduce((acc, c) => acc + c.items.length, 0);
 
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+  return (
+    <ModalOverlay isOpen={isOpen} onClose={onClose}>
 
       {/* Panel */}
       <div className="relative z-10 w-full max-w-4xl h-[82vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden modal-enter">
@@ -420,7 +413,6 @@ export default function FAQModal({ isOpen, onClose }) {
           </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </ModalOverlay>
   );
 }

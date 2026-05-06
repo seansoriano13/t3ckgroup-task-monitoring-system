@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import Dot from "./ui/Dot";
-import { createPortal } from "react-dom";
+import ModalOverlay from "./ui/ModalOverlay";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
 import { useAuth } from "../context/AuthContext";
@@ -94,16 +94,8 @@ export default function DayManagementModal({
     }
   };
 
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-muted/40 backdrop-blur-sm animate-in fade-in duration-300"
-        onClick={onClose}
-      />
-
+  return (
+    <ModalOverlay isOpen={isOpen} onClose={onClose} zIndex="z-[10000]">
       {/* Modal */}
       <div className="relative w-full max-w-2xl bg-card border border-border rounded-[2rem] shadow-2xl shadow-mauve-8/10 overflow-hidden animate-in zoom-in-95 duration-300">
         
@@ -285,7 +277,6 @@ export default function DayManagementModal({
           )}
         </div>
       </div>
-    </div>,
-    document.body
+    </ModalOverlay>
   );
 }

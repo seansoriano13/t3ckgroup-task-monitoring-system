@@ -1,6 +1,6 @@
 import { DollarSign, AlertTriangle, Trash2, Tag, Image as ImageIcon, X, CheckCircle2 } from "lucide-react";
 import Dot from "./ui/Dot";
-import { createPortal } from "react-dom";
+import ModalOverlay from "./ui/ModalOverlay";
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesService } from "../services/salesService";
@@ -105,12 +105,13 @@ export default function SalesTaskDetailsModal({
     outcomeMutation.mutate({ id: activity.id, outcome: val || null });
   };
 
-  return createPortal(
-    <>
-      <div
-        className={`dropdown-backdrop z-[9998] transition-all duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
-        onClick={onClose}
-      />
+  return (
+    <ModalOverlay
+      isOpen={isOpen}
+      onClose={onClose}
+      center={false}
+      zIndex="z-[9998]"
+    >
       <div
         ref={modalRef}
         tabIndex={0}
@@ -523,7 +524,6 @@ export default function SalesTaskDetailsModal({
           </div>
         </div>
       </div>
-    </>,
-    document.body,
+    </ModalOverlay>
   );
 }

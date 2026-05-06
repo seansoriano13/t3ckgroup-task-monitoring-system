@@ -2,11 +2,10 @@ import { useState } from "react";
 import { X, Trash2 } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import { Tooltip } from "../../../../components/ui/Tooltip";
+import ModalOverlay from "../../../../components/ui/ModalOverlay";
 
 export function SaveTemplateModal({ isOpen, onClose, onSave, isSaving }) {
   const [templateName, setTemplateName] = useState("");
-
-  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -15,7 +14,7 @@ export function SaveTemplateModal({ isOpen, onClose, onSave, isSaving }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <ModalOverlay isOpen={isOpen} onClose={onClose} zIndex="z-50">
       <div className="bg-card rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in fade-in zoom-in duration-200">
         <div className="p-4 border-b border-mauve-3 flex justify-between items-center bg-mauve-1">
           <h3 className="font-black text-foreground uppercase tracking-widest text-sm">Save Custom Template</h3>
@@ -54,15 +53,13 @@ export function SaveTemplateModal({ isOpen, onClose, onSave, isSaving }) {
           </div>
         </form>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }
 
 export function ManageTemplatesModal({ isOpen, onClose, customTemplates, onDelete, isDeletingId }) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <ModalOverlay isOpen={isOpen} onClose={onClose} zIndex="z-50">
       <div className="bg-card rounded-2xl w-full max-w-lg overflow-hidden shadow-xl animate-in fade-in zoom-in duration-200">
         <div className="p-4 border-b border-mauve-3 flex justify-between items-center bg-mauve-1">
           <h3 className="font-black text-foreground uppercase tracking-widest text-sm">Manage Custom Templates</h3>
@@ -101,6 +98,6 @@ export function ManageTemplatesModal({ isOpen, onClose, customTemplates, onDelet
           )}
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }
