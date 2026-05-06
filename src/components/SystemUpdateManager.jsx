@@ -12,6 +12,13 @@ import {
   Github,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Megaphone,
+  Rocket,
+  Wrench,
+  Radio,
+  Check,
 } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
@@ -21,6 +28,38 @@ import TabGroup from "./ui/TabGroup";
 
 const MAX_CONTENT_LENGTH = 2000;
 const HISTORY_PAGE_SIZE_OPTIONS = [10, 20, 30];
+
+const TYPE_OPTIONS = [
+  {
+    value: "announcement",
+    label: "Announcement",
+    icon: Megaphone,
+    description: "General company-wide notice",
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  {
+    value: "feature",
+    label: "New Feature",
+    icon: Rocket,
+    description: "Product update or new release",
+    color: "text-blue-11",
+    bg: "bg-blue-2 border-blue-4",
+  },
+  {
+    value: "fix",
+    label: "System Fix",
+    icon: Wrench,
+    description: "Bug fix or performance patch",
+    color: "text-green-10",
+    bg: "bg-green-2 border-green-4",
+  },
+];
+
+const getStatusStyles = (update) => {
+  if (!update.is_active) return "bg-muted text-muted-foreground border-border";
+  return "bg-green-2 text-green-11 border-green-4";
+};
 
 export default function SystemUpdateManager() {
   const { user } = useAuth();
@@ -148,132 +187,155 @@ export default function SystemUpdateManager() {
     }
   };
 
-  const isExpired = (update) =>
-    Boolean(update.expires_at) && new Date(update.expires_at) <= new Date();
-
-  const getStatusLabel = (update) => {
-    if (!update.is_active) return "Inactive";
-    if (isExpired(update)) return "Expired";
-    return "Active";
-  };
+  const isPosting = createMutation.isPending || editMutation.isPending;
 
   return (
-    <div className="bg-mauve-1 border border-mauve-4 p-4 sm:p-6 rounded-xl shadow-lg mt-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-card border border-border rounded-2xl shadow-sm mt-6 overflow-hidden">
+      {/* ── Header ──────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
         <div>
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
             System Updates Banner
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-[11px] text-muted-foreground mt-0.5">
             Manage the "What's New" banner shown on the dashboard.
           </p>
         </div>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="px-4 py-2 bg-mauve-2 hover:bg-mauve-3 border border-mauve-4 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"
+          className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 border border-border px-3 py-1.5 rounded-lg transition-colors"
         >
           {isOpen ? (
-            "Close Manager"
+            <>
+              <ChevronUp size={13} />
+              Close
+            </>
           ) : (
             <>
-              <Edit3 size={16} /> Manage Updates
+              <Edit3 size={13} />
+              Manage Updates
             </>
           )}
         </button>
       </div>
 
       {isOpen && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-          {/* Create New Box */}
-          <div className="bg-mauve-2 rounded-xl p-4 border border-mauve-4">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-bold text-foreground">
-                New Update Content
-              </label>
+        <div className="animate-slide-down">
+          {/* ── Compose Section ─────────────────────────────── */}
+          <div className="px-5 pt-4 pb-5 border-b border-border/40">
+            {/* Label + AI Button */}
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                {editingId ? "Editing Broadcast" : "New Broadcast"}
+              </p>
               <button
                 type="button"
                 onClick={generateAIContent}
                 disabled={isGenerating}
-                className="flex items-center gap-1.5 text-xs font-bold text-blue-9 hover:text-blue-10 bg-blue-9/10 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-[11px] font-bold text-mauve-9 hover:text-mauve-11 bg-mauve-9/10 hover:bg-mauve-9/15 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
                   <Spinner size="sm" />
                 ) : (
                   <>
-                    <Bot size={14} /> <Github size={14} />
+                    <Bot size={12} />
+                    <Github size={12} />
                   </>
                 )}
-                {isGenerating
-                  ? "Analyzing Commits..."
-                  : "AI Summarize via GitHub"}
+                {isGenerating ? "Analyzing commits…" : "AI via GitHub"}
               </button>
             </div>
 
+            {/* Textarea */}
             <textarea
-              className="w-full bg-mauve-1 border border-mauve-4 rounded-lg p-3 text-sm text-foreground focus:border-purple-500 min-h-[100px] outline-none"
-              placeholder="What changed? Use AI or type manually..."
+              className="w-full bg-muted/30 border border-border rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 min-h-[110px] resize-none transition-all"
+              placeholder="What's new? Announce a feature, fix, or important notice to the entire team…"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               maxLength={MAX_CONTENT_LENGTH + 200}
             />
-            <p className="text-xs text-muted-foreground mt-2">
-              {content.trim().length}/{MAX_CONTENT_LENGTH} characters
+            <p className="text-[10px] text-muted-foreground mt-1.5 text-right">
+              {content.trim().length} / {MAX_CONTENT_LENGTH}
             </p>
 
-            <div className="flex items-center justify-between mt-3">
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="bg-mauve-1 border border-mauve-4 rounded-lg px-3 py-1.5 text-sm font-medium outline-none focus:border-purple-500"
-              >
-                <option value="feature">New Feature</option>
-                <option value="fix">System Fix</option>
-                <option value="announcement">Announcement</option>
-              </select>
-
-              <div className="flex items-center gap-3">
-                {editingId && (
+            {/* Type Selector Cards */}
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {TYPE_OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const isSelected = type === opt.value;
+                return (
                   <button
-                    onClick={() => {
-                      setEditingId(null);
-                      setContent("");
-                    }}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setType(opt.value)}
+                    className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all ${
+                      isSelected
+                        ? `${opt.bg}`
+                        : "bg-muted/20 border-border hover:bg-muted/40"
+                    }`}
                   >
-                    Cancel
+                    <Icon
+                      size={14}
+                      className={isSelected ? opt.color : "text-muted-foreground"}
+                    />
+                    <span
+                      className={`text-[11px] font-bold ${
+                        isSelected ? opt.color : "text-foreground"
+                      }`}
+                    >
+                      {opt.label}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground leading-tight">
+                      {opt.description}
+                    </span>
                   </button>
-                )}
+                );
+              })}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2.5 mt-4">
+              {editingId && (
                 <button
-                  onClick={handlePost}
-                  disabled={
-                    !content.trim() ||
-                    createMutation.isPending ||
-                    editMutation.isPending
-                  }
-                  className="bg-purple-600 hover:bg-purple-700 text-primary-foreground px-4 py-1.5 rounded-lg text-sm font-bold shadow-md disabled:bg-mauve-4 disabled:text-mauve-8 transition-colors flex items-center gap-2"
+                  onClick={() => {
+                    setEditingId(null);
+                    setContent("");
+                  }}
+                  className="text-[13px] font-bold text-muted-foreground/80 hover:text-foreground px-4 py-2 rounded-xl hover:bg-muted/50 transition-all"
                 >
-                  {createMutation.isPending || editMutation.isPending ? (
-                    <Spinner size="sm" />
-                  ) : editingId ? (
-                    <Edit3 size={16} />
-                  ) : (
-                    <Plus size={16} />
-                  )}
-                  {editingId ? "Save Edit" : "Post Banner"}
+                  Cancel Edit
                 </button>
-              </div>
+              )}
+              <button
+                onClick={handlePost}
+                disabled={!content.trim() || isPosting}
+                className="h-9 px-6 rounded-xl bg-primary text-primary-foreground text-[13px] font-black shadow-lg shadow-mauve-4 flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {isPosting ? (
+                  <>
+                    <Spinner size="sm" />
+                    <span>{editingId ? "Saving…" : "Sending…"}</span>
+                  </>
+                ) : (
+                  <>
+                    {editingId ? <Edit3 size={14} /> : <Megaphone size={14} />}
+                    <span>{editingId ? "Save Edit" : "Send Broadcast"}</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* History List */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-mauve-11 uppercase tracking-widest pl-1">
+          {/* ── History ─────────────────────────────────────── */}
+          <div className="px-5 py-4">
+            {/* History Header */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 History
-              </h3>
+              </p>
               <div className="flex items-center gap-2">
                 <TabGroup
-                  variant="pill"
+                  type="pill"
                   tabs={[
                     { value: "all", label: "All" },
                     { value: "active", label: "Active" },
@@ -284,216 +346,280 @@ export default function SystemUpdateManager() {
                     setHistoryFilter(v);
                     setHistoryPage(1);
                   }}
-                  size="sm"
                 />
-                <select
-                  value={historyPageSize}
-                  onChange={(e) => {
-                    setHistoryPageSize(Number(e.target.value));
-                    setHistoryPage(1);
-                  }}
-                  className="bg-mauve-1 border border-mauve-4 rounded-lg px-2 py-1 text-xs font-medium outline-none focus:border-purple-500"
-                >
+                {/* Page size pills */}
+                <div className="flex items-center gap-1">
                   {HISTORY_PAGE_SIZE_OPTIONS.map((size) => (
-                    <option key={size} value={size}>
-                      {size}/page
-                    </option>
+                    <button
+                      key={size}
+                      onClick={() => {
+                        setHistoryPageSize(size);
+                        setHistoryPage(1);
+                      }}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                        historyPageSize === size
+                          ? "bg-muted border-border text-foreground"
+                          : "border-transparent text-muted-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      {size}
+                    </button>
                   ))}
-                </select>
+                  <span className="text-[10px] text-muted-foreground/60 pl-0.5">
+                    /page
+                  </span>
+                </div>
               </div>
             </div>
-            {isLoading ? (
-              <div className="flex justify-center p-4">
-                <Spinner size="sm" />
-              </div>
-            ) : updates.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic pl-1">
-                No past updates found.
-              </p>
-            ) : (
-              updates.map((update) => (
-                <div
-                  key={update.id}
-                  className="flex items-start gap-3 bg-mauve-1 border border-mauve-3 rounded-lg p-3"
-                >
-                  <div className="pt-1">
-                    <button
-                      onClick={() =>
-                        toggleMutation.mutate({
-                          id: update.id,
-                          isActive: !update.is_active,
-                        })
-                      }
-                      className={`w-10 h-6 rounded-full transition-colors relative ${update.is_active ? "bg-green-10" : "bg-mauve-4"}`}
+
+            {/* Update list */}
+            <div className="space-y-2">
+              {isLoading ? (
+                <div className="flex justify-center py-6">
+                  <Spinner size="sm" />
+                </div>
+              ) : updates.length === 0 ? (
+                <div className="py-6 text-center">
+                  <Radio
+                    size={24}
+                    className="mx-auto text-muted-foreground/30 mb-2"
+                  />
+                  <p className="text-xs text-muted-foreground italic">
+                    No broadcasts yet.
+                  </p>
+                </div>
+              ) : (
+                updates.map((update) => {
+                  const typeOpt = TYPE_OPTIONS.find(
+                    (t) => t.value === update.type,
+                  );
+                  const Icon = typeOpt?.icon || Megaphone;
+                  return (
+                    <div
+                      key={update.id}
+                      className="flex gap-3 bg-muted/20 border border-border/60 rounded-xl p-3 group/item hover:bg-muted/30 transition-colors"
                     >
-                      <div
-                        className={`w-4 h-4 bg-card rounded-full absolute top-1 transition-all ${update.is_active ? "left-5" : "left-1"}`}
-                      />
-                    </button>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs font-bold text-mauve-10 uppercase">
-                          {update.type} •{" "}
-                          {new Date(update.created_at).toLocaleDateString()}
-                        </p>
-                        <span className="text-[10px] font-semibold uppercase rounded-full px-2 py-0.5 bg-mauve-3 text-mauve-10 border border-mauve-4">
-                          {getStatusLabel(update)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            if (inlineEditId === update.id) {
-                              setInlineEditId(null);
-                            } else {
-                              setInlineEditId(update.id);
-                              setInlineEditContent(update.content);
-                              setInlineEditType(update.type);
-                            }
-                          }}
-                          className={`transition-colors ${
-                            inlineEditId === update.id
-                              ? "text-blue-10"
-                              : "text-mauve-8 hover:text-blue-9"
+                      {/* Toggle */}
+                      <button
+                        onClick={() =>
+                          toggleMutation.mutate({
+                            id: update.id,
+                            isActive: !update.is_active,
+                          })
+                        }
+                        className={`mt-0.5 w-9 h-5 rounded-full shrink-0 relative transition-colors ${
+                          update.is_active
+                            ? "bg-green-9"
+                            : "bg-muted-foreground/30"
+                        }`}
+                        title={update.is_active ? "Deactivate" : "Activate"}
+                      >
+                        <div
+                          className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-all shadow-sm ${
+                            update.is_active ? "left-[18px]" : "left-[3px]"
                           }`}
-                          title="Edit Update"
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            confirmDeleteToast(
-                              "Delete Update?",
-                              "This will permanently remove the update record.",
-                              () => deleteMutation.mutate(update.id),
-                            );
-                          }}
-                          className="text-mauve-8 hover:text-destructive transition-colors"
-                          title="Delete Update"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                    {update.expires_at && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Expires: {new Date(update.expires_at).toLocaleString()}
-                      </p>
-                    )}
-                    {inlineEditId === update.id ? (
-                      <div className="mt-3 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1">
-                        <textarea
-                          className="w-full bg-card border border-mauve-4 rounded-lg p-2.5 text-sm text-foreground focus:border-purple-500 focus:ring-1 focus:ring-purple-500 min-h-[80px] outline-none"
-                          value={inlineEditContent}
-                          onChange={(e) => setInlineEditContent(e.target.value)}
                         />
-                        <div className="flex items-center justify-between">
-                          <select
-                            value={inlineEditType}
-                            onChange={(e) => setInlineEditType(e.target.value)}
-                            className="bg-card border border-mauve-4 rounded-lg px-2 py-1.5 text-xs font-medium outline-none"
-                          >
-                            <option value="feature">New Feature</option>
-                            <option value="fix">System Fix</option>
-                            <option value="announcement">Announcement</option>
-                          </select>
+                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setInlineEditId(null)}
-                              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
+                            <Icon
+                              size={12}
+                              className={typeOpt?.color || "text-muted-foreground"}
+                            />
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
+                              {update.type}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground/60">
+                              {new Date(
+                                update.created_at,
+                              ).toLocaleDateString()}
+                            </span>
+                            <span
+                              className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full border ${getStatusStyles(update)}`}
                             >
-                              Cancel
+                              {update.is_active ? "Live" : "Off"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => {
+                                if (inlineEditId === update.id) {
+                                  setInlineEditId(null);
+                                } else {
+                                  setInlineEditId(update.id);
+                                  setInlineEditContent(update.content);
+                                  setInlineEditType(update.type);
+                                }
+                              }}
+                              className={`transition-colors ${
+                                inlineEditId === update.id
+                                  ? "text-mauve-12"
+                                  : "text-mauve-7 hover:text-mauve-12"
+                              }`}
+                              title={
+                                inlineEditId === update.id
+                                  ? "Cancel Edit"
+                                  : "Edit"
+                              }
+                            >
+                              <Edit3 size={13} />
                             </button>
                             <button
-                              disabled={
-                                !inlineEditContent.trim() ||
-                                editMutation.isPending
-                              }
                               onClick={() => {
-                                editMutation.mutate(
-                                  {
-                                    id: update.id,
-                                    data: {
-                                      content: inlineEditContent.trim(),
-                                      type: inlineEditType,
-                                    },
-                                  },
-                                  { onSuccess: () => setInlineEditId(null) },
+                                confirmDeleteToast(
+                                  "Delete Update?",
+                                  "This will permanently remove the update record.",
+                                  () => deleteMutation.mutate(update.id),
                                 );
                               }}
-                              className="bg-purple-600 hover:bg-purple-700 text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50"
+                              className="text-muted-foreground hover:text-red-500 transition-colors"
+                              title="Delete"
                             >
-                              {editMutation.isPending ? (
-                                <Spinner size="sm" />
-                              ) : (
-                                "Save"
-                              )}
+                              <Trash2 size={13} />
                             </button>
                           </div>
                         </div>
+
+                        {/* Inline edit form */}
+                        {inlineEditId === update.id ? (
+                          <div className="mt-2 flex flex-col gap-2 animate-slide-down">
+                            <textarea
+                              className="w-full bg-background border border-border rounded-lg p-2.5 text-xs text-foreground focus:border-mauve-7 focus:outline-none focus:ring-1 ring-mauve-7 min-h-[72px] resize-none transition-all"
+                              value={inlineEditContent}
+                              onChange={(e) =>
+                                setInlineEditContent(e.target.value)
+                              }
+                              maxLength={2000}
+                            />
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {TYPE_OPTIONS.map((opt) => {
+                                const Ico = opt.icon;
+                                return (
+                                  <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() =>
+                                      setInlineEditType(opt.value)
+                                    }
+                                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all ${
+                                      inlineEditType === opt.value
+                                        ? `${opt.bg} ${opt.color}`
+                                        : "bg-muted/20 border-border text-muted-foreground hover:bg-muted/40"
+                                    }`}
+                                  >
+                                    <Ico
+                                      size={10}
+                                      className={
+                                        inlineEditType === opt.value
+                                          ? opt.color
+                                          : ""
+                                      }
+                                    />
+                                    {opt.label}
+                                  </button>
+                                );
+                              })}
+                              <div className="ml-auto flex items-center gap-1.5">
+                                <button
+                                  onClick={() => setInlineEditId(null)}
+                                  className="px-3 py-1 rounded-lg text-[10px] font-bold text-muted-foreground hover:bg-muted/80 transition-all"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  disabled={
+                                    !inlineEditContent.trim() ||
+                                    editMutation.isPending
+                                  }
+                                  onClick={() => {
+                                    editMutation.mutate(
+                                      {
+                                        id: update.id,
+                                        data: {
+                                          content: inlineEditContent.trim(),
+                                          type: inlineEditType,
+                                        },
+                                      },
+                                      {
+                                        onSuccess: () =>
+                                          setInlineEditId(null),
+                                      },
+                                    );
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg text-[10px] font-black bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-1 disabled:opacity-50"
+                                >
+                                  {editMutation.isPending ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    <Check size={10} />
+                                  )}
+                                  Save
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-foreground/80 leading-relaxed line-clamp-2">
+                            <ReactMarkdown
+                              components={{
+                                p: ({ ...props }) => (
+                                  <p className="mb-0" {...props} />
+                                ),
+                                ul: ({ ...props }) => (
+                                  <ul
+                                    className="list-disc pl-4"
+                                    {...props}
+                                  />
+                                ),
+                                li: ({ ...props }) => <li {...props} />,
+                                strong: ({ ...props }) => (
+                                  <strong
+                                    className="font-semibold"
+                                    {...props}
+                                  />
+                                ),
+                              }}
+                            >
+                              {update.content}
+                            </ReactMarkdown>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-sm mt-2 max-h-28 overflow-hidden relative">
-                        <ReactMarkdown
-                          components={{
-                            p: ({ ...props }) => (
-                              <p
-                                className="mb-1 last:mb-0 opacity-90"
-                                {...props}
-                              />
-                            ),
-                            ul: ({ ...props }) => (
-                              <ul
-                                className="list-disc pl-5 mb-1 opacity-90"
-                                {...props}
-                              />
-                            ),
-                            li: ({ ...props }) => (
-                              <li className="mb-0.5" {...props} />
-                            ),
-                            strong: ({ ...props }) => (
-                              <strong
-                                className="font-bold opacity-100"
-                                {...props}
-                              />
-                            ),
-                          }}
-                        >
-                          {update.content}
-                        </ReactMarkdown>
-                      </div>
-                    )}
+                    </div>
+                  );
+                })
+              )}
+
+              {/* Pagination */}
+              {totalPages > 0 && (
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-[10px] text-muted-foreground">
+                    {totalCount} total • Page {historyPage} of {totalPages}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() =>
+                        setHistoryPage((p) => Math.max(1, p - 1))
+                      }
+                      disabled={historyPage <= 1 || isLoading}
+                      className="px-2 py-1 rounded-lg border border-border text-[10px] font-bold text-muted-foreground hover:bg-muted/50 disabled:opacity-40 flex items-center gap-1"
+                    >
+                      <ChevronLeft size={12} /> Prev
+                    </button>
+                    <button
+                      onClick={() =>
+                        setHistoryPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={historyPage >= totalPages || isLoading}
+                      className="px-2 py-1 rounded-lg border border-border text-[10px] font-bold text-muted-foreground hover:bg-muted/50 disabled:opacity-40 flex items-center gap-1"
+                    >
+                      Next <ChevronRight size={12} />
+                    </button>
                   </div>
                 </div>
-              ))
-            )}
-            <div className="flex items-center justify-between gap-2 pt-2">
-              <p className="text-xs text-muted-foreground pl-1">
-                {totalCount} total update{totalCount === 1 ? "" : "s"} • Page{" "}
-                {historyPage} of {totalPages}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() =>
-                    setHistoryPage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={historyPage <= 1 || isLoading}
-                  className="px-2.5 py-1.5 rounded-lg border border-mauve-4 text-xs font-bold text-mauve-11 hover:bg-mauve-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                  <ChevronLeft size={14} /> Prev
-                </button>
-                <button
-                  onClick={() =>
-                    setHistoryPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  disabled={historyPage >= totalPages || isLoading}
-                  className="px-2.5 py-1.5 rounded-lg border border-mauve-4 text-xs font-bold text-mauve-11 hover:bg-mauve-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                  Next <ChevronRight size={14} />
-                </button>
-              </div>
+              )}
             </div>
           </div>
         </div>
