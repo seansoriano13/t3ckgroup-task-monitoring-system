@@ -269,17 +269,51 @@ export default function HistoryTimeline({
       const next = logs[i + 1];
 
       // Since logs are typically ORDERED BY created_at DESC (Newest First):
-      // 'Reported to:' (logged later) appears BEFORE 'Task submitted' (logged earlier).
-      if (
+      const isSameTask = next && current.taskId === next.taskId;
+
+      // 1. Task submitted & Reported to:
+      const isReportedSubmit =
         next &&
         current.content?.startsWith("Reported to:") &&
-        next.content?.startsWith("Task submitted")
-      ) {
+        next.content?.startsWith("Task submitted");
+
+      // 2. HR_NOTE and SYSTEM verified redundancy
+      const isHrRedundant =
+        isSameTask &&
+        ((current.type === "SYSTEM" &&
+          next.type === "HR_NOTE" &&
+          current.content?.toLowerCase().includes("verified") &&
+          next.content?.toLowerCase().includes("verified")) ||
+          (current.type === "HR_NOTE" &&
+            next.type === "SYSTEM" &&
+            next.content?.toLowerCase().includes("verified") &&
+            current.content?.toLowerCase().includes("verified")));
+
+      // 3. APPROVAL and SYSTEM redundancy (bulk approve/reject)
+      const isApprovalRedundant =
+        isSameTask &&
+        ((current.type === "SYSTEM" &&
+          next.type === "APPROVAL" &&
+          (current.content?.includes("bulk-approved") ||
+            current.content?.includes("bulk-rejected"))) ||
+          (current.type === "APPROVAL" &&
+            next.type === "SYSTEM" &&
+            (next.content?.includes("bulk-approved") ||
+              next.content?.includes("bulk-rejected"))));
+      if (isReportedSubmit) {
         consolidated.push({
           ...next,
           content: `${next.content} ${current.content}`,
         });
         i++; // Skip next
+      } else if (isHrRedundant) {
+        // Keep the HR_NOTE
+        consolidated.push(current.type === "HR_NOTE" ? current : next);
+        i++;
+      } else if (isApprovalRedundant) {
+        // Keep the APPROVAL
+        consolidated.push(current.type === "APPROVAL" ? current : next);
+        i++;
       } else {
         consolidated.push(current);
       }
