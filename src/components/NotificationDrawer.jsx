@@ -394,7 +394,8 @@ function NotifItem({
         >
           <Dropdown
             placement="bottom-end"
-            /* popoverClassName="absolute top-full right-0 mt-1.5 bg-card border border-border rounded-xl shadow-2xl z-[110] popover-enter" */
+            usePortal={true}
+            popoverClassName="bg-card border border-border rounded-xl shadow-2xl z-[10001] popover-enter"
             trigger={({ isOpen }) => (
               <button
                 className={`p-1.5 rounded-full hover:bg-muted transition-colors ${isOpen ? "bg-muted text-foreground" : "text-muted-foreground"}`}
