@@ -60,13 +60,22 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
   const isHead = user?.is_head === true || user?.isHead === true;
   const isManagement = isHr || isHead;
 
+  const isOwner = user?.id === task.loggedById;
+  const canEdit =
+    isHr ||
+    isHead ||
+    (isOwner &&
+      task.status !== TASK_STATUS.COMPLETE &&
+      task.status !== TASK_STATUS.AWAITING_APPROVAL);
+  const isDisabled = !canEdit || !isOwner;
+
   // Overdue nudge: INCOMPLETE task whose deadline has passed, shown only to owner
   const isOwnerOverdue =
     !isManagement &&
     task.status === TASK_STATUS.INCOMPLETE &&
     task.endAt &&
     new Date(task.endAt) < new Date() &&
-    user?.id === task.loggedById;
+    isOwner;
 
   let isChecklistFormat = false;
   let totalItems = 0;
@@ -110,7 +119,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
     }
   }
 
-  const isOwner = user?.id === task.loggedById;
+
 
   const handleInlineCheck = (newDesc) => {
     if (onSilentUpdate) {
@@ -124,7 +133,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
 
   const handleItemClick = (e, index) => {
     e.stopPropagation();
-    if (!onSilentUpdate) return;
+    if (!onSilentUpdate || isDisabled) return;
 
     let newDesc;
     if (Array.isArray(parsedDesc)) {
@@ -294,10 +303,12 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
                 <div
                   key={i}
                   onClick={(e) => handleItemClick(e, i)}
-                  className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] cursor-pointer hover:opacity-80 ${
+                  className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] ${
+                    isDisabled ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
+                  } ${
                     item.checked
                       ? "bg-muted/20 border-transparent"
-                      : "bg-card shadow-sm border-border/40 hover:border-mauve-8"
+                      : `bg-card shadow-sm border-border/40 ${isDisabled ? "" : "hover:border-mauve-8"}`
                   }`}
                 >
                   {item.checked ? (
@@ -340,10 +351,12 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
                     <div
                       key={i + 2}
                       onClick={(e) => handleItemClick(e, i + 2)}
-                      className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] cursor-pointer hover:opacity-80 ${
+                      className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] ${
+                        isDisabled ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
+                      } ${
                         item.checked
                           ? "bg-muted/20 border-transparent"
-                          : "bg-card shadow-sm border-border/40 hover:border-mauve-8"
+                          : `bg-card shadow-sm border-border/40 ${isDisabled ? "" : "hover:border-mauve-8"}`
                       }`}
                     >
                       {item.checked ? (

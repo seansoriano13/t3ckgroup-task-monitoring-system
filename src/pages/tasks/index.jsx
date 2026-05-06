@@ -35,6 +35,8 @@ export default function TasksPage() {
   const userDept = user?.department;
   const userSubDept = user?.sub_department || user?.subDepartment;
 
+  const isDeptWideHead = isHead && (!userSubDept || userSubDept.trim() === "");
+
   // Pagination
   const ITEMS_PER_GROUP = 6; // tasks shown per status group per page
   const [groupPages, setGroupPages] = useState({});
@@ -364,6 +366,7 @@ export default function TasksPage() {
         isManagement={isManagement}
         isHr={isHr}
         hrViewMode={hrViewMode}
+        disableDeptFilter={isHr ? hrViewMode === "PERSONAL" : !isDeptWideHead}
         uniqueDepts={uniqueDepts}
         uniqueSubDepts={uniqueSubDepts}
         uniqueEmployees={uniqueEmployees}
