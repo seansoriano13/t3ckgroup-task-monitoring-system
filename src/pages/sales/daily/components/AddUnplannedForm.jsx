@@ -280,7 +280,7 @@ export function AddUnplannedForm({
         <button
           disabled={!payload.account_name || isUploading}
           onClick={handleSave}
-          className="flex-[2] py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          className="flex-2 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           {isUploading && <Spinner size="sm" />}
           {isUploading ? "Uploading..." : "Add Item"}

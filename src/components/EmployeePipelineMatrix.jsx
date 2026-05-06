@@ -28,7 +28,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
 
   const userDepartment = user?.department;
   const [searchTerm, setSearchTerm] = useState("");
-  const [layoutMode, setLayoutMode] = useState("stack"); // "row" | "stack" | "grid"
+    const [layoutMode, setLayoutMode] = useState("stack"); // "list" | "stack" | "grid"
   const avatarMap = useEmployeeAvatarMap();
 
   // Fetch ALL tasks (we will filter them down for Heads)
@@ -179,9 +179,9 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
 
           <div className="flex items-center gap-1.5 bg-mauve-2 border border-mauve-5 p-1 rounded-lg">
             <button
-              onClick={() => setLayoutMode("row")}
-              className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
-              title="Single Row"
+              onClick={() => setLayoutMode("list")}
+              className={`p-1 rounded transition-all ${layoutMode === "list" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
+              title="List View"
             >
               <List size={16} />
             </button>
@@ -213,30 +213,262 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
       {/* DYNAMIC PIPELINE GRID */}
       <div
         className={`
-        ${layoutMode === "row" ? "flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+        ${layoutMode === "list" ? "flex flex-col gap-3 pb-4" : ""}
         ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
         ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4" : ""}
       `}
       >
-        {filteredStats.map((emp) => (
-          <div
-            key={emp.id}
-            onClick={() =>
-              navigate("/tasks", { state: { filterEmployeeId: emp.id } })
-            }
-            className={`cursor-pointer flex flex-col transition-colors hover:bg-mauve-3 hover:border-mauve-5 ${
-              layoutMode === "grid"
-                ? "w-full"
-                : "min-w-[260px] sm:min-w-[290px] snap-start"
-            }`}
-            style={{
-              border: "1px solid #E5E7EB",
-              borderRadius: "8px",
-              padding: "16px",
-              boxShadow: "none",
-            }}
-          >
-            {/* Header: Avatar & Name */}
+        {filteredStats.map((emp) => {
+          if (layoutMode === "list") {
+            return (
+              <div
+                key={emp.id}
+                onClick={() =>
+                  navigate("/tasks", { state: { filterEmployeeId: emp.id } })
+                }
+                className="cursor-pointer flex flex-col lg:flex-row lg:items-center justify-between transition-colors hover:bg-mauve-3 hover:border-mauve-5 w-full bg-card gap-4"
+                style={{
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "8px",
+                  padding: "12px 16px",
+                  boxShadow: "none",
+                }}
+              >
+                {/* Header: Avatar & Name */}
+                <div className="flex items-center gap-3 min-w-[200px] w-full lg:w-1/4">
+                  <Avatar
+                    className="bg-white shrink-0"
+                    size="sm"
+                    name={emp.name}
+                    src={avatarMap.get(emp.id) ?? undefined}
+                  />
+                  <div className="min-w-0">
+                    <h3
+                      className="line-clamp-1"
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#111827",
+                      }}
+                    >
+                      <HighlightText text={emp.name} search={searchTerm} />
+                    </h3>
+                    <p
+                      className="line-clamp-1"
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 400,
+                        color: "#6B7280",
+                      }}
+                    >
+                      <HighlightText text={emp.subDept} search={searchTerm} />
+                    </p>
+                  </div>
+                </div>
+
+                {/* Pipeline Bar & Legend inline */}
+                <div className="flex-1 flex flex-col justify-center min-w-0 w-full lg:w-auto">
+                  <div
+                    className="flex justify-between"
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      color: "#9CA3AF",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    <span>Task Pipeline</span>
+                    <span style={{ color: "#374151" }}>{emp.total} Total</span>
+                  </div>
+
+                  <div
+                    className="w-full overflow-hidden flex"
+                    style={{
+                      height: "7px",
+                      borderRadius: "2px",
+                      background: "#F3F4F6",
+                    }}
+                  >
+                    {emp.draft > 0 && (
+                      <div
+                        className="bg-orange-a7"
+                        style={{ width: `${(emp.draft / emp.total) * 100}%` }}
+                        title={`${emp.draft} Incomplete`}
+                      />
+                    )}
+                    {emp.rejected > 0 && (
+                      <div
+                        className="bg-red-a7"
+                        style={{ width: `${(emp.rejected / emp.total) * 100}%` }}
+                        title={`${emp.rejected} Rejected`}
+                      />
+                    )}
+                    {emp.pendingHr > 0 && (
+                      <div
+                        className="bg-blue-a7"
+                        style={{ width: `${(emp.pendingHr / emp.total) * 100}%` }}
+                        title={`${emp.pendingHr} Pending HR`}
+                      />
+                    )}
+                    {emp.verified > 0 && (
+                      <div
+                        className="bg-green-a7"
+                        style={{ width: `${(emp.verified / emp.total) * 100}%` }}
+                        title={`${emp.verified} Verified`}
+                      />
+                    )}
+                  </div>
+
+                  <div
+                    className="flex items-center gap-3"
+                    style={{ paddingTop: "8px" }}
+                  >
+                    <span
+                      className="flex items-center gap-1"
+                      style={{ fontSize: "12px", color: "#6B7280" }}
+                    >
+                      <span
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background: "#F59E0B",
+                          display: "inline-block",
+                        }}
+                      />
+                      {emp.draft} <span>Inc</span>
+                    </span>
+                    {emp.rejected > 0 && (
+                      <span
+                        className="flex items-center gap-1"
+                        style={{ fontSize: "12px", color: "#6B7280" }}
+                      >
+                        <span
+                          style={{
+                            width: "6px",
+                            height: "6px",
+                            borderRadius: "50%",
+                            background: "#EF4444",
+                            display: "inline-block",
+                          }}
+                        />
+                        {emp.rejected} <span>Rej</span>
+                      </span>
+                    )}
+                    <span
+                      className="flex items-center gap-1"
+                      style={{ fontSize: "12px", color: "#6B7280" }}
+                    >
+                      <span
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background: "#3B82F6",
+                          display: "inline-block",
+                        }}
+                      />
+                      {emp.pendingHr} <span>Hr</span>
+                    </span>
+                    <span
+                      className="flex items-center gap-1"
+                      style={{ fontSize: "12px", color: "#6B7280" }}
+                    >
+                      <span
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background: "#22C55E",
+                          display: "inline-block",
+                        }}
+                      />
+                      {emp.verified} <span>Ver</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Grade & Completion Rate */}
+                <div className="flex items-center gap-4 lg:gap-6 shrink-0 w-full lg:w-auto justify-between lg:justify-end">
+                  <div
+                    className="flex items-center gap-1 shrink-0"
+                    style={{
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "9999px",
+                      padding: "2px 8px",
+                      background: "transparent",
+                    }}
+                  >
+                    <Star size={11} className="text-mauve-6 fill-gray-6" />
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        color: "#111827",
+                      }}
+                    >
+                      {emp.avgGrade}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        color: "#6B7280",
+                      }}
+                    >
+                      Completion Rate
+                    </span>
+                    <span
+                      className="flex items-center gap-1"
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#111827",
+                      }}
+                    >
+                      {emp.completionRate}%
+                      <TrendingUp
+                        size={13}
+                        style={{
+                          color:
+                            emp.completionRate >= 80
+                              ? "#22C55E"
+                              : emp.completionRate >= 50
+                                ? "#F59E0B"
+                                : "#EF4444",
+                        }}
+                      />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={emp.id}
+              onClick={() =>
+                navigate("/tasks", { state: { filterEmployeeId: emp.id } })
+              }
+              className={`cursor-pointer flex flex-col transition-colors hover:bg-mauve-3 hover:border-mauve-5 ${
+                layoutMode === "grid"
+                  ? "w-full"
+                  : "min-w-[260px] sm:min-w-[290px] snap-start"
+              }`}
+              style={{
+                border: "1px solid #E5E7EB",
+                borderRadius: "8px",
+                padding: "16px",
+                boxShadow: "none",
+              }}
+            >
+              {/* Header: Avatar & Name */}
             <div className="flex justify-between items-center gap-2">
               <div className="flex gap-2.5 items-center min-w-0">
                 <Avatar
@@ -460,7 +692,8 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
               </span>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
