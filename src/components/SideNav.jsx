@@ -40,6 +40,7 @@ import { employeeService } from "../services/employeeService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import BroadcastModal from "./BroadcastModal";
+import RoleSwitcher from "./RoleSwitcher";
 
 export default function SideNav() {
   const { user } = useAuth();
@@ -50,6 +51,18 @@ export default function SideNav() {
   const [isLogTaskOpen, setIsLogTaskOpen] = useState(false);
   const [isCreateCommitteeOpen, setIsCreateCommitteeOpen] = useState(false);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+
+  // Accordion State
+  const [expandedGroups, setExpandedGroups] = useState({
+    main: true,
+    approvals: true,
+    sales: true,
+    management: true,
+  });
+
+  const toggleGroup = (groupKey) => {
+    setExpandedGroups((prev) => ({ ...prev, [groupKey]: !prev[groupKey] }));
+  };
 
   // Notification State
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -95,23 +108,34 @@ export default function SideNav() {
   const hasSales = user?.has_sales_flow;
   const hasTask = user?.has_task_flow;
 
-  // Nav mapping logic mapped similarly to original implementation
-  let navLinks = [];
+  // Nav mapping logic grouped by categories
+  let groups = {
+    main: { label: "Main", links: [] },
+    approvals: { label: "Approvals", links: [] },
+    sales: { label: "Sales", links: [] },
+    management: { label: "Management", links: [] },
+  };
 
   if (user?.isSuperAdmin) {
-    navLinks = [
+    groups.main.links = [
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
+      { label: "Committee Tasks", link: "/committee", icon: UsersRound },
+    ];
+    groups.approvals.links = [
       { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
       {
         label: "Task Verification",
         link: "/approvals/hr-verification",
         icon: ShieldCheck,
       },
-      { label: "Committee Tasks", link: "/committee", icon: UsersRound },
       { label: "Sales Approval", link: "/approvals/sales", icon: ShieldCheck },
+    ];
+    groups.sales.links = [
       { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
       { label: "Sales Records", link: "/sales/records", icon: ListCheck },
+    ];
+    groups.management.links = [
       { label: "HR Management", link: "/hr/management", icon: Users },
       { label: "Super Admin", link: "/super-admin", icon: Crown },
       {
@@ -121,17 +145,17 @@ export default function SideNav() {
       },
     ];
   } else {
-    navLinks.push({ label: "Dashboard", link: "/", icon: LayoutList });
+    groups.main.links.push({ label: "Dashboard", link: "/", icon: LayoutList });
 
     if (hasTask) {
-      navLinks.push(
+      groups.main.links.push(
         { label: "Tasks", link: "/tasks", icon: ListCheck },
         { label: "Committee Tasks", link: "/committee", icon: UsersRound },
       );
     }
 
     if (hasSales) {
-      navLinks.push(
+      groups.sales.links.push(
         { label: "Sales Planner", link: "/sales/schedule", icon: CalendarDays },
         { label: "Daily Execution", link: "/sales/daily", icon: CheckSquare },
         { label: "Log Sales", link: "/sales/log-sales", icon: DollarSign },
@@ -144,7 +168,7 @@ export default function SideNav() {
       const isMasterHead = !userSubDept;
 
       if (isMasterHead) {
-        navLinks.push(
+        groups.approvals.links.push(
           {
             label: "Task Approval",
             link: "/approvals/tasks",
@@ -158,14 +182,14 @@ export default function SideNav() {
         );
       } else {
         if (hasTask) {
-          navLinks.push({
+          groups.approvals.links.push({
             label: "Task Approval",
             link: "/approvals/tasks",
             icon: ShieldCheck,
           });
         }
         if (hasSales) {
-          navLinks.push({
+          groups.approvals.links.push({
             label: "Sales Approval",
             link: "/approvals/sales",
             icon: ShieldCheck,
@@ -175,20 +199,18 @@ export default function SideNav() {
     }
 
     if (user?.isHr) {
-      navLinks.push(
-        {
-          label: "Task Verification",
-          link: "/approvals/hr-verification",
-          icon: ShieldCheck,
-        },
-        {
-          label: "HR Management",
-          link: "/hr/management",
-          icon: Users,
-        },
-      );
+      groups.approvals.links.push({
+        label: "Task Verification",
+        link: "/approvals/hr-verification",
+        icon: ShieldCheck,
+      });
+      groups.management.links.push({
+        label: "HR Management",
+        link: "/hr/management",
+        icon: Users,
+      });
       if (!hasSales) {
-        navLinks.push({
+        groups.sales.links.push({
           label: "Sales Records",
           link: "/sales/records",
           icon: ListCheck,
@@ -196,6 +218,10 @@ export default function SideNav() {
       }
     }
   }
+
+  const activeGroups = Object.entries(groups).filter(
+    ([, group]) => group.links.length > 0
+  );
 
   // React Select setup for Profile Dropdown
   const profileOptions = [
@@ -414,56 +440,76 @@ export default function SideNav() {
 
         {/* 4. Combined Workspace Menus */}
         <div className="px-3 flex-1 flex flex-col text-sidebar-foreground/80 pb-4">
-          <div className="px-3 mt-2 mb-3 flex items-center justify-between text-sidebar-foreground/60 group/header cursor-pointer">
-            <span className="text-[12px] font-medium tracking-wide">
-              Workspace
-            </span>
-            <ChevronDown
-              size={14}
-              className="opacity-0 group-hover/header:opacity-100 transition-opacity"
-            />
-          </div>
-
-          <nav className="flex flex-col gap-1 mb-6">
-            {navLinks.map((navLink) => {
-              const Icon = navLink.icon;
-              return (
-                <NavLink
-                  key={navLink.label}
-                  to={navLink.link}
-                  end={
-                    navLink.link === "/" ||
-                    navLink.link === "/approvals/tasks" ||
-                    navLink.link === "/approvals/hr-verification" ||
-                    navLink.link === "/super-admin"
-                  }
-                  onClick={() => setIsMobileOpen(false)}
-                  className={({ isActive }) =>
-                    `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${
-                      isActive
-                        ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
-                        : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
-                    }`
-                  }
+          <nav className="flex flex-col gap-5 mb-6 mt-2">
+            {activeGroups.map(([key, group]) => (
+              <div key={key} className="flex flex-col">
+                <div
+                  onClick={() => toggleGroup(key)}
+                  className="px-3 mb-1.5 flex items-center justify-between text-sidebar-foreground/60 group/header cursor-pointer transition-colors hover:text-sidebar-foreground"
                 >
-                  {({ isActive }) => (
-                    <>
-                      <Icon
-                        size={15}
-                        strokeWidth={2.2}
-                        className={`transition-colors ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`}
-                      />
-                      <span
-                        className={`truncate text-[13.5px] mt-[1px] transition-all ${isActive ? "font-bold text-sidebar-primary" : "font-medium"}`}
+                  <span className="text-[11px] font-black tracking-widest uppercase">
+                    {group.label}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${
+                      expandedGroups[key] ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+                <div
+                  className={`flex flex-col gap-1 overflow-hidden transition-all duration-300 ${
+                    expandedGroups[key] ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                  }`}
+                >
+                  {group.links.map((navLink) => {
+                    const Icon = navLink.icon;
+                    return (
+                      <NavLink
+                        key={navLink.label}
+                        to={navLink.link}
+                        end={
+                          navLink.link === "/" ||
+                          navLink.link === "/approvals/tasks" ||
+                          navLink.link === "/approvals/hr-verification" ||
+                          navLink.link === "/super-admin"
+                        }
+                        onClick={() => setIsMobileOpen(false)}
+                        className={({ isActive }) =>
+                          `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${
+                            isActive
+                              ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
+                              : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
+                          }`
+                        }
                       >
-                        {navLink.label}
-                      </span>
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
+                        {({ isActive }) => (
+                          <>
+                            <Icon
+                              size={15}
+                              strokeWidth={2.2}
+                              className={`transition-colors ${
+                                isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                              }`}
+                            />
+                            <span
+                              className={`truncate text-[13.5px] mt-[1px] transition-all ${
+                                isActive ? "font-bold text-sidebar-primary" : "font-medium"
+                              }`}
+                            >
+                              {navLink.label}
+                            </span>
+                          </>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
+
+          <RoleSwitcher />
         </div>
       </aside>
 

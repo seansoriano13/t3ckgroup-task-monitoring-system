@@ -3,7 +3,6 @@ import SideNav from "../components/SideNav";
 import { useAuth } from "../context/AuthContext";
 
 import Spinner from "@/components/ui/Spinner";
-import RoleSwitcher from "../components/RoleSwitcher";
 
 export default function AppLayout() {
   const { user, isAuthLoading } = useAuth();
@@ -37,8 +36,6 @@ export default function AppLayout() {
           </div>
         </div>
       </main>
-
-      <RoleSwitcher />
     </div>
   );
 }

@@ -184,9 +184,9 @@ export default function RoleSwitcher() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 md:left-6 z-[99999]">
+    <div className="w-full relative z-[100] mt-auto">
       {isOpen && (
-        <div className="mb-4 bg-card border border-mauve-4 rounded-xl shadow-2xl w-80 animate-in fade-in slide-in-from-bottom-3 duration-300 overflow-visible">
+        <div className="absolute bottom-full left-0 mb-3 bg-card border border-border rounded-xl shadow-2xl w-[260px] animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-visible z-[101]">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-mauve-3 rounded-t-xl">
             <div className="flex items-center gap-2">
@@ -325,14 +325,14 @@ export default function RoleSwitcher() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={switching}
-        className="flex items-center gap-3 px-6 py-3.5 rounded-full shadow-2xl transition-all active:scale-95 bg-[#111827] hover:bg-mauve-12 text-primary-foreground border border-white/5 group"
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl shadow-sm transition-all active:scale-95 bg-[#111827] hover:bg-mauve-12 text-primary-foreground border border-white/5 group"
       >
         <div
           className={`p-1.5 rounded-md bg-card/10 group-hover:bg-card/20 transition-colors`}
         >
-          <FlaskConical size={16} className="text-primary-foreground" />
+          <FlaskConical size={14} className="text-primary-foreground" />
         </div>
-        <span className="text-[13px] font-bold tracking-wide uppercase hidden md:block">
+        <span className="text-[11px] font-bold tracking-wider uppercase text-left flex-1 truncate">
           {currentStatusText()}
         </span>
         <div

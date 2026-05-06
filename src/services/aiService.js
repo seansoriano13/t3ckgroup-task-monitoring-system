@@ -27,7 +27,7 @@ function toSevenWordQuote(rawText) {
 
   const words = cleaned.split(" ").filter(Boolean).slice(0, 7);
   if (words.length < 7) return null;
-  return words.join(" ").slice(0, 72);
+  return words.join(" ").slice(0, 100);
 }
 
 export const aiService = {

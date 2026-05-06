@@ -269,7 +269,7 @@ export default function ProfilePage() {
         dashboardBannerPath = bannerUrlInput.trim();
       }
 
-      const dashboardQuote = removeQuote ? "" : customQuote.trim().slice(0, 72);
+      const dashboardQuote = removeQuote ? "" : customQuote.trim().slice(0, 100);
 
       const updated = await employeeService.updateSelfPreferences(user.id, {
         avatarPath,
@@ -327,34 +327,59 @@ export default function ProfilePage() {
     removeAvatar || (!avatarFile && !user?.avatarPath);
   const isUsingDefaultQuote = removeQuote || quoteLength === 0;
 
+  const initialQuote = (user?.dashboardQuote || "").trim();
+  const initialBannerUrl = (isHttpUrl(user?.dashboardBannerPath)
+    ? user.dashboardBannerPath
+    : ""
+  ).trim();
+
+  const hasChanges =
+    !!avatarFile ||
+    !!bannerFile ||
+    removeAvatar ||
+    removeBanner ||
+    removeQuote ||
+    customQuote.trim() !== initialQuote ||
+    bannerUrlInput.trim() !== initialBannerUrl;
+
   return (
     <PageContainer maxWidth="7xl" className="pt-4">
       <PageHeader
         title="My Profile"
         description="Manage your employee information and access levels."
-      />
+      >
+        <button
+          type="button"
+          onClick={() => savePreferencesMutation.mutate()}
+          disabled={isSaving || !hasChanges}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-black uppercase tracking-widest shadow-sm transition disabled:opacity-70"
+        >
+          {isSaving ? <Spinner size="sm" /> : <Save size={16} />}
+          Save Settings
+        </button>
+      </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN: The ID Card */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-3 items-center text-center shadow-sm">
+        <div className="lg:col-span-1 h-full">
+          <div className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-3 items-center text-center shadow-sm h-full justify-center">
             <div className="relative">
               <img
                 src={user?.picture || "/default-avatar.png"}
                 alt="Profile"
-                className="w-24 h-24 rounded-2xl border-4 border-border shadow-md mb-4 object-cover"
+                className="w-24 h-24 rounded-full border border-border shadow-sm mb-3 object-cover"
                 referrerPolicy="no-referrer"
               />
               {/* Role Badges floating on the avatar */}
               {(user?.isHead || user?.isHr) && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-1">
                   {user?.isHead && (
-                    <span className="bg-amber-2 text-amber-11 border border-amber-6 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
+                    <span className="bg-transparent text-amber-11 border border-amber-6 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest">
                       Head
                     </span>
                   )}
                   {user?.isHr && (
-                    <span className="bg-violet-2 text-violet-11 border border-mauve-5 text-[10px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-widest shadow-sm">
+                    <span className="bg-transparent text-violet-11 border border-violet-6 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest">
                       HR
                     </span>
                   )}
@@ -374,16 +399,16 @@ export default function ProfilePage() {
         </div>
 
         {/* RIGHT COLUMN: Details & Stats */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 flex flex-col">
           {/* Department Info */}
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-2xl p-8 shadow-sm flex-1">
             <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-5 border-b border-border pb-3">
               Organizational Details
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 bg-violet-2 border border-mauve-3 rounded-xl flex items-center justify-center text-mauve-12">
+                <div className="w-10 h-10 bg-muted/50 border border-border rounded-xl flex items-center justify-center text-foreground">
                   <Building2 size={20} />
                 </div>
                 <div>
@@ -397,7 +422,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex gap-4 items-start">
-                <div className="p-3 bg-mauve-3 rounded-xl ">
+                <div className="w-10 h-10 bg-muted/50 border border-border rounded-xl flex items-center justify-center text-foreground">
                   <Briefcase size={20} />
                 </div>
                 <div>
@@ -410,8 +435,8 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start sm:col-span-2 border-t border-mauve-3 pt-4 mt-2">
-                <div className="p-3 bg-mauve-3 rounded-xl ">
+              <div className="flex gap-4 items-start sm:col-span-2 border-t border-border pt-4 mt-2">
+                <div className="w-10 h-10 bg-muted/50 border border-border rounded-xl flex items-center justify-center text-foreground">
                   <ShieldCheck size={20} />
                 </div>
                 <div>
@@ -471,63 +496,83 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-              Live Preview
-            </p>
-            <div className="relative rounded-lg overflow-hidden h-24">
-              <img
-                src={bannerPreviewUrl || "/leaf-background.jpg"}
-                alt="Banner preview"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/35" />
-              <div className="absolute left-3 right-3 bottom-2 flex items-center justify-between gap-2">
-                <p className="text-[11px] text-primary-foreground/90 font-semibold">
-                  Dashboard banner preview
-                </p>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-primary-foreground/90 border border-white/20">
-                  {isUsingDefaultBanner ? "Default" : "Custom"}
-                </span>
+          <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+            <div className="bg-muted/40 border-b border-border px-4 py-2.5 flex items-center gap-3">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="h-4 bg-muted/60 rounded-full w-full max-w-[200px]"></div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <img
-                src={avatarPreviewUrl || "/default-avatar.png"}
-                alt="Avatar preview"
-                className="w-10 h-10 rounded-xl object-cover border border-border"
-              />
-              <span className="text-xs text-muted-foreground font-medium">
-                Profile photo preview (
-                {isUsingDefaultAvatar ? "Default" : "Custom"})
-              </span>
+            <div className="p-5 space-y-4">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                Live Preview
+              </p>
+              <div className="relative rounded-lg overflow-hidden h-28 border border-border">
+                <img
+                  src={bannerPreviewUrl || "/leaf-background.jpg"}
+                  alt="Banner preview"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/35" />
+                <div className="absolute left-3 right-3 bottom-2 flex items-center justify-between gap-2">
+                  <p className="text-[11px] text-primary-foreground/90 font-semibold">
+                    Dashboard banner preview
+                  </p>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/50 text-primary-foreground/90 border border-white/20">
+                    {isUsingDefaultBanner ? "Default" : "Custom"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <img
+                  src={avatarPreviewUrl || "/default-avatar.png"}
+                  alt="Avatar preview"
+                  className="w-10 h-10 rounded-full object-cover border border-border shadow-sm"
+                />
+                <span className="text-xs text-muted-foreground font-medium">
+                  Profile photo preview (
+                  {isUsingDefaultAvatar ? "Default" : "Custom"})
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                Profile photo
-              </p>
-              <button
-                type="button"
-                onClick={() => avatarInputRef.current?.click()}
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted text-sm font-black transition border border-border uppercase tracking-widest text-xs hover:cursor-pointer hover:bg-mauve-4 hover:text-mauve-8"
-              >
-                <UploadCloud size={16} />{" "}
-                {avatarFile ? avatarFile.name : "Upload avatar"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAvatarFile(null);
-                  setRemoveAvatar(true);
-                }}
-                disabled={isUsingDefaultAvatar}
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
-              >
-                Reset to default
-              </button>
+            <div className="space-y-4 rounded-xl border border-border bg-card p-5">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black text-foreground uppercase tracking-widest">
+                    Profile photo
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate max-w-[150px]">
+                    {avatarFile ? avatarFile.name : "Custom avatar or default"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 text-[10px] font-black transition border border-border uppercase tracking-widest hover:bg-muted"
+                  >
+                    <UploadCloud size={14} /> Upload
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAvatarFile(null);
+                      setRemoveAvatar(true);
+                    }}
+                    disabled={isUsingDefaultAvatar}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted/50 disabled:opacity-50"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
               <input
                 ref={avatarInputRef}
                 type="file"
@@ -545,18 +590,53 @@ export default function ProfilePage() {
               />
             </div>
 
-            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                Dashboard banner
-              </p>
-              <button
-                type="button"
-                onClick={() => bannerInputRef.current?.click()}
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
-              >
-                <UploadCloud size={16} />{" "}
-                {bannerFile ? bannerFile.name : "Upload banner"}
-              </button>
+            <div className="space-y-4 rounded-xl border border-border bg-card p-5">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black text-foreground uppercase tracking-widest">
+                    Dashboard banner
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate max-w-[150px]">
+                    {bannerFile ? bannerFile.name : "URL, upload, or random"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => bannerInputRef.current?.click()}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-[10px] font-black uppercase tracking-widest transition border border-border"
+                  >
+                    <UploadCloud size={14} /> Upload
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const randomBanner =
+                        UNSPLASH_BANNER_POOL[
+                          Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
+                        ];
+                      setBannerUrlInput(randomBanner);
+                      setBannerFile(null);
+                      setRemoveBanner(false);
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-[10px] font-black uppercase tracking-widest transition border border-border"
+                  >
+                    Random
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBannerFile(null);
+                      setBannerUrlInput("");
+                      setRemoveBanner(true);
+                    }}
+                    disabled={isUsingDefaultBanner}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted/50 disabled:opacity-50"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
               <input
                 ref={bannerInputRef}
                 type="file"
@@ -576,95 +656,61 @@ export default function ProfilePage() {
                   setBannerFile(null);
                   setRemoveBanner(false);
                 }}
-                className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-mauve-8/40 transition-all"
+                className="w-full rounded-full border border-border bg-muted/20 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-mauve-8/40 transition-all"
                 placeholder="Paste Unsplash image URL"
               />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const randomBanner =
-                      UNSPLASH_BANNER_POOL[
-                        Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
-                      ];
-                    setBannerUrlInput(randomBanner);
-                    setBannerFile(null);
-                    setRemoveBanner(false);
-                  }}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-[10px] font-black uppercase tracking-widest transition border border-border"
-                >
-                  Random Unsplash
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBannerFile(null);
-                    setBannerUrlInput("");
-                    setRemoveBanner(true);
-                  }}
-                  disabled={isUsingDefaultBanner}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
-                >
-                  Reset banner
-                </button>
-              </div>
             </div>
           </div>
 
-          <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                Motivational Quote
-              </p>
-              <span className="text-[11px] text-mauve-8">{quoteLength}/72</span>
+          <div className="space-y-4 rounded-xl border border-border bg-card p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black text-foreground uppercase tracking-widest">
+                  Motivational Quote
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Set a daily reminder for yourself.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-mauve-8 mr-1 font-semibold">{quoteLength}/100</span>
+                <button
+                  type="button"
+                  onClick={() => generateQuoteMutation.mutate()}
+                  disabled={generateQuoteMutation.isPending}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-foreground text-[10px] font-black uppercase tracking-widest transition border border-border disabled:opacity-70"
+                >
+                  {generateQuoteMutation.isPending ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    <Sparkles size={14} />
+                  )}
+                  Random
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomQuote("");
+                    setRemoveQuote(true);
+                  }}
+                  disabled={isUsingDefaultQuote}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted/50 disabled:opacity-50"
+                >
+                  Reset
+                </button>
+              </div>
             </div>
             <textarea
               value={customQuote}
-              maxLength={72}
+              maxLength={100}
               onChange={(e) => {
                 setCustomQuote(e.target.value);
                 setRemoveQuote(false);
               }}
-              className="w-full min-h-[70px] rounded-xl border border-border bg-muted/40 p-3 text-sm outline-none focus:ring-2 focus:ring-mauve-8/40 transition-all resize-none"
+              className="w-full min-h-[70px] rounded-xl border border-border bg-muted/20 p-4 text-sm outline-none focus:ring-2 focus:ring-mauve-8/40 transition-all resize-none"
               placeholder="Write your 7-word motivational quote (all users)..."
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => generateQuoteMutation.mutate()}
-                disabled={generateQuoteMutation.isPending}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-[10px] font-black uppercase tracking-widest transition disabled:opacity-70 shadow-lg shadow-primary/15"
-              >
-                {generateQuoteMutation.isPending ? (
-                  <Spinner size="sm" />
-                ) : (
-                  <Sparkles size={16} />
-                )}
-                Random 7-word quote
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCustomQuote("");
-                  setRemoveQuote(true);
-                }}
-                disabled={isUsingDefaultQuote}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest transition enabled:hover:bg-muted disabled:opacity-50"
-              >
-                Reset quote
-              </button>
-            </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => savePreferencesMutation.mutate()}
-            disabled={isSaving}
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/15 transition disabled:opacity-70"
-          >
-            {isSaving ? <Spinner size="sm" /> : <Save size={16} />}
-            Save dashboard settings
-          </button>
         </div>
       </div>
       <ImageCropModal
