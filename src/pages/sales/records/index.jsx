@@ -152,6 +152,18 @@ export default function SalesRecordsPage() {
             {recordsSummary.pendingExpense}
           </span>
           {activeTab === "ACTIVITIES" && (
+            <button
+              onClick={() => setFilterStatus(filterStatus === "VERIFIED" ? "ALL" : "VERIFIED")}
+              className={`text-[10px] font-black px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                filterStatus === "VERIFIED"
+                  ? "bg-green-9 text-primary-foreground border-green-9 shadow-md shadow-green-5"
+                  : "bg-green-2 text-green-11 border-green-6 hover:bg-green-3"
+              }`}
+            >
+              ✓ Head Verified: {recordsSummary.verified ?? 0} ({recordsSummary.verifiedPct ?? 0}%)
+            </button>
+          )}
+          {activeTab === "ACTIVITIES" && (
             <span
               className={`text-[10px] font-black px-3 py-1.5 rounded-lg border ${
                 planVariance.direction === "balanced"

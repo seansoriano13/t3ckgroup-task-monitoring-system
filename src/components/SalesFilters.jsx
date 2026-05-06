@@ -103,6 +103,7 @@ export default function SalesFilters({
           { value: "INCOMPLETE", label: "Planned / Incomplete" },
           { value: "APPROVED", label: "Approved / Completed" },
           { value: "PENDING", label: "Pending Expense Approval" },
+          { value: "VERIFIED", label: "Head Verified" },
         ]
       : [
           { value: "ALL", label: "All" },

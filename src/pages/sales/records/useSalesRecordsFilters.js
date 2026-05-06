@@ -369,6 +369,8 @@ export function useSalesRecordsFilters(user) {
         filtered = filtered.filter(
           (a) => a.status === "INCOMPLETE" || a.status === "REJECTED",
         );
+      } else if (filterStatus === "VERIFIED") {
+        filtered = filtered.filter((a) => !!a.head_verified_at);
       } else {
         filtered = filtered.filter((a) => a.status === filterStatus);
       }
@@ -565,6 +567,7 @@ export function useSalesRecordsFilters(user) {
       const pendingExpense = filteredActivities.filter(
         (a) => Number(a.expense_amount) > 0 && a.status === "PENDING",
       ).length;
+      const verified = filteredActivities.filter((a) => !!a.head_verified_at).length;
       return {
         total: source.length,
         completedPct: source.length
@@ -574,6 +577,10 @@ export function useSalesRecordsFilters(user) {
           ? Math.round((unplanned / source.length) * 100)
           : 0,
         pendingExpense,
+        verified,
+        verifiedPct: source.length
+          ? Math.round((verified / source.length) * 100)
+          : 0,
       };
     }
 
