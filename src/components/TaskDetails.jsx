@@ -91,6 +91,7 @@ export default function TaskDetails({
     attachments: [],
     paymentVoucher: "",
   });
+  const [initialFormData, setInitialFormData] = useState(null);
 
   // Pre-hydrate the form data immediately when the modal opens or fullTask loads
   useEffect(() => {
@@ -129,7 +130,7 @@ export default function TaskDetails({
         }
         setDescriptionType(initialDescriptionType);
 
-        setFormData({
+        const newFormData = {
           department: taskDept || user?.department || "",
           subDepartment:
             taskSubDept || user?.sub_department || user?.subDepartment || "",
@@ -149,7 +150,9 @@ export default function TaskDetails({
           remarks: activeTask.remarks || "",
           attachments: activeTask.attachments || [],
           paymentVoucher: activeTask.paymentVoucher || "",
-        });
+        };
+        setFormData(newFormData);
+        setInitialFormData(newFormData);
       });
     }
   }, [isOpen, activeTask, user]);
@@ -712,7 +715,9 @@ export default function TaskDetails({
               <div className="flex flex-col gap-1.5 pt-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-1.5">
                   Performance Grade
-                  <span className="font-normal normal-case tracking-normal text-muted-foreground/70">(editing)</span>
+                  <span className="font-normal normal-case tracking-normal text-muted-foreground/70">
+                    (editing)
+                  </span>
                 </label>
                 <GradeSelector
                   grade={editGrade}
@@ -840,9 +845,7 @@ export default function TaskDetails({
             onSave: handleSaveEdit,
             onToggleEdit: handleToggleEdit,
             onDelete: handleDelete,
-
             onHeadReject: handleReject,
-
             onSubmitApproval: () => {
               const payload = {
                 id: task.id,
@@ -854,9 +857,7 @@ export default function TaskDetails({
               }
               return executeUpdate(payload);
             },
-
             onMarkComplete: handleApprove,
-
             onUndoVerify: () =>
               executeUpdate({
                 id: task.id,
@@ -903,7 +904,13 @@ export default function TaskDetails({
               !isSubmitting &&
               !topologyData.isLoadingTop &&
               !(isManagement && !formData.loggedById) &&
-              formData.categoryId,
+              !!formData.categoryId &&
+              (initialFormData
+                ? JSON.stringify(formData) !== JSON.stringify(initialFormData) ||
+                  (canReEvalGrade &&
+                    editGrade !==
+                      (activeTask?.grade ? Number(activeTask.grade) : null))
+                : false),
             canApprove: approvalGrade !== null && !hasUncheckedItems,
             isMarketing,
             universalTaskSubmission:

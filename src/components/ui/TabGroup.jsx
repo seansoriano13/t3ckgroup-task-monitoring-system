@@ -16,7 +16,9 @@
  */
 
 import { cn } from "@/lib/utils";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
+import { useId } from "react";
 
 export default function TabGroup({
   tabs = [],
@@ -26,14 +28,18 @@ export default function TabGroup({
   size = "sm",
   fullWidth = false,
   className,
+  id,
 }) {
+  const generatedId = useId();
+  const groupId = id || generatedId;
+
   const normalised = tabs.map((t) =>
     typeof t === "string" ? { value: t, label: t } : t,
   );
 
   // Wrapper classes
   const wrapperCls = cn(
-    "flex overflow-x-auto shrink-0 relative",
+    "flex overflow-x-auto shrink-0 relative [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
     variant === "pill" && "bg-muted p-1 rounded-xl w-fit",
     (variant === "primary" ||
       variant === "success" ||
@@ -109,7 +115,7 @@ export default function TabGroup({
               >
                 {isActive && currentVariant !== "underline" && (
                   <motion.div
-                    layoutId={`tab-indicator-${variant}`}
+                    layoutId={`tab-indicator-${variant}-${groupId}`}
                     className={cn(
                       "absolute inset-0 z-0",
                       indicatorCls[currentVariant],

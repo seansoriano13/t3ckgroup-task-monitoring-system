@@ -33,29 +33,30 @@ const TaskFooter = ({ actions, permissions, state }) => {
   const { isEditing, isSubmitting, task, formIsValid, isHrRejected } = state;
 
   return (
-    <div className="px-5 py-3 border-t border-border bg-card flex justify-between items-center shrink-0 rounded-b-xl">
+    <div className="px-4 py-3 sm:px-5 border-t border-border bg-card flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 shrink-0 rounded-b-xl">
       {/* ========================================= */}
       {/* LEFT: CANCEL / CLOSE & DELETE ZONE          */}
       {/* ========================================= */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2">
         <Button
           variant="ghost"
           onClick={isEditing ? onCancel : onClose}
-          className="text-sm font-bold text-muted-foreground hover:text-foreground"
+          className="h-9 rounded-xl px-4 text-[13px] font-bold text-mauve-11 hover:bg-mauve-3 hover:text-mauve-12"
         >
           {isEditing ? "Cancel" : "Close"}
         </Button>
 
         {!isEditing &&
-          (isManagement || (isOwner && task.status === TASK_STATUS.INCOMPLETE)) && (
+          (isManagement ||
+            (isOwner && task.status === TASK_STATUS.INCOMPLETE)) && (
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={onDelete}
               disabled={isSubmitting}
-              className="text-sm font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-none shadow-none"
+              className="h-9 rounded-xl px-4 text-[13px] font-bold text-mauve-11 hover:bg-red-3 hover:text-red-11 gap-1.5"
               title="Delete Task"
             >
-              <Trash2 size={16} />
+              <Trash2 size={15} />
               <span className="hidden sm:inline">Delete</span>
             </Button>
           )}
@@ -64,36 +65,34 @@ const TaskFooter = ({ actions, permissions, state }) => {
       {/* ========================================= */}
       {/* RIGHT: PRIMARY ACTIONS ZONE                 */}
       {/* ========================================= */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center justify-end gap-2.5">
         {/* --- EDITING STATE --- */}
         {isEditing ? (
           <Button
+            variant="ghost"
             onClick={onSave}
             disabled={!formIsValid || isSubmitting}
-            className="font-bold px-6 h-9 text-sm"
+            className="h-9 rounded-xl px-5 text-[13px] font-bold border border-blue-6 bg-blue-3 text-blue-11 hover:bg-blue-4 hover:text-blue-11 shadow-sm gap-1.5"
           >
-            {isSubmitting ? (
-              <Spinner size="sm" />
-            ) : (
-              <CheckCircle size={16} />
-            )}
+            {isSubmitting ? <Spinner size="sm" /> : <CheckCircle size={15} />}
             {isSubmitting ? "Saving..." : "Save"}
           </Button>
         ) : (
           <>
             {/* --- RESUBMIT (HR-rejected tasks — owner only) --- */}
-            {!isEditing && isOwner && isHrRejected && (
+            {isOwner && isHrRejected && (
               <Button
+                variant="ghost"
                 onClick={onResubmit}
                 disabled={isSubmitting || state.hasUncheckedItems}
-                className="bg-violet-9 hover:bg-violet-10 text-white font-bold px-5 h-9 text-sm"
-                title={state.hasUncheckedItems ? "Check all items first" : "Reset this task back to the head review queue"}
+                className="h-9 rounded-xl px-5 text-[13px] font-bold border border-violet-6 bg-violet-3 text-violet-11 hover:bg-violet-4 hover:text-violet-11 shadow-sm gap-1.5"
+                title={
+                  state.hasUncheckedItems
+                    ? "Check all items first"
+                    : "Reset this task back to the head review queue"
+                }
               >
-                {isSubmitting ? (
-                  <Spinner size="sm" />
-                ) : (
-                  <RefreshCw size={16} />
-                )}
+                {isSubmitting ? <Spinner size="sm" /> : <RefreshCw size={15} />}
                 Resubmit for Review
               </Button>
             )}
@@ -101,11 +100,11 @@ const TaskFooter = ({ actions, permissions, state }) => {
             {/* --- AUTHOR ACTION --- */}
             {canEdit && (
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={onToggleEdit}
-                className="font-bold flex items-center gap-2 h-9 text-sm"
+                className="h-9 rounded-xl px-4 text-[13px] font-bold border border-mauve-6 bg-mauve-3 text-mauve-11 hover:bg-mauve-4 hover:text-mauve-12 shadow-sm gap-1.5"
               >
-                <Edit3 size={16} /> Edit
+                <Edit3 size={15} /> Edit
               </Button>
             )}
 
@@ -115,15 +114,20 @@ const TaskFooter = ({ actions, permissions, state }) => {
               (task.status === TASK_STATUS.INCOMPLETE ||
                 task.status === TASK_STATUS.NOT_APPROVED) && (
                 <Button
+                  variant="default"
                   onClick={onSubmitApproval}
-                  disabled={isSubmitting || state.task.status === TASK_STATUS.AWAITING_APPROVAL || state.hasUncheckedItems}
+                  disabled={
+                    isSubmitting ||
+                    state.task.status === TASK_STATUS.AWAITING_APPROVAL ||
+                    state.hasUncheckedItems
+                  }
                   title={state.hasUncheckedItems ? "Check all items first" : ""}
-                  className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
+                  className="h-9 rounded-xl px-5 text-[13px] font-bold shadow-sm gap-1.5 bg-blue-9 text-white hover:bg-blue-10 border-none"
                 >
                   {isSubmitting ? (
                     <Spinner size="sm" />
                   ) : (
-                    <CheckCircle size={16} />
+                    <CheckCircle size={15} />
                   )}
                   Submit for Review
                 </Button>
@@ -132,32 +136,34 @@ const TaskFooter = ({ actions, permissions, state }) => {
             {(state.isMarketing || state.universalTaskSubmission) &&
               isOwner &&
               task.status === TASK_STATUS.AWAITING_APPROVAL && (
-                 <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                   {state.isDelayed && state.enableSelfVerification && (
                     <Button
-                      variant="secondary"
+                      variant="ghost"
                       onClick={onSelfVerify}
-                      className="bg-purple-600 hover:bg-purple-700 text-primary-foreground font-bold h-9 px-4"
+                      className="h-9 rounded-xl px-5 text-[13px] font-bold border border-violet-6 bg-violet-3 text-violet-11 hover:bg-violet-4 hover:text-violet-11 shadow-sm gap-1.5"
                       title="Bypass unresponsive head approval"
                     >
-                      <ShieldCheck size={14} /> Self-Verify
+                      <ShieldCheck size={15} /> Self-Verify
                     </Button>
                   )}
 
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={onRecallTask}
                     disabled={isSubmitting}
-                    className="h-9 px-4 font-bold border-border hover:border-orange-500 hover:text-orange-600"
+                    className="h-9 rounded-xl px-4 text-[13px] font-bold border border-orange-6 bg-orange-3 text-orange-11 hover:bg-orange-4 hover:text-orange-11 shadow-sm gap-1.5"
                     title="Recall this task to make edits"
                   >
-                    <Undo2 size={14} /> Recall
+                    <Undo2 size={15} /> Recall
                   </Button>
 
                   <div className="text-[10px] uppercase tracking-widest font-bold text-blue-10 flex items-center gap-1.5 px-2">
                     <Clock size={16} />
                     {state.isDelayed && state.enableVisualShaming ? (
-                      <span className="text-destructive animate-pulse">DELAYED</span>
+                      <span className="text-destructive animate-pulse">
+                        DELAYED
+                      </span>
                     ) : (
                       "Pending Review"
                     )}
@@ -169,25 +175,26 @@ const TaskFooter = ({ actions, permissions, state }) => {
             {canEvaluate &&
               (task.status === TASK_STATUS.INCOMPLETE ||
                 task.status === TASK_STATUS.AWAITING_APPROVAL) && (
-                 <div className="flex items-center gap-3 pl-3 ml-1 border-l border-border">
+                <div className="flex items-center gap-3 sm:pl-3 sm:ml-1 sm:border-l border-border">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={onHeadReject}
                     disabled={isSubmitting}
-                    className="text-sm font-bold text-muted-foreground hover:text-destructive hover:border-destructive/30 h-9"
+                    className="h-9 rounded-xl px-4 text-[13px] font-bold border border-red-6 bg-red-3 text-red-11 hover:bg-red-4 hover:text-red-11 shadow-sm gap-1.5"
                   >
-                    <XCircle size={16} /> Not Approve
+                    <XCircle size={15} /> Not Approve
                   </Button>
 
                   <Button
+                    variant="default"
                     onClick={onMarkComplete}
                     disabled={isSubmitting || !state.canApprove}
-                    className="bg-green-9 hover:bg-green-9 text-primary-foreground font-bold px-5 h-9 text-sm shadow-green-900/10"
+                    className="h-9 rounded-xl px-5 text-[13px] font-bold shadow-sm gap-1.5 bg-green-9 text-white hover:bg-green-10 border-none"
                   >
                     {isSubmitting ? (
                       <Spinner size="sm" />
                     ) : (
-                      <CheckCircle size={16} />
+                      <CheckCircle size={15} />
                     )}
                     Approve
                   </Button>
@@ -195,33 +202,32 @@ const TaskFooter = ({ actions, permissions, state }) => {
               )}
 
             {/* --- HR ACTIONS (VERIFICATION) --- */}
-            {isHr && task.status === TASK_STATUS.COMPLETE && !task.hrVerified && (
-              <Button
-                onClick={onHrVerify}
-                disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-700 font-bold px-5 h-9 text-sm"
-              >
-                {isSubmitting ? (
-                  <Spinner size="sm" />
-                ) : (
-                  <ShieldCheck size={16} />
-                )}
-                Verify & Sign
-              </Button>
-            )}
+            {isHr &&
+              task.status === TASK_STATUS.COMPLETE &&
+              !task.hrVerified && (
+                <Button
+                  variant="default"
+                  onClick={onHrVerify}
+                  disabled={isSubmitting}
+                  className="h-9 rounded-xl px-5 text-[13px] font-bold shadow-sm gap-1.5 bg-blue-9 text-white hover:bg-blue-10 border-none"
+                >
+                  {isSubmitting ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    <ShieldCheck size={15} />
+                  )}
+                  Verify & Sign
+                </Button>
+              )}
 
             {isHr && task.hrVerified && (
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={onUndoVerify}
                 disabled={isSubmitting}
-                className="font-bold px-4 h-9 text-sm"
+                className="h-9 rounded-xl px-4 text-[13px] font-bold border border-amber-6 bg-amber-3 text-amber-11 hover:bg-amber-4 hover:text-amber-11 shadow-sm gap-1.5"
               >
-                {isSubmitting ? (
-                  <Spinner size="sm" />
-                ) : (
-                  <RotateCcw size={16} />
-                )}
+                {isSubmitting ? <Spinner size="sm" /> : <RotateCcw size={15} />}
                 Undo
               </Button>
             )}
