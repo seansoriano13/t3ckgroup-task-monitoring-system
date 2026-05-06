@@ -147,8 +147,11 @@ export default function TaskApprovalsPage() {
           setViewTask(targetTask);
         } else {
           // Task may be soft-deleted — fetch it directly
-          taskQueryService.getTaskById(openId)
-            .then((task) => { if (task) setViewTask(task); })
+          taskQueryService
+            .getTaskById(openId)
+            .then((task) => {
+              if (task) setViewTask(task);
+            })
             .catch(() => {});
         }
       });
@@ -532,8 +535,7 @@ export default function TaskApprovalsPage() {
             size="md"
           />
 
-          {/* Super-admin scope toggle — visible only to super admins */}
-          {isSuperAdmin && (
+          {(isSuperAdmin || isHead || isHr) && (
             <TabGroup
               tabs={[
                 { value: "ME", label: "My Queue", icon: Users2 },
