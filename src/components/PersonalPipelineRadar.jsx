@@ -2,12 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { taskService } from "../services/taskService.js";
-import { Activity, TrendingUp, Star, Clock, CheckCircle2 } from "lucide-react";
+import {
+  Activity,
+  TrendingUp,
+  Star,
+  Clock,
+  CheckCircle2,
+  ShieldAlert,
+  XCircle,
+} from "lucide-react";
 import { TASK_STATUS } from "../constants/status";
 import Avatar from "./Avatar";
+import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router";
 
-export default function PersonalPipelineRadar({ selectedMonth }) {
+export default function PersonalPipelineRadar({ selectedRange }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Fetch the user's tasks (reusing dashboard query)
   const { data: rawTasks = [], isLoading } = useQuery({
@@ -19,9 +30,12 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
   const stats = useMemo(() => {
     if (!rawTasks.length) return null;
 
-    const selDate = selectedMonth ? new Date(selectedMonth) : new Date();
-    const currentMonth = selDate.getMonth();
-    const currentYear = selDate.getFullYear();
+    const rangeStart = selectedRange?.startDate
+      ? new Date(`${selectedRange.startDate}T00:00:00`)
+      : new Date(0);
+    const rangeEnd = selectedRange?.endDate
+      ? new Date(`${selectedRange.endDate}T23:59:59.999`)
+      : new Date();
 
     let total = 0;
     let draft = 0;
@@ -34,10 +48,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
 
     rawTasks.forEach((task) => {
       const taskDate = new Date(task.createdAt);
-      if (
-        taskDate.getMonth() !== currentMonth ||
-        taskDate.getFullYear() !== currentYear
-      ) {
+      if (taskDate < rangeStart || taskDate > rangeEnd) {
         return;
       }
       if (task.status === TASK_STATUS.DELETED) return;
@@ -66,7 +77,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
       completionRate:
         Math.round(((pendingHead + pendingHr + verified) / total) * 100) || 0,
     };
-  }, [rawTasks, selectedMonth]);
+  }, [rawTasks, selectedRange]);
 
   if (isLoading) {
     return (
@@ -86,7 +97,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
   }
 
   return (
-    <div className="bg-card border border-mauve-6 rounded-3xl shadow-xl overflow-hidden relative group">
+    <div className="bg-card border border-mauve-6 rounded-3xl shadow-xl overflow-hidden relative">
       {/* Visual background glow */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full pointer-events-none" />
 
@@ -107,12 +118,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1 font-medium italic">
                   Visual performance tracking for{" "}
-                  {selectedMonth
-                    ? new Date(selectedMonth).toLocaleString("default", {
-                        month: "long",
-                        year: "numeric",
-                      })
-                    : "this month"}
+                  {selectedRange?.label || "this period"}
                 </p>
               </div>
             </div>
@@ -157,7 +163,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.draft > 0 && (
               <div
                 style={{ width: `${(stats.draft / stats.total) * 100}%` }}
-                className="bg-mauve-6/30 border-r border-border flex items-center justify-center text-[10px] font-bold text-muted-foreground"
+                className="bg-orange-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
                 title="Drafts"
               >
                 {stats.draft}
@@ -166,7 +172,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.rejected > 0 && (
               <div
                 style={{ width: `${(stats.rejected / stats.total) * 100}%` }}
-                className="bg-primary/50 border-r border-mauve-2 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-inner"
+                className="bg-red-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
                 title="Rejected"
               >
                 {stats.rejected}
@@ -175,7 +181,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.pendingHead > 0 && (
               <div
                 style={{ width: `${(stats.pendingHead / stats.total) * 100}%` }}
-                className="bg-primary border-r border-mauve-2 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-inner"
+                className="bg-purple-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
                 title="Awaiting Head Approval"
               >
                 {stats.pendingHead}
@@ -184,7 +190,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.pendingHr > 0 && (
               <div
                 style={{ width: `${(stats.pendingHr / stats.total) * 100}%` }}
-                className="bg-warning border-r border-mauve-2 animate-pulse flex items-center justify-center text-[10px] font-bold text-amber-950"
+                className="bg-blue-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
                 title="Pending Verification"
               >
                 {stats.pendingHr}
@@ -193,7 +199,7 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
             {stats.verified > 0 && (
               <div
                 style={{ width: `${(stats.verified / stats.total) * 100}%` }}
-                className="bg-green-9 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-lg"
+                className="bg-green-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
                 title="Verified"
               >
                 {stats.verified}
@@ -202,37 +208,69 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
           </div>
         </div>
 
-        {/* Legend / Breakdown Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <LegendItem
-            icon={<Clock size={12} />}
-            label="Incomplete"
+        {/* Internal Grid of StatCards replacing external ones */}
+        <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mt-8 border-t border-border pt-8">
+          <InnerStatCard
+            title="My Pending"
             value={stats.draft}
-            color="bg-mauve-6/50"
+            subtitle="Drafting"
+            icon={<Clock size={20} className="text-orange-500" />}
+            color="orange"
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } },
+              })
+            }
           />
-          <LegendItem
-            icon={<Activity size={12} />}
-            label="Rejected"
+          <InnerStatCard
+            title="Rejected"
             value={stats.rejected}
-            color="bg-primary/50"
+            subtitle="Needs Fixing"
+            icon={<XCircle size={20} className="text-red-500" />}
+            color="destructive"
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.NOT_APPROVED } },
+              })
+            }
           />
-          <LegendItem
-            icon={<Clock size={12} />}
-            label="Awaiting Head"
+          <InnerStatCard
+            title="Pending Approval"
             value={stats.pendingHead}
-            color="bg-primary"
+            subtitle="Head Review"
+            icon={<Clock size={20} className="text-purple-500" />}
+            color="purple"
+            onClick={() =>
+              navigate("/tasks", {
+                state: {
+                  presetFilter: { status: TASK_STATUS.AWAITING_APPROVAL },
+                },
+              })
+            }
           />
-          <LegendItem
-            icon={<Clock size={12} />}
-            label="Wait Review"
+          <InnerStatCard
+            title="Pending HR"
             value={stats.pendingHr}
-            color="bg-warning"
+            subtitle="HR Verification"
+            icon={<ShieldAlert size={20} className="text-blue-500" />}
+            color="blue"
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
+              })
+            }
           />
-          <LegendItem
-            icon={<CheckCircle2 size={12} />}
-            label="Verified"
+          <InnerStatCard
+            title="My Completed"
             value={stats.verified}
-            color="bg-green-9"
+            subtitle="Verified"
+            icon={<CheckCircle2 size={20} className="text-green-500" />}
+            color="emerald"
+            onClick={() =>
+              navigate("/tasks", {
+                state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
+              })
+            }
           />
         </div>
       </div>
@@ -240,22 +278,53 @@ export default function PersonalPipelineRadar({ selectedMonth }) {
   );
 }
 
-function LegendItem({ icon, label, value, color }) {
+// Reusable internal component that doesn't use the external <Card> wrapper
+function InnerStatCard({ title, value, subtitle, icon, color, onClick }) {
+  const colorMap = {
+    mauve: "from-mauve-9/15 to-transparent",
+    amber: "from-amber-500/15 to-transparent",
+    destructive: "from-red-500/15 to-transparent",
+    emerald: "from-green-500/15 to-transparent",
+    slate: "from-slate-500/15 to-transparent",
+    blue: "from-blue-500/15 to-transparent",
+    orange: "from-orange-500/15 to-transparent",
+    purple: "from-purple-500/15 to-transparent",
+  };
+
   return (
-    <div className="flex items-center gap-3 bg-muted/50 border border-border/50 p-2 rounded-xl">
+    <div
+      onClick={onClick}
+      className={`p-5 relative overflow-hidden transition-all rounded-2xl group border border-border/50 bg-muted/20 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
+        onClick
+          ? "cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] hover:bg-muted/40"
+          : ""
+      }`}
+    >
       <div
-        className={`p-1.5 rounded-lg ${color} text-primary-foreground shadow-sm`}
-      >
-        {icon}
+        className={`absolute top-0 right-0 w-24 h-24 bg-linear-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-6 -mt-6 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500`}
+      />
+
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1">
+            {title}
+          </p>
+          <h3 className="text-3xl font-extrabold tracking-tight text-foreground">
+            {value}
+          </h3>
+        </div>
+        <div className="p-2 rounded-xl bg-muted border border-border/50 group-hover:bg-muted transition-colors">
+          {icon}
+        </div>
       </div>
-      <div>
-        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">
-          {label}
-        </p>
-        <p className="text-sm font-black text-foreground leading-none">
-          {value}
-        </p>
-      </div>
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest relative z-10">
+        {subtitle}
+      </p>
+      {onClick && (
+        <span className="absolute bottom-3 right-4 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest group-hover:text-muted-foreground/70 transition-colors">
+          View →
+        </span>
+      )}
     </div>
   );
 }

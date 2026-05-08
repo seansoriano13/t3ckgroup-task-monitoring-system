@@ -64,11 +64,13 @@ export default function Dashboard() {
             </PageHeader>
 
             <div className="grid gap-8 relative mt-10">
-              <DashboardStats selectedRange={globalRange} />
               {(user?.is_hr || user?.isHr || user?.isSuperAdmin || user?.is_head || user?.isHead) ? (
-                <EmployeePipelineMatrix selectedRange={globalRange} />
+                <>
+                  <DashboardStats selectedRange={globalRange} />
+                  <EmployeePipelineMatrix selectedRange={globalRange} />
+                </>
               ) : (
-                <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
+                <PersonalPipelineRadar selectedRange={globalRange} />
               )}
               <CommitteeTasksList selectedRange={globalRange} />
               <TasksList selectedRange={globalRange} />
@@ -138,10 +140,10 @@ export default function Dashboard() {
             />
           </PageHeader>
 
-          <DashboardStats selectedRange={globalRange} />
-
-          {!(user?.is_head || user?.isHead) && (
-            <PersonalPipelineRadar selectedMonth={globalRange.startDate} />
+          {(user?.is_head || user?.isHead || user?.is_hr || user?.isHr || user?.isSuperAdmin) ? (
+            <DashboardStats selectedRange={globalRange} />
+          ) : (
+            <PersonalPipelineRadar selectedRange={globalRange} />
           )}
 
           <CommitteeTasksList selectedRange={globalRange} />
