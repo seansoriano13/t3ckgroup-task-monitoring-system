@@ -52,7 +52,7 @@ export const revenueActivityLogService = {
       .select(
         `
         *,
-        revenue_log:sales_revenue_logs!revenue_activity_logs_revenue_log_id_fkey(
+        revenue_log:sales_revenue_logs${employeeId && employeeId !== "ALL" ? "!inner" : ""}(
           id,
           account,
           revenue_amount,
@@ -60,7 +60,7 @@ export const revenueActivityLogService = {
           employee_id,
           employee:employees!sales_revenue_logs_employee_id_fkey(name, department, sub_department)
         ),
-        author:employees!revenue_activity_logs_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)
+        author:employees(name, is_head, is_hr, is_super_admin, avatar_path)
       `,
       )
       .order("created_at", { ascending: false });
@@ -133,7 +133,7 @@ export const revenueActivityLogService = {
             const { data } = await supabase
               .from("revenue_activity_logs")
               .select(
-                `*, author:employees!revenue_activity_logs_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`,
+                `*, author:employees(name, is_head, is_hr, is_super_admin, avatar_path)`,
               )
               .eq("id", payload.new.id)
               .single();

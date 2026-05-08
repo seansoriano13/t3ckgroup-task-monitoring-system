@@ -661,7 +661,7 @@ export default function SuperAdminActivityLogPage() {
                           </span>
                         </div>
 
-                        {activeTab !== "SYSTEM" && (
+                        {activeTab !== "SYSTEM" && e.taskStatus && (
                           <StatusBadge status={e.taskStatus} />
                         )}
                       </div>

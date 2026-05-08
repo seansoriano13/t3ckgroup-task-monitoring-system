@@ -45,6 +45,7 @@ export const systemAuditLogService = {
     offset = 0,
     type = "ALL",
     authorId = "ALL",
+    employeeId = "ALL",
     entityType = "ALL",
     dateFrom = null,
     dateTo = null,
@@ -56,7 +57,7 @@ export const systemAuditLogService = {
     let query = supabase
       .from("system_audit_logs")
       .select(
-        `*, author:employees!system_audit_logs_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`,
+        `*, author:employees(name, is_head, is_hr, is_super_admin, avatar_path)`,
       )
       .order("created_at", { ascending: false });
 
@@ -64,6 +65,9 @@ export const systemAuditLogService = {
     if (authorId && authorId !== "ALL") {
       if (authorId === "SYSTEM") query = query.is("author_id", null);
       else query = query.eq("author_id", authorId);
+    }
+    if (employeeId && employeeId !== "ALL") {
+      query = query.eq("metadata->>employeeId", employeeId);
     }
     if (entityType && entityType !== "ALL") query = query.eq("entity_type", entityType);
     if (dateFrom) query = query.gte("created_at", dateFrom);
@@ -116,7 +120,7 @@ export const systemAuditLogService = {
             const { data } = await supabase
               .from("system_audit_logs")
               .select(
-                `*, author:employees!system_audit_logs_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`,
+                `*, author:employees(name, is_head, is_hr, is_super_admin, avatar_path)`,
               )
               .eq("id", payload.new.id)
               .single();
