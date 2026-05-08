@@ -167,7 +167,7 @@ function MessageBubble({ entry, currentUserId }) {
         </div>
         <div
           className={cn(
-            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all",
+            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all whitespace-pre-wrap",
             isMe
               ? "bg-primary text-primary-foreground rounded-tr-none"
               : "bg-card border border-border rounded-tl-none",
@@ -221,9 +221,10 @@ export default function ComprehensiveChatModal({
 
   // Hide FloatingMonthPicker while chat modal is open
   useEffect(() => {
-    window.dispatchEvent(new Event(internalOpen ? "FLOATING_PICKER_HIDE" : "FLOATING_PICKER_SHOW"));
+    window.dispatchEvent(
+      new Event(internalOpen ? "FLOATING_PICKER_HIDE" : "FLOATING_PICKER_SHOW"),
+    );
   }, [internalOpen]);
-
 
   const { data: activeChats = [], isLoading: isLoadingList } = useQuery({
     queryKey: ["activeChats", user?.id],
