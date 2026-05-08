@@ -262,12 +262,12 @@ export default function TasksList({ selectedRange }) {
                         statusKey === "COMPLETE_VERIFIED"
                           ? "bg-green-9 shadow-green-5"
                           : statusKey === "COMPLETE_UNVERIFIED"
-                            ? "bg-green-400 shadow-green-200"
+                            ? "bg-blue-9 shadow-blue-5"
                             : statusKey === "AWAITING APPROVAL"
-                              ? "bg-primary shadow-primary/20"
+                              ? "bg-violet-9 shadow-violet-5"
                               : statusKey === "NOT APPROVED"
-                                ? "bg-amber-6 shadow-red-200"
-                                : "bg-amber-6 shadow-amber-5"
+                                ? "bg-red-9 shadow-red-5"
+                                : "bg-orange-9 shadow-orange-5"
                       }
                     />
                     <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
@@ -397,13 +397,15 @@ export default function TasksList({ selectedRange }) {
                           <Dot
                             size="w-2 h-2"
                             color={
-                              task.status === TASK_STATUS.COMPLETE
-                                ? "bg-green-9 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
-                                : task.status === TASK_STATUS.AWAITING_APPROVAL
-                                  ? "bg-primary shadow-[0_0_8px_rgba(79,70,229,0.3)]"
-                                  : task.status === TASK_STATUS.NOT_APPROVED
-                                    ? "bg-red-9 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
-                                    : "bg-amber-7 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                              task.status === TASK_STATUS.COMPLETE && task.hrVerified
+                                ? "bg-green-9 shadow-[0_0_8px_rgba(34,197,94,0.3)]"
+                                : task.status === TASK_STATUS.COMPLETE
+                                  ? "bg-blue-9 shadow-[0_0_8px_rgba(59,130,246,0.3)]"
+                                  : task.status === TASK_STATUS.AWAITING_APPROVAL
+                                    ? "bg-violet-9 shadow-[0_0_8px_rgba(139,92,246,0.3)]"
+                                    : task.status === TASK_STATUS.NOT_APPROVED
+                                      ? "bg-red-9 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                                      : "bg-orange-9 shadow-[0_0_8px_rgba(249,115,22,0.3)]"
                             }
                           />
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 bg-muted px-2 py-0.5 rounded-md border border-border/50">
@@ -465,25 +467,25 @@ export default function TasksList({ selectedRange }) {
                             label="Action Required (Rejected)"
                             count={rejectedCount}
                             total={total}
-                            color="bg-primary/50"
+                            color="bg-red-9"
                           />
                           <InsightBar
                             label="Drafts (Working)"
                             count={draftCount}
                             total={total}
-                            color="bg-mauve-6"
+                            color="bg-orange-9"
                           />
                           <InsightBar
                             label="Awaiting Mgt Approval"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-blue-9"
+                            color="bg-violet-9"
                           />
                           <InsightBar
                             label="Approved (Pending HR)"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-warning"
+                            color="bg-blue-9"
                           />
                           <InsightBar
                             label="HR Verified & Finalized"
@@ -503,25 +505,25 @@ export default function TasksList({ selectedRange }) {
                             label="Needs My Review (New)"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-blue-9"
+                            color="bg-violet-9"
                           />
                           <InsightBar
                             label="Rejected by Me"
                             count={rejectedCount}
                             total={total}
-                            color="bg-red-400"
+                            color="bg-red-9"
                           />
                           <InsightBar
                             label="Subordinates Drafting"
                             count={draftCount}
                             total={total}
-                            color="bg-mauve-6"
+                            color="bg-orange-9"
                           />
                           <InsightBar
                             label="Approved (Pending HR)"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-blue-400"
+                            color="bg-blue-9"
                           />
                           <InsightBar
                             label="Verified by HR"
@@ -541,25 +543,25 @@ export default function TasksList({ selectedRange }) {
                             label="Needs My Audit"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-orange-6"
+                            color="bg-blue-9"
                           />
                           <InsightBar
                             label="Awaiting Manager Review"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-blue-300"
+                            color="bg-violet-9"
                           />
                           <InsightBar
                             label="Employees Working"
                             count={draftCount}
                             total={total}
-                            color="bg-mauve-9"
+                            color="bg-orange-9"
                           />
                           <InsightBar
                             label="Manager Rejections"
                             count={rejectedCount}
                             total={total}
-                            color="bg-primary/50"
+                            color="bg-red-9"
                           />
                           <InsightBar
                             label="Verified"

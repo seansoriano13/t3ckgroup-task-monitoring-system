@@ -13,6 +13,8 @@ import { Link } from "react-router";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import CommitteeTaskCard from "../pages/committee/components/CommitteeTaskCard";
+import SectionHeader from "./ui/SectionHeader";
+
 export default function CommitteeTasksList({ selectedRange }) {
   const { user } = useAuth();
   const isSuperAdmin =
@@ -50,26 +52,13 @@ export default function CommitteeTasksList({ selectedRange }) {
   if (committeeTasks.length === 0) return null;
 
   return (
-    <div className="mt-8 bg-card border border-border rounded-2xl shadow-sm p-5 overflow-hidden">
-      {/* HEADER SECTION */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-mauve-2 flex items-center justify-center text-mauve-11 shadow-sm border border-mauve-4">
-            <Users size={18} />
-          </div>
-          <div>
-            <h2 className="text-lg font-black text-foreground tracking-tight flex items-center gap-2">
-              Committee Tasks
-            </h2>
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
-              Active group assignments •{" "}
-              <span className="text-foreground">
-                {selectedRange?.label || "This Range"}
-              </span>
-            </p>
-          </div>
-        </div>
-
+    <section className="space-y-6 mt-8">
+      <SectionHeader
+        icon={Users}
+        title="Committee Tasks"
+        description="Active group assignments"
+        rangeLabel={selectedRange?.label || "This Range"}
+      >
         <div className="flex items-center gap-3">
           {/* SEARCH */}
           <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1.5 min-w-[200px]">
@@ -126,7 +115,7 @@ export default function CommitteeTasksList({ selectedRange }) {
             <Link to="/committee">View All</Link>
           </Button>
         </div>
-      </div>
+      </SectionHeader>
 
       {/* DYNAMIC GRID CONTAINER */}
       {activeTasks.length > 0 ? (
@@ -163,16 +152,16 @@ export default function CommitteeTasksList({ selectedRange }) {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-12 h-12 rounded-full bg-mauve-2 flex items-center justify-center text-mauve-11 mb-3">
-            <Search size={20} />
+        <div className="flex flex-col items-center justify-center p-12 text-center bg-card border border-border border-dashed rounded-[2rem] shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-mauve-3 flex items-center justify-center text-mauve-9 mb-4">
+            <Search size={32} />
           </div>
-          <p className="text-sm font-bold text-foreground">No tasks found</p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="font-bold text-lg text-foreground">No tasks found</p>
+          <p className="text-sm max-w-xs text-muted-foreground mt-2">
             Try adjusting your search or layout
           </p>
         </div>
       )}
-    </div>
+    </section>
   );
 }
