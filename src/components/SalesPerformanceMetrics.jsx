@@ -49,7 +49,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
     user?.is_head;
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [layoutMode, setLayoutMode] = useState("stack"); // "row" | "stack" | "grid"
+  const [layoutMode, setLayoutMode] = useState("stack"); // "list" | "stack" | "grid"
   const avatarMap = useEmployeeAvatarMap();
 
   // Real-world reference for "Due" logic
@@ -345,9 +345,9 @@ export default function SalesPerformanceMetrics({ globalRange }) {
 
             <div className="flex items-center gap-1.5 bg-mauve-2 border border-mauve-5 p-1 rounded-lg">
               <button
-                onClick={() => setLayoutMode("row")}
-                className={`p-1 rounded transition-all ${layoutMode === "row" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
-                title="Single Row"
+                onClick={() => setLayoutMode("list")}
+                className={`p-1 rounded transition-all ${layoutMode === "list" ? "bg-card shadow-sm text-red-9" : "text-muted-foreground hover:text-mauve-11"}`}
+                title="List View"
               >
                 <List size={16} />
               </button>
@@ -379,7 +379,7 @@ export default function SalesPerformanceMetrics({ globalRange }) {
         {/* DYNAMIC PIPELINE GRID */}
         <div
           className={`
-          ${layoutMode === "row" ? "flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+          ${layoutMode === "list" ? "flex flex-col gap-3 pb-4" : ""}
           ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
           ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4" : ""}
         `}
@@ -399,125 +399,331 @@ export default function SalesPerformanceMetrics({ globalRange }) {
               </p>
             </div>
           ) : (
-            filteredStats.map((stat) => (
-              <div
-                key={stat.id}
-                onClick={() =>
-                  navigate("/sales/records", {
-                    state: {
-                      filterEmployeeId: stat.id,
-                      timeframe: globalRange?.mode,
-                      dateFilter: globalRange?.startDate,
-                    },
-                  })
-                }
-                className={`cursor-pointer flex flex-col transition-colors border border-border rounded-lg p-4 hover:bg-mauve-3 hover:border-mauve-5 ${
-                  layoutMode === "grid" ? "w-full" : "min-w-[260px] sm:min-w-[290px] snap-start"
-                }`}
-              >
-                {/* Header: Avatar & Name */}
-                <div className="flex justify-between items-center gap-2">
-                  <div className="flex gap-2.5 items-center min-w-0">
-                    <Avatar
-                      className="bg-white shadow-sm"
-                      size="sm"
-                      name={stat.name}
-                      src={avatarMap.get(stat.id) ?? undefined}
-                    />
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-[#111827] line-clamp-1">
-                        <HighlightText text={stat.name} search={searchTerm} />
-                      </h3>
-                      <p className="text-xs text-[#6B7280] line-clamp-1">
-                        <HighlightText text={stat.subDept || stat.department} search={searchTerm} />
-                      </p>
+            filteredStats.map((stat) => {
+              if (layoutMode === "list") {
+                return (
+                  <div
+                    key={stat.id}
+                    onClick={() =>
+                      navigate("/sales/records", {
+                        state: {
+                          filterEmployeeId: stat.id,
+                          timeframe: globalRange?.mode,
+                          dateFilter: globalRange?.startDate,
+                        },
+                      })
+                    }
+                    className="cursor-pointer flex flex-col lg:flex-row lg:items-center justify-between transition-colors hover:bg-mauve-3 hover:border-mauve-5 w-full bg-card gap-4"
+                    style={{
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "8px",
+                      padding: "12px 16px",
+                      boxShadow: "none",
+                    }}
+                  >
+                    {/* Header: Avatar & Name */}
+                    <div className="flex items-center gap-3 min-w-[200px] w-full lg:w-1/4">
+                      <Avatar
+                        className="bg-white shrink-0 shadow-sm"
+                        size="sm"
+                        name={stat.name}
+                        src={avatarMap.get(stat.id) ?? undefined}
+                      />
+                      <div className="min-w-0">
+                        <h3
+                          className="line-clamp-1"
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#111827",
+                          }}
+                        >
+                          <HighlightText text={stat.name} search={searchTerm} />
+                        </h3>
+                        <p
+                          className="line-clamp-1"
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 400,
+                            color: "#6B7280",
+                          }}
+                        >
+                          <HighlightText text={stat.subDept || stat.department} search={searchTerm} />
+                        </p>
+                      </div>
                     </div>
 
+                    {/* Pipeline Bar & Legend inline */}
+                    <div className="flex-1 flex flex-col justify-center min-w-0 w-full lg:w-auto">
+                      <div
+                        className="flex justify-between"
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: "#9CA3AF",
+                          marginBottom: "6px",
+                        }}
+                      >
+                        <span>Task Pipeline</span>
+                        <span style={{ color: "#374151" }}>{stat.total} Total</span>
+                      </div>
+
+                      <div
+                        className="w-full overflow-hidden flex"
+                        style={{
+                          height: "7px",
+                          borderRadius: "2px",
+                          background: "#F3F4F6",
+                        }}
+                      >
+                        {stat.backlog > 0 && (
+                          <div
+                            className="bg-orange-a7"
+                            style={{ width: `${(stat.backlog / stat.total) * 100}%` }}
+                            title={`${stat.backlog} Backlog`}
+                          />
+                        )}
+                        {stat.late > 0 && (
+                          <div
+                            className="bg-red-a7"
+                            style={{ width: `${(stat.late / stat.total) * 100}%` }}
+                            title={`${stat.late} Late`}
+                          />
+                        )}
+                        {stat.onTime > 0 && (
+                          <div
+                            className="bg-green-a7"
+                            style={{ width: `${(stat.onTime / stat.total) * 100}%` }}
+                            title={`${stat.onTime} On-Time`}
+                          />
+                        )}
+                        {stat.unplanned > 0 && (
+                          <div
+                            className="bg-blue-a7"
+                            style={{ width: `${(stat.unplanned / stat.total) * 100}%` }}
+                            title={`${stat.unplanned} Unplanned`}
+                          />
+                        )}
+                        {stat.pending > 0 && (
+                          <div
+                            className="bg-mauve-a6"
+                            style={{ width: `${(stat.pending / stat.total) * 100}%` }}
+                            title={`${stat.pending} Future`}
+                          />
+                        )}
+                      </div>
+
+                      <div
+                        className="flex flex-wrap items-center gap-3"
+                        style={{ paddingTop: "8px" }}
+                      >
+                        <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                          <span className="w-1.5 h-1.5 rounded-full inline-block bg-orange-a7" />
+                          {stat.backlog} <span>Back</span>
+                        </span>
+                        {stat.late > 0 && (
+                          <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                            <span className="w-1.5 h-1.5 rounded-full inline-block bg-red-a7" />
+                            {stat.late} <span>Late</span>
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                          <span className="w-1.5 h-1.5 rounded-full inline-block bg-green-a7" />
+                          {stat.onTime} <span>Done</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                          <span className="w-1.5 h-1.5 rounded-full inline-block bg-blue-a7" />
+                          {stat.unplanned} <span>Extra</span>
+                        </span>
+                        {stat.pending > 0 && (
+                          <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                            <span className="w-1.5 h-1.5 rounded-full inline-block bg-mauve-a6" />
+                            {stat.pending} <span>Fut</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Grade & Execution Rate */}
+                    <div className="flex items-center gap-4 lg:gap-6 shrink-0 w-full lg:w-auto justify-between lg:justify-end">
+                      {stat.avgGrade !== undefined && (
+                        <div
+                          className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border border-border bg-card"
+                        >
+                          <Star size={11} className="text-mauve-11 fill-mauve-11" />
+                          <span
+                            style={{
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              color: "#111827",
+                            }}
+                          >
+                            {stat.avgGrade}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-3">
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 500,
+                            color: "#6B7280",
+                          }}
+                        >
+                          Execution Rate
+                        </span>
+                        <span
+                          className="flex items-center gap-1"
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#111827",
+                          }}
+                        >
+                          {stat.executionRate}%
+                          <TrendingUp
+                            size={13}
+                            style={{
+                              color:
+                                stat.executionRate >= 80
+                                  ? "#22C55E"
+                                  : stat.executionRate >= 50
+                                    ? "#F59E0B"
+                                    : "#EF4444",
+                            }}
+                          />
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border border-border bg-card">
-                    <Star size={11} className="text-mauve-11 fill-mauve-11" />
-                    <span className="text-xs font-semibold text-[#111827]">
+                );
+              }
+
+              return (
+                <div
+                  key={stat.id}
+                  onClick={() =>
+                    navigate("/sales/records", {
+                      state: {
+                        filterEmployeeId: stat.id,
+                        timeframe: globalRange?.mode,
+                        dateFilter: globalRange?.startDate,
+                      },
+                    })
+                  }
+                  className={`cursor-pointer flex flex-col transition-colors border border-border rounded-lg p-4 hover:bg-mauve-3 hover:border-mauve-5 ${
+                    layoutMode === "grid" ? "w-full" : "min-w-[260px] sm:min-w-[290px] snap-start"
+                  }`}
+                >
+                  {/* Header: Avatar & Name */}
+                  <div className="flex justify-between items-center gap-2">
+                    <div className="flex gap-2.5 items-center min-w-0">
+                      <Avatar
+                        className="bg-white shadow-sm"
+                        size="sm"
+                        name={stat.name}
+                        src={avatarMap.get(stat.id) ?? undefined}
+                      />
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-[#111827] line-clamp-1">
+                          <HighlightText text={stat.name} search={searchTerm} />
+                        </h3>
+                        <p className="text-xs text-[#6B7280] line-clamp-1">
+                          <HighlightText text={stat.subDept || stat.department} search={searchTerm} />
+                        </p>
+                      </div>
+
+                    </div>
+                    {stat.avgGrade !== undefined && (
+                      <div className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border border-border bg-card">
+                        <Star size={11} className="text-mauve-11 fill-mauve-11" />
+                        <span className="text-xs font-semibold text-[#111827]">
+                          {stat.avgGrade}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Segmented Pipeline Bar */}
+                  <div className="mt-4">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-1.5">
+                      <span>Task Pipeline</span>
+                      <span className="text-[#374151]">{stat.total} Total</span>
+                    </div>
+
+                    <div className="w-full h-[7px] rounded-sm bg-[#F3F4F6] overflow-hidden flex">
+                      {stat.backlog > 0 && (
+                        <div
+                          className="bg-orange-a7"
+                          style={{ width: `${(stat.backlog / stat.total) * 100}%` }}
+                          title={`${stat.backlog} Backlog`}
+                        />
+                      )}
+                      {stat.late > 0 && (
+                        <div
+                          className="bg-red-a7"
+                          style={{ width: `${(stat.late / stat.total) * 100}%` }}
+                          title={`${stat.late} Late`}
+                        />
+                      )}
+                      {stat.onTime > 0 && (
+                        <div
+                          className="bg-green-a7"
+                          style={{ width: `${(stat.onTime / stat.total) * 100}%` }}
+                          title={`${stat.onTime} On-Time`}
+                        />
+                      )}
+                      {stat.unplanned > 0 && (
+                        <div
+                          className="bg-blue-a7"
+                          style={{ width: `${(stat.unplanned / stat.total) * 100}%` }}
+                          title={`${stat.unplanned} Unplanned`}
+                        />
+                      )}
+                      {stat.pending > 0 && (
+                        <div
+                          className="bg-mauve-a6"
+                          style={{ width: `${(stat.pending / stat.total) * 100}%` }}
+                          title={`${stat.pending} Future`}
+                        />
+                      )}
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                      <LegendItem colorClass="bg-orange-a7" count={stat.backlog} label="Back" />
+                      {stat.late > 0 && <LegendItem colorClass="bg-red-a7" count={stat.late} label="Late" />}
+                      <LegendItem colorClass="bg-green-a7" count={stat.onTime} label="Done" />
+                      <LegendItem colorClass="bg-blue-a7" count={stat.unplanned} label="Extra" />
+                      {stat.pending > 0 && <LegendItem colorClass="bg-mauve-a6" count={stat.pending} label="Fut" />}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
+                    <span className="text-xs font-medium text-[#6B7280]">
+                      Execution Rate
+                    </span>
+                    <span className="flex items-center gap-1 text-sm font-bold text-[#111827]">
                       {stat.executionRate}%
+                      <TrendingUp
+                        size={13}
+                        className={
+                          stat.executionRate >= 80
+                            ? "text-green-a11"
+                            : stat.executionRate >= 50
+                              ? "text-orange-a11"
+                              : "text-red-a11"
+                        }
+                      />
                     </span>
                   </div>
                 </div>
-
-                {/* Segmented Pipeline Bar */}
-                <div className="mt-4">
-                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-1.5">
-                    <span>Task Pipeline</span>
-                    <span className="text-[#374151]">{stat.total} Total</span>
-                  </div>
-
-                  <div className="w-full h-[7px] rounded-sm bg-[#F3F4F6] overflow-hidden flex">
-                    {stat.backlog > 0 && (
-                      <div
-                        className="bg-orange-a7"
-                        style={{ width: `${(stat.backlog / stat.total) * 100}%` }}
-                        title={`${stat.backlog} Backlog`}
-                      />
-                    )}
-                    {stat.late > 0 && (
-                      <div
-                        className="bg-red-a7"
-                        style={{ width: `${(stat.late / stat.total) * 100}%` }}
-                        title={`${stat.late} Late`}
-                      />
-                    )}
-                    {stat.onTime > 0 && (
-                      <div
-                        className="bg-green-a7"
-                        style={{ width: `${(stat.onTime / stat.total) * 100}%` }}
-                        title={`${stat.onTime} On-Time`}
-                      />
-                    )}
-                    {stat.unplanned > 0 && (
-                      <div
-                        className="bg-blue-a7"
-                        style={{ width: `${(stat.unplanned / stat.total) * 100}%` }}
-                        title={`${stat.unplanned} Unplanned`}
-                      />
-                    )}
-                    {stat.pending > 0 && (
-                      <div
-                        className="bg-mauve-6"
-                        style={{ width: `${(stat.pending / stat.total) * 100}%` }}
-                        title={`${stat.pending} Future`}
-                      />
-                    )}
-                  </div>
-
-                  {/* Legend */}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-                    <LegendItem color="#F59E0B" count={stat.backlog} label="Back" />
-                    {stat.late > 0 && <LegendItem color="#EF4444" count={stat.late} label="Late" />}
-                    <LegendItem color="#22C55E" count={stat.onTime} label="Done" />
-                    <LegendItem color="#3B82F6" count={stat.unplanned} label="Extra" />
-                    {stat.pending > 0 && <LegendItem color="#94A3B8" count={stat.pending} label="Fut" />}
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
-                  <span className="text-xs font-medium text-[#6B7280]">
-                    Execution Rate
-                  </span>
-                  <span className="flex items-center gap-1 text-sm font-bold text-[#111827]">
-                    {stat.executionRate}%
-                    <TrendingUp
-                      size={13}
-                      className={
-                        stat.executionRate >= 80
-                          ? "text-green-a11"
-                          : stat.executionRate >= 50
-                            ? "text-orange-a11"
-                            : "text-red-a11"
-                      }
-                    />
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -720,10 +926,10 @@ export default function SalesPerformanceMetrics({ globalRange }) {
   );
 }
 
-function LegendItem({ color, count, label }) {
+function LegendItem({ colorClass, count, label }) {
   return (
     <span className="flex items-center gap-1 text-[11px] text-[#6B7280]">
-      <Dot size="w-1.5 h-1.5" style={{ background: color }} />
+      <Dot size="w-1.5 h-1.5" color={colorClass} />
       <span className="font-bold text-[#374151]">{count}</span>
       <span>{label}</span>
     </span>

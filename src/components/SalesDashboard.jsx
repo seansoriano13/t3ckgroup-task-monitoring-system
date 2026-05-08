@@ -9,6 +9,8 @@ import { SummaryMetrics } from "./sales-dashboard/SummaryMetrics";
 import { EmployeeRankingsTable } from "./sales-dashboard/EmployeeRankingsTable";
 import { RevenueLogsTable } from "./sales-dashboard/RevenueLogsTable";
 import SalesPerformanceMetrics from "./SalesPerformanceMetrics";
+import PersonalPipelineRadar from "./PersonalPipelineRadar";
+import DashboardStats from "./DashboardStats";
 import {
   RepRevenueChart,
   ProductBreakdownChart,
@@ -17,7 +19,7 @@ import {
 } from "./sales-dashboard/SalesCharts";
 import PageHeader from "./ui/PageHeader";
 
-export default function SalesDashboard({ globalRange }) {
+export default function SalesDashboard({ globalRange, isEmbedded = false }) {
   const { user } = useAuth();
   const isAdmin =
     user?.isSuperAdmin ||
@@ -106,40 +108,34 @@ export default function SalesDashboard({ globalRange }) {
   return (
     <div className="max-w-7xl mx-auto space-y-4 pb-6 px-2 sm:px-0">
       {/* HEADER */}
-      <div className="flex flex-col gap-4 border-b border-mauve-4 pb-4 print:hidden">
-        <PageHeader
-          title="Sales Accomplishment Report"
-          description="Revenue performance, quota tracking, and strategic analytics."
-        />
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          {/* <div>
-            <h1 className="text-2xl font-black text-foreground flex items-center uppercase">
-              Sales Accomplishment Report
-              {rangeLabel && (
-                <span className="text-mauve-11 font-bold px-3 py-1 bg-mauve-2 border border-mauve-4 rounded-xl text-lg ml-3 shadow-sm lowercase">
-                  — {rangeLabel}
-                </span>
-              )}
-            </h1>
-            <p className="text-muted-foreground mt-1 font-medium text-sm">
-              Revenue performance, quota tracking, and strategic analytics.
-            </p>
-          </div> */}
-
-          {/* <button
-            onClick={printReport}
-            className="bg-card hover:bg-mauve-2 text-foreground font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm border border-mauve-4 shrink-0 print:hidden"
-          >
-            <Download size={16} className="text-muted-foreground" /> Export PDF
-          </button> */}
+      {!isEmbedded && (
+        <div className="flex flex-col gap-4 border-b border-mauve-4 pb-4 print:hidden">
+          <PageHeader
+            title="Sales Accomplishment Report"
+            description="Revenue performance, quota tracking, and strategic analytics."
+          />
         </div>
-      </div>
+      )}
 
       {/* PRINT HEADER */}
       <div className="hidden print:block mb-8 border-b-2 border-gray-12 pb-4">
         <h1 className="text-2xl font-black">
           Sales Department Report ({rangeLabel})
         </h1>
+      </div>
+
+      {/* DETAILED PERFORMANCE METRICS (Consolidated at the top) */}
+      <div className="mb-6">
+        {isAdmin ? (
+          <>
+            <div className="mb-8">
+              <DashboardStats selectedRange={globalRange} mode="sales" />
+            </div>
+            <SalesPerformanceMetrics globalRange={globalRange} />
+          </>
+        ) : (
+          <PersonalPipelineRadar selectedRange={globalRange} mode="sales" />
+        )}
       </div>
 
       {/* KPI SUMMARY */}
@@ -179,11 +175,6 @@ export default function SalesDashboard({ globalRange }) {
       {isMonthly && isVerificationEnforced && (
         <RevenueLogsTable logs={overviewLogs} />
       )}
-
-      {/* DETAILED PERFORMANCE METRICS (Execution rates, pipelines, financial ROI) */}
-      <div className="mt-8 border-t border-mauve-4 pt-8">
-        <SalesPerformanceMetrics globalRange={globalRange} />
-      </div>
     </div>
   );
 }

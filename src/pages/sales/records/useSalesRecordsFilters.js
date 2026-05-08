@@ -237,14 +237,15 @@ export function useSalesRecordsFilters(user) {
           navigate(location.pathname, { replace: true, state: {} });
         });
       }
-    } else if (location.state?.filterEmployeeId) {
-      // ── "Performance Card" navigation deep-link ───────────────────
-      const { filterEmployeeId, timeframe: t, dateFilter } = location.state;
+    } else if (location.state?.filterEmployeeId || location.state?.filterCategory) {
+      // ── "Performance Card" & "Dashboard Stats" navigation deep-link ───
+      const { filterEmployeeId, timeframe: t, dateFilter, filterCategory: cat } = location.state;
       queueMicrotask(() => {
         setActiveTab("ACTIVITIES");
         setViewMode("BOARD");
         if (filterEmployeeId) setFilterEmp(filterEmployeeId);
         if (t) setTimeframe(t);
+        if (cat) setActivePreset(cat);
         if (dateFilter) {
           // If monthly, ensure we only use YYYY-MM
           if (t === "MONTHLY") {
@@ -405,9 +406,61 @@ export function useSalesRecordsFilters(user) {
     if (selectedDateFilter) {
       filtered = filtered.filter((a) => matchesDateFilter(a.scheduled_date));
     }
-    if (activePreset === "unplannedThisWeek") {
-      filtered = filtered.filter((a) => a.is_unplanned === true);
+    
+    const performancePresets = ["BACKLOG", "LATE", "ON_TIME", "UNPLANNED", "PENDING"];
+    if (performancePresets.includes(activePreset)) {
+      const today = new Date().toISOString().slice(0, 10);
+      const todayMonthKey = today.slice(0, 7);
+      
+      filtered = filtered.filter((act) => {
+        const isUnplanned = !!act.is_unplanned;
+        const isDone = act.status === "DONE" || act.status === "APPROVED";
+        
+        let actMonthFilter = selectedDateFilter;
+        if (timeframe === "MONTHLY" && actMonthFilter && actMonthFilter.length > 7) {
+          actMonthFilter = actMonthFilter.slice(0, 7);
+        }
+
+        let isDue = false;
+        if (!isUnplanned) {
+          if (actMonthFilter && actMonthFilter.length === 7) {
+            if (actMonthFilter < todayMonthKey) {
+              isDue = true;
+            } else if (actMonthFilter === todayMonthKey) {
+              isDue = act.scheduled_date <= today;
+            } else {
+              isDue = false;
+            }
+          } else {
+            isDue = act.scheduled_date <= today;
+          }
+        }
+
+        let bucket = "PENDING";
+        if (isUnplanned) {
+          bucket = "UNPLANNED";
+        } else if (isDue) {
+          if (isDone) {
+            if (act.completed_at) {
+              const sDate = new Date(act.scheduled_date);
+              sDate.setDate(sDate.getDate() + 1);
+              const cDate = new Date(act.completed_at);
+              if (cDate > sDate) bucket = "LATE";
+              else bucket = "ON_TIME";
+            } else {
+              bucket = "ON_TIME";
+            }
+          } else {
+            bucket = "BACKLOG";
+          }
+        } else {
+          bucket = "PENDING";
+        }
+        
+        return bucket === activePreset;
+      });
     }
+
     if (sortBy === "NEWEST") {
       filtered.sort(
         (a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date),
@@ -433,6 +486,7 @@ export function useSalesRecordsFilters(user) {
     activePreset,
     sortBy,
     matchesDateFilter,
+    timeframe,
   ]);
 
   // ── Filtered revenue (uses rev-prefixed filters) ──────────────────────
@@ -668,8 +722,12 @@ export function useSalesRecordsFilters(user) {
     () => [
       { id: "custom", label: "Custom View" },
       { id: "myPendingToday", label: "My Pending Today" },
-      { id: "unplannedThisWeek", label: "Unplanned This Week" },
       { id: "missingOutcomes", label: "Missing Outcomes" },
+      { id: "BACKLOG", label: "Backlog" },
+      { id: "LATE", label: "Late" },
+      { id: "ON_TIME", label: "On-Time" },
+      { id: "UNPLANNED", label: "Unplanned" },
+      { id: "PENDING", label: "Future / Planned" },
     ],
     [],
   );
@@ -746,17 +804,6 @@ export function useSalesRecordsFilters(user) {
         setSelectedDateFilter(todayYmd);
       }
 
-      if (presetId === "unplannedThisWeek") {
-        setActiveTab("ACTIVITIES");
-        setViewMode("BOARD");
-        setFilterEmp("ALL");
-        setFilterStatus("ALL");
-        setFilterType("ALL");
-        setTimeframe("WEEKLY");
-        setSelectedDateFilter(todayYmd);
-        setSearchTerm("");
-      }
-
       if (presetId === "missingOutcomes") {
         setActiveTab("ACTIVITIES");
         setViewMode("TABLE");
@@ -764,8 +811,24 @@ export function useSalesRecordsFilters(user) {
         setTimeframe("MONTHLY");
         setSelectedDateFilter(`${y}-${m}`);
       }
+
+      const performancePresets = ["BACKLOG", "LATE", "ON_TIME", "UNPLANNED", "PENDING"];
+      if (performancePresets.includes(presetId)) {
+        setActiveTab("ACTIVITIES");
+        setViewMode("BOARD");
+        setFilterEmp("ALL");
+        setFilterStatus("ALL");
+        setFilterType("ALL");
+        setFilterOutcome("ALL");
+        setSearchTerm("");
+        // Keep the existing timeframe and date filter, if any, otherwise default to monthly
+        if (!timeframe) {
+          setTimeframe("MONTHLY");
+          setSelectedDateFilter(`${y}-${m}`);
+        }
+      }
     },
-    [user?.id],
+    [user?.id, timeframe],
   );
 
   // ── Pagination-resetting wrappers ─────────────────────────────────────

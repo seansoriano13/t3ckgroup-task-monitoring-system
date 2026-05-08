@@ -24,11 +24,21 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isHr = user?.is_hr === true || user?.isHr === true;
+
+  const handleDeepLink = (e, status, empId) => {
+    e.stopPropagation();
+    navigate("/tasks", {
+      state: {
+        presetFilter: { status },
+        filterEmployeeId: empId,
+      },
+    });
+  };
   const isHead = user?.is_head === true || user?.isHead === true;
 
   const userDepartment = user?.department;
   const [searchTerm, setSearchTerm] = useState("");
-    const [layoutMode, setLayoutMode] = useState("stack"); // "list" | "stack" | "grid"
+  const [layoutMode, setLayoutMode] = useState("stack"); // "list" | "stack" | "grid"
   const avatarMap = useEmployeeAvatarMap();
 
   // Fetch ALL tasks (we will filter them down for Heads)
@@ -69,7 +79,8 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
       }
 
       // Exclude tasks logged BY any super admin (they don't need pipeline tracking)
-      if (task.status === TASK_STATUS.DELETED || task.creator?.is_super_admin) return;
+      if (task.status === TASK_STATUS.DELETED || task.creator?.is_super_admin)
+        return;
 
       if (!empMap[task.loggedById]) {
         empMap[task.loggedById] = {
@@ -305,37 +316,62 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                   >
                     {emp.draft > 0 && (
                       <div
-                        className="bg-orange-a7"
+                        className="bg-orange-a7 hover:opacity-80 cursor-pointer"
                         style={{ width: `${(emp.draft / emp.total) * 100}%` }}
                         title={`${emp.draft} Incomplete`}
+                        onClick={(e) =>
+                          handleDeepLink(e, TASK_STATUS.INCOMPLETE, emp.id)
+                        }
                       />
                     )}
                     {emp.rejected > 0 && (
                       <div
-                        className="bg-red-a7"
-                        style={{ width: `${(emp.rejected / emp.total) * 100}%` }}
+                        className="bg-red-a7 hover:opacity-80 cursor-pointer"
+                        style={{
+                          width: `${(emp.rejected / emp.total) * 100}%`,
+                        }}
                         title={`${emp.rejected} Returned`}
+                        onClick={(e) =>
+                          handleDeepLink(e, TASK_STATUS.NOT_APPROVED, emp.id)
+                        }
                       />
                     )}
                     {emp.eval > 0 && (
                       <div
-                        className="bg-violet-a7"
+                        className="bg-violet-a7 hover:opacity-80 cursor-pointer"
                         style={{ width: `${(emp.eval / emp.total) * 100}%` }}
                         title={`${emp.eval} Awaiting Approval`}
+                        onClick={(e) =>
+                          handleDeepLink(
+                            e,
+                            TASK_STATUS.AWAITING_APPROVAL,
+                            emp.id,
+                          )
+                        }
                       />
                     )}
                     {emp.pendingHr > 0 && (
                       <div
-                        className="bg-blue-a7"
-                        style={{ width: `${(emp.pendingHr / emp.total) * 100}%` }}
+                        className="bg-blue-a7 hover:opacity-80 cursor-pointer"
+                        style={{
+                          width: `${(emp.pendingHr / emp.total) * 100}%`,
+                        }}
                         title={`${emp.pendingHr} Completed`}
+                        onClick={(e) =>
+                          handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                        }
                       />
                     )}
                     {emp.verified > 0 && (
                       <div
-                        className="bg-green-a7"
-                        style={{ width: `${(emp.verified / emp.total) * 100}%` }}
+                        className="bg-green-a7 hover:opacity-80 cursor-pointer"
+                        style={{
+                          width: `${(emp.verified / emp.total) * 100}%`,
+                        }}
                         title={`${emp.verified} HR Verified`}
+                        onClick={(e) =>
+                          handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                        }
                       />
                     )}
                   </div>
@@ -345,82 +381,61 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     style={{ paddingTop: "8px" }}
                   >
                     <span
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
                       style={{ fontSize: "12px", color: "#6B7280" }}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.INCOMPLETE, emp.id)
+                      }
                     >
-                      <span
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "50%",
-                          background: "#F59E0B",
-                          display: "inline-block",
-                        }}
-                      />
+                      <span className="w-1.5 h-1.5 rounded-full inline-block bg-orange-a7" />
                       {emp.draft} <span>Inc</span>
                     </span>
                     {emp.rejected > 0 && (
                       <span
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
                         style={{ fontSize: "12px", color: "#6B7280" }}
+                        onClick={(e) =>
+                          handleDeepLink(e, TASK_STATUS.NOT_APPROVED, emp.id)
+                        }
                       >
-                        <span
-                          style={{
-                            width: "6px",
-                            height: "6px",
-                            borderRadius: "50%",
-                            background: "#EF4444",
-                            display: "inline-block",
-                          }}
-                        />
+                        <span className="w-1.5 h-1.5 rounded-full inline-block bg-red-a7" />
                         {emp.rejected} <span>Ret</span>
                       </span>
                     )}
                     {emp.eval > 0 && (
                       <span
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
                         style={{ fontSize: "12px", color: "#6B7280" }}
+                        onClick={(e) =>
+                          handleDeepLink(
+                            e,
+                            TASK_STATUS.AWAITING_APPROVAL,
+                            emp.id,
+                          )
+                        }
                       >
-                        <span
-                          style={{
-                            width: "6px",
-                            height: "6px",
-                            borderRadius: "50%",
-                            background: "#8B5CF6",
-                            display: "inline-block",
-                          }}
-                        />
+                        <span className="w-1.5 h-1.5 rounded-full inline-block bg-violet-a7" />
                         {emp.eval} <span>Eval</span>
                       </span>
                     )}
                     <span
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
                       style={{ fontSize: "12px", color: "#6B7280" }}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                      }
                     >
-                      <span
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "50%",
-                          background: "#3B82F6",
-                          display: "inline-block",
-                        }}
-                      />
+                      <span className="w-1.5 h-1.5 rounded-full inline-block bg-blue-a7" />
                       {emp.pendingHr} <span>Comp</span>
                     </span>
                     <span
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
                       style={{ fontSize: "12px", color: "#6B7280" }}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                      }
                     >
-                      <span
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "50%",
-                          background: "#22C55E",
-                          display: "inline-block",
-                        }}
-                      />
+                      <span className="w-1.5 h-1.5 rounded-full inline-block bg-green-a7" />
                       {emp.verified} <span>Hr</span>
                     </span>
                   </div>
@@ -505,256 +520,254 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
               }}
             >
               {/* Header: Avatar & Name */}
-            <div className="flex justify-between items-center gap-2">
-              <div className="flex gap-2.5 items-center min-w-0">
-                <Avatar
-                  className="bg-white"
-                  size="sm"
-                  name={emp.name}
-                  src={avatarMap.get(emp.id) ?? undefined}
-                />
-                <div className="min-w-0">
-                  <h3
-                    className="line-clamp-1"
+              <div className="flex justify-between items-center gap-2">
+                <div className="flex gap-2.5 items-center min-w-0">
+                  <Avatar
+                    className="bg-white"
+                    size="sm"
+                    name={emp.name}
+                    src={avatarMap.get(emp.id) ?? undefined}
+                  />
+                  <div className="min-w-0">
+                    <h3
+                      className="line-clamp-1"
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#111827",
+                      }}
+                    >
+                      <HighlightText text={emp.name} search={searchTerm} />
+                    </h3>
+                    <p
+                      className="line-clamp-1"
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 400,
+                        color: "#6B7280",
+                      }}
+                    >
+                      <HighlightText text={emp.subDept} search={searchTerm} />
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className="flex items-center gap-1 shrink-0"
+                  style={{
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "9999px",
+                    padding: "2px 8px",
+                    background: "transparent",
+                  }}
+                >
+                  <Star size={11} className="text-mauve-6 fill-gray-6" />
+                  <span
                     style={{
-                      fontSize: "14px",
+                      fontSize: "12px",
                       fontWeight: 600,
                       color: "#111827",
                     }}
                   >
-                    <HighlightText text={emp.name} search={searchTerm} />
-                  </h3>
-                  <p
-                    className="line-clamp-1"
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: 400,
-                      color: "#6B7280",
-                    }}
-                  >
-                    <HighlightText text={emp.subDept} search={searchTerm} />
-                  </p>
+                    {emp.avgGrade}
+                  </span>
                 </div>
               </div>
+
+              {/* Segmented Pipeline Bar */}
+              <div style={{ marginTop: "14px" }}>
+                <div
+                  className="flex justify-between"
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: "#9CA3AF",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <span>Task Pipeline</span>
+                  <span style={{ color: "#374151" }}>{emp.total} Total</span>
+                </div>
+
+                <div
+                  className="w-full overflow-hidden flex"
+                  style={{
+                    height: "7px",
+                    borderRadius: "2px",
+                    background: "#F3F4F6",
+                  }}
+                >
+                  {emp.draft > 0 && (
+                    <div
+                      className="bg-orange-a7 hover:opacity-80 cursor-pointer"
+                      style={{
+                        width: `${(emp.draft / emp.total) * 100}%`,
+                      }}
+                      title={`${emp.draft} Incomplete`}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.INCOMPLETE, emp.id)
+                      }
+                    />
+                  )}
+                  {emp.rejected > 0 && (
+                    <div
+                      className="bg-red-a7 hover:opacity-80 cursor-pointer"
+                      style={{
+                        width: `${(emp.rejected / emp.total) * 100}%`,
+                      }}
+                      title={`${emp.rejected} Returned`}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.NOT_APPROVED, emp.id)
+                      }
+                    />
+                  )}
+                  {emp.eval > 0 && (
+                    <div
+                      className="bg-violet-a7 hover:opacity-80 cursor-pointer"
+                      style={{
+                        width: `${(emp.eval / emp.total) * 100}%`,
+                      }}
+                      title={`${emp.eval} Awaiting Approval`}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.AWAITING_APPROVAL, emp.id)
+                      }
+                    />
+                  )}
+                  {emp.pendingHr > 0 && (
+                    <div
+                      className="bg-blue-a7 hover:opacity-80 cursor-pointer"
+                      style={{
+                        width: `${(emp.pendingHr / emp.total) * 100}%`,
+                      }}
+                      title={`${emp.pendingHr} Completed`}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                      }
+                    />
+                  )}
+                  {emp.verified > 0 && (
+                    <div
+                      className="bg-green-a7 hover:opacity-80 cursor-pointer"
+                      style={{
+                        width: `${(emp.verified / emp.total) * 100}%`,
+                      }}
+                      title={`${emp.verified} HR Verified`}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                      }
+                    />
+                  )}
+                </div>
+
+                {/* Legend – ultra-clean: dot + number only */}
+                <div
+                  className="flex items-center gap-3"
+                  style={{ paddingTop: "8px" }}
+                >
+                  <span
+                    className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
+                    style={{ fontSize: "12px", color: "#6B7280" }}
+                    onClick={(e) =>
+                      handleDeepLink(e, TASK_STATUS.INCOMPLETE, emp.id)
+                    }
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full inline-block bg-orange-a7" />
+                    {emp.draft}
+                    <span>Inc</span>
+                  </span>
+                  {emp.rejected > 0 && (
+                    <span
+                      className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
+                      style={{ fontSize: "12px", color: "#6B7280" }}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.NOT_APPROVED, emp.id)
+                      }
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full inline-block bg-red-a7" />
+                      {emp.rejected}
+                      <span>Ret</span>
+                    </span>
+                  )}
+                  {emp.eval > 0 && (
+                    <span
+                      className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
+                      style={{ fontSize: "12px", color: "#6B7280" }}
+                      onClick={(e) =>
+                        handleDeepLink(e, TASK_STATUS.AWAITING_APPROVAL, emp.id)
+                      }
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full inline-block bg-violet-a7" />
+                      {emp.eval}
+                      <span>Eval</span>
+                    </span>
+                  )}
+                  <span
+                    className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
+                    style={{ fontSize: "12px", color: "#6B7280" }}
+                    onClick={(e) =>
+                      handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                    }
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full inline-block bg-blue-a7" />
+                    {emp.pendingHr}
+                    <span>Comp</span>
+                  </span>
+                  <span
+                    className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
+                    style={{ fontSize: "12px", color: "#6B7280" }}
+                    onClick={(e) =>
+                      handleDeepLink(e, TASK_STATUS.COMPLETE, emp.id)
+                    }
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full inline-block bg-green-a7" />
+                    {emp.verified}
+                    <span>Hr</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Completion Rate Footer */}
               <div
-                className="flex items-center gap-1 shrink-0"
+                className="flex justify-between items-center mt-auto"
                 style={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "9999px",
-                  padding: "2px 8px",
-                  background: "transparent",
+                  paddingTop: "12px",
+                  marginTop: "14px",
+                  borderTop: "1px solid #E5E7EB",
                 }}
               >
-                <Star size={11} className="text-mauve-6 fill-gray-6" />
                 <span
                   style={{
                     fontSize: "12px",
+                    fontWeight: 500,
+                    color: "#6B7280",
+                  }}
+                >
+                  Completion Rate
+                </span>
+                <span
+                  className="flex items-center gap-1"
+                  style={{
+                    fontSize: "14px",
                     fontWeight: 600,
                     color: "#111827",
                   }}
                 >
-                  {emp.avgGrade}
+                  {emp.completionRate}%
+                  <TrendingUp
+                    size={13}
+                    style={{
+                      color:
+                        emp.completionRate >= 80
+                          ? "#22C55E"
+                          : emp.completionRate >= 50
+                            ? "#F59E0B"
+                            : "#EF4444",
+                    }}
+                  />
                 </span>
               </div>
             </div>
-
-            {/* Segmented Pipeline Bar */}
-            <div style={{ marginTop: "14px" }}>
-              <div
-                className="flex justify-between"
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  color: "#9CA3AF",
-                  marginBottom: "6px",
-                }}
-              >
-                <span>Task Pipeline</span>
-                <span style={{ color: "#374151" }}>{emp.total} Total</span>
-              </div>
-
-              <div
-                className="w-full overflow-hidden flex"
-                style={{
-                  height: "7px",
-                  borderRadius: "2px",
-                  background: "#F3F4F6",
-                }}
-              >
-                {emp.draft > 0 && (
-                  <div
-                    className="bg-orange-a7"
-                    style={{
-                      width: `${(emp.draft / emp.total) * 100}%`,
-                    }}
-                    title={`${emp.draft} Incomplete`}
-                  />
-                )}
-                {emp.rejected > 0 && (
-                  <div
-                    className="bg-red-a7"
-                    style={{
-                      width: `${(emp.rejected / emp.total) * 100}%`,
-                    }}
-                    title={`${emp.rejected} Returned`}
-                  />
-                )}
-                {emp.eval > 0 && (
-                  <div
-                    className="bg-violet-a7"
-                    style={{
-                      width: `${(emp.eval / emp.total) * 100}%`,
-                    }}
-                    title={`${emp.eval} Awaiting Approval`}
-                  />
-                )}
-                {emp.pendingHr > 0 && (
-                  <div
-                    className="bg-blue-a7"
-                    style={{
-                      width: `${(emp.pendingHr / emp.total) * 100}%`,
-                    }}
-                    title={`${emp.pendingHr} Completed`}
-                  />
-                )}
-                {emp.verified > 0 && (
-                  <div
-                    className="bg-green-a7"
-                    style={{
-                      width: `${(emp.verified / emp.total) * 100}%`,
-                    }}
-                    title={`${emp.verified} HR Verified`}
-                  />
-                )}
-              </div>
-
-              {/* Legend – ultra-clean: dot + number only */}
-              <div
-                className="flex items-center gap-3"
-                style={{ paddingTop: "8px" }}
-              >
-                <span
-                  className="flex items-center gap-1"
-                  style={{ fontSize: "12px", color: "#6B7280" }}
-                >
-                  <span
-                    style={{
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "50%",
-                      background: "#F59E0B",
-                      display: "inline-block",
-                    }}
-                  />
-                  {emp.draft}
-                  <span>Inc</span>
-                </span>
-                {emp.rejected > 0 && (
-                  <span
-                    className="flex items-center gap-1"
-                    style={{ fontSize: "12px", color: "#6B7280" }}
-                  >
-                    <span
-                      style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background: "#EF4444",
-                        display: "inline-block",
-                      }}
-                    />
-                    {emp.rejected}
-                    <span>Ret</span>
-                  </span>
-                )}
-                {emp.eval > 0 && (
-                  <span
-                    className="flex items-center gap-1"
-                    style={{ fontSize: "12px", color: "#6B7280" }}
-                  >
-                    <span
-                      style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background: "#8B5CF6",
-                        display: "inline-block",
-                      }}
-                    />
-                    {emp.eval}
-                    <span>Eval</span>
-                  </span>
-                )}
-                <span
-                  className="flex items-center gap-1"
-                  style={{ fontSize: "12px", color: "#6B7280" }}
-                >
-                  <span
-                    style={{
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "50%",
-                      background: "#3B82F6",
-                      display: "inline-block",
-                    }}
-                  />
-                  {emp.pendingHr}
-                  <span>Comp</span>
-                </span>
-                <span
-                  className="flex items-center gap-1"
-                  style={{ fontSize: "12px", color: "#6B7280" }}
-                >
-                  <span
-                    style={{
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "50%",
-                      background: "#22C55E",
-                      display: "inline-block",
-                    }}
-                  />
-                  {emp.verified}
-                  <span>Hr</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Completion Rate Footer */}
-            <div
-              className="flex justify-between items-center mt-auto"
-              style={{
-                paddingTop: "12px",
-                marginTop: "14px",
-                borderTop: "1px solid #E5E7EB",
-              }}
-            >
-              <span
-                style={{ fontSize: "12px", fontWeight: 500, color: "#6B7280" }}
-              >
-                Completion Rate
-              </span>
-              <span
-                className="flex items-center gap-1"
-                style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}
-              >
-                {emp.completionRate}%
-                <TrendingUp
-                  size={13}
-                  style={{
-                    color:
-                      emp.completionRate >= 80
-                        ? "#22C55E"
-                        : emp.completionRate >= 50
-                          ? "#F59E0B"
-                          : "#EF4444",
-                  }}
-                />
-              </span>
-            </div>
-          </div>
           );
         })}
       </div>

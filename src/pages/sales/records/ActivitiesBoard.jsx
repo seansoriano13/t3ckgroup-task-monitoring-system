@@ -321,6 +321,21 @@ export function BoardActivityCard({ act, onClick, appSettings, searchTerm }) {
   const isDone = act.status === REVENUE_STATUS.APPROVED;
   const isLost = act.sales_outcome === "LOST";
   const isWon = act.sales_outcome === "COMPLETED";
+
+  const isLate = (() => {
+    if (!isDone || !act.completed_at) return false;
+    const sDate = new Date(act.scheduled_date);
+    sDate.setDate(sDate.getDate() + 1);
+    const cDate = new Date(act.completed_at);
+    return cDate > sDate;
+  })();
+
+  const isBacklog = (() => {
+    if (isDone || act.is_unplanned) return false;
+    const today = new Date().toISOString().slice(0, 10);
+    return act.scheduled_date < today;
+  })();
+
   return (
     <div
       onClick={onClick}
@@ -349,6 +364,16 @@ export function BoardActivityCard({ act, onClick, appSettings, searchTerm }) {
           </span>
 
           <CardPlanBadge act={act} isDone={isDone} appSettings={appSettings} />
+          {isLate && (
+            <span className="shrink-0 text-[8px] bg-red-3/50 text-red-11 px-1 py-0.5 rounded uppercase tracking-widest font-black border border-red-6/20">
+              LATE
+            </span>
+          )}
+          {isBacklog && (
+            <span className="shrink-0 text-[8px] bg-orange-3/50 text-orange-11 px-1 py-0.5 rounded uppercase tracking-widest font-black border border-orange-6/20">
+              BACKLOG
+            </span>
+          )}
         </div>
         {isDone ? (
           <CheckCircle2 size={12} className="text-green-9 shrink-0" />

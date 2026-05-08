@@ -13,17 +13,13 @@ import {
   Clock,
   TrendingUp,
   CheckCircle2,
-  ArrowUpRight,
   User,
-  Users,
   Activity,
   Plus,
 } from "lucide-react";
-import toast from "react-hot-toast";
 import { formatTaskPreview } from "../utils/taskFormatters";
 import LogTaskModal from "./LogTaskModal";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import SectionHeader from "./ui/SectionHeader";
 import Dot from "./ui/Dot";
 
@@ -260,14 +256,14 @@ export default function TasksList({ selectedRange }) {
                       size="w-2 h-2"
                       color={
                         statusKey === "COMPLETE_VERIFIED"
-                          ? "bg-green-9 shadow-green-5"
+                          ? "bg-green-a7 shadow-green-5"
                           : statusKey === "COMPLETE_UNVERIFIED"
-                            ? "bg-blue-9 shadow-blue-5"
+                            ? "bg-blue-a7 shadow-blue-5"
                             : statusKey === "AWAITING APPROVAL"
-                              ? "bg-violet-9 shadow-violet-5"
+                              ? "bg-violet-a7 shadow-violet-5"
                               : statusKey === "NOT APPROVED"
-                                ? "bg-red-9 shadow-red-5"
-                                : "bg-orange-9 shadow-orange-5"
+                                ? "bg-red-a7 shadow-red-5"
+                                : "bg-orange-a7 shadow-orange-5"
                       }
                     />
                     <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
@@ -467,31 +463,31 @@ export default function TasksList({ selectedRange }) {
                             label="Action Required (Rejected)"
                             count={rejectedCount}
                             total={total}
-                            color="bg-red-9"
+                            color="bg-red-a7"
                           />
                           <InsightBar
                             label="Drafts (Working)"
                             count={draftCount}
                             total={total}
-                            color="bg-orange-9"
+                            color="bg-orange-a7"
                           />
                           <InsightBar
                             label="Awaiting Mgt Approval"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-violet-9"
+                            color="bg-violet-a7"
                           />
                           <InsightBar
                             label="Approved (Pending HR)"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-blue-9"
+                            color="bg-blue-a7"
                           />
                           <InsightBar
                             label="HR Verified & Finalized"
                             count={verifiedCount}
                             total={total}
-                            color="bg-green-9"
+                            color="bg-green-a7"
                           />
                         </>
                       )}
@@ -505,31 +501,31 @@ export default function TasksList({ selectedRange }) {
                             label="Needs My Review (New)"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-violet-9"
+                            color="bg-violet-a7"
                           />
                           <InsightBar
                             label="Rejected by Me"
                             count={rejectedCount}
                             total={total}
-                            color="bg-red-9"
+                            color="bg-red-a7"
                           />
                           <InsightBar
                             label="Subordinates Drafting"
                             count={draftCount}
                             total={total}
-                            color="bg-orange-9"
+                            color="bg-orange-a7"
                           />
                           <InsightBar
                             label="Approved (Pending HR)"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-blue-9"
+                            color="bg-blue-a7"
                           />
                           <InsightBar
                             label="Verified by HR"
                             count={verifiedCount}
                             total={total}
-                            color="bg-green-9"
+                            color="bg-green-a7"
                           />
                         </>
                       )}
@@ -543,31 +539,31 @@ export default function TasksList({ selectedRange }) {
                             label="Needs My Audit"
                             count={pendingHrCount}
                             total={total}
-                            color="bg-blue-9"
+                            color="bg-blue-a7"
                           />
                           <InsightBar
                             label="Awaiting Manager Review"
                             count={awaitingApprovalCount}
                             total={total}
-                            color="bg-violet-9"
+                            color="bg-violet-a7"
                           />
                           <InsightBar
                             label="Employees Working"
                             count={draftCount}
                             total={total}
-                            color="bg-orange-9"
+                            color="bg-orange-a7"
                           />
                           <InsightBar
                             label="Manager Rejections"
                             count={rejectedCount}
                             total={total}
-                            color="bg-red-9"
+                            color="bg-red-a7"
                           />
                           <InsightBar
                             label="Verified"
                             count={verifiedCount}
                             total={total}
-                            color="bg-green-9 shadow-green-5"
+                            color="bg-green-a7"
                           />
                         </>
                       )}
