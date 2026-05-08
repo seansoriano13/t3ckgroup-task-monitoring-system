@@ -13,21 +13,26 @@ export default function CloudinaryImageAttachment({
   const [isUploading, setIsUploading] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const fileInputRef = useRef(null);
+  // Always reflects latest attachments — avoids stale-closure bug in uploadFiles
+  const attachmentsRef = useRef(attachments);
+  useEffect(() => { attachmentsRef.current = attachments; }, [attachments]);
 
   // Core upload logic — shared by file picker and paste handler
   const uploadFiles = useCallback(async (files) => {
     if (!files || files.length === 0) return;
 
-    if (attachments.length + files.length > 10) {
+    // Read current attachments from ref to avoid stale closure on paste
+    const currentAttachments = attachmentsRef.current;
+
+    if (currentAttachments.length + files.length > 10) {
       toast.error("Maximum 10 images allowed per task.");
       return;
     }
 
     setIsUploading(true);
-    const newUrls = [...attachments];
+    const newUrls = [...currentAttachments];
 
     try {
-      // Cloudinary handles concurrency well, but we'll do it iteratively to prevent network thrashing on slow connections
       const uploadPromises = files.map(file => {
         if (!file.type.startsWith('image/')) {
            throw new Error(`${file.name} is not an image.`);
@@ -49,7 +54,7 @@ export default function CloudinaryImageAttachment({
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
-  }, [attachments, onChange]);
+  }, [onChange]);
 
   // Clipboard paste handler — intercepts Ctrl+V screenshots
   useEffect(() => {

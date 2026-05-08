@@ -2,6 +2,7 @@ import { supabase } from "../../lib/supabase";
 import { notificationService } from "../notificationService";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { REVENUE_STATUS } from "../../constants/status";
+import { revenueActivityLogService } from "./revenueActivityLogService";
 
 export const salesRevenueService = {
   async getRevenueLogsByMonth(selectedMonth) {
@@ -57,6 +58,12 @@ export const salesRevenueService = {
       .single();
 
     if (error) throw error;
+    revenueActivityLogService.addSystemEvent(
+      data.id,
+      `Revenue log created: "${payload.account || "unknown account"}" — ₱${Number(payload.revenue_amount || 0).toLocaleString()}.`,
+      { event: "REVENUE_LOG_CREATED", amount: payload.revenue_amount },
+      payload.employee_id || null,
+    ).catch(console.error);
     return data;
   },
 
@@ -83,12 +90,18 @@ export const salesRevenueService = {
     if (payload.is_verified === true && oldLog && !oldLog.is_verified) {
       notificationService.createNotification({
         recipient_id: data.employee_id,
-        sender_id: payload.last_edited_by || null, // #9 — attribution: who verified
+        sender_id: payload.last_edited_by || null,
         type: "REVENUE_LOCKED",
         title: "Revenue Audit Passed",
         message: `Your revenue log for ${data.account || "an account"} was globally verified.`,
         reference_id: data.id,
       });
+      revenueActivityLogService.addApprovalEntry(
+        id,
+        payload.last_edited_by || null,
+        `Revenue log verified and locked: "${data.account || ""}".`,
+        { event: "REVENUE_VERIFIED" },
+      ).catch(console.error);
     }
 
     return data;
@@ -116,6 +129,12 @@ export const salesRevenueService = {
       message: `${data.employees?.name} requested permission to change a locked log to ₱${Number(amount).toLocaleString()}.`,
       reference_id: id,
     });
+    revenueActivityLogService.addSystemEvent(
+      id,
+      `Edit protocol requested: change amount to ₱${Number(amount).toLocaleString()}. Reason: ${reason || "(none)"}`,
+      { event: "EDIT_REQUESTED", requestedAmount: amount, reason },
+      userId || null,
+    ).catch(console.error);
 
     return data;
   },
@@ -150,6 +169,14 @@ export const salesRevenueService = {
         : `Your request to change ${data.account || "an account"} was declined. Log remains strictly locked.`,
       reference_id: id,
     });
+    revenueActivityLogService.addApprovalEntry(
+      id,
+      adminId,
+      isApproved
+        ? `Edit protocol approved. Amount updated to ₱${Number(newAmount).toLocaleString()}.`
+        : `Edit protocol denied. Log remains at original value.`,
+      { event: "EDIT_RESOLVED", isApproved, newAmount },
+    ).catch(console.error);
 
     return data;
   },
@@ -170,6 +197,11 @@ export const salesRevenueService = {
       .eq("id", id);
 
     if (error) throw new Error(error.message);
+    revenueActivityLogService.addSystemEvent(
+      id,
+      "Revenue log was soft-deleted (removed from records).",
+      { event: "REVENUE_DELETED" },
+    ).catch(console.error);
   },
 
   async getRevenueAnalysis(startDate, endDate) {

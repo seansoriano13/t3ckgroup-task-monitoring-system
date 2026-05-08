@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { systemAuditLogService } from "./systemAuditLogService";
 
 const DEFAULT_EXPIRY_HOURS = 24;
 
@@ -134,6 +135,13 @@ export const systemUpdateService = {
       console.error("Error creating system update:", error);
       throw error;
     }
+    systemAuditLogService.addSystemEvent(
+      "ANNOUNCEMENT",
+      data.id,
+      `System announcement posted: "${(data.content || "").substring(0, 80)}${data.content?.length > 80 ? "…" : ""}".`,
+      { event: "ANNOUNCEMENT_CREATED", type: data.type },
+      updateData.user_id || null,
+    ).catch(console.error);
     return data;
   },
 
@@ -159,6 +167,12 @@ export const systemUpdateService = {
       console.error("Error toggling update status:", error);
       throw error;
     }
+    systemAuditLogService.addSystemEvent(
+      "ANNOUNCEMENT",
+      updateId,
+      `System announcement ${isActive ? "re-activated" : "deactivated"}.`,
+      { event: "ANNOUNCEMENT_TOGGLED", isActive },
+    ).catch(console.error);
     return data;
   },
 
@@ -182,6 +196,12 @@ export const systemUpdateService = {
       console.error("Error editing system update:", error);
       throw error;
     }
+    systemAuditLogService.addSystemEvent(
+      "ANNOUNCEMENT",
+      updateId,
+      `System announcement edited.`,
+      { event: "ANNOUNCEMENT_EDITED" },
+    ).catch(console.error);
     return data;
   },
 
@@ -199,6 +219,12 @@ export const systemUpdateService = {
       console.error("Error deleting update:", error);
       throw error;
     }
+    systemAuditLogService.addSystemEvent(
+      "ANNOUNCEMENT",
+      updateId,
+      `System announcement was deleted.`,
+      { event: "ANNOUNCEMENT_DELETED" },
+    ).catch(console.error);
     return true;
   },
 };

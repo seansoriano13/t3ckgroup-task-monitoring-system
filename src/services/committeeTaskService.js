@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { notificationService } from "./notificationService";
 import { taskActivityService } from "./tasks/taskActivityService";
+import { committeeTaskActivityService } from "./committeeTaskActivityService";
 
 const logCommitteeTaskActivity = async (committeeTaskId, action, details = {}, actorId = null) => {
   try {
@@ -92,6 +93,11 @@ export const committeeTaskService = {
     }
 
     await logCommitteeTaskActivity(committeeTask.id, "CREATED", { title }, createdBy);
+    committeeTaskActivityService.addSystemEvent(
+      committeeTask.id,
+      `Committee task created: "${title}" by ${(await supabase.from("employees").select("name").eq("id", createdBy).single()).data?.name || "a manager"}.`,
+      { event: "CREATED", title },
+    ).catch(console.error);
 
     // Notifications
     const { data: creator } = await supabase
@@ -185,6 +191,13 @@ export const committeeTaskService = {
       { memberId, employeeId: member.employee_id, taskDescription: member.task_description },
       userId
     );
+    committeeTaskActivityService.addSystemEvent(
+      member.committee_task_id,
+      status === "DONE"
+        ? `Member marked their assignment as done: "${member.task_description || ""}".`
+        : `Member un-marked their assignment: "${member.task_description || ""}".`,
+      { event: status === "DONE" ? "MEMBER_DONE" : "MEMBER_PENDING", memberId },
+    ).catch(console.error);
 
     // Check if ALL members are done to auto-complete
     if (status === "DONE") {
@@ -217,6 +230,11 @@ export const committeeTaskService = {
     // For now, if head forces complete, they remain what they are, but head can rate them.
 
     await logCommitteeTaskActivity(committeeTaskId, "COMPLETED", {}, actorId);
+    committeeTaskActivityService.addSystemEvent(
+      committeeTaskId,
+      "Committee task marked as completed.",
+      { event: "COMPLETED" },
+    ).catch(console.error);
 
     return data;
   },
@@ -250,6 +268,12 @@ export const committeeTaskService = {
       { ratings: ratings.map(r => ({ memberId: r.memberId, grade: r.grade })) },
       actorId
     );
+    committeeTaskActivityService.addApprovalEntry(
+      committeeTaskId,
+      actorId,
+      `Members graded. Submitted to HR for verification.`,
+      { event: "RATED", ratings: ratings.map(r => ({ memberId: r.memberId, grade: r.grade })) },
+    ).catch(console.error);
 
     // Notify HR
     const { data: ct } = await supabase
@@ -279,6 +303,11 @@ export const committeeTaskService = {
     if (error) throw error;
 
     await logCommitteeTaskActivity(id, "CANCELLED", {}, actorId);
+    committeeTaskActivityService.addSystemEvent(
+      id,
+      "Committee task was cancelled.",
+      { event: "CANCELLED" },
+    ).catch(console.error);
 
     return true;
   },
@@ -322,6 +351,11 @@ export const committeeTaskService = {
       { memberId, role: customRole || role, taskDescription },
       actorId
     );
+    committeeTaskActivityService.addSystemEvent(
+      committeeTaskId,
+      `Member assignment updated.`,
+      { event: "MEMBER_UPDATED", memberId, role: customRole || role },
+    ).catch(console.error);
 
     return true;
   },
@@ -340,6 +374,11 @@ export const committeeTaskService = {
       { memberId },
       actorId
     );
+    committeeTaskActivityService.addSystemEvent(
+      committeeTaskId,
+      "A member was removed from the committee.",
+      { event: "MEMBER_REMOVED", memberId },
+    ).catch(console.error);
 
     return true;
   },
@@ -360,6 +399,12 @@ export const committeeTaskService = {
     if (error) throw error;
 
     await logCommitteeTaskActivity(id, "HR_VERIFIED", { remarks }, actorId);
+    committeeTaskActivityService.addHrEntry(
+      id,
+      actorId,
+      remarks ? `HR verified. Remarks: ${remarks}` : "HR verified the committee task.",
+      { event: "HR_VERIFIED", remarks },
+    ).catch(console.error);
 
     return true;
   },
@@ -376,6 +421,11 @@ export const committeeTaskService = {
     if (error) throw error;
 
     await logCommitteeTaskActivity(id, "HR_REJECTED", { remarks }, actorId);
+    committeeTaskActivityService.addSystemEvent(
+      id,
+      remarks ? `HR rejected — task returned for revision. Remarks: ${remarks}` : "HR rejected — task returned for revision.",
+      { event: "HR_REJECTED", remarks },
+    ).catch(console.error);
 
     return true;
   },
@@ -415,6 +465,11 @@ export const committeeTaskService = {
       { addedEmployeeId: employeeId, role: customRole || role },
       actorId
     );
+    committeeTaskActivityService.addSystemEvent(
+      committeeTaskId,
+      `New member added to the committee.`,
+      { event: "MEMBER_ADDED", employeeId, role: customRole || role },
+    ).catch(console.error);
 
     // Get creator and task to notify
     const { data: ct } = await supabase

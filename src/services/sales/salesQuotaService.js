@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { notificationService } from "../notificationService";
+import { systemAuditLogService } from "../systemAuditLogService";
 
 export const salesQuotaService = {
   async getQuotasByMonth(monthYearDate) {
@@ -70,6 +71,14 @@ export const salesQuotaService = {
       
       const { error: logError } = await supabase.from("sales_quota_logs").insert(logPayload);
       if (logError) console.error("Failed to insert quota log:", logError);
+
+      systemAuditLogService.addSystemEvent(
+        "QUOTA",
+        data.id,
+        `Sales quota ${action.toLowerCase()} for ${monthYearDate}: ₱${Number(amountTarget).toLocaleString()}.`,
+        { event: `QUOTA_${action}`, employeeId, amountTarget, monthYearDate },
+        changedBy || null,
+      ).catch(console.error);
     }
 
     return data;
@@ -97,6 +106,14 @@ export const salesQuotaService = {
       
       const { error: logError } = await supabase.from("sales_quota_logs").insert(logs);
       if (logError) console.error("Failed to insert publish logs:", logError);
+
+      systemAuditLogService.addSystemEvent(
+        "QUOTA",
+        null,
+        `${data.length} sales quota(s) published for ${data[0]?.month_year || ""}.`,
+        { event: "QUOTAS_PUBLISHED", count: data.length },
+        changedBy || null,
+      ).catch(console.error);
 
       data.forEach(quota => {
         notificationService.createNotification({

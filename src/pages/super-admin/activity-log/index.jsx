@@ -5,6 +5,8 @@ import { taskActivityService } from "../../../services/tasks/taskActivityService
 import { salesActivityLogService } from "../../../services/sales/salesActivityLogService";
 import { employeeService } from "../../../services/employeeService";
 import { committeeTaskActivityService } from "../../../services/committeeTaskActivityService";
+import { systemAuditLogService } from "../../../services/systemAuditLogService";
+import { revenueActivityLogService } from "../../../services/sales/revenueActivityLogService";
 import Avatar from "../../../components/Avatar.jsx";
 import { useEmployeeAvatarMap } from "../../../hooks/useEmployeeAvatarMap";
 import HighlightText from "../../../components/HighlightText";
@@ -21,12 +23,21 @@ import {
   Clock,
   CheckSquare,
   Square,
+  Settings,
+  DollarSign,
 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge.jsx";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Dropdown from "@/components/ui/Dropdown";
 
 const PAGE_SIZE = 50;
+
+const TABS = [
+  { id: "TASKS", label: "Task Logs" },
+  { id: "SALES", label: "Sales Logs" },
+  { id: "COMMITTEE", label: "Committee Logs" },
+  { id: "REVENUE", label: "Revenue Logs" },
+  { id: "SYSTEM", label: "System Logs" },
+];
 
 function typeIcon(type) {
   if (type === "APPROVAL") return ShieldCheck;
@@ -45,16 +56,6 @@ function formatWhen(iso) {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-
-function getInitials(name) {
-  if (!name || name === "System") return "SY";
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
 }
 
 // ── Checklist Parser ──────────────────────────────────────────────────────────
@@ -156,6 +157,15 @@ function SkeletonCard() {
   );
 }
 
+// Entity type badge colors for SYSTEM logs
+const ENTITY_TYPE_STYLES = {
+  EMPLOYEE: "bg-blue-a2 text-blue-11 border-blue-a4",
+  CATEGORY: "bg-orange-a2 text-orange-11 border-orange-a4",
+  ANNOUNCEMENT: "bg-yellow-a2 text-yellow-11 border-yellow-a4",
+  SETTINGS: "bg-purple-a2 text-purple-11 border-purple-a4",
+  QUOTA: "bg-green-a2 text-green-11 border-green-a4",
+};
+
 // ═════════════════════════════════════════════════════════════════════════════
 //  PAGE COMPONENT
 // ═════════════════════════════════════════════════════════════════════════════
@@ -211,6 +221,10 @@ export default function SuperAdminActivityLogPage() {
       sub = salesActivityLogService.subscribeToAllActivity(handleNewEntry);
     else if (activeTab === "COMMITTEE")
       sub = committeeTaskActivityService.subscribeToAllActivity(handleNewEntry);
+    else if (activeTab === "REVENUE")
+      sub = revenueActivityLogService.subscribeToAllActivity(handleNewEntry);
+    else if (activeTab === "SYSTEM")
+      sub = systemAuditLogService.subscribeToAllActivity(handleNewEntry);
 
     return () => {
       if (sub) {
@@ -220,6 +234,10 @@ export default function SuperAdminActivityLogPage() {
           salesActivityLogService.unsubscribeFromActivity(sub);
         else if (activeTab === "COMMITTEE")
           committeeTaskActivityService.unsubscribeFromActivity(sub);
+        else if (activeTab === "REVENUE")
+          revenueActivityLogService.unsubscribeFromActivity(sub);
+        else if (activeTab === "SYSTEM")
+          systemAuditLogService.unsubscribeFromActivity(sub);
       }
     };
   }, [activeTab, queryClient]);
@@ -251,30 +269,38 @@ export default function SuperAdminActivityLogPage() {
         search: filters.search,
       };
 
-      if (activeTab === "SALES") {
+      if (activeTab === "SALES")
         return salesActivityLogService.getRecentSalesActivity(params);
-      }
-      if (activeTab === "COMMITTEE") {
+      if (activeTab === "COMMITTEE")
         return committeeTaskActivityService.getRecentCommitteeActivity(params);
-      }
+      if (activeTab === "REVENUE")
+        return revenueActivityLogService.getRecentRevenueActivity(params);
+      if (activeTab === "SYSTEM")
+        return systemAuditLogService.getRecentSystemActivity(params);
       return taskActivityService.getRecentTaskActivity(params);
     },
     staleTime: 15_000,
   });
 
   const filteredEntries = useMemo(() => {
+    const isDeptFiltered = activeTab !== "SYSTEM" && activeTab !== "REVENUE";
+
     const raw = entries.filter((e) => {
-      if (filters.dept !== "ALL" && (e.taskCreatorDept || "") !== filters.dept)
-        return false;
-      if (
-        filters.subDept !== "ALL" &&
-        (e.taskCreatorSubDept || "") !== filters.subDept
-      )
-        return false;
+      if (isDeptFiltered) {
+        if (filters.dept !== "ALL" && (e.taskCreatorDept || "") !== filters.dept)
+          return false;
+        if (
+          filters.subDept !== "ALL" &&
+          (e.taskCreatorSubDept || "") !== filters.subDept
+        )
+          return false;
+      }
       return true;
     });
 
-    // Consolidate redundant logs to lessen noise
+    // Consolidate redundant logs (tasks/sales/committee only)
+    if (activeTab === "SYSTEM" || activeTab === "REVENUE") return raw;
+
     const consolidated = [];
     for (let i = 0; i < raw.length; i++) {
       const current = raw[i];
@@ -282,15 +308,11 @@ export default function SuperAdminActivityLogPage() {
 
       const isSameTask = next && current.taskId === next.taskId;
 
-      // 1. Task submitted & Reported to:
-      // Since logs are ORDERED BY created_at DESC:
-      // 'Reported to:' (logged later) appears BEFORE 'Task submitted' (logged earlier).
       const isReportedSubmit =
         isSameTask &&
         current.content?.startsWith("Reported to:") &&
         next.content?.startsWith("Task submitted");
 
-      // 2. HR_NOTE and SYSTEM verified redundancy
       const isHrRedundant =
         isSameTask &&
         ((current.type === "SYSTEM" &&
@@ -302,7 +324,6 @@ export default function SuperAdminActivityLogPage() {
             next.content?.toLowerCase().includes("verified") &&
             current.content?.toLowerCase().includes("verified")));
 
-      // 3. APPROVAL and SYSTEM redundancy (bulk approve/reject)
       const isApprovalRedundant =
         isSameTask &&
         ((current.type === "SYSTEM" &&
@@ -319,13 +340,11 @@ export default function SuperAdminActivityLogPage() {
           ...next,
           content: `${next.content} ${current.content}`,
         });
-        i++; // Skip the next entry as it's now merged
+        i++;
       } else if (isHrRedundant) {
-        // Keep the HR_NOTE, as it's more specific and renders with a better icon
         consolidated.push(current.type === "HR_NOTE" ? current : next);
         i++;
       } else if (isApprovalRedundant) {
-        // Keep the APPROVAL entry
         consolidated.push(current.type === "APPROVAL" ? current : next);
         i++;
       } else {
@@ -334,7 +353,7 @@ export default function SuperAdminActivityLogPage() {
     }
 
     return consolidated;
-  }, [entries, filters.dept, filters.subDept]);
+  }, [entries, filters.dept, filters.subDept, activeTab]);
 
   const hasActiveFilters =
     filters.type !== "ALL" ||
@@ -360,10 +379,27 @@ export default function SuperAdminActivityLogPage() {
       search: "",
     });
 
+  // Entity-details dispatch — SYSTEM logs are non-clickable
+  const handleEntryClick = (e) => {
+    if (activeTab === "SYSTEM") return;
+    const typeMap = {
+      TASKS: "TASK",
+      SALES: "SALES",
+      COMMITTEE: "COMMITTEE_TASK",
+      REVENUE: "REVENUE_LOG",
+    };
+    if (!typeMap[activeTab] || !e.taskId) return;
+    window.dispatchEvent(
+      new CustomEvent("OPEN_ENTITY_DETAILS", {
+        detail: { id: e.taskId, type: typeMap[activeTab] },
+      }),
+    );
+  };
+
   return (
     <ProtectedRoute requireSuperAdmin={true}>
       <div className="max-w-6xl mx-auto space-y-5 px-2 pb-10">
-        {/* ── Header — same eyebrow pattern as LogTaskHeader ─────────── */}
+        {/* ── Header ──────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/40 pb-5">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-foreground">
@@ -372,41 +408,25 @@ export default function SuperAdminActivityLogPage() {
             <p className="text-muted-foreground mt-1 font-medium text-sm">
               Recent timeline events across the system.
             </p>
-            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl shrink-0 mt-4 max-w-fit border border-border/40">
-              <button
-                onClick={() => setActiveTab("TASKS")}
-                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === "TASKS"
-                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Task Logs
-              </button>
-              <button
-                onClick={() => setActiveTab("SALES")}
-                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === "SALES"
-                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Sales Logs
-              </button>
-              <button
-                onClick={() => setActiveTab("COMMITTEE")}
-                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === "COMMITTEE"
-                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Committee Logs
-              </button>
+            {/* Tab bar */}
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl shrink-0 mt-4 max-w-fit border border-border/40 flex-wrap">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                    activeTab === tab.id
+                      ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Pagination — styled like LogTaskFooter action buttons */}
+          {/* Pagination + live indicator */}
           <div className="flex flex-col items-end gap-3 shrink-0">
             <div
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all duration-300 ${liveAnim ? "bg-green-a2 border-green-a4 text-green-11" : "bg-transparent border-transparent text-muted-foreground/60"}`}
@@ -509,34 +529,30 @@ export default function SuperAdminActivityLogPage() {
             )}
           </div>
         ) : (
-          /* ── Log entry list — same card DNA as LogTaskModal DialogContent ── */
           <div className="space-y-2">
             {filteredEntries.map((e) => {
-              const Icon = typeIcon(e.type);
+              const Icon =
+                activeTab === "SYSTEM"
+                  ? Settings
+                  : activeTab === "REVENUE"
+                    ? DollarSign
+                    : typeIcon(e.type);
+
+              const isClickable = activeTab !== "SYSTEM";
 
               return (
                 <button
                   key={e.id}
                   type="button"
-                  onClick={() => {
-                    const typeMap = {
-                      TASKS: "TASK",
-                      SALES: "SALES",
-                      COMMITTEE: "COMMITTEE_TASK",
-                    };
-                    window.dispatchEvent(
-                      new CustomEvent("OPEN_ENTITY_DETAILS", {
-                        detail: {
-                          id: e.taskId,
-                          type: typeMap[activeTab],
-                        },
-                      }),
-                    );
-                  }}
-                  className={`w-full text-left bg-card border border-border rounded-xl p-4 transition-all duration-150 animate-content-in group hover:border-mauve-6 hover:bg-muted/40 cursor-pointer`}
+                  onClick={() => handleEntryClick(e)}
+                  disabled={!isClickable}
+                  className={`w-full text-left bg-card border border-border rounded-xl p-4 transition-all duration-150 animate-content-in group ${
+                    isClickable
+                      ? "hover:border-mauve-6 hover:bg-muted/40 cursor-pointer"
+                      : "cursor-default"
+                  }`}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Icon bubble — matches LogTaskHeader dept badge style */}
                     <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
                       <Icon size={14} className="text-muted-foreground" />
                     </div>
@@ -544,13 +560,21 @@ export default function SuperAdminActivityLogPage() {
                     <div className="min-w-0 flex-1">
                       {/* Row 1: type eyebrow + timestamp */}
                       <div className="flex items-center justify-between gap-3 mb-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                             {e.type || "SYSTEM"}
                           </p>
                           {e.isCommittee && (
                             <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-violet-3 text-violet-11 border border-violet-5">
                               Committee Task
+                            </span>
+                          )}
+                          {/* Entity type badge for SYSTEM logs */}
+                          {activeTab === "SYSTEM" && e.entityType && (
+                            <span
+                              className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${ENTITY_TYPE_STYLES[e.entityType] || "bg-mauve-a2 text-mauve-11 border-mauve-a4"}`}
+                            >
+                              {e.entityType}
                             </span>
                           )}
                         </div>
@@ -562,7 +586,7 @@ export default function SuperAdminActivityLogPage() {
                         </div>
                       </div>
 
-                      {/* Task title */}
+                      {/* Task / entity title */}
                       {(() => {
                         const checklist = tryParseChecklist(e.taskDescription);
                         if (checklist) {
@@ -615,7 +639,7 @@ export default function SuperAdminActivityLogPage() {
                         );
                       })()}
 
-                      {/* Content — parses checklist JSON if applicable */}
+                      {/* Content */}
                       <div className="text-xs text-muted-foreground mt-1">
                         <ContentDisplay
                           content={e.content}
@@ -623,23 +647,23 @@ export default function SuperAdminActivityLogPage() {
                         />
                       </div>
 
-                      {/* Footer: author avatar + status pill — matches premium trigger style */}
+                      {/* Footer: author + status */}
                       <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                        {/* Author — matches LogTaskHeader dept initial badge */}
                         <div className="flex items-center gap-1.5">
                           <Avatar
                             name={e.authorName || "System"}
                             src={avatarMap.get(e.authorId)}
                             size="xxs"
-                            className="bg-mauve-4 text-mauve-12  shadow-sm"
+                            className="bg-mauve-4 text-mauve-12 shadow-sm"
                           />
                           <span className="text-[11px] font-semibold text-muted-foreground">
                             {e.authorName || "System"}
                           </span>
                         </div>
 
-                        {/* Status — matches standardized triggers */}
-                        <StatusBadge status={e.taskStatus} />
+                        {activeTab !== "SYSTEM" && (
+                          <StatusBadge status={e.taskStatus} />
+                        )}
                       </div>
                     </div>
                   </div>

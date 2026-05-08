@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { systemAuditLogService } from "./systemAuditLogService";
 
 export const employeeService = {
   async getEmployeeByEmail(email) {
@@ -85,6 +86,13 @@ export const employeeService = {
       .single();
 
     if (error) throw error;
+    systemAuditLogService.addSystemEvent(
+      "CATEGORY",
+      data.id,
+      `Category "${data.description}" was created (${data.department || ""}).`,
+      { event: "CATEGORY_CREATED", categoryId: data.id },
+      categoryData.updatedBy || null,
+    ).catch(console.error);
     return data;
   },
 
@@ -103,6 +111,13 @@ export const employeeService = {
       .single();
 
     if (error) throw error;
+    systemAuditLogService.addSystemEvent(
+      "CATEGORY",
+      id,
+      `Category "${data.description}" was updated.`,
+      { event: "CATEGORY_UPDATED", categoryId: id },
+      actorId || categoryData.updatedBy || null,
+    ).catch(console.error);
     return data;
   },
 
@@ -117,9 +132,16 @@ export const employeeService = {
     return Array.isArray(data) && data.length > 0;
   },
 
-  async deleteCategory(id) {
+  async deleteCategory(id, actorId = null) {
     const { error } = await supabase.from("categories").delete().eq("id", id);
     if (error) throw error;
+    systemAuditLogService.addSystemEvent(
+      "CATEGORY",
+      id,
+      `A task category was deleted.`,
+      { event: "CATEGORY_DELETED", categoryId: id },
+      actorId || null,
+    ).catch(console.error);
     return true;
   },
 
@@ -146,6 +168,13 @@ export const employeeService = {
       .single();
 
     if (error) throw error;
+    systemAuditLogService.addSystemEvent(
+      "EMPLOYEE",
+      data.id,
+      `Employee "${data.name}" was created (${data.department || ""} ${data.sub_department ? `/ ${data.sub_department}` : ""}).`,
+      { event: "EMPLOYEE_CREATED", employeeId: data.id },
+      employeeData.updatedBy || null,
+    ).catch(console.error);
     return data;
   },
 
@@ -171,6 +200,13 @@ export const employeeService = {
       .single();
 
     if (error) throw error;
+    systemAuditLogService.addSystemEvent(
+      "EMPLOYEE",
+      id,
+      `Employee "${data.name}" profile was updated.`,
+      { event: "EMPLOYEE_UPDATED", employeeId: id },
+      actorId || employeeData.updatedBy || null,
+    ).catch(console.error);
     return data;
   },
 
@@ -193,6 +229,13 @@ export const employeeService = {
       })
       .eq("id", id);
     if (error) throw error;
+    systemAuditLogService.addSystemEvent(
+      "EMPLOYEE",
+      id,
+      "Employee account was deactivated (soft-deleted).",
+      { event: "EMPLOYEE_DELETED", employeeId: id },
+      actorId || null,
+    ).catch(console.error);
     return true;
   },
 

@@ -192,6 +192,51 @@ export const committeeTaskActivityService = {
     }));
   },
 
+  async addSystemEvent(taskId, content, metadata = null) {
+    if (!taskId) return;
+    try {
+      await supabase.from("committee_task_activity").insert({
+        task_id: taskId,
+        author_id: null,
+        type: "SYSTEM",
+        content,
+        metadata,
+      });
+    } catch (err) {
+      console.error("Failed to log committee system event:", err);
+    }
+  },
+
+  async addApprovalEntry(taskId, authorId, content, metadata = null) {
+    if (!taskId) return;
+    try {
+      await supabase.from("committee_task_activity").insert({
+        task_id: taskId,
+        author_id: authorId,
+        type: "APPROVAL",
+        content: content || "",
+        metadata,
+      });
+    } catch (err) {
+      console.error("Failed to log committee approval entry:", err);
+    }
+  },
+
+  async addHrEntry(taskId, authorId, content, metadata = null) {
+    if (!taskId) return;
+    try {
+      await supabase.from("committee_task_activity").insert({
+        task_id: taskId,
+        author_id: authorId,
+        type: "HR_NOTE",
+        content: content || "Verified",
+        metadata,
+      });
+    } catch (err) {
+      console.error("Failed to log committee HR entry:", err);
+    }
+  },
+
   subscribeToActivity(taskId, onNewEntry, channelSuffix = "") {
     if (!taskId) return null;
 

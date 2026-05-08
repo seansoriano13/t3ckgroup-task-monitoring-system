@@ -16,18 +16,24 @@ export default function ImageAttachment({
   const [isLoadingUrls, setIsLoadingUrls] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const fileInputRef = useRef(null);
+  // Always reflects latest attachments — avoids stale-closure bug in uploadFiles
+  const attachmentsRef = useRef(attachments);
+  useEffect(() => { attachmentsRef.current = attachments; }, [attachments]);
 
-  // Core upload logic  shared by file picker and paste handler
+  // Core upload logic — shared by file picker and paste handler
   const uploadFiles = useCallback(async (files) => {
     if (!files || files.length === 0) return;
 
-    if (attachments.length + files.length > 5) {
+    // Read current attachments from ref to avoid stale closure on paste
+    const currentAttachments = attachmentsRef.current;
+
+    if (currentAttachments.length + files.length > 5) {
       toast.error("Maximum 5 images allowed per task.");
       return;
     }
 
     setIsUploading(true);
-    const newPaths = [...attachments];
+    const newPaths = [...currentAttachments];
 
     try {
       for (const file of files) {
@@ -50,7 +56,7 @@ export default function ImageAttachment({
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
-  }, [attachments, taskId, userId, onChange]);
+  }, [taskId, userId, onChange]);
 
   // Clipboard paste handler  intercepts Ctrl+V screenshots
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { supabase } from "../../lib/supabase";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { REVENUE_STATUS } from "../../constants/status";
+import { systemAuditLogService } from "../systemAuditLogService";
 
 export const salesAdminService = {
   async getAppSettings() {
@@ -36,6 +37,12 @@ export const salesAdminService = {
       .select()
       .single();
     if (error) throw error;
+    systemAuditLogService.addSystemEvent(
+      "SETTINGS",
+      "app_settings",
+      `App settings updated: ${Object.keys(payload).join(", ")}.`,
+      { event: "SETTINGS_UPDATED", changes: payload },
+    ).catch(console.error);
     return data;
   },
 
