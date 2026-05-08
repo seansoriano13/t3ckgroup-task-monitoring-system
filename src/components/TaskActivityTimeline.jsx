@@ -71,7 +71,7 @@ function ActivityEntry({ entry, currentUserId, avatarMap }) {
           )}
         </div>
         <div
-          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-300 ${
+          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-300 whitespace-pre-wrap ${
             isMe
               ? "bg-primary text-primary-foreground rounded-tr-none"
               : "bg-card text-foreground rounded-tl-none border border-border"

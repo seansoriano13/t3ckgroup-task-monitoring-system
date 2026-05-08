@@ -2,12 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesActivityLogService } from "../services/sales/salesActivityLogService";
 import { useAuth } from "../context/AuthContext";
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import Spinner from "@/components/ui/Spinner";
 import {
   Send,
   MessageCircle,
   Clock,
+  Star,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import Avatar from "./Avatar";
 import TabGroup from "./ui/TabGroup";
 import HistoryTimeline from "./HistoryTimeline";
 
@@ -36,62 +41,50 @@ const formatTime = (isoString) => {
 /**
  * Renders a single activity entry based on its type
  */
-function ActivityEntry({ entry, currentUserId }) {
+function ActivityEntry({ entry, currentUserId, avatarMap }) {
   const isMe = entry.authorId === currentUserId;
 
   // --- COMMENT (Human message) ---
   return (
-    <div
-      className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}
-    >
+    <div className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
       {/* Avatar */}
-      <div
-        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-black uppercase border ${
+      <Avatar
+        name={entry.authorName}
+        src={avatarMap.get(entry.authorId) ?? undefined}
+        className={`w-9 h-9 text-xs font-black border rounded-full ${
           entry.authorIsHead || entry.authorIsSuperAdmin
             ? "bg-warning/15 text-amber-9 border-amber-500/30"
             : entry.authorIsHr
               ? "bg-blue-9/15 text-blue-9 border-blue-500/30"
-              : "bg-mauve-3 text-mauve-10 border-mauve-4"
+              : "bg-muted/50 text-mauve-10 border-border"
         }`}
-      >
-        {entry.authorName
-          ? entry.authorName
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .substring(0, 2)
-          : "?"}
-      </div>
+      />
 
       {/* Bubble */}
-      <div
-        className={`max-w-[75%] ${
-          isMe ? "items-end" : "items-start"
-        }`}
-      >
-        <div className="flex items-center gap-2 mb-0.5">
+      <div className={`max-w-[85%] ${isMe ? "items-end" : "items-start"}`}>
+        <div className="flex items-center gap-2 mb-1 px-1">
           {!isMe && (
-            <span className="text-xs font-bold text-mauve-10">
+            <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">
               {entry.authorName}
             </span>
           )}
           {isMe && (
-            <span className="text-xs font-bold text-mauve-8 ml-auto">
+            <span className="text-[10px] font-extrabold text-mauve-11 uppercase tracking-widest ml-auto">
               You
             </span>
           )}
         </div>
         <div
-          className={`px-4 py-3 rounded-2xl text-base leading-relaxed ${
+          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-300 whitespace-pre-wrap ${
             isMe
-              ? "bg-primary/15 text-foreground rounded-tr-md border border-primary/20"
-              : "bg-mauve-3 text-foreground rounded-tl-md border border-mauve-4"
+              ? "bg-primary text-primary-foreground rounded-tr-none"
+              : "bg-card text-foreground rounded-tl-none border border-border"
           }`}
         >
           {entry.content}
         </div>
         <p
-          className={`text-[11px] text-mauve-7 mt-1.5 ${
+          className={`text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest ${
             isMe ? "text-right" : "text-left"
           } px-1`}
         >
@@ -109,17 +102,18 @@ function LegacyEntries({ headRemarks, headVerifiedByName }) {
   if (!headRemarks) return null;
 
   return (
-    <div className="space-y-2 pb-3 mb-3 border-b border-mauve-4 border-dashed">
-      <p className="text-[9px] font-bold text-mauve-7 uppercase tracking-widest px-1">
+    <div className="space-y-2 pb-3 mb-3 border-b border-border border-dashed">
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest px-1">
         Legacy Record
       </p>
-      <div className="py-2 px-3 rounded-lg bg-mauve-3/50 border border-mauve-4">
+      <div className="py-2 px-3 rounded-lg bg-muted/50 border border-border">
         <div className="flex items-center gap-2 mb-1">
+          <Star size={10} className="text-amber-9" />
           <span className="text-[10px] font-bold text-muted-foreground">
             {headVerifiedByName || "Manager"}
           </span>
         </div>
-        <p className="text-xs text-mauve-11 leading-relaxed">{headRemarks}</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{headRemarks}</p>
       </div>
     </div>
   );
@@ -135,6 +129,7 @@ export default function SalesActivityTimeline({
   disabled = false,
 }) {
   const { user } = useAuth();
+  const avatarMap = useEmployeeAvatarMap();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
@@ -203,9 +198,9 @@ export default function SalesActivityTimeline({
   const showLegacy = comments.length === 0 && !!legacyHeadRemarks;
 
   return (
-    <div className="flex flex-col border border-mauve-4 rounded-xl overflow-hidden bg-mauve-1 mt-6">
+    <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-card mt-4">
       {/* Tab Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-mauve-4 bg-mauve-2">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/50">
         <TabGroup
           variant="pill"
           tabs={[
@@ -221,7 +216,7 @@ export default function SalesActivityTimeline({
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4"
-        style={{ maxHeight: "400px", minHeight: "200px" }}
+        style={{ maxHeight: "500px", minHeight: "200px" }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -238,8 +233,8 @@ export default function SalesActivityTimeline({
 
             {comments.length === 0 && !showLegacy && (
               <div className="text-center py-10">
-                <MessageCircle size={24} className="mx-auto text-mauve-6 mb-2" />
-                <p className="text-xs text-mauve-7 font-bold">No activity yet</p>
+                <MessageCircle size={24} className="mx-auto text-muted-foreground/30 mb-2" />
+                <p className="text-xs text-muted-foreground font-medium">No comments yet</p>
               </div>
             )}
 
@@ -248,6 +243,7 @@ export default function SalesActivityTimeline({
                 key={entry.id}
                 entry={entry}
                 currentUserId={user?.id}
+                avatarMap={avatarMap}
               />
             ))}
           </div>
@@ -258,27 +254,26 @@ export default function SalesActivityTimeline({
 
       {/* Input Box */}
       {activeTab === "ACTIVITY" && !disabled && (
-        <div className="px-3 py-2.5 border-t border-mauve-4 bg-mauve-2">
-          <div className="flex items-center gap-2">
-            <input
+        <div className="px-4 py-4 border-t border-border bg-muted/30">
+          <div className="flex items-start gap-2">
+            <Textarea
               ref={inputRef}
-              type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
+              placeholder="Send a message... (Shift+Enter for new line)"
               disabled={postCommentMutation.isPending}
-              className="flex-1 bg-mauve-1 border border-mauve-4 rounded-lg px-4 py-2.5 text-base text-foreground placeholder:text-mauve-7 outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
+              className="flex-1 bg-card border-border rounded-xl px-4 py-3 text-sm min-h-[50px] max-h-[150px] shadow-sm"
+              rows={1}
             />
-            <button
+            <Button
               onClick={handleSend}
-              disabled={
-                !message.trim() || postCommentMutation.isPending
-              }
-              className="w-11 h-11 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground flex items-center justify-center transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+              disabled={!message.trim() || postCommentMutation.isPending}
+              className="w-11 h-11 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all shrink-0"
+              size="icon"
             >
               <Send size={18} />
-            </button>
+            </Button>
           </div>
         </div>
       )}

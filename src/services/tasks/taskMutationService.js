@@ -279,6 +279,16 @@ export const taskMutationService = {
       }
     }
 
+    // Auto-fill end time when submitting for review
+    if (
+      payload?.status === TASK_STATUS.AWAITING_APPROVAL &&
+      current?.status !== TASK_STATUS.AWAITING_APPROVAL &&
+      !current?.end_at &&
+      payload.endAt === undefined
+    ) {
+      updateData.end_at = new Date().toISOString();
+    }
+
     // Employee Edit Fields
     if (payload.taskDescription !== undefined)
       updateData.task_description = payload.taskDescription;
