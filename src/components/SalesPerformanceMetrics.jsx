@@ -34,7 +34,6 @@ import {
 import Spinner from "@/components/ui/Spinner";
 import HighlightText from "./HighlightText";
 
-
 export default function SalesPerformanceMetrics({ globalRange }) {
   const navigate = useNavigate();
   const { startDate, endDate, label: selectedLabel } = globalRange || {};
@@ -85,7 +84,8 @@ export default function SalesPerformanceMetrics({ globalRange }) {
   const prevMonthFilter = useMemo(() => {
     if (!monthFilter) return null;
     const [y, m] = monthFilter.split("-").map(Number);
-    const prev = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+    const prev =
+      m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
     return prev;
   }, [monthFilter]);
 
@@ -110,7 +110,8 @@ export default function SalesPerformanceMetrics({ globalRange }) {
     allActivities.forEach((act) => {
       // Filter activities strictly for the selected range
       if (startDate && endDate) {
-        if (act.scheduled_date < startDate || act.scheduled_date >= endDate) return;
+        if (act.scheduled_date < startDate || act.scheduled_date >= endDate)
+          return;
       } else if (monthFilter && !act.scheduled_date.startsWith(monthFilter)) {
         return;
       }
@@ -191,7 +192,16 @@ export default function SalesPerformanceMetrics({ globalRange }) {
     }
 
     return sortedStats;
-  }, [allActivities, today, todayMonthKey, monthFilter, isAdminView, user?.id, startDate, endDate]);
+  }, [
+    allActivities,
+    today,
+    todayMonthKey,
+    monthFilter,
+    isAdminView,
+    user?.id,
+    startDate,
+    endDate,
+  ]);
 
   const filteredStats = useMemo(() => {
     if (!searchTerm.trim()) return employeeStats;
@@ -209,12 +219,18 @@ export default function SalesPerformanceMetrics({ globalRange }) {
     if (!isAdminView) return null;
 
     // Accumulators — outcome-based
-    let wonExpense = 0, wonCount = 0;
-    let lostExpense = 0, lostCount = 0;
-    let pendingExpense = 0, pendingCount = 0; // has ref, no outcome yet
-    let bizDevExpense = 0, bizDevCount = 0;   // no ref (operations)
-    let totalExpense = 0, totalCount = 0;
-    let withRefExpense = 0, withRefCount = 0; // legacy totals preserved
+    let wonExpense = 0,
+      wonCount = 0;
+    let lostExpense = 0,
+      lostCount = 0;
+    let pendingExpense = 0,
+      pendingCount = 0; // has ref, no outcome yet
+    let bizDevExpense = 0,
+      bizDevCount = 0; // no ref (operations)
+    let totalExpense = 0,
+      totalCount = 0;
+    let withRefExpense = 0,
+      withRefCount = 0; // legacy totals preserved
 
     // Per-employee tracker
     const empMap = {};
@@ -222,7 +238,8 @@ export default function SalesPerformanceMetrics({ globalRange }) {
     allActivities.forEach((act) => {
       // Filter activities strictly for the selected range
       if (startDate && endDate) {
-        if (act.scheduled_date < startDate || act.scheduled_date >= endDate) return;
+        if (act.scheduled_date < startDate || act.scheduled_date >= endDate)
+          return;
       } else if (monthFilter && !act.scheduled_date.startsWith(monthFilter)) {
         return;
       }
@@ -240,7 +257,17 @@ export default function SalesPerformanceMetrics({ globalRange }) {
       const empName = act.employees?.name || "Unknown";
       const empId = act.employee_id;
       if (!empMap[empId]) {
-        empMap[empId] = { name: empName, total: 0, won: 0, lost: 0, pending: 0, bizDev: 0, wonCount: 0, lostCount: 0, totalCount: 0 };
+        empMap[empId] = {
+          name: empName,
+          total: 0,
+          won: 0,
+          lost: 0,
+          pending: 0,
+          bizDev: 0,
+          wonCount: 0,
+          lostCount: 0,
+          totalCount: 0,
+        };
       }
       empMap[empId].total += amt;
       empMap[empId].totalCount++;
@@ -250,17 +277,23 @@ export default function SalesPerformanceMetrics({ globalRange }) {
         withRefCount++;
 
         if (act.sales_outcome === REVENUE_STATUS.COMPLETED) {
-          wonExpense += amt; wonCount++;
-          empMap[empId].won += amt; empMap[empId].wonCount++;
+          wonExpense += amt;
+          wonCount++;
+          empMap[empId].won += amt;
+          empMap[empId].wonCount++;
         } else if (act.sales_outcome === REVENUE_STATUS.LOST) {
-          lostExpense += amt; lostCount++;
-          empMap[empId].lost += amt; empMap[empId].lostCount++;
+          lostExpense += amt;
+          lostCount++;
+          empMap[empId].lost += amt;
+          empMap[empId].lostCount++;
         } else {
-          pendingExpense += amt; pendingCount++;
+          pendingExpense += amt;
+          pendingCount++;
           empMap[empId].pending += amt;
         }
       } else {
-        bizDevExpense += amt; bizDevCount++;
+        bizDevExpense += amt;
+        bizDevCount++;
         empMap[empId].bizDev += amt;
       }
     });
@@ -268,25 +301,33 @@ export default function SalesPerformanceMetrics({ globalRange }) {
     // Per-employee sorted array
     const employeeBreakdown = Object.values(empMap)
       .sort((a, b) => b.total - a.total)
-      .map(emp => ({
+      .map((emp) => ({
         ...emp,
-        winRate: (emp.wonCount + emp.lostCount) > 0
-          ? Math.round((emp.wonCount / (emp.wonCount + emp.lostCount)) * 100)
-          : null, // null = no outcomes tagged yet
+        winRate:
+          emp.wonCount + emp.lostCount > 0
+            ? Math.round((emp.wonCount / (emp.wonCount + emp.lostCount)) * 100)
+            : null, // null = no outcomes tagged yet
       }));
 
     // Conversion efficiency (only among outcome-tagged items)
-    const conversionRate = (wonCount + lostCount) > 0
-      ? Math.round((wonCount / (wonCount + lostCount)) * 100)
-      : null;
+    const conversionRate =
+      wonCount + lostCount > 0
+        ? Math.round((wonCount / (wonCount + lostCount)) * 100)
+        : null;
 
     return {
-      totalExpense, totalCount,
-      wonExpense, wonCount,
-      lostExpense, lostCount,
-      pendingExpense, pendingCount,
-      bizDevExpense, bizDevCount,
-      withRefExpense, withRefCount, // legacy
+      totalExpense,
+      totalCount,
+      wonExpense,
+      wonCount,
+      lostExpense,
+      lostCount,
+      pendingExpense,
+      pendingCount,
+      bizDevExpense,
+      bizDevCount,
+      withRefExpense,
+      withRefCount, // legacy
       conversionRate,
       employeeBreakdown,
     };
@@ -297,7 +338,8 @@ export default function SalesPerformanceMetrics({ globalRange }) {
     if (!isAdminView || !prevActivities.length) return null;
     let total = 0;
     prevActivities.forEach((act) => {
-      if (prevMonthFilter && !act.scheduled_date.startsWith(prevMonthFilter)) return;
+      if (prevMonthFilter && !act.scheduled_date.startsWith(prevMonthFilter))
+        return;
       if (act.status === REVENUE_STATUS.REJECTED) return;
       const amt = Number(act.expense_amount) || 0;
       if (amt > 0) total += amt;
@@ -315,11 +357,13 @@ export default function SalesPerformanceMetrics({ globalRange }) {
               <div className="w-10 h-10 rounded-xl bg-mauve-2 flex items-center justify-center text-mauve-11 shadow-sm border border-mauve-4">
                 <Activity size={18} />
               </div>
-              Representative Pipeline Radar
+              Team Pipeline Radar
             </h2>
             <p className="text-sm text-mauve-10 mt-0.5">
               Performance metrics •{" "}
-              <span className="font-semibold text-foreground">{displayLabel}</span>
+              <span className="font-semibold text-foreground">
+                {displayLabel}
+              </span>
             </p>
           </div>
 
@@ -448,7 +492,10 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                             color: "#6B7280",
                           }}
                         >
-                          <HighlightText text={stat.subDept || stat.department} search={searchTerm} />
+                          <HighlightText
+                            text={stat.subDept || stat.department}
+                            search={searchTerm}
+                          />
                         </p>
                       </div>
                     </div>
@@ -467,7 +514,9 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                         }}
                       >
                         <span>Task Pipeline</span>
-                        <span style={{ color: "#374151" }}>{stat.total} Total</span>
+                        <span style={{ color: "#374151" }}>
+                          {stat.total} Total
+                        </span>
                       </div>
 
                       <div
@@ -481,35 +530,45 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                         {stat.backlog > 0 && (
                           <div
                             className="bg-orange-a7"
-                            style={{ width: `${(stat.backlog / stat.total) * 100}%` }}
+                            style={{
+                              width: `${(stat.backlog / stat.total) * 100}%`,
+                            }}
                             title={`${stat.backlog} Backlog`}
                           />
                         )}
                         {stat.late > 0 && (
                           <div
                             className="bg-red-a7"
-                            style={{ width: `${(stat.late / stat.total) * 100}%` }}
+                            style={{
+                              width: `${(stat.late / stat.total) * 100}%`,
+                            }}
                             title={`${stat.late} Late`}
                           />
                         )}
                         {stat.onTime > 0 && (
                           <div
                             className="bg-green-a7"
-                            style={{ width: `${(stat.onTime / stat.total) * 100}%` }}
+                            style={{
+                              width: `${(stat.onTime / stat.total) * 100}%`,
+                            }}
                             title={`${stat.onTime} On-Time`}
                           />
                         )}
                         {stat.unplanned > 0 && (
                           <div
                             className="bg-blue-a7"
-                            style={{ width: `${(stat.unplanned / stat.total) * 100}%` }}
+                            style={{
+                              width: `${(stat.unplanned / stat.total) * 100}%`,
+                            }}
                             title={`${stat.unplanned} Unplanned`}
                           />
                         )}
                         {stat.pending > 0 && (
                           <div
                             className="bg-mauve-a6"
-                            style={{ width: `${(stat.pending / stat.total) * 100}%` }}
+                            style={{
+                              width: `${(stat.pending / stat.total) * 100}%`,
+                            }}
                             title={`${stat.pending} Future`}
                           />
                         )}
@@ -549,10 +608,11 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                     {/* Grade & Execution Rate */}
                     <div className="flex items-center gap-4 lg:gap-6 shrink-0 w-full lg:w-auto justify-between lg:justify-end">
                       {stat.avgGrade !== undefined && (
-                        <div
-                          className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border border-border bg-card"
-                        >
-                          <Star size={11} className="text-mauve-11 fill-mauve-11" />
+                        <div className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border border-border bg-card">
+                          <Star
+                            size={11}
+                            className="text-mauve-11 fill-mauve-11"
+                          />
                           <span
                             style={{
                               fontSize: "12px",
@@ -615,7 +675,9 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                     })
                   }
                   className={`cursor-pointer flex flex-col transition-colors border border-border rounded-lg p-4 hover:bg-mauve-3 hover:border-mauve-5 ${
-                    layoutMode === "grid" ? "w-full" : "min-w-[260px] sm:min-w-[290px] snap-start"
+                    layoutMode === "grid"
+                      ? "w-full"
+                      : "min-w-[260px] sm:min-w-[290px] snap-start"
                   }`}
                 >
                   {/* Header: Avatar & Name */}
@@ -632,14 +694,19 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                           <HighlightText text={stat.name} search={searchTerm} />
                         </h3>
                         <p className="text-xs text-[#6B7280] line-clamp-1">
-                          <HighlightText text={stat.subDept || stat.department} search={searchTerm} />
+                          <HighlightText
+                            text={stat.subDept || stat.department}
+                            search={searchTerm}
+                          />
                         </p>
                       </div>
-
                     </div>
                     {stat.avgGrade !== undefined && (
                       <div className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border border-border bg-card">
-                        <Star size={11} className="text-mauve-11 fill-mauve-11" />
+                        <Star
+                          size={11}
+                          className="text-mauve-11 fill-mauve-11"
+                        />
                         <span className="text-xs font-semibold text-[#111827]">
                           {stat.avgGrade}
                         </span>
@@ -658,35 +725,45 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                       {stat.backlog > 0 && (
                         <div
                           className="bg-orange-a7"
-                          style={{ width: `${(stat.backlog / stat.total) * 100}%` }}
+                          style={{
+                            width: `${(stat.backlog / stat.total) * 100}%`,
+                          }}
                           title={`${stat.backlog} Backlog`}
                         />
                       )}
                       {stat.late > 0 && (
                         <div
                           className="bg-red-a7"
-                          style={{ width: `${(stat.late / stat.total) * 100}%` }}
+                          style={{
+                            width: `${(stat.late / stat.total) * 100}%`,
+                          }}
                           title={`${stat.late} Late`}
                         />
                       )}
                       {stat.onTime > 0 && (
                         <div
                           className="bg-green-a7"
-                          style={{ width: `${(stat.onTime / stat.total) * 100}%` }}
+                          style={{
+                            width: `${(stat.onTime / stat.total) * 100}%`,
+                          }}
                           title={`${stat.onTime} On-Time`}
                         />
                       )}
                       {stat.unplanned > 0 && (
                         <div
                           className="bg-blue-a7"
-                          style={{ width: `${(stat.unplanned / stat.total) * 100}%` }}
+                          style={{
+                            width: `${(stat.unplanned / stat.total) * 100}%`,
+                          }}
                           title={`${stat.unplanned} Unplanned`}
                         />
                       )}
                       {stat.pending > 0 && (
                         <div
                           className="bg-mauve-a6"
-                          style={{ width: `${(stat.pending / stat.total) * 100}%` }}
+                          style={{
+                            width: `${(stat.pending / stat.total) * 100}%`,
+                          }}
                           title={`${stat.pending} Future`}
                         />
                       )}
@@ -694,11 +771,35 @@ export default function SalesPerformanceMetrics({ globalRange }) {
 
                     {/* Legend */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-                      <LegendItem colorClass="bg-orange-a7" count={stat.backlog} label="Back" />
-                      {stat.late > 0 && <LegendItem colorClass="bg-red-a7" count={stat.late} label="Late" />}
-                      <LegendItem colorClass="bg-green-a7" count={stat.onTime} label="Done" />
-                      <LegendItem colorClass="bg-blue-a7" count={stat.unplanned} label="Extra" />
-                      {stat.pending > 0 && <LegendItem colorClass="bg-mauve-a6" count={stat.pending} label="Fut" />}
+                      <LegendItem
+                        colorClass="bg-orange-a7"
+                        count={stat.backlog}
+                        label="Back"
+                      />
+                      {stat.late > 0 && (
+                        <LegendItem
+                          colorClass="bg-red-a7"
+                          count={stat.late}
+                          label="Late"
+                        />
+                      )}
+                      <LegendItem
+                        colorClass="bg-green-a7"
+                        count={stat.onTime}
+                        label="Done"
+                      />
+                      <LegendItem
+                        colorClass="bg-blue-a7"
+                        count={stat.unplanned}
+                        label="Extra"
+                      />
+                      {stat.pending > 0 && (
+                        <LegendItem
+                          colorClass="bg-mauve-a6"
+                          count={stat.pending}
+                          label="Fut"
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -755,47 +856,69 @@ export default function SalesPerformanceMetrics({ globalRange }) {
 
               {/* Conversion Efficiency */}
               {expenseSummary.conversionRate !== null && (
-                <div className={`px-4 py-2 bg-card border rounded-lg ${
-                  expenseSummary.conversionRate >= 60
-                    ? "border-green-500/30"
-                    : expenseSummary.conversionRate >= 30
-                      ? "border-amber-500/30"
-                      : "border-red-500/30"
-                }`}>
+                <div
+                  className={`px-4 py-2 bg-card border rounded-lg ${
+                    expenseSummary.conversionRate >= 60
+                      ? "border-green-500/30"
+                      : expenseSummary.conversionRate >= 30
+                        ? "border-amber-500/30"
+                        : "border-red-500/30"
+                  }`}
+                >
                   <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
                     Conversion Rate
                   </p>
-                  <p className={`text-lg font-bold ${
-                    expenseSummary.conversionRate >= 60
-                      ? "text-green-10"
-                      : expenseSummary.conversionRate >= 30
-                        ? "text-amber-10"
-                        : "text-destructive"
-                  }`}>
+                  <p
+                    className={`text-lg font-bold ${
+                      expenseSummary.conversionRate >= 60
+                        ? "text-green-10"
+                        : expenseSummary.conversionRate >= 30
+                          ? "text-amber-10"
+                          : "text-destructive"
+                    }`}
+                  >
                     {expenseSummary.conversionRate}%
                   </p>
                 </div>
               )}
 
               {/* Month-over-Month */}
-              {prevMonthGross !== null && prevMonthGross > 0 && (() => {
-                const pctChange = Math.round(((expenseSummary.totalExpense - prevMonthGross) / prevMonthGross) * 100);
-                const isUp = pctChange > 0;
-                const isFlat = pctChange === 0;
-                return (
-                  <div className="px-4 py-2 border border-[#E5E7EB] rounded-lg bg-card">
-                    <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
-                      vs Last Month
-                    </p>
-                    <p className={`text-lg font-bold flex items-center gap-1 ${
-                      isFlat ? "text-[#6B7280]" : isUp ? "text-destructive" : "text-green-10"
-                    }`}>
-                      {isFlat ? "—" : isUp ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-                      {isFlat ? "Flat" : `${Math.abs(pctChange)}%`}
-                    </p>
-                  </div>
-                );
-              })()}
+              {prevMonthGross !== null &&
+                prevMonthGross > 0 &&
+                (() => {
+                  const pctChange = Math.round(
+                    ((expenseSummary.totalExpense - prevMonthGross) /
+                      prevMonthGross) *
+                      100,
+                  );
+                  const isUp = pctChange > 0;
+                  const isFlat = pctChange === 0;
+                  return (
+                    <div className="px-4 py-2 border border-[#E5E7EB] rounded-lg bg-card">
+                      <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
+                        vs Last Month
+                      </p>
+                      <p
+                        className={`text-lg font-bold flex items-center gap-1 ${
+                          isFlat
+                            ? "text-[#6B7280]"
+                            : isUp
+                              ? "text-destructive"
+                              : "text-green-10"
+                        }`}
+                      >
+                        {isFlat ? (
+                          "—"
+                        ) : isUp ? (
+                          <ArrowUpRight size={16} />
+                        ) : (
+                          <ArrowDownRight size={16} />
+                        )}
+                        {isFlat ? "Flat" : `${Math.abs(pctChange)}%`}
+                      </p>
+                    </div>
+                  );
+                })()}
             </div>
           </div>
 
@@ -843,17 +966,30 @@ export default function SalesPerformanceMetrics({ globalRange }) {
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3 px-4 bg-[#F9FAFB] rounded-lg border border-[#F3F4F6] text-xs text-[#6B7280]">
             <span className="font-semibold text-[#111827]">Summary:</span>
             <span>
-              <span className="font-bold text-[#111827]">{expenseSummary.totalCount}</span> expense items
+              <span className="font-bold text-[#111827]">
+                {expenseSummary.totalCount}
+              </span>{" "}
+              expense items
             </span>
             <span className="hidden sm:inline text-[#D1D5DB]">·</span>
             <span>
-              Account Tasks: <span className="font-bold text-[#111827]">₱{expenseSummary.withRefExpense.toLocaleString()}</span>
-              <span className="text-[#9CA3AF] ml-1">({expenseSummary.withRefCount})</span>
+              Account Tasks:{" "}
+              <span className="font-bold text-[#111827]">
+                ₱{expenseSummary.withRefExpense.toLocaleString()}
+              </span>
+              <span className="text-[#9CA3AF] ml-1">
+                ({expenseSummary.withRefCount})
+              </span>
             </span>
             <span className="hidden sm:inline text-[#D1D5DB]">·</span>
             <span>
-              BizDev: <span className="font-bold text-[#111827]">₱{expenseSummary.bizDevExpense.toLocaleString()}</span>
-              <span className="text-[#9CA3AF] ml-1">({expenseSummary.bizDevCount})</span>
+              BizDev:{" "}
+              <span className="font-bold text-[#111827]">
+                ₱{expenseSummary.bizDevExpense.toLocaleString()}
+              </span>
+              <span className="text-[#9CA3AF] ml-1">
+                ({expenseSummary.bizDevCount})
+              </span>
             </span>
           </div>
 
@@ -881,8 +1017,13 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                   </thead>
                   <tbody className="divide-y divide-[#F3F4F6]">
                     {expenseSummary.employeeBreakdown.map((emp) => (
-                      <tr key={emp.name} className="hover:bg-[#F9FAFB] transition-colors">
-                        <td className="p-3 pl-4 font-semibold text-sm text-[#111827]">{emp.name}</td>
+                      <tr
+                        key={emp.name}
+                        className="hover:bg-[#F9FAFB] transition-colors"
+                      >
+                        <td className="p-3 pl-4 font-semibold text-sm text-[#111827]">
+                          {emp.name}
+                        </td>
                         <td className="p-3 text-right font-mono text-sm font-bold text-[#111827]">
                           ₱{emp.total.toLocaleString()}
                         </td>
@@ -893,24 +1034,32 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                           {emp.lost > 0 ? `₱${emp.lost.toLocaleString()}` : "—"}
                         </td>
                         <td className="p-3 text-right font-mono text-xs text-amber-10 font-semibold">
-                          {emp.pending > 0 ? `₱${emp.pending.toLocaleString()}` : "—"}
+                          {emp.pending > 0
+                            ? `₱${emp.pending.toLocaleString()}`
+                            : "—"}
                         </td>
                         <td className="p-3 text-right font-mono text-xs text-blue-10 font-semibold">
-                          {emp.bizDev > 0 ? `₱${emp.bizDev.toLocaleString()}` : "—"}
+                          {emp.bizDev > 0
+                            ? `₱${emp.bizDev.toLocaleString()}`
+                            : "—"}
                         </td>
                         <td className="p-3 text-center">
                           {emp.winRate !== null ? (
-                            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md bg-card border ${
-                              emp.winRate >= 60
-                                ? "border-green-500 text-green-11"
-                                : emp.winRate >= 30
-                                  ? "border-amber-500 text-amber-11"
-                                  : "border-red-500 text-destructive"
-                            }`}>
+                            <span
+                              className={`text-[11px] font-semibold px-2 py-0.5 rounded-md bg-card border ${
+                                emp.winRate >= 60
+                                  ? "border-green-500 text-green-11"
+                                  : emp.winRate >= 30
+                                    ? "border-amber-500 text-amber-11"
+                                    : "border-red-500 text-destructive"
+                              }`}
+                            >
                               {emp.winRate}%
                             </span>
                           ) : (
-                            <span className="text-[11px] text-[#9CA3AF]">—</span>
+                            <span className="text-[11px] text-[#9CA3AF]">
+                              —
+                            </span>
                           )}
                         </td>
                       </tr>

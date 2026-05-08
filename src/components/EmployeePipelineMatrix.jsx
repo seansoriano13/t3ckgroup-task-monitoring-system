@@ -173,7 +173,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
             Team Pipeline Radar
           </h2>
           <p className="text-sm text-mauve-10  mt-0.5">
-            {isHr ? "Organization-wide metrics" : "Performance metrics"} •{" "}
+            {isHr ? "Performance metrics" : "Performance metrics"} •{" "}
             <span className="font-semibold text-foreground">
               {selectedRange?.label || "This Range"}
             </span>
