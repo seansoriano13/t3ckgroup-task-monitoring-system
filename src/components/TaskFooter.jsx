@@ -89,7 +89,7 @@ const TaskFooter = ({ actions, permissions, state }) => {
                 title={
                   state.hasUncheckedItems
                     ? "Check all items first"
-                    : "Reset this task back to the head review queue"
+                    : "Reset this task back to the Needs Approval queue"
                 }
               >
                 {isSubmitting ? <Spinner size="sm" /> : <RefreshCw size={15} />}

@@ -52,6 +52,7 @@ export default function DashboardStats({ selectedRange }) {
       const roleStr = (t.creator?.role || "").toLowerCase();
       const deptStr = (t.creator?.department || "").toLowerCase();
       if (
+        t.status === TASK_STATUS.DELETED ||
         t.creator?.isSuperAdmin ||
         roleStr.includes("admin") ||
         deptStr.includes("super admin") ||
@@ -182,18 +183,18 @@ export default function DashboardStats({ selectedRange }) {
       {!isManagement && (
         <>
           <StatCard
-            title="My Pending"
+            title="Incomplete"
             value={stats.myPending}
-            subtitle="Drafting"
-            icon={<Clock size={20} className="text-muted-foreground" />}
-            color="mauve"
+            subtitle="In Progress"
+            icon={<Clock size={20} className="text-orange-500" />}
+            color="orange"
           />
           <StatCard
-            title="Pending Approval"
+            title="Awaiting Approval"
             value={stats.myPendingApproval}
-            subtitle="Head Review"
-            icon={<Clock size={20} className="text-amber-500" />}
-            color="amber"
+            subtitle="Needs Approval"
+            icon={<Clock size={20} className="text-violet-500" />}
+            color="violet"
             onClick={() =>
               navigate("/tasks", {
                 state: {
@@ -203,11 +204,11 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="Pending HR Verification"
+            title="Completed"
             value={stats.myPendingHr}
-            subtitle="HR Verification"
-            icon={<ShieldAlert size={20} className="text-destructive" />}
-            color="destructive"
+            subtitle="Pending HR"
+            icon={<ShieldAlert size={20} className="text-blue-500" />}
+            color="blue"
             onClick={() =>
               navigate("/tasks", {
                 state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
@@ -215,9 +216,9 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="My Completed"
+            title="HR Verified"
             value={stats.myCompleted}
-            subtitle="Verified this Month"
+            subtitle="HR Approved"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
             onClick={() =>
@@ -233,11 +234,11 @@ export default function DashboardStats({ selectedRange }) {
       {isHead && !isHr && (
         <>
           <StatCard
-            title="In Progress"
+            title="Incomplete"
             value={stats.teamInProgress}
-            subtitle="Actively being logged"
-            icon={<Activity size={20} className="text-muted-foreground" />}
-            color="slate"
+            subtitle="In Progress"
+            icon={<Activity size={20} className="text-orange-500" />}
+            color="orange"
             onClick={() =>
               navigate("/tasks", {
                 state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } },
@@ -245,10 +246,10 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="Rejected Tasks"
+            title="Returned"
             value={stats.teamRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-destructive" />}
+            icon={<XCircle size={20} className="text-red-500" />}
             color="destructive"
             onClick={() =>
               navigate("/tasks", {
@@ -257,11 +258,11 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="Pending HR Verification"
+            title="Completed"
             value={stats.teamPendingHr}
-            subtitle="Waiting HR Review"
-            icon={<Clock size={20} className="text-amber-500" />}
-            color="amber"
+            subtitle="Pending HR"
+            icon={<Clock size={20} className="text-blue-500" />}
+            color="blue"
             onClick={() =>
               navigate("/tasks", {
                 state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
@@ -269,9 +270,9 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="Completed Tasks"
+            title="HR Verified"
             value={stats.teamCompleted}
-            subtitle="Completed this Month"
+            subtitle="HR Approved"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
             onClick={() =>
@@ -288,11 +289,11 @@ export default function DashboardStats({ selectedRange }) {
         <>
           {/* Row 1: Pipeline health */}
           <StatCard
-            title="In Progress"
+            title="Incomplete"
             value={stats.hrInProgress}
-            subtitle="Actively being logged"
-            icon={<Activity size={20} className="text-muted-foreground" />}
-            color="slate"
+            subtitle="In Progress"
+            icon={<Activity size={20} className="text-orange-500" />}
+            color="orange"
             onClick={() =>
               navigate("/tasks", {
                 state: { presetFilter: { status: TASK_STATUS.INCOMPLETE } },
@@ -312,11 +313,11 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="Awaiting Head Review"
+            title="Awaiting Approval"
             value={stats.hrAwaitingHead}
-            subtitle="Head action needed"
-            icon={<UserCheck size={20} className="text-mauve-9" />}
-            color="mauve"
+            subtitle="Needs Approval"
+            icon={<UserCheck size={20} className="text-violet-500" />}
+            color="violet"
             onClick={() =>
               navigate("/tasks", {
                 state: {
@@ -326,11 +327,11 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="Pending Verification"
+            title="Completed"
             value={stats.hrPendingVerification}
-            subtitle="HR Action Required"
-            icon={<ShieldAlert size={20} className="text-destructive" />}
-            color="destructive"
+            subtitle="Pending HR"
+            icon={<ShieldAlert size={20} className="text-blue-500" />}
+            color="blue"
             onClick={() =>
               navigate("/tasks", {
                 state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
@@ -338,10 +339,10 @@ export default function DashboardStats({ selectedRange }) {
             }
           />
           <StatCard
-            title="Rejected Tasks"
+            title="Returned"
             value={stats.hrRejected}
             subtitle="Needs Fixing"
-            icon={<XCircle size={20} className="text-destructive" />}
+            icon={<XCircle size={20} className="text-red-500" />}
             color="destructive"
             onClick={() =>
               navigate("/tasks", {
@@ -369,8 +370,11 @@ function StatCard({ title, value, subtitle, icon, color, onClick }) {
     mauve: "from-mauve-9/15 to-transparent",
     amber: "from-amber-500/15 to-transparent",
     destructive: "from-red-500/15 to-transparent",
-    emerald: "from-green-9/15 to-transparent",
+    emerald: "from-green-500/15 to-transparent",
     slate: "from-slate-500/15 to-transparent",
+    orange: "from-orange-500/15 to-transparent",
+    violet: "from-violet-500/15 to-transparent",
+    blue: "from-blue-500/15 to-transparent",
   };
 
   return (

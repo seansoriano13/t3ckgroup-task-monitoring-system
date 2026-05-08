@@ -60,6 +60,16 @@ export function useTaskFilters(rawTasks = [], filters = {}, options = {}) {
           matchesStatus = task.status === TASK_STATUS.AWAITING_APPROVAL;
         } else if (statusFilter === TASK_STATUS.NOT_APPROVED) {
           matchesStatus = task.status === TASK_STATUS.NOT_APPROVED;
+        } else if (statusFilter === "DELAYED") {
+          const isPending =
+            task.status === TASK_STATUS.INCOMPLETE ||
+            task.status === TASK_STATUS.AWAITING_APPROVAL;
+          if (!isPending || !task.createdAt) {
+            matchesStatus = false;
+          } else {
+            const hrs = (new Date() - new Date(task.createdAt)) / (1000 * 60 * 60);
+            matchesStatus = hrs >= 48;
+          }
         }
       }
 

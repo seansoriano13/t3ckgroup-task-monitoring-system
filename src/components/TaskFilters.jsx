@@ -107,6 +107,7 @@ export default function TaskFilters({
     { value: TASK_STATUS.AWAITING_APPROVAL, label: "Awaiting Approval" },
     { value: TASK_STATUS.INCOMPLETE, label: "Incomplete" },
     { value: TASK_STATUS.NOT_APPROVED, label: "Not Approved" },
+    { value: "DELAYED", label: "Delayed" },
   ];
 
   const deptOptions = [

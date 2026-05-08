@@ -69,7 +69,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
       }
 
       // Exclude tasks logged BY any super admin (they don't need pipeline tracking)
-      if (task.creator?.is_super_admin) return;
+      if (task.status === TASK_STATUS.DELETED || task.creator?.is_super_admin) return;
 
       if (!empMap[task.loggedById]) {
         empMap[task.loggedById] = {
@@ -80,6 +80,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
           total: 0,
           draft: 0, // INCOMPLETE
           rejected: 0, // NOT APPROVED
+          eval: 0, // AWAITING_APPROVAL
           pendingHr: 0, // COMPLETE (Not verified)
           verified: 0, // COMPLETE (Verified)
           totalGrade: 0,
@@ -88,14 +89,25 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
       }
 
       const emp = empMap[task.loggedById];
-      emp.total++;
+      let matched = false;
+      if (task.status === TASK_STATUS.INCOMPLETE) {
+        emp.draft++;
+        matched = true;
+      } else if (task.status === TASK_STATUS.NOT_APPROVED) {
+        emp.rejected++;
+        matched = true;
+      } else if (task.status === TASK_STATUS.AWAITING_APPROVAL) {
+        emp.eval++;
+        matched = true;
+      } else if (task.status === TASK_STATUS.COMPLETE) {
+        if (task.hrVerified) emp.verified++;
+        else emp.pendingHr++;
+        matched = true;
+      }
 
-      // Bucket Logic
-      if (task.status === TASK_STATUS.INCOMPLETE) emp.draft++;
-      if (task.status === TASK_STATUS.NOT_APPROVED) emp.rejected++;
-      if (task.status === TASK_STATUS.COMPLETE && !task.hrVerified)
-        emp.pendingHr++;
-      if (task.hrVerified) emp.verified++;
+      if (matched) {
+        emp.total++;
+      }
 
       // Grade Logic
       // Only count finalized "COMPLETE" tasks toward average grade.
@@ -302,21 +314,28 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                       <div
                         className="bg-red-a7"
                         style={{ width: `${(emp.rejected / emp.total) * 100}%` }}
-                        title={`${emp.rejected} Rejected`}
+                        title={`${emp.rejected} Returned`}
+                      />
+                    )}
+                    {emp.eval > 0 && (
+                      <div
+                        className="bg-violet-a7"
+                        style={{ width: `${(emp.eval / emp.total) * 100}%` }}
+                        title={`${emp.eval} Awaiting Approval`}
                       />
                     )}
                     {emp.pendingHr > 0 && (
                       <div
                         className="bg-blue-a7"
                         style={{ width: `${(emp.pendingHr / emp.total) * 100}%` }}
-                        title={`${emp.pendingHr} Pending HR`}
+                        title={`${emp.pendingHr} Completed`}
                       />
                     )}
                     {emp.verified > 0 && (
                       <div
                         className="bg-green-a7"
                         style={{ width: `${(emp.verified / emp.total) * 100}%` }}
-                        title={`${emp.verified} Verified`}
+                        title={`${emp.verified} HR Verified`}
                       />
                     )}
                   </div>
@@ -354,7 +373,24 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                             display: "inline-block",
                           }}
                         />
-                        {emp.rejected} <span>Rej</span>
+                        {emp.rejected} <span>Ret</span>
+                      </span>
+                    )}
+                    {emp.eval > 0 && (
+                      <span
+                        className="flex items-center gap-1"
+                        style={{ fontSize: "12px", color: "#6B7280" }}
+                      >
+                        <span
+                          style={{
+                            width: "6px",
+                            height: "6px",
+                            borderRadius: "50%",
+                            background: "#8B5CF6",
+                            display: "inline-block",
+                          }}
+                        />
+                        {emp.eval} <span>Eval</span>
                       </span>
                     )}
                     <span
@@ -370,7 +406,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                           display: "inline-block",
                         }}
                       />
-                      {emp.pendingHr} <span>Hr</span>
+                      {emp.pendingHr} <span>Comp</span>
                     </span>
                     <span
                       className="flex items-center gap-1"
@@ -385,7 +421,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                           display: "inline-block",
                         }}
                       />
-                      {emp.verified} <span>Ver</span>
+                      {emp.verified} <span>Hr</span>
                     </span>
                   </div>
                 </div>
@@ -562,7 +598,16 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     style={{
                       width: `${(emp.rejected / emp.total) * 100}%`,
                     }}
-                    title={`${emp.rejected} Rejected`}
+                    title={`${emp.rejected} Returned`}
+                  />
+                )}
+                {emp.eval > 0 && (
+                  <div
+                    className="bg-violet-a7"
+                    style={{
+                      width: `${(emp.eval / emp.total) * 100}%`,
+                    }}
+                    title={`${emp.eval} Awaiting Approval`}
                   />
                 )}
                 {emp.pendingHr > 0 && (
@@ -571,7 +616,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     style={{
                       width: `${(emp.pendingHr / emp.total) * 100}%`,
                     }}
-                    title={`${emp.pendingHr} Pending HR`}
+                    title={`${emp.pendingHr} Completed`}
                   />
                 )}
                 {emp.verified > 0 && (
@@ -580,7 +625,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     style={{
                       width: `${(emp.verified / emp.total) * 100}%`,
                     }}
-                    title={`${emp.verified} Verified`}
+                    title={`${emp.verified} HR Verified`}
                   />
                 )}
               </div>
@@ -621,7 +666,25 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                       }}
                     />
                     {emp.rejected}
-                    <span>Rej</span>
+                    <span>Ret</span>
+                  </span>
+                )}
+                {emp.eval > 0 && (
+                  <span
+                    className="flex items-center gap-1"
+                    style={{ fontSize: "12px", color: "#6B7280" }}
+                  >
+                    <span
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "#8B5CF6",
+                        display: "inline-block",
+                      }}
+                    />
+                    {emp.eval}
+                    <span>Eval</span>
                   </span>
                 )}
                 <span
@@ -638,7 +701,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     }}
                   />
                   {emp.pendingHr}
-                  <span>Hr</span>
+                  <span>Comp</span>
                 </span>
                 <span
                   className="flex items-center gap-1"
@@ -654,7 +717,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     }}
                   />
                   {emp.verified}
-                  <span>Ver</span>
+                  <span>Hr</span>
                 </span>
               </div>
             </div>

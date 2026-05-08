@@ -305,6 +305,15 @@ export default function TaskApprovalsPage() {
         );
       else if (statusFilter === "NOT APPROVED")
         result = result.filter((t) => t.status === TASK_STATUS.NOT_APPROVED);
+      else if (statusFilter === "DELAYED")
+        result = result.filter((t) => {
+          const isPending =
+            t.status === TASK_STATUS.INCOMPLETE ||
+            t.status === TASK_STATUS.AWAITING_APPROVAL;
+          if (!isPending || !t.createdAt) return false;
+          const hrs = (new Date() - new Date(t.createdAt)) / (1000 * 60 * 60);
+          return hrs >= 48;
+        });
     }
     if (selectedDateFilter) {
       result = result.filter((t) => {

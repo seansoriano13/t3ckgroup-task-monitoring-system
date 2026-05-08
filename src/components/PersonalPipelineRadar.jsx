@@ -53,12 +53,23 @@ export default function PersonalPipelineRadar({ selectedRange }) {
       }
       if (task.status === TASK_STATUS.DELETED) return;
 
-      total++;
-      if (task.status === TASK_STATUS.INCOMPLETE) draft++;
-      if (task.status === TASK_STATUS.AWAITING_APPROVAL) pendingHead++;
-      if (task.status === TASK_STATUS.NOT_APPROVED) rejected++;
-      if (task.status === TASK_STATUS.COMPLETE && !task.hrVerified) pendingHr++;
-      if (task.hrVerified) verified++;
+      let matched = false;
+      if (task.status === TASK_STATUS.INCOMPLETE) {
+        draft++;
+        matched = true;
+      } else if (task.status === TASK_STATUS.AWAITING_APPROVAL) {
+        pendingHead++;
+        matched = true;
+      } else if (task.status === TASK_STATUS.NOT_APPROVED) {
+        rejected++;
+        matched = true;
+      } else if (task.status === TASK_STATUS.COMPLETE) {
+        if (task.hrVerified) verified++;
+        else pendingHr++;
+        matched = true;
+      }
+
+      if (matched) total++;
 
       if (task.status === TASK_STATUS.COMPLETE && task.grade > 0) {
         totalGrade += task.grade;
@@ -164,7 +175,7 @@ export default function PersonalPipelineRadar({ selectedRange }) {
               <div
                 style={{ width: `${(stats.draft / stats.total) * 100}%` }}
                 className="bg-orange-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
-                title="Drafts"
+                title="Incomplete"
               >
                 {stats.draft}
               </div>
@@ -173,7 +184,7 @@ export default function PersonalPipelineRadar({ selectedRange }) {
               <div
                 style={{ width: `${(stats.rejected / stats.total) * 100}%` }}
                 className="bg-red-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
-                title="Rejected"
+                title="Returned"
               >
                 {stats.rejected}
               </div>
@@ -181,8 +192,8 @@ export default function PersonalPipelineRadar({ selectedRange }) {
             {stats.pendingHead > 0 && (
               <div
                 style={{ width: `${(stats.pendingHead / stats.total) * 100}%` }}
-                className="bg-purple-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
-                title="Awaiting Head Approval"
+                className="bg-violet-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
+                title="Awaiting Approval"
               >
                 {stats.pendingHead}
               </div>
@@ -191,7 +202,7 @@ export default function PersonalPipelineRadar({ selectedRange }) {
               <div
                 style={{ width: `${(stats.pendingHr / stats.total) * 100}%` }}
                 className="bg-blue-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
-                title="Pending Verification"
+                title="Completed"
               >
                 {stats.pendingHr}
               </div>
@@ -200,7 +211,7 @@ export default function PersonalPipelineRadar({ selectedRange }) {
               <div
                 style={{ width: `${(stats.verified / stats.total) * 100}%` }}
                 className="bg-green-a7 flex items-center justify-center text-[10px] font-bold text-foreground"
-                title="Verified"
+                title="HR Verified"
               >
                 {stats.verified}
               </div>
@@ -211,9 +222,9 @@ export default function PersonalPipelineRadar({ selectedRange }) {
         {/* Internal Grid of StatCards replacing external ones */}
         <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mt-8 border-t border-border pt-8">
           <InnerStatCard
-            title="My Pending"
+            title="Incomplete"
             value={stats.draft}
-            subtitle="Drafting"
+            subtitle="In Progress"
             icon={<Clock size={20} className="text-orange-500" />}
             color="orange"
             onClick={() =>
@@ -223,7 +234,7 @@ export default function PersonalPipelineRadar({ selectedRange }) {
             }
           />
           <InnerStatCard
-            title="Rejected"
+            title="Returned"
             value={stats.rejected}
             subtitle="Needs Fixing"
             icon={<XCircle size={20} className="text-red-500" />}
@@ -235,11 +246,11 @@ export default function PersonalPipelineRadar({ selectedRange }) {
             }
           />
           <InnerStatCard
-            title="Pending Approval"
+            title="Awaiting Approval"
             value={stats.pendingHead}
-            subtitle="Head Review"
-            icon={<Clock size={20} className="text-purple-500" />}
-            color="purple"
+            subtitle="Needs Approval"
+            icon={<Clock size={20} className="text-violet-500" />}
+            color="violet"
             onClick={() =>
               navigate("/tasks", {
                 state: {
@@ -249,9 +260,9 @@ export default function PersonalPipelineRadar({ selectedRange }) {
             }
           />
           <InnerStatCard
-            title="Pending HR"
+            title="Completed"
             value={stats.pendingHr}
-            subtitle="HR Verification"
+            subtitle="Pending HR"
             icon={<ShieldAlert size={20} className="text-blue-500" />}
             color="blue"
             onClick={() =>
@@ -261,9 +272,9 @@ export default function PersonalPipelineRadar({ selectedRange }) {
             }
           />
           <InnerStatCard
-            title="My Completed"
+            title="HR Verified"
             value={stats.verified}
-            subtitle="Verified"
+            subtitle="HR Approved"
             icon={<CheckCircle2 size={20} className="text-green-500" />}
             color="emerald"
             onClick={() =>
@@ -288,7 +299,7 @@ function InnerStatCard({ title, value, subtitle, icon, color, onClick }) {
     slate: "from-slate-500/15 to-transparent",
     blue: "from-blue-500/15 to-transparent",
     orange: "from-orange-500/15 to-transparent",
-    purple: "from-purple-500/15 to-transparent",
+    violet: "from-violet-500/15 to-transparent",
   };
 
   return (

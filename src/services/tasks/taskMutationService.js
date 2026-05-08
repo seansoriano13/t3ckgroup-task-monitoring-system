@@ -63,16 +63,12 @@ export const taskMutationService = {
       }
     }
 
-    taskActivityService.addSystemEvent(
-      taskId,
-      logMsg,
-      {
-        event: "TASK_CREATED",
-        submittedById: payload.submittedById || payload.loggedById || null,
-        submittedByName: payload.submittedByName || null,
-        reportedToId: payload.reportedTo || null,
-      },
-    );
+    taskActivityService.addSystemEvent(taskId, logMsg, {
+      event: "TASK_CREATED",
+      submittedById: payload.submittedById || payload.loggedById || null,
+      submittedByName: payload.submittedByName || null,
+      reportedToId: payload.reportedTo || null,
+    });
 
     // Trigger Notification: New Task Submitted -> Head
     const { data: creator } = await supabase
@@ -179,7 +175,10 @@ export const taskMutationService = {
       current?.hr_verified === false;
 
     if (isHeadApprove && !isHeadReEval) {
-      if (current?.status !== TASK_STATUS.INCOMPLETE && current?.status !== TASK_STATUS.AWAITING_APPROVAL) {
+      if (
+        current?.status !== TASK_STATUS.INCOMPLETE &&
+        current?.status !== TASK_STATUS.AWAITING_APPROVAL
+      ) {
         throw new Error(
           `Invalid pipeline transition: can only approve tasks from INCOMPLETE or AWAITING APPROVAL`,
         );
@@ -187,7 +186,10 @@ export const taskMutationService = {
     }
 
     if (isHeadReject) {
-      if (current?.status !== TASK_STATUS.INCOMPLETE && current?.status !== TASK_STATUS.AWAITING_APPROVAL) {
+      if (
+        current?.status !== TASK_STATUS.INCOMPLETE &&
+        current?.status !== TASK_STATUS.AWAITING_APPROVAL
+      ) {
         throw new Error(
           `Invalid pipeline transition: can only reject tasks from INCOMPLETE or AWAITING APPROVAL`,
         );
@@ -367,7 +369,9 @@ export const taskMutationService = {
       const editorName = editor?.name || "Someone";
 
       // --- Status transition events ---
-      const isEmployeeSelfComplete = payload?.status === TASK_STATUS.AWAITING_APPROVAL && current?.status !== TASK_STATUS.AWAITING_APPROVAL;
+      const isEmployeeSelfComplete =
+        payload?.status === TASK_STATUS.AWAITING_APPROVAL &&
+        current?.status !== TASK_STATUS.AWAITING_APPROVAL;
 
       if (isResubmission) {
         updateData.grade = 0;
@@ -389,16 +393,20 @@ export const taskMutationService = {
             .eq("task_id", taskId)
             .eq("metadata->>event", "RESUBMITTED")
             .limit(1);
-          if (resubmitEvents && resubmitEvents.length > 0) submitVerb = "resubmitted";
+          if (resubmitEvents && resubmitEvents.length > 0)
+            submitVerb = "resubmitted";
         } catch (_) {}
 
         taskActivityService.addSystemEvent(
           taskId,
           `${current.creator?.name || "Employee"} ${submitVerb} task for review.`,
-          { event: "STATUS_CHANGE", old_status: current.status, new_status: TASK_STATUS.AWAITING_APPROVAL },
+          {
+            event: "STATUS_CHANGE",
+            old_status: current.status,
+            new_status: TASK_STATUS.AWAITING_APPROVAL,
+          },
         );
       }
-
 
       if (isHeadApprove && !isHeadReEval) {
         taskActivityService.upsertActivityEntry(
@@ -406,8 +414,10 @@ export const taskMutationService = {
           payload.editedBy,
           "APPROVAL",
           "APPROVED",
-          payload.activityMessage || payload.remarks || `Task approved by ${editorName}`,
-          { event: "APPROVED", grade: payload.grade }
+          payload.activityMessage ||
+            payload.remarks ||
+            `Task approved by ${editorName}`,
+          { event: "APPROVED", grade: payload.grade },
         );
       }
 
@@ -417,8 +427,9 @@ export const taskMutationService = {
           payload.editedBy,
           "APPROVAL",
           "GRADE_UPDATED",
-          payload.activityMessage || `${editorName} updated the grade to ${payload.grade}${payload.remarks ? ` — "${payload.remarks}"` : ""}.`,
-          { event: "GRADE_UPDATED", grade: payload.grade }
+          payload.activityMessage ||
+            `${editorName} updated the grade to ${payload.grade}${payload.remarks ? ` — "${payload.remarks}"` : ""}.`,
+          { event: "GRADE_UPDATED", grade: payload.grade },
         );
       }
 
@@ -428,8 +439,10 @@ export const taskMutationService = {
           payload.editedBy,
           "APPROVAL",
           "REJECTED",
-          payload.activityMessage || payload.remarks || `Task rejected by ${editorName}`,
-          { event: "REJECTED", grade: 0 }
+          payload.activityMessage ||
+            payload.remarks ||
+            `Task rejected by ${editorName}`,
+          { event: "REJECTED", grade: 0 },
         );
       }
 
@@ -440,7 +453,7 @@ export const taskMutationService = {
           "HR_NOTE",
           "HR_VERIFIED",
           payload.activityMessage || `Task verified by HR (${editorName})`,
-          { event: "HR_VERIFIED" }
+          { event: "HR_VERIFIED" },
         );
       }
 
@@ -450,8 +463,10 @@ export const taskMutationService = {
           payload.editedBy,
           "HR_NOTE",
           "HR_REJECTED",
-          payload.activityMessage || payload.hrRemarks || `Task rejected by HR (${editorName})`,
-          { event: "HR_REJECTED" }
+          payload.activityMessage ||
+            payload.hrRemarks ||
+            `Task rejected by HR (${editorName})`,
+          { event: "HR_REJECTED" },
         );
       }
 
@@ -462,7 +477,7 @@ export const taskMutationService = {
           "SYSTEM",
           "HR_UNDO",
           `HR verification undone by ${editorName}.`,
-          { event: "HR_UNDO" }
+          { event: "HR_UNDO" },
         );
       }
 
@@ -487,7 +502,11 @@ export const taskMutationService = {
         taskActivityService.addSystemEvent(
           taskId,
           `Task recalled by ${editorName}.`,
-          { event: "STATUS_CHANGE", old_status: TASK_STATUS.AWAITING_APPROVAL, new_status: TASK_STATUS.INCOMPLETE },
+          {
+            event: "STATUS_CHANGE",
+            old_status: TASK_STATUS.AWAITING_APPROVAL,
+            new_status: TASK_STATUS.INCOMPLETE,
+          },
         );
       }
 
@@ -495,95 +514,159 @@ export const taskMutationService = {
       if (isResubmission) {
         taskActivityService.addSystemEvent(
           taskId,
-          `Task resubmitted for head review by ${current.creator?.name || editorName}.`,
-          { event: "RESUBMITTED", old_status: TASK_STATUS.NOT_APPROVED, new_status: TASK_STATUS.INCOMPLETE },
+          `Task resubmitted for approval by ${current.creator?.name || editorName}.`,
+          {
+            event: "RESUBMITTED",
+            old_status: TASK_STATUS.NOT_APPROVED,
+            new_status: TASK_STATUS.INCOMPLETE,
+          },
         );
       }
 
       // Check for core field edits — log a separate, detailed entry per changed field
-      if (!isEmployeeSelfComplete && !isHeadApprove && !isHeadReject && !isHrReject && !isRecall && payload.status === undefined) {
+      if (
+        !isEmployeeSelfComplete &&
+        !isHeadApprove &&
+        !isHeadReject &&
+        !isHrReject &&
+        !isRecall &&
+        payload.status === undefined
+      ) {
         const fmtDate = (iso) => {
           if (!iso) return "(none)";
-          return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+          return new Date(iso).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
         };
         const truncate = (str, len = 60) =>
-          str ? (str.length > len ? str.substring(0, len) + "…" : str) : "(none)";
+          str
+            ? str.length > len
+              ? str.substring(0, len) + "…"
+              : str
+            : "(none)";
 
         // Task description
-        if (payload.taskDescription !== undefined && payload.taskDescription !== current.task_description) {
+        if (
+          payload.taskDescription !== undefined &&
+          payload.taskDescription !== current.task_description
+        ) {
           const isChecklist = (val) => {
             if (typeof val === "object" && val !== null) {
               return Array.isArray(val) || Array.isArray(val.items);
             }
             if (typeof val !== "string") return false;
             const trimmed = val.trim();
-            return (trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"));
+            return (
+              (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+              (trimmed.startsWith("{") && trimmed.endsWith("}"))
+            );
           };
 
-          if (isChecklist(current.task_description) && isChecklist(payload.taskDescription)) {
+          if (
+            isChecklist(current.task_description) &&
+            isChecklist(payload.taskDescription)
+          ) {
             let oldItems = [];
             let newItems = [];
             try {
-              const parsedOld = typeof current.task_description === "string" ? JSON.parse(current.task_description) : current.task_description;
-              oldItems = Array.isArray(parsedOld) ? parsedOld : (parsedOld?.items || []);
-              
-              const parsedNew = typeof payload.taskDescription === "string" ? JSON.parse(payload.taskDescription) : payload.taskDescription;
-              newItems = Array.isArray(parsedNew) ? parsedNew : (parsedNew?.items || []);
+              const parsedOld =
+                typeof current.task_description === "string"
+                  ? JSON.parse(current.task_description)
+                  : current.task_description;
+              oldItems = Array.isArray(parsedOld)
+                ? parsedOld
+                : parsedOld?.items || [];
+
+              const parsedNew =
+                typeof payload.taskDescription === "string"
+                  ? JSON.parse(payload.taskDescription)
+                  : payload.taskDescription;
+              newItems = Array.isArray(parsedNew)
+                ? parsedNew
+                : parsedNew?.items || [];
             } catch (e) {}
 
             let checkedItemText = "";
             let uncheckedItemText = "";
             let editedItemText = "";
 
-            for (let i = 0; i < Math.max(oldItems.length, newItems.length); i++) {
-               const oldItem = oldItems[i];
-               const newItem = newItems[i];
-               
-               if (oldItem && newItem) {
-                 if (!oldItem.checked && newItem.checked) {
-                   checkedItemText = newItem.text;
-                 } else if (oldItem.checked && !newItem.checked) {
-                   uncheckedItemText = newItem.text;
-                 } else if (oldItem.text !== newItem.text) {
-                   editedItemText = newItem.text;
-                 }
-               }
+            for (
+              let i = 0;
+              i < Math.max(oldItems.length, newItems.length);
+              i++
+            ) {
+              const oldItem = oldItems[i];
+              const newItem = newItems[i];
+
+              if (oldItem && newItem) {
+                if (!oldItem.checked && newItem.checked) {
+                  checkedItemText = newItem.text;
+                } else if (oldItem.checked && !newItem.checked) {
+                  uncheckedItemText = newItem.text;
+                } else if (oldItem.text !== newItem.text) {
+                  editedItemText = newItem.text;
+                }
+              }
             }
 
             let msg = `${editorName} updated the task checklist.`;
-            if (checkedItemText) msg = `${editorName} completed a checklist item: "${truncate(checkedItemText)}"`;
-            else if (uncheckedItemText) msg = `${editorName} unchecked a checklist item: "${truncate(uncheckedItemText)}"`;
-            else if (editedItemText) msg = `${editorName} edited a checklist item: "${truncate(editedItemText)}"`;
-            else if (newItems.length > oldItems.length) msg = `${editorName} added items to the checklist.`;
-            else if (newItems.length < oldItems.length) msg = `${editorName} removed items from the checklist.`;
+            if (checkedItemText)
+              msg = `${editorName} completed a checklist item: "${truncate(checkedItemText)}"`;
+            else if (uncheckedItemText)
+              msg = `${editorName} unchecked a checklist item: "${truncate(uncheckedItemText)}"`;
+            else if (editedItemText)
+              msg = `${editorName} edited a checklist item: "${truncate(editedItemText)}"`;
+            else if (newItems.length > oldItems.length)
+              msg = `${editorName} added items to the checklist.`;
+            else if (newItems.length < oldItems.length)
+              msg = `${editorName} removed items from the checklist.`;
 
-            taskActivityService.upsertChecklistEvent(
-              taskId,
-              msg,
-              { event: "CHECKLIST_UPDATED", field: "task_description", old: current.task_description, new: payload.taskDescription }
-            );
+            taskActivityService.upsertChecklistEvent(taskId, msg, {
+              event: "CHECKLIST_UPDATED",
+              field: "task_description",
+              old: current.task_description,
+              new: payload.taskDescription,
+            });
           } else {
             taskActivityService.addSystemEvent(
               taskId,
               `${editorName} changed the task description.\n  From: "${truncate(current.task_description)}"\n  To: "${truncate(payload.taskDescription)}"`,
-              { event: "TASK_EDITED", field: "task_description", old: current.task_description, new: payload.taskDescription }
+              {
+                event: "TASK_EDITED",
+                field: "task_description",
+                old: current.task_description,
+                new: payload.taskDescription,
+              },
             );
           }
         }
 
         // Project title
-        if (payload.projectTitle !== undefined && (payload.projectTitle || null) !== (current.project_title || null)) {
+        if (
+          payload.projectTitle !== undefined &&
+          (payload.projectTitle || null) !== (current.project_title || null)
+        ) {
           const oldProj = current.project_title || "(none)";
           const newProj = payload.projectTitle || "(none)";
           taskActivityService.addSystemEvent(
             taskId,
             `${editorName} changed the project title from "${oldProj}" to "${newProj}".`,
-            { event: "TASK_EDITED", field: "project_title", old: current.project_title, new: payload.projectTitle }
+            {
+              event: "TASK_EDITED",
+              field: "project_title",
+              old: current.project_title,
+              new: payload.projectTitle,
+            },
           );
         }
 
         // Category
-        if (payload.categoryId !== undefined && payload.categoryId !== current.category_id) {
+        if (
+          payload.categoryId !== undefined &&
+          payload.categoryId !== current.category_id
+        ) {
           // Fetch new category name
           let newCatName = payload.categoryId;
           try {
@@ -594,64 +677,107 @@ export const taskMutationService = {
               .single();
             newCatName = newCat?.description || payload.categoryId;
           } catch (_) {}
-          const oldCatName = current.category?.description || current.category_id || "(none)";
+          const oldCatName =
+            current.category?.description || current.category_id || "(none)";
           taskActivityService.addSystemEvent(
             taskId,
             `${editorName} changed the category from "${oldCatName}" to "${newCatName}".`,
-            { event: "TASK_EDITED", field: "category_id", old: current.category_id, new: payload.categoryId }
+            {
+              event: "TASK_EDITED",
+              field: "category_id",
+              old: current.category_id,
+              new: payload.categoryId,
+            },
           );
         }
 
         // Priority
-        if (payload.priority !== undefined && payload.priority !== current.priority) {
+        if (
+          payload.priority !== undefined &&
+          payload.priority !== current.priority
+        ) {
           taskActivityService.addSystemEvent(
             taskId,
             `${editorName} changed the priority from ${current.priority} to ${payload.priority}.`,
-            { event: "TASK_EDITED", field: "priority", old: current.priority, new: payload.priority }
+            {
+              event: "TASK_EDITED",
+              field: "priority",
+              old: current.priority,
+              new: payload.priority,
+            },
           );
         }
 
         // Start date
         if (payload.startAt !== undefined) {
-          const newStart = payload.startAt ? new Date(payload.startAt).toISOString() : null;
+          const newStart = payload.startAt
+            ? new Date(payload.startAt).toISOString()
+            : null;
           // Compare only the date portion (YYYY-MM-DD) to avoid sub-second / timezone false positives
-          const oldStartDay = current.start_at ? current.start_at.substring(0, 10) : null;
+          const oldStartDay = current.start_at
+            ? current.start_at.substring(0, 10)
+            : null;
           const newStartDay = newStart ? newStart.substring(0, 10) : null;
           if (newStartDay !== oldStartDay) {
             taskActivityService.addSystemEvent(
               taskId,
               `${editorName} changed the start date from ${fmtDate(current.start_at)} to ${fmtDate(newStart)}.`,
-              { event: "TASK_EDITED", field: "start_at", old: current.start_at, new: newStart }
+              {
+                event: "TASK_EDITED",
+                field: "start_at",
+                old: current.start_at,
+                new: newStart,
+              },
             );
           }
         }
 
         // End date
         if (payload.endAt !== undefined) {
-          const newEnd = payload.endAt ? new Date(payload.endAt).toISOString() : null;
+          const newEnd = payload.endAt
+            ? new Date(payload.endAt).toISOString()
+            : null;
           // Compare only the date portion (YYYY-MM-DD)
-          const oldEndDay = current.end_at ? current.end_at.substring(0, 10) : null;
+          const oldEndDay = current.end_at
+            ? current.end_at.substring(0, 10)
+            : null;
           const newEndDay = newEnd ? newEnd.substring(0, 10) : null;
           if (newEndDay !== oldEndDay) {
             taskActivityService.addSystemEvent(
               taskId,
               `${editorName} changed the end date from ${fmtDate(current.end_at)} to ${fmtDate(newEnd)}.`,
-              { event: "TASK_EDITED", field: "end_at", old: current.end_at, new: newEnd }
+              {
+                event: "TASK_EDITED",
+                field: "end_at",
+                old: current.end_at,
+                new: newEnd,
+              },
             );
           }
         }
 
         // Remarks
-        if (payload.remarks !== undefined && payload.remarks !== current.remarks) {
+        if (
+          payload.remarks !== undefined &&
+          payload.remarks !== current.remarks
+        ) {
           taskActivityService.addSystemEvent(
             taskId,
             `${editorName} updated the remarks.\n  From: "${truncate(current.remarks || "(none)")}"\n  To: "${truncate(payload.remarks || "(none)")}"`,
-            { event: "TASK_EDITED", field: "remarks", old: current.remarks, new: payload.remarks }
+            {
+              event: "TASK_EDITED",
+              field: "remarks",
+              old: current.remarks,
+              new: payload.remarks,
+            },
           );
         }
 
         // Payment voucher
-        if (payload.paymentVoucher !== undefined && (payload.paymentVoucher || null) !== (current.payment_voucher || null)) {
+        if (
+          payload.paymentVoucher !== undefined &&
+          (payload.paymentVoucher || null) !== (current.payment_voucher || null)
+        ) {
           const oldPv = current.payment_voucher || null;
           const newPv = payload.paymentVoucher || null;
           let pvMsg;
@@ -662,11 +788,12 @@ export const taskMutationService = {
           } else {
             pvMsg = `${editorName} changed the payment voucher from "${oldPv}" to "${newPv}".`;
           }
-          taskActivityService.addSystemEvent(
-            taskId,
-            pvMsg,
-            { event: "TASK_EDITED", field: "payment_voucher", old: oldPv, new: newPv }
-          );
+          taskActivityService.addSystemEvent(taskId, pvMsg, {
+            event: "TASK_EDITED",
+            field: "payment_voucher",
+            old: oldPv,
+            new: newPv,
+          });
         }
 
         // Attachments — only log if the actual count changed
@@ -685,11 +812,14 @@ export const taskMutationService = {
             } else {
               attMsg = `${editorName} removed ${Math.abs(diff)} attachment${Math.abs(diff) !== 1 ? "s" : ""} (${newCount} remaining).`;
             }
-            taskActivityService.addSystemEvent(
-              taskId,
-              attMsg,
-              { event: "TASK_EDITED", field: "attachments", old_count: oldCount, new_count: newCount, old: current.attachment_urls || [], new: payload.attachments || [] }
-            );
+            taskActivityService.addSystemEvent(taskId, attMsg, {
+              event: "TASK_EDITED",
+              field: "attachments",
+              old_count: oldCount,
+              new_count: newCount,
+              old: current.attachment_urls || [],
+              new: payload.attachments || [],
+            });
           }
         }
       }
@@ -698,8 +828,10 @@ export const taskMutationService = {
     // NOTIFICATION TRIGGERS
     if (current && payload.editedBy) {
       const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? "..." : ""}"`;
-      
-      const isEmployeeSelfComplete = payload?.status === TASK_STATUS.AWAITING_APPROVAL && current?.status !== TASK_STATUS.AWAITING_APPROVAL;
+
+      const isEmployeeSelfComplete =
+        payload?.status === TASK_STATUS.AWAITING_APPROVAL &&
+        current?.status !== TASK_STATUS.AWAITING_APPROVAL;
       if (isEmployeeSelfComplete) {
         // NEW: If task has reported_to, notify ONLY that head
         if (current.reported_to) {
@@ -720,7 +852,7 @@ export const taskMutationService = {
             message: `${current.creator?.name} has submitted a task for your approval: ${taskNameSnippet}.`,
             reference_id: taskId,
           });
-         
+
           const empSubDept = current.creator?.sub_department;
           if (empSubDept || current.creator?.department) {
             notificationService.notifyHeadByDepartment(
@@ -868,7 +1000,8 @@ export const taskMutationService = {
 
     if (!task) throw new Error("Task not found");
 
-    const isManager = userRole?.is_super_admin || userRole?.is_head || userRole?.is_hr;
+    const isManager =
+      userRole?.is_super_admin || userRole?.is_head || userRole?.is_hr;
 
     if (task.logged_by !== userId && !isManager) {
       throw new Error("Unauthorized to delete this task");
@@ -910,7 +1043,12 @@ export const taskMutationService = {
   },
 
   // 6. BULK APPROVE
-  async bulkApproveTasks(taskIds, adminId, grade = 3, remarks = "Bulk approved via system bypass") {
+  async bulkApproveTasks(
+    taskIds,
+    adminId,
+    grade = 3,
+    remarks = "Bulk approved via system bypass",
+  ) {
     if (!taskIds || taskIds.length === 0) return;
 
     const { data: admin } = await supabase
@@ -920,7 +1058,9 @@ export const taskMutationService = {
       .single();
 
     if (!admin?.is_super_admin && !admin?.is_head) {
-      throw new Error("Unauthorized: Only Admins/Heads can bulk approve tasks.");
+      throw new Error(
+        "Unauthorized: Only Admins/Heads can bulk approve tasks.",
+      );
     }
 
     const { data, error } = await supabase
@@ -935,39 +1075,49 @@ export const taskMutationService = {
         edited_at: new Date().toISOString(),
       })
       .in("id", taskIds)
-      .select("*, creator:employees!tasks_logged_by_fk(name, department, sub_department)");
+      .select(
+        "*, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
+      );
 
     if (error) throw error;
 
     // Log activity for each bulk-approved task
     for (const task of data) {
-      taskActivityService.addApprovalEntry(
-        task.id,
-        adminId,
-        remarks,
-        { event: "APPROVED", grade: grade, bulk: true },
-      );
+      taskActivityService.addApprovalEntry(task.id, adminId, remarks, {
+        event: "APPROVED",
+        grade: grade,
+        bulk: true,
+      });
       taskActivityService.addSystemEvent(
         task.id,
         `Task bulk-approved by ${admin?.name || "Admin"} — Grade: ${grade}`,
-        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.COMPLETE, grade: grade },
+        {
+          event: "STATUS_CHANGE",
+          old_status: "BULK",
+          new_status: TASK_STATUS.COMPLETE,
+          grade: grade,
+        },
       );
     }
 
     // Notify HR that tasks were bulk-approved
-    notificationService.broadcastToRole(["HR"], {
-      sender_id: adminId,
-      type: "TASK_APPROVED_BY_HEAD",
-      title: "Bulk Tasks Approved",
-      message: `${admin?.name || "An Admin"} bulk-approved ${data.length} task(s). Ready for Verification.`,
-      excludeSuperAdmin: true,
-    }).catch(console.error);
+    notificationService
+      .broadcastToRole(["HR"], {
+        sender_id: adminId,
+        type: "TASK_APPROVED_BY_HEAD",
+        title: "Bulk Tasks Approved",
+        message: `${admin?.name || "An Admin"} bulk-approved ${data.length} task(s). Ready for Verification.`,
+        excludeSuperAdmin: true,
+      })
+      .catch(console.error);
 
     // Notify each affected employee that their task was graded
     const byEmployee = {};
     data.forEach((t) => {
       if (!byEmployee[t.logged_by]) byEmployee[t.logged_by] = [];
-      byEmployee[t.logged_by].push(t.task_description?.substring(0, 30) || "a task");
+      byEmployee[t.logged_by].push(
+        t.task_description?.substring(0, 30) || "a task",
+      );
     });
 
     await Promise.allSettled(
@@ -978,8 +1128,8 @@ export const taskMutationService = {
           type: "TASK_GRADED",
           title: "Tasks Approved",
           message: `${descriptions.length} task(s) bulk-approved with grade 3: ${descriptions.slice(0, 3).join(", ")}${descriptions.length > 3 ? "…" : ""}`,
-        })
-      )
+        }),
+      ),
     );
 
     return data;
@@ -1010,22 +1160,28 @@ export const taskMutationService = {
         edited_at: new Date().toISOString(),
       })
       .in("id", taskIds)
-      .select("*, creator:employees!tasks_logged_by_fk(name, department, sub_department)");
+      .select(
+        "*, creator:employees!tasks_logged_by_fk(name, department, sub_department)",
+      );
 
     if (error) throw error;
 
     // Log activity for each bulk-rejected task
     for (const task of data) {
-      taskActivityService.addApprovalEntry(
-        task.id,
-        adminId,
-        remarks,
-        { event: "REJECTED", grade: 0, bulk: true },
-      );
+      taskActivityService.addApprovalEntry(task.id, adminId, remarks, {
+        event: "REJECTED",
+        grade: 0,
+        bulk: true,
+      });
       taskActivityService.addSystemEvent(
         task.id,
         `Task bulk-rejected by ${admin?.name || "Admin"}.`,
-        { event: "STATUS_CHANGE", old_status: "BULK", new_status: TASK_STATUS.NOT_APPROVED, grade: 0 },
+        {
+          event: "STATUS_CHANGE",
+          old_status: "BULK",
+          new_status: TASK_STATUS.NOT_APPROVED,
+          grade: 0,
+        },
       );
     }
 
@@ -1033,7 +1189,9 @@ export const taskMutationService = {
     const byEmployee = {};
     data.forEach((t) => {
       if (!byEmployee[t.logged_by]) byEmployee[t.logged_by] = [];
-      byEmployee[t.logged_by].push(t.task_description?.substring(0, 30) || "a task");
+      byEmployee[t.logged_by].push(
+        t.task_description?.substring(0, 30) || "a task",
+      );
     });
 
     await Promise.allSettled(
@@ -1044,8 +1202,8 @@ export const taskMutationService = {
           type: "TASK_REJECTED",
           title: "Tasks Rejected",
           message: `${descriptions.length} task(s) bulk-rejected: ${descriptions.slice(0, 3).join(", ")}${descriptions.length > 3 ? "…" : ""}. Check remarks.`,
-        })
-      )
+        }),
+      ),
     );
 
     return data;
@@ -1054,7 +1212,7 @@ export const taskMutationService = {
   async undoBulkApproval(taskIds, adminId) {
     if (!taskIds || taskIds.length === 0) return;
 
-    // Reset workflow to AWAITING_APPROVAL 
+    // Reset workflow to AWAITING_APPROVAL
     const { data, error } = await supabase
       .from("tasks")
       .update({
@@ -1077,7 +1235,7 @@ export const taskMutationService = {
       taskActivityService.addSystemEvent(
         task.id,
         "Bulk approval reverted by Manager.",
-        { event: "STATUS_CHANGE", new_status: TASK_STATUS.AWAITING_APPROVAL }
+        { event: "STATUS_CHANGE", new_status: TASK_STATUS.AWAITING_APPROVAL },
       );
     }
     return true;
@@ -1149,12 +1307,14 @@ export const taskMutationService = {
     }
 
     // Notify super admin
-    notificationService.broadcastToRole(["SUPER_ADMIN"], {
-      sender_id: hrId,
-      type: "TASK_COMPLETED",
-      title: "Bulk HR Verification Complete",
-      message: `${hr?.name || "HR"} bulk-verified ${data.length} task(s) for payroll.`,
-    }).catch(console.error);
+    notificationService
+      .broadcastToRole(["SUPER_ADMIN"], {
+        sender_id: hrId,
+        type: "TASK_COMPLETED",
+        title: "Bulk HR Verification Complete",
+        message: `${hr?.name || "HR"} bulk-verified ${data.length} task(s) for payroll.`,
+      })
+      .catch(console.error);
 
     return data;
   },
@@ -1190,7 +1350,7 @@ export const taskMutationService = {
       taskActivityService.addSystemEvent(
         task.id,
         `HR verification undone by ${hr?.name || "HR"}.`,
-        { event: "HR_UNDO" }
+        { event: "HR_UNDO" },
       );
     }
     return true;

@@ -64,6 +64,7 @@ function DashboardHeader() {
     if (!isManagement) return 0;
 
     return rawTasks.filter((t) => {
+      if (t.status === TASK_STATUS.DELETED) return false;
       const isNotMe = t.loggedById !== user?.id;
       if (isHr) {
         return isNotMe && t.status === TASK_STATUS.COMPLETE && !t.hrVerified;
