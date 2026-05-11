@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Spinner from "@/components/ui/Spinner";
 import Dot from "./ui/Dot";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import { salesActivityLogService } from "../services/sales/salesActivityLogServi
 import { taskService } from "../services/taskService";
 import { committeeTaskService } from "../services/committeeTaskService";
 import { salesService } from "../services/salesService";
+import { storageService } from "../services/storageService";
 import { useAuth } from "../context/AuthContext";
 import {
   MessageCircle,
@@ -27,6 +28,8 @@ import {
   ShieldCheck,
   AlertTriangle,
   Clock,
+  Paperclip,
+  ImageIcon,
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -173,7 +176,32 @@ function MessageBubble({ entry, currentUserId }) {
               : "bg-card border border-border rounded-tl-none",
           )}
         >
-          {entry.content}
+          {entry.content && <p>{entry.content}</p>}
+          {entry.metadata?.attachments?.length > 0 && (
+            <div
+              className={cn(
+                "flex flex-wrap gap-2",
+                entry.content ? "mt-2" : "",
+              )}
+            >
+              {entry.metadata.attachments.map((url, i) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-xl overflow-hidden border border-white/10 hover:opacity-90 transition-opacity"
+                >
+                  <img
+                    src={url}
+                    alt={`attachment-${i + 1}`}
+                    className="max-w-[220px] max-h-[220px] object-cover rounded-xl"
+                    loading="lazy"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <span className="text-[9px] text-muted-foreground/60 mt-1 px-1 font-medium">
           {timeAgo(entry.createdAt)}
@@ -196,9 +224,12 @@ export default function ComprehensiveChatModal({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [messageContent, setMessageContent] = useState("");
+  const [attachments, setAttachments] = useState([]); // [{ file, preview }]
+  const [isUploading, setIsUploading] = useState(false);
   const [isMobileListVisible, setIsMobileListVisible] = useState(true);
   const [internalOpen, setInternalOpen] = useState(isOpen);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
@@ -355,14 +386,28 @@ export default function ComprehensiveChatModal({
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: ({ entityType, entityId, content }) =>
-      entityType === "TASK"
-        ? taskActivityService.addComment(entityId, user.id, content)
+    mutationFn: ({ entityType, entityId, content, attachmentUrls = [] }) => {
+      const metadata =
+        attachmentUrls.length > 0 ? { attachments: attachmentUrls } : null;
+      return entityType === "TASK"
+        ? taskActivityService.addComment(entityId, user.id, content, metadata)
         : entityType === "COMMITTEE_TASK"
-          ? committeeTaskActivityService.addComment(entityId, user.id, content)
-          : salesActivityLogService.addComment(entityId, user.id, content),
+          ? committeeTaskActivityService.addComment(
+              entityId,
+              user.id,
+              content,
+              metadata,
+            )
+          : salesActivityLogService.addComment(
+              entityId,
+              user.id,
+              content,
+              metadata,
+            );
+    },
     onSuccess: () => {
       setMessageContent("");
+      setAttachments([]);
       queryClient.invalidateQueries({
         queryKey: [
           "chatMessages",
@@ -549,15 +594,75 @@ export default function ComprehensiveChatModal({
     }
   };
 
-  const handleSend = (e) => {
-    e?.preventDefault();
-    if (!messageContent.trim() || !selectedChat) return;
-    sendMessageMutation.mutate({
-      entityType: selectedChat.entity_type,
-      entityId: selectedChat.entity_id,
-      content: messageContent.trim(),
+  const handleSend = useCallback(
+    async (e) => {
+      e?.preventDefault();
+      const hasText = messageContent.trim();
+      const hasFiles = attachments.length > 0;
+      if ((!hasText && !hasFiles) || !selectedChat) return;
+      if (isUploading || sendMessageMutation.isPending) return;
+
+      setIsUploading(true);
+      try {
+        let attachmentUrls = [];
+        if (hasFiles) {
+          attachmentUrls = await Promise.all(
+            attachments.map((a) => storageService.uploadToCloudinary(a.file)),
+          );
+        }
+        sendMessageMutation.mutate({
+          entityType: selectedChat.entity_type,
+          entityId: selectedChat.entity_id,
+          content: messageContent.trim(),
+          attachmentUrls,
+        });
+      } catch (err) {
+        console.error("Failed to upload chat attachments:", err);
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [messageContent, attachments, selectedChat, isUploading],
+  );
+
+  const addFiles = useCallback((files) => {
+    const imageFiles = Array.from(files).filter((f) =>
+      f.type.startsWith("image/"),
+    );
+    if (!imageFiles.length) return;
+    const newEntries = imageFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setAttachments((prev) => [...prev, ...newEntries]);
+  }, []);
+
+  const removeAttachment = useCallback((index) => {
+    setAttachments((prev) => {
+      const next = [...prev];
+      URL.revokeObjectURL(next[index].preview);
+      next.splice(index, 1);
+      return next;
     });
-  };
+  }, []);
+
+  const handlePaste = useCallback(
+    (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const imageItems = Array.from(items).filter((item) =>
+        item.type.startsWith("image/"),
+      );
+      if (!imageItems.length) return;
+      e.preventDefault();
+      const files = imageItems
+        .map((item) => item.getAsFile())
+        .filter(Boolean);
+      addFiles(files);
+    },
+    [addFiles],
+  );
 
   const filteredChats = useMemo(() => {
     let list = activeChats;
@@ -943,37 +1048,107 @@ export default function ComprehensiveChatModal({
                 onSubmit={handleSend}
                 className="p-4 border-t border-border bg-muted/10"
               >
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files) addFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+
                 {isEntityDeleted ? (
                   <div className="bg-muted border border-border rounded-xl p-3 text-center text-xs font-bold text-muted-foreground opacity-70">
                     Input disabled. The associated record has been deleted.
                   </div>
                 ) : (
                   <div className="bg-card border border-border rounded-2xl p-1.5 focus-within:ring-2 ring-mauve-8/20 transition-shadow">
+                    {/* Image preview strip */}
+                    {attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 px-2 pt-2 pb-1">
+                        {attachments.map((att, i) => (
+                          <div
+                            key={i}
+                            className="relative group rounded-lg overflow-hidden border border-border"
+                            style={{ width: 64, height: 64 }}
+                          >
+                            <img
+                              src={att.preview}
+                              alt={`preview-${i}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(i)}
+                              className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X size={16} className="text-white" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-16 h-16 rounded-lg border border-dashed border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+                        >
+                          <ImageIcon size={20} />
+                        </button>
+                      </div>
+                    )}
+
                     <Input
                       value={messageContent}
                       onChange={(e) => setMessageContent(e.target.value)}
-                      placeholder="Write a message..."
+                      onPaste={handlePaste}
+                      placeholder="Write a message or paste an image..."
                       className="border-none shadow-none focus-visible:ring-0 text-sm h-10 disabled:opacity-50"
                       disabled={
-                        sendMessageMutation.isPending || isEntityDeleted
+                        sendMessageMutation.isPending ||
+                        isUploading ||
+                        isEntityDeleted
                       }
                     />
                     <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
-                      <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                        <Clock size={10} /> Enter to send
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={
+                            sendMessageMutation.isPending ||
+                            isUploading ||
+                            isEntityDeleted
+                          }
+                          className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+                          title="Attach photo"
+                        >
+                          <Paperclip size={15} />
+                        </button>
+                        <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+                          <Clock size={10} /> Enter to send
+                        </span>
+                      </div>
                       <Button
                         disabled={
-                          !messageContent.trim() ||
+                          (!messageContent.trim() && attachments.length === 0) ||
                           sendMessageMutation.isPending ||
+                          isUploading ||
                           isEntityDeleted
                         }
                         type="submit"
                         size="sm"
                         className="h-8 px-4 rounded-xl font-bold gap-2"
                       >
-                        {sendMessageMutation.isPending ? "..." : "Send"}{" "}
-                        <Send size={14} />
+                        {isUploading ? (
+                          <><Spinner size="sm" /> Uploading</>
+                        ) : sendMessageMutation.isPending ? (
+                          "..."
+                        ) : (
+                          <>Send <Send size={14} /></>
+                        )}
                       </Button>
                     </div>
                   </div>

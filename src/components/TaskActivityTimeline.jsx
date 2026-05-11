@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskActivityService } from "../services/tasks/taskActivityService";
 import { committeeTaskActivityService } from "../services/committeeTaskActivityService";
+import { storageService } from "../services/storageService";
 import { useAuth } from "../context/AuthContext";
 import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import {
@@ -12,6 +13,9 @@ import {
   Star,
   AlertTriangle,
   Clock,
+  Paperclip,
+  ImageIcon,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,7 +81,27 @@ function ActivityEntry({ entry, currentUserId, avatarMap }) {
               : "bg-card text-foreground rounded-tl-none border border-border"
           }`}
         >
-          {entry.content}
+          {entry.content && <p>{entry.content}</p>}
+          {entry.metadata?.attachments?.length > 0 && (
+            <div className={`flex flex-wrap gap-2 ${entry.content ? "mt-2" : ""}`}>
+              {entry.metadata.attachments.map((url, i) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-xl overflow-hidden border border-white/10 hover:opacity-90 transition-opacity"
+                >
+                  <img
+                    src={url}
+                    alt={`attachment-${i + 1}`}
+                    className="max-w-[200px] max-h-[200px] object-cover rounded-xl"
+                    loading="lazy"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <p
           className={`text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest ${
@@ -152,7 +176,10 @@ export default function TaskActivityTimeline({
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [message, setMessage] = useState("");
+  const [attachments, setAttachments] = useState([]); // [{ file, preview }]
+  const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("ACTIVITY");
 
   const instanceId = useRef(
@@ -175,15 +202,16 @@ export default function TaskActivityTimeline({
 
   // Post comment mutation
   const postCommentMutation = useMutation({
-    mutationFn: ({ taskId, authorId, content }) =>
+    mutationFn: ({ taskId, authorId, content, metadata }) =>
       entityType === "COMMITTEE_TASK"
-        ? committeeTaskActivityService.addComment(taskId, authorId, content)
-        : taskActivityService.addComment(taskId, authorId, content),
+        ? committeeTaskActivityService.addComment(taskId, authorId, content, metadata)
+        : taskActivityService.addComment(taskId, authorId, content, metadata),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["taskActivity", taskId, entityType],
       });
       setMessage("");
+      setAttachments([]);
     },
   });
 
@@ -229,16 +257,59 @@ export default function TaskActivityTimeline({
     }
   }, [activity, activeTab]);
 
-  const handleSend = () => {
-    const trimmed = message.trim();
-    if (!trimmed || !taskId || !user?.id) return;
+  const addFiles = useCallback((files) => {
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!imageFiles.length) return;
+    setAttachments((prev) => [
+      ...prev,
+      ...imageFiles.map((file) => ({ file, preview: URL.createObjectURL(file) })),
+    ]);
+  }, []);
 
-    postCommentMutation.mutate({
-      taskId,
-      authorId: user.id,
-      content: trimmed,
+  const removeAttachment = useCallback((index) => {
+    setAttachments((prev) => {
+      const next = [...prev];
+      URL.revokeObjectURL(next[index].preview);
+      next.splice(index, 1);
+      return next;
     });
-  };
+  }, []);
+
+  const handlePaste = useCallback(
+    (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const imageItems = Array.from(items).filter((item) => item.type.startsWith("image/"));
+      if (!imageItems.length) return;
+      e.preventDefault();
+      addFiles(imageItems.map((item) => item.getAsFile()).filter(Boolean));
+    },
+    [addFiles],
+  );
+
+  const handleSend = useCallback(async () => {
+    const hasText = message.trim();
+    const hasFiles = attachments.length > 0;
+    if ((!hasText && !hasFiles) || !taskId || !user?.id) return;
+    if (isUploading || postCommentMutation.isPending) return;
+
+    setIsUploading(true);
+    try {
+      let attachmentUrls = [];
+      if (hasFiles) {
+        attachmentUrls = await Promise.all(
+          attachments.map((a) => storageService.uploadToCloudinary(a.file)),
+        );
+      }
+      const metadata = attachmentUrls.length > 0 ? { attachments: attachmentUrls } : null;
+      postCommentMutation.mutate({ taskId, authorId: user.id, content: message.trim(), metadata });
+    } catch (err) {
+      console.error("Failed to upload chat attachments:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [message, attachments, taskId, user?.id, isUploading]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -309,6 +380,45 @@ export default function TaskActivityTimeline({
 
       {activeTab === "ACTIVITY" && !disabled && (
         <div className="px-4 py-4 border-t border-border bg-muted/30">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+          />
+
+          {/* Image preview strip */}
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {attachments.map((att, i) => (
+                <div
+                  key={i}
+                  className="relative group rounded-lg overflow-hidden border border-border"
+                  style={{ width: 56, height: 56 }}
+                >
+                  <img src={att.preview} alt={`preview-${i}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(i)}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={14} className="text-white" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-14 h-14 rounded-lg border border-dashed border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ImageIcon size={18} />
+              </button>
+            </div>
+          )}
+
           <div className="flex items-start gap-2">
             {inputType === "textarea" ? (
               <Textarea
@@ -316,8 +426,9 @@ export default function TaskActivityTimeline({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Send a message... (Shift+Enter for new line)"
-                disabled={postCommentMutation.isPending}
+                onPaste={handlePaste}
+                placeholder="Send a message or paste an image..."
+                disabled={postCommentMutation.isPending || isUploading}
                 className="flex-1 bg-card border-border rounded-xl px-4 py-3 text-sm min-h-[50px] max-h-[150px] shadow-sm"
                 rows={1}
               />
@@ -328,19 +439,31 @@ export default function TaskActivityTimeline({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Send a message..."
-                disabled={postCommentMutation.isPending}
+                onPaste={handlePaste}
+                placeholder="Send a message or paste an image..."
+                disabled={postCommentMutation.isPending || isUploading}
                 className="flex-1 bg-card border-border rounded-xl px-4 h-11 shadow-sm"
               />
             )}
-            <Button
-              onClick={handleSend}
-              disabled={!message.trim() || postCommentMutation.isPending}
-              className="w-11 h-11 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all shrink-0"
-              size="icon"
-            >
-              <Send size={18} />
-            </Button>
+            <div className="flex flex-col gap-1 shrink-0">
+              <Button
+                onClick={handleSend}
+                disabled={(!message.trim() && attachments.length === 0) || postCommentMutation.isPending || isUploading}
+                className="w-11 h-11 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all"
+                size="icon"
+              >
+                {isUploading ? <Spinner size="sm" /> : <Send size={18} />}
+              </Button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={postCommentMutation.isPending || isUploading}
+                className="w-11 h-11 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-40"
+                title="Attach photo"
+              >
+                <Paperclip size={16} />
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -136,8 +136,11 @@ export const taskActivityService = {
   /**
    * Add a human comment to the task timeline
    */
-  async addComment(taskId, authorId, content) {
-    if (!taskId || !authorId || !content?.trim()) return null;
+  async addComment(taskId, authorId, content, metadata = null) {
+    if (!taskId || !authorId) return null;
+    const hasContent = content?.trim();
+    const hasAttachments = metadata?.attachments?.length > 0;
+    if (!hasContent && !hasAttachments) return null;
 
     const { data, error } = await supabase
       .from("task_activity")
@@ -145,7 +148,8 @@ export const taskActivityService = {
         task_id: taskId,
         author_id: authorId,
         type: "COMMENT",
-        content: content.trim(),
+        content: content?.trim() || "",
+        metadata: metadata || null,
       })
       .select(
         `*, author:employees!task_activity_author_id_fkey(name, is_head, is_hr, is_super_admin, avatar_path)`,
@@ -168,7 +172,9 @@ export const taskActivityService = {
         .eq("id", authorId)
         .single();
 
-      const snippet = content.length > 50 ? content.substring(0, 50) + "..." : content;
+      const snippet = hasContent
+        ? (content.length > 50 ? content.substring(0, 50) + "..." : content)
+        : "📷 Sent a photo";
 
       if (task) {
         // If commenter is the task owner → notify the assigned head

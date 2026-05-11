@@ -132,8 +132,11 @@ export const salesActivityLogService = {
   /**
    * Add a human comment to the sales timeline
    */
-  async addComment(salesActivityId, authorId, content) {
-    if (!salesActivityId || !authorId || !content?.trim()) return null;
+  async addComment(salesActivityId, authorId, content, metadata = null) {
+    if (!salesActivityId || !authorId) return null;
+    const hasContent = content?.trim();
+    const hasAttachments = metadata?.attachments?.length > 0;
+    if (!hasContent && !hasAttachments) return null;
 
     const { data, error } = await supabase
       .from("sales_activity_logs")
@@ -141,7 +144,8 @@ export const salesActivityLogService = {
         sales_activity_id: salesActivityId,
         author_id: authorId,
         type: "COMMENT",
-        content: content.trim(),
+        content: content?.trim() || "",
+        metadata: metadata || null,
       })
       .select(
         `*, author:employees!sales_activity_logs_author_id_fkey(name, is_head, is_hr, is_super_admin)`,
@@ -164,13 +168,11 @@ export const salesActivityLogService = {
         .eq("id", authorId)
         .single();
 
-      const snippet = content.length > 50 ? content.substring(0, 50) + "..." : content;
+      const snippet = hasContent
+        ? (content.length > 50 ? content.substring(0, 50) + "..." : content)
+        : "📷 Sent a photo";
 
       if (salesActivity) {
-        // Since sales_activities don't have a direct 'reported_to', let's use head_verified_by
-        // or skip sending to the manager if they haven't verified it yet.
-        // For now, if the commenter is not the employee, notify the employee.
-        
         if (authorId !== salesActivity.employee_id) {
           notificationService.createNotification({
             recipient_id: salesActivity.employee_id,
