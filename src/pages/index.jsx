@@ -1,6 +1,6 @@
 import { useAuth } from "../context/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
-import DashboardHeader from "../components/DashboardHeader.jsx";
+
 import TasksList from "../components/TasksList.jsx";
 import SalesDashboard from "../components/SalesDashboard.jsx";
 import { useState } from "react";
@@ -13,9 +13,9 @@ import PersonalizedHeroBanner from "../components/PersonalizedHeroBanner.jsx";
 import CommitteeTasksList from "../components/CommitteeTasksList.jsx";
 import PageHeader from "../components/ui/PageHeader";
 import PageContainer from "../components/ui/PageContainer";
-import SectionHeader from "../components/ui/SectionHeader";
+
 import TabGroup from "../components/ui/TabGroup";
-import { Users, CheckSquare, DollarSign } from "lucide-react";
+import { CheckSquare, DollarSign } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -151,20 +151,19 @@ export default function Dashboard() {
     <ProtectedRoute>
       <PageContainer spaceY="10" className="pt-4">
         <SystemUpdateBanner />
+        <PersonalizedHeroBanner />
 
-        <div className="grid gap-12 relative min-w-0">
-          <DashboardHeader />
-
-          {/* HEAD VIEW MONTH PICKER */}
+        {/* PIPELINE SECTION */}
+        <div className="relative">
           <PageHeader
             title={
               user?.is_head || user?.isHead
-                ? "Departmental Pulse"
+                ? "Accomplishment Report"
                 : "Private Workflow"
             }
             description={
               user?.is_head || user?.isHead
-                ? "Subordinate Asset Monitoring"
+                ? "Executive Performance Governance"
                 : "Personal Execution Roadmap"
             }
           >
@@ -179,31 +178,23 @@ export default function Dashboard() {
             />
           </PageHeader>
 
-          {user?.is_head ||
-          user?.isHead ||
-          user?.is_hr ||
-          user?.isHr ||
-          user?.isSuperAdmin ? (
-            <DashboardStats selectedRange={globalRange} />
-          ) : (
-            <PersonalPipelineRadar selectedRange={globalRange} />
-          )}
+          <div className="grid gap-14 relative mt-10">
+            {user?.is_head ||
+            user?.isHead ||
+            user?.is_hr ||
+            user?.isHr ||
+            user?.isSuperAdmin ? (
+              <>
+                <DashboardStats selectedRange={globalRange} />
+                <EmployeePipelineMatrix selectedRange={globalRange} />
+              </>
+            ) : (
+              <PersonalPipelineRadar selectedRange={globalRange} />
+            )}
 
-          <TasksList selectedRange={globalRange} />
-
-          <CommitteeTasksList selectedRange={globalRange} />
-
-          {(user?.is_head || user?.isHead) && (
-            <div className="mt-12 space-y-6 min-w-0">
-              <SectionHeader
-                icon={Users}
-                title="Subordinate Distribution"
-                description="Team Pipeline Overview"
-                rangeLabel={globalRange?.label}
-              />
-              <EmployeePipelineMatrix selectedRange={globalRange} />
-            </div>
-          )}
+            <TasksList selectedRange={globalRange} />
+            <CommitteeTasksList selectedRange={globalRange} />
+          </div>
         </div>
       </PageContainer>
     </ProtectedRoute>

@@ -110,6 +110,8 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
       let teamCompleted = 0;
       let teamPendingHr = 0;
       let teamRejected = 0;
+      let teamAwaitingApproval = 0;
+      let teamAllTasks = 0;
 
       let hrInProgress = 0;
       let hrOverdueUnsubmitted = 0;
@@ -163,6 +165,9 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
         teamInProgress = teamTasks.filter(
           (t) => t.status === TASK_STATUS.INCOMPLETE,
         ).length;
+        teamAwaitingApproval = teamTasks.filter(
+          (t) => t.status === TASK_STATUS.AWAITING_APPROVAL,
+        ).length;
         teamCompleted = teamTasks.filter(
           (t) => t.status === TASK_STATUS.COMPLETE,
         ).length;
@@ -172,6 +177,7 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
         teamPendingHr = teamTasks.filter(
           (t) => t.status === TASK_STATUS.COMPLETE && !t.hrVerified,
         ).length;
+        teamAllTasks = teamTasks.length;
       }
 
       return {
@@ -181,9 +187,11 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
         myPendingHr,
         myCompleted,
         teamInProgress,
+        teamAwaitingApproval,
         teamCompleted,
         teamRejected,
         teamPendingHr,
+        teamAllTasks,
         hrInProgress,
         hrOverdueUnsubmitted,
         hrAwaitingHead,
@@ -316,7 +324,7 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
 
   return (
     <div
-      className={`grid gap-4 md:gap-6 ${isHr ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-4"}`}
+      className={`grid gap-4 md:gap-6 ${isHr || isHead ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-4"}`}
     >
       {/* --- EMPLOYEE VIEW --- */}
       {!isManagement && (
@@ -387,6 +395,14 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
                 }
               />
               <StatCard
+                title="Awaiting Approval"
+                value={stats.teamAwaitingApproval}
+                subtitle="Needs Your Review"
+                icon={<UserCheck size={20} className="text-violet-8" />}
+                color="violet"
+                onClick={() => navigate("/approvals/tasks")}
+              />
+              <StatCard
                 title="Returned"
                 value={stats.teamRejected}
                 subtitle="Needs Fixing"
@@ -423,6 +439,14 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
                     state: { presetFilter: { status: TASK_STATUS.COMPLETE } },
                   })
                 }
+              />
+              <StatCard
+                title="All Tasks"
+                value={stats.teamAllTasks}
+                subtitle="Dept Output this Month"
+                icon={<Database size={20} className="text-foreground" />}
+                color="mauve"
+                onClick={() => navigate("/tasks")}
               />
             </>
           ) : (
