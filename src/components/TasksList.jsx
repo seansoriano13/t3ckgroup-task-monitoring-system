@@ -6,7 +6,7 @@ import TaskDetails from "./TaskDetails";
 import { useAuth } from "../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "../services/taskService.js";
-import { TASK_STATUS } from "../constants/status.js";
+import { TASK_STATUS, getStatusDotColor, getStatusColorAlpha, getStatusTheme } from "../constants/status.js";
 import { useMemo, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import {
@@ -255,15 +255,13 @@ export default function TasksList({ selectedRange }) {
                       className="shadow-sm"
                       size="w-2 h-2"
                       color={
-                        statusKey === "COMPLETE_VERIFIED"
-                          ? "bg-green-a7 shadow-green-5"
-                          : statusKey === "COMPLETE_UNVERIFIED"
-                            ? "bg-blue-a7 shadow-blue-5"
-                            : statusKey === "AWAITING APPROVAL"
-                              ? "bg-violet-a7 shadow-violet-5"
-                              : statusKey === "NOT APPROVED"
-                                ? "bg-red-a7 shadow-red-5"
-                                : "bg-orange-a7 shadow-orange-5"
+                        statusKey === "COMPLETE_VERIFIED" || statusKey === "COMPLETE_UNVERIFIED"
+                          ? getStatusColorAlpha(getStatusTheme(TASK_STATUS.COMPLETE))
+                          : statusKey === "AWAITING APPROVAL"
+                            ? getStatusColorAlpha(getStatusTheme(TASK_STATUS.AWAITING_APPROVAL))
+                            : statusKey === "NOT APPROVED"
+                              ? getStatusColorAlpha(getStatusTheme(TASK_STATUS.NOT_APPROVED))
+                              : getStatusColorAlpha(getStatusTheme(TASK_STATUS.INCOMPLETE))
                       }
                     />
                     <h3 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
@@ -392,17 +390,7 @@ export default function TasksList({ selectedRange }) {
                             )}
                           <Dot
                             size="w-2 h-2"
-                            color={
-                              task.status === TASK_STATUS.COMPLETE && task.hrVerified
-                                ? "bg-green-9 shadow-[0_0_8px_rgba(34,197,94,0.3)]"
-                                : task.status === TASK_STATUS.COMPLETE
-                                  ? "bg-blue-9 shadow-[0_0_8px_rgba(59,130,246,0.3)]"
-                                  : task.status === TASK_STATUS.AWAITING_APPROVAL
-                                    ? "bg-violet-9 shadow-[0_0_8px_rgba(139,92,246,0.3)]"
-                                    : task.status === TASK_STATUS.NOT_APPROVED
-                                      ? "bg-red-9 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
-                                      : "bg-orange-9 shadow-[0_0_8px_rgba(249,115,22,0.3)]"
-                            }
+                            color={getStatusDotColor(task.status)}
                           />
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 bg-muted px-2 py-0.5 rounded-md border border-border/50">
                             {new Date(task.createdAt).toLocaleDateString(
