@@ -112,8 +112,8 @@ function DashboardHeader() {
 
       {/* 2. EXPRESS BANNER: Responsive stacking */}
       {pendingCount > 0 && (
-        <div className="bg-violet-2 border border-mauve-3 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="flex items-center gap-4">
+        <div className="bg-violet-2 border border-mauve-3 rounded-2xl p-5 flex flex-wrap items-center gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
             <div className="bg-card p-2.5 rounded-xl text-violet-10 shadow-sm border border-mauve-2 shrink-0">
               <AlertCircle size={22} />
             </div>
@@ -131,7 +131,7 @@ function DashboardHeader() {
           </div>
           <Link
             to={approvalsLink}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-primary/20"
+            className="shrink-0 flex items-center justify-center gap-2 bg-primary text-primary-foreground text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-primary-hover transition-all active:scale-95 shadow-lg shadow-primary/20"
           >
             {isHr && !isHead ? "Go to Verification" : "Go to Approvals"}{" "}
             <ArrowRight size={16} />
