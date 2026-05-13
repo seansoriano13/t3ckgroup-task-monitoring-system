@@ -152,7 +152,7 @@ export default function Dashboard() {
       <PageContainer spaceY="10" className="pt-4">
         <SystemUpdateBanner />
 
-        <div className="grid gap-12">
+        <div className="grid gap-12 relative min-w-0">
           <DashboardHeader />
 
           {/* HEAD VIEW MONTH PICKER */}
@@ -194,7 +194,7 @@ export default function Dashboard() {
           <CommitteeTasksList selectedRange={globalRange} />
 
           {(user?.is_head || user?.isHead) && (
-            <div className="mt-12 space-y-6">
+            <div className="mt-12 space-y-6 min-w-0">
               <SectionHeader
                 icon={Users}
                 title="Subordinate Distribution"
