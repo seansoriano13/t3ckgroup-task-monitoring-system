@@ -165,9 +165,13 @@ export default function DashboardStats({ selectedRange, mode = "tasks" }) {
         teamInProgress = teamTasks.filter(
           (t) => t.status === TASK_STATUS.INCOMPLETE,
         ).length;
-        teamAwaitingApproval = teamTasks.filter(
-          (t) => t.status === TASK_STATUS.AWAITING_APPROVAL,
-        ).length;
+        // Mirror approvals/tasks/index.jsx: reportedTo takes priority over dept matching
+        teamAwaitingApproval = teamTasks.filter((t) => {
+          if (t.status !== TASK_STATUS.AWAITING_APPROVAL) return false;
+          if (t.reportedTo) return t.reportedTo === user?.id;
+          // Legacy fallback: dept/sub-dept match (already filtered above via teamTasks)
+          return true;
+        }).length;
         teamCompleted = teamTasks.filter(
           (t) => t.status === TASK_STATUS.COMPLETE,
         ).length;
