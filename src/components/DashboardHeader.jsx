@@ -117,7 +117,7 @@ function DashboardHeader() {
             <div className="bg-card p-2.5 rounded-xl text-violet-10 shadow-sm border border-mauve-2 shrink-0">
               <AlertCircle size={22} />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-foreground font-bold text-sm tracking-tight">
                 Review Required
               </h3>

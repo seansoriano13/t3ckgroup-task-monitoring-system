@@ -150,7 +150,6 @@ export default function RoleSwitcher() {
 
       if (error) throw error;
 
-      await employeeService.getEmployeeByEmail(TEST_EMAIL);
       toast.success("Simulation applied", {
         style: { background: "#111827", color: "#fff", fontSize: "13px" },
       });

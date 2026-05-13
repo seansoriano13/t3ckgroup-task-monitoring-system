@@ -152,7 +152,7 @@ export default function Dashboard() {
       <PageContainer spaceY="10" className="pt-4">
         <SystemUpdateBanner />
 
-        <div className="grid gap-12">
+        <div className="grid gap-12 overflow-x-hidden">
           <DashboardHeader />
 
           {/* HEAD VIEW MONTH PICKER */}

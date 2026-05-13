@@ -173,8 +173,8 @@ export default function TaskApprovalsPage() {
         if (!isHead && !isSuperAdmin) return false;
 
         if (t.reportedTo) {
-          // Super admin with scope toggle: when "reported to me only" is on, treat like a head
-          if (isSuperAdmin && !reportedToMeOnly) {
+          // Super admin / Head with scope toggle: when "reported to me only" is off, show all
+          if ((isSuperAdmin || isHead) && !reportedToMeOnly) {
             return (
               t.status === TASK_STATUS.INCOMPLETE ||
               t.status === TASK_STATUS.AWAITING_APPROVAL
@@ -208,12 +208,12 @@ export default function TaskApprovalsPage() {
         let matches = false;
 
         if (t.status === TASK_STATUS.INCOMPLETE) {
-          if (isSuperAdmin && !reportedToMeOnly) matches = isNotMe;
+          if ((isSuperAdmin || isHead) && !reportedToMeOnly) matches = isNotMe;
           else matches = isNotMe && isMyDept;
         } else if (t.status === TASK_STATUS.AWAITING_APPROVAL) {
           const canOpsManagerApprove =
             appSettings?.marketing_approval_by_ops_manager && isMyDept;
-          if (isSuperAdmin && !reportedToMeOnly) {
+          if ((isSuperAdmin || isHead) && !reportedToMeOnly) {
             matches = isNotMe;
           } else if (isMarketing && canOpsManagerApprove) {
             matches = isNotMe;
@@ -521,7 +521,7 @@ export default function TaskApprovalsPage() {
   }
 
   return (
-    <ProtectedRoute requireHead={true}>
+    <ProtectedRoute>
       <PageContainer className="pt-4">
         <ApprovalHeader
           isHr={false}
