@@ -66,27 +66,38 @@ function DashboardHeader() {
     return rawTasks.filter((t) => {
       if (t.status === TASK_STATUS.DELETED) return false;
       const isNotMe = t.loggedById !== user?.id;
-      if (isHr) {
-        return isNotMe && t.status === TASK_STATUS.COMPLETE && !t.hrVerified;
-      } else if (isHead) {
+      if (!isNotMe) return false;
+
+      if (isHr && !isHead) {
+        return t.status === TASK_STATUS.COMPLETE && !t.hrVerified;
+      }
+
+      if (isHead) {
+        const isPendingStatus =
+          t.status === TASK_STATUS.INCOMPLETE ||
+          t.status === TASK_STATUS.AWAITING_APPROVAL;
+        if (!isPendingStatus) return false;
+
+        // Mirror approvals page: check reportedTo first
+        if (t.reportedTo) {
+          return t.reportedTo === user?.id;
+        }
+
+        // Fallback: dept-matching for legacy tasks without reported_to
         const taskSubDept =
           t.sub_department ||
           t.subDepartment ||
           t.creator?.sub_department ||
           t.employees?.sub_department ||
           "";
-
         const taskDept = t.creator?.department || t.employees?.department || "";
 
-        let isMyDept = false;
         if (userSubDept) {
-          isMyDept = taskSubDept === userSubDept;
-        } else {
-          isMyDept = taskDept === userDept;
+          return taskSubDept === userSubDept;
         }
-
-        return isNotMe && isMyDept && t.status === TASK_STATUS.INCOMPLETE;
+        return taskDept === userDept;
       }
+
       return false;
     }).length;
   }, [rawTasks, user, isManagement, isHr, isHead, userSubDept, userDept]);
