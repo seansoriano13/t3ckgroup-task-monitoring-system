@@ -36,10 +36,12 @@ export default function LogTaskAssignmentBar({
 }) {
   const { isHr, isHead, isSuperAdmin } = roles;
   const canAssignOthers = isHr || isHead;
-  const showHeadDropdown = !isHead || isHr || isSuperAdmin;
 
   return (
-    <div className="flex flex-col gap-4 py-4 border-t border-mauve-3/40 animate-content-in stagger-4 relative z-[10]" ref={assignmentRef}>
+    <div
+      className="flex flex-col gap-4 py-4 border-t border-mauve-3/40 animate-content-in stagger-4 relative z-[10]"
+      ref={assignmentRef}
+    >
       {/* ORGANIZATION SECTION (HR only) */}
       {isHr && (
         <div className="space-y-3">
@@ -104,7 +106,10 @@ export default function LogTaskAssignmentBar({
               >
                 {({ close }) => (
                   <FilterOptionList
-                    options={uniqueSubDepts.map((sd) => ({ value: sd, label: sd }))}
+                    options={uniqueSubDepts.map((sd) => ({
+                      value: sd,
+                      label: sd,
+                    }))}
                     value={hrSubDeptFilter}
                     onChange={(val) => {
                       setHrSubDeptFilter(val);
@@ -137,8 +142,14 @@ export default function LogTaskAssignmentBar({
             trigger={({ isOpen }) => (
               <FilterTrigger
                 label={
-                  filteredEmployees.find((emp) => emp.id === formData.loggedById)
-                    ? (formData.loggedById === user.id ? "Myself" : filteredEmployees.find((emp) => emp.id === formData.loggedById).name)
+                  filteredEmployees.find(
+                    (emp) => emp.id === formData.loggedById,
+                  )
+                    ? formData.loggedById === user.id
+                      ? "Myself"
+                      : filteredEmployees.find(
+                          (emp) => emp.id === formData.loggedById,
+                        ).name
                     : "Search assignee..."
                 }
                 isActive={!!formData.loggedById}
@@ -167,47 +178,45 @@ export default function LogTaskAssignmentBar({
       )}
 
       {/* REPORTED TO SECTION */}
-      {showHeadDropdown && (
-        <div className="space-y-1.5 pt-1">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 pl-1">
-            <ClipboardList size={12} /> Report To (Head)
-          </label>
-          <Dropdown
-            usePortal
-            isOpen={openPopover === "reportedTo"}
-            onToggle={() => onTogglePopover("reportedTo")}
-            onClose={() => onTogglePopover(null)}
-            className="w-full"
-            trigger={({ isOpen }) => (
-              <FilterTrigger
-                label={
-                  availableHeads.find((h) => h.id === selectedHead)?.name ||
-                  "Select manager/head..."
-                }
-                isActive={!!selectedHead}
-                isOpen={isOpen}
-                icon={ClipboardList}
-              />
-            )}
-          >
-            {({ close }) => (
-              <FilterOptionList
-                showSearch
-                options={availableHeads.map((h) => ({
-                  value: h.id,
-                  label: h.name,
-                }))}
-                value={selectedHead}
-                onChange={(val) => {
-                  setSelectedHead(val);
-                  close();
-                }}
-                close={close}
-              />
-            )}
-          </Dropdown>
-        </div>
-      )}
+      <div className="space-y-1.5 pt-1">
+        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 pl-1">
+          <ClipboardList size={12} /> Report To (Head)
+        </label>
+        <Dropdown
+          usePortal
+          isOpen={openPopover === "reportedTo"}
+          onToggle={() => onTogglePopover("reportedTo")}
+          onClose={() => onTogglePopover(null)}
+          className="w-full"
+          trigger={({ isOpen }) => (
+            <FilterTrigger
+              label={
+                availableHeads.find((h) => h.id === selectedHead)?.name ||
+                "Select manager/head..."
+              }
+              isActive={!!selectedHead}
+              isOpen={isOpen}
+              icon={ClipboardList}
+            />
+          )}
+        >
+          {({ close }) => (
+            <FilterOptionList
+              showSearch
+              options={availableHeads.map((h) => ({
+                value: h.id,
+                label: h.name,
+              }))}
+              value={selectedHead}
+              onChange={(val) => {
+                setSelectedHead(val);
+                close();
+              }}
+              close={close}
+            />
+          )}
+        </Dropdown>
+      </div>
     </div>
   );
 }
