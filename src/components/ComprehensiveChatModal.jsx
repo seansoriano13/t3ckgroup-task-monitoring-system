@@ -42,6 +42,32 @@ import HighlightText from "./HighlightText";
 // -------------------------------------------------------------
 //  HELPERS
 // -------------------------------------------------------------
+
+/**
+ * Splits text into plain-text segments and URL segments,
+ * rendering URLs as clickable <a> tags.
+ */
+function renderContent(text) {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) =>
+    urlRegex.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 opacity-90 hover:opacity-100 break-all"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {part}
+      </a>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
 const timeAgo = (dateString) => {
   if (!dateString) return "";
   const d = new Date(dateString);
@@ -144,7 +170,7 @@ function MessageBubble({ entry, currentUserId }) {
       />
       <div
         className={cn(
-          "max-w-[80%] flex flex-col",
+          "max-w-[80%] min-w-0 flex flex-col",
           isMe ? "items-end" : "items-start",
         )}
       >
@@ -170,13 +196,13 @@ function MessageBubble({ entry, currentUserId }) {
         </div>
         <div
           className={cn(
-            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all whitespace-pre-wrap",
+            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all whitespace-pre-wrap break-all",
             isMe
               ? "bg-primary text-primary-foreground rounded-tr-none"
               : "bg-card border border-border rounded-tl-none",
           )}
         >
-          {entry.content && <p>{entry.content}</p>}
+          {entry.content && <p>{renderContent(entry.content)}</p>}
           {entry.metadata?.attachments?.length > 0 && (
             <div
               className={cn(

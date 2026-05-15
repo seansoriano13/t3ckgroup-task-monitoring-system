@@ -25,6 +25,32 @@ import Avatar from "./Avatar";
 import TabGroup from "./ui/TabGroup";
 import HistoryTimeline from "./HistoryTimeline";
 
+/**
+ * Splits text into plain-text segments and URL segments,
+ * rendering URLs as clickable <a> tags.
+ */
+function renderContent(text) {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) =>
+    urlRegex.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 opacity-90 hover:opacity-100 break-all"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {part}
+      </a>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
 const formatTime = (isoString) => {
   if (!isoString) return "";
   const d = new Date(isoString);
@@ -61,7 +87,7 @@ function ActivityEntry({ entry, currentUserId, avatarMap }) {
       />
 
       {/* Bubble */}
-      <div className={`max-w-[85%] ${isMe ? "items-end" : "items-start"}`}>
+      <div className={`max-w-[85%] min-w-0 ${isMe ? "items-end" : "items-start"}`}>
         <div className="flex items-center gap-2 mb-1 px-1">
           {!isMe && (
             <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">
@@ -75,13 +101,13 @@ function ActivityEntry({ entry, currentUserId, avatarMap }) {
           )}
         </div>
         <div
-          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-300 whitespace-pre-wrap ${
+          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all duration-300 whitespace-pre-wrap break-all ${
             isMe
               ? "bg-primary text-primary-foreground rounded-tr-none"
               : "bg-card text-foreground rounded-tl-none border border-border"
           }`}
         >
-          {entry.content && <p>{entry.content}</p>}
+          {entry.content && <p>{renderContent(entry.content)}</p>}
           {entry.metadata?.attachments?.length > 0 && (
             <div className={`flex flex-wrap gap-2 ${entry.content ? "mt-2" : ""}`}>
               {entry.metadata.attachments.map((url, i) => (
