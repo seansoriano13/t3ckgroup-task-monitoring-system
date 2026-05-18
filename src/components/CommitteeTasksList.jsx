@@ -52,14 +52,14 @@ export default function CommitteeTasksList({ selectedRange }) {
   if (committeeTasks.length === 0) return null;
 
   return (
-    <section className="space-y-6 mt-8">
+    <section className="space-y-6 mt-8 w-full min-w-0">
       <SectionHeader
         icon={Users}
         title="Committee Tasks"
         description="Active group assignments"
         rangeLabel={selectedRange?.label || "This Range"}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* SEARCH */}
           <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1.5 min-w-[200px]">
             <Search size={14} className="text-muted-foreground" />
@@ -119,37 +119,39 @@ export default function CommitteeTasksList({ selectedRange }) {
 
       {/* DYNAMIC GRID CONTAINER */}
       {activeTasks.length > 0 ? (
-        <div
-          className={`
-          ${layoutMode === "row" ? "flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
-          ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
-          ${layoutMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4" : ""}
-        `}
-        >
-          {activeTasks.map((task) => (
-            <div
-              key={task.id}
-              className={`${
-                layoutMode === "grid"
-                  ? "w-full"
-                  : "min-w-[320px] sm:min-w-[360px] snap-start"
-              }`}
-            >
-              <CommitteeTaskCard
-                task={task}
-                currentUserId={user?.id}
-                isSuperAdmin={isSuperAdmin}
-                searchTerm={searchTerm}
-                onView={() => {
-                  window.dispatchEvent(
-                    new CustomEvent("OPEN_ENTITY_DETAILS", {
-                      detail: { id: task.id, type: "COMMITTEE_TASK" },
-                    }),
-                  );
-                }}
-              />
-            </div>
-          ))}
+        <div className="w-full min-w-0 overflow-hidden">
+          <div
+            className={`
+            ${layoutMode === "row" ? "flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+            ${layoutMode === "stack" ? "grid grid-rows-3 grid-flow-col gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x" : ""}
+            ${layoutMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-4" : ""}
+          `}
+          >
+            {activeTasks.map((task) => (
+              <div
+                key={task.id}
+                className={`${
+                  layoutMode === "grid"
+                    ? "w-full min-w-0"
+                    : "min-w-[300px] sm:min-w-[340px] snap-start flex-shrink-0"
+                }`}
+              >
+                <CommitteeTaskCard
+                  task={task}
+                  currentUserId={user?.id}
+                  isSuperAdmin={isSuperAdmin}
+                  searchTerm={searchTerm}
+                  onView={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("OPEN_ENTITY_DETAILS", {
+                        detail: { id: task.id, type: "COMMITTEE_TASK" },
+                      }),
+                    );
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center p-12 text-center bg-card border border-border border-dashed rounded-[2rem] shadow-sm">
