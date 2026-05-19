@@ -27,7 +27,8 @@ export default function HrVerificationPage() {
 
   // HR role is DB-driven only — never inherited from super-admin
   const isHr = user?.is_hr === true || user?.isHr === true;
-  const isSuperAdmin = user?.is_super_admin === true || user?.isSuperAdmin === true;
+  const isSuperAdmin =
+    user?.is_super_admin === true || user?.isSuperAdmin === true;
   const isManagement = isHr || isSuperAdmin;
 
   const { data: rawTasks = [], isLoading } = useQuery({
@@ -84,10 +85,13 @@ export default function HrVerificationPage() {
           // Task may be soft-deleted — fetch it directly
           import("../../../services/tasks/taskQueryService.js").then(
             ({ taskQueryService }) => {
-              taskQueryService.getTaskById(openId)
-                .then((task) => { if (task) setViewTask(task); })
+              taskQueryService
+                .getTaskById(openId)
+                .then((task) => {
+                  if (task) setViewTask(task);
+                })
                 .catch(() => {});
-            }
+            },
           );
         }
       });
@@ -98,11 +102,22 @@ export default function HrVerificationPage() {
   useEffect(() => {
     setCurrentPage(1);
     setSelectedTaskIds([]);
-  }, [searchQuery, priorityFilter, sortBy, timeframe, selectedDateFilter, deptFilter, subDeptFilter, employeeFilter, activeTab]);
+  }, [
+    searchQuery,
+    priorityFilter,
+    sortBy,
+    timeframe,
+    selectedDateFilter,
+    deptFilter,
+    subDeptFilter,
+    employeeFilter,
+    activeTab,
+  ]);
 
   useEffect(() => {
     const fetchTopology = async () => {
-      const { employeeService } = await import("../../../services/employeeService.js");
+      const { employeeService } =
+        await import("../../../services/employeeService.js");
       const employees = await employeeService.getAllEmployees();
       if (employees) setAllEmployees(employees);
       const categories = await employeeService.getAllCategories();
@@ -111,20 +126,28 @@ export default function HrVerificationPage() {
     fetchTopology();
   }, []);
 
-  const uniqueDepts = useMemo(() =>
-    [...new Set(allCategories.map((c) => c.department).filter(Boolean))].sort(),
+  const uniqueDepts = useMemo(
+    () =>
+      [
+        ...new Set(allCategories.map((c) => c.department).filter(Boolean)),
+      ].sort(),
     [allCategories],
   );
   const uniqueSubDepts = useMemo(() => {
-    const filteredCats = deptFilter === "ALL"
-      ? allCategories
-      : allCategories.filter((c) => c.department === deptFilter);
-    return [...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean))].sort();
+    const filteredCats =
+      deptFilter === "ALL"
+        ? allCategories
+        : allCategories.filter((c) => c.department === deptFilter);
+    return [
+      ...new Set(filteredCats.map((c) => c.subDepartment).filter(Boolean)),
+    ].sort();
   }, [allCategories, deptFilter]);
   const uniqueEmployees = useMemo(() => {
     let pool = allEmployees.filter((e) => !e.is_super_admin);
-    if (deptFilter !== "ALL") pool = pool.filter((e) => e.department === deptFilter);
-    if (subDeptFilter !== "ALL") pool = pool.filter((e) => e.subDepartment === subDeptFilter);
+    if (deptFilter !== "ALL")
+      pool = pool.filter((e) => e.department === deptFilter);
+    if (subDeptFilter !== "ALL")
+      pool = pool.filter((e) => e.subDepartment === subDeptFilter);
     return pool.sort((a, b) => a.name.localeCompare(b.name));
   }, [allEmployees, deptFilter, subDeptFilter]);
 
@@ -142,7 +165,11 @@ export default function HrVerificationPage() {
           t.evaluatedById != null
         );
       })
-      .sort((a, b) => new Date(a.evaluatedAt || a.createdAt) - new Date(b.evaluatedAt || b.createdAt));
+      .sort(
+        (a, b) =>
+          new Date(a.evaluatedAt || a.createdAt) -
+          new Date(b.evaluatedAt || b.createdAt),
+      );
   }, [rawTasks, user?.id]);
 
   // HR VERIFIED QUEUE: tasks that have been hr_verified
@@ -152,7 +179,11 @@ export default function HrVerificationPage() {
         const isNotMe = t.loggedById !== user?.id;
         return isNotMe && t.status === TASK_STATUS.COMPLETE && t.hrVerified;
       })
-      .sort((a, b) => new Date(b.hrVerifiedAt || b.createdAt) - new Date(a.hrVerifiedAt || a.createdAt));
+      .sort(
+        (a, b) =>
+          new Date(b.hrVerifiedAt || b.createdAt) -
+          new Date(a.hrVerifiedAt || a.createdAt),
+      );
   }, [rawTasks, user?.id]);
 
   const activeRawData = activeTab === "PENDING" ? pendingTasks : verifiedTasks;
@@ -197,29 +228,52 @@ export default function HrVerificationPage() {
         return true;
       });
     }
-    if (deptFilter !== "ALL" || subDeptFilter !== "ALL" || employeeFilter !== "ALL") {
+    if (
+      deptFilter !== "ALL" ||
+      subDeptFilter !== "ALL" ||
+      employeeFilter !== "ALL"
+    ) {
       const empMap = new Map();
       for (const emp of allEmployees) empMap.set(emp.id, emp);
       result = result.filter((task) => {
-        let matchesDept = true, matchesSubDept = true, matchesEmp = true;
+        let matchesDept = true,
+          matchesSubDept = true,
+          matchesEmp = true;
         const taskOwner = empMap.get(task.loggedById);
-        if (deptFilter !== "ALL") matchesDept = taskOwner?.department === deptFilter;
-        if (subDeptFilter !== "ALL") matchesSubDept = taskOwner?.subDepartment === subDeptFilter;
-        if (employeeFilter !== "ALL") matchesEmp = task.loggedById === employeeFilter;
+        if (deptFilter !== "ALL")
+          matchesDept = taskOwner?.department === deptFilter;
+        if (subDeptFilter !== "ALL")
+          matchesSubDept = taskOwner?.subDepartment === subDeptFilter;
+        if (employeeFilter !== "ALL")
+          matchesEmp = task.loggedById === employeeFilter;
         return matchesDept && matchesSubDept && matchesEmp;
       });
     }
-    if (sortBy === "NEWEST") result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    else if (sortBy === "OLDEST") result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    else if (sortBy === "NAME") result.sort((a, b) => (a.loggedByName || "").localeCompare(b.loggedByName || ""));
+    if (sortBy === "NEWEST")
+      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    else if (sortBy === "OLDEST")
+      result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    else if (sortBy === "NAME")
+      result.sort((a, b) =>
+        (a.loggedByName || "").localeCompare(b.loggedByName || ""),
+      );
     return result;
   }, [
-    activeRawData, searchQuery, priorityFilter, sortBy,
-    timeframe, selectedDateFilter, deptFilter, subDeptFilter, employeeFilter, allEmployees,
+    activeRawData,
+    searchQuery,
+    priorityFilter,
+    sortBy,
+    timeframe,
+    selectedDateFilter,
+    deptFilter,
+    subDeptFilter,
+    employeeFilter,
+    allEmployees,
   ]);
 
   const editTaskMutation = useMutation({
-    mutationFn: (updatedData) => taskService.updateTask(updatedData.id, updatedData),
+    mutationFn: (updatedData) =>
+      taskService.updateTask(updatedData.id, updatedData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboardTasks"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -234,11 +288,14 @@ export default function HrVerificationPage() {
     },
   });
 
-  const handleSelectAll = () => setSelectedTaskIds(filteredTasks.map((t) => t.id));
+  const handleSelectAll = () =>
+    setSelectedTaskIds(filteredTasks.map((t) => t.id));
   const handleDeselectAll = () => setSelectedTaskIds([]);
   const toggleTaskSelection = (taskId) =>
     setSelectedTaskIds((prev) =>
-      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId],
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId],
     );
 
   const handleBulkVerify = async ({ notes }) => {
@@ -287,8 +344,12 @@ export default function HrVerificationPage() {
     }
   };
 
-  const paginatedTasks = useMemo(() =>
-    filteredTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+  const paginatedTasks = useMemo(
+    () =>
+      filteredTasks.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage,
+      ),
     [filteredTasks, currentPage, itemsPerPage],
   );
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
@@ -316,7 +377,7 @@ export default function HrVerificationPage() {
           onSelectAllPending={handleSelectAll}
           onDeselectAll={handleDeselectAll}
           handleBulkApprove={() => setIsBulkVerifyModalOpen(true)}
-          handleBulkDecline={() => {}} 
+          handleBulkDecline={() => {}}
           handleUndoBulk={handleBulkUnverify}
           isVerifiedTab={activeTab === "VERIFIED"}
         />
@@ -337,7 +398,7 @@ export default function HrVerificationPage() {
                 icon: History,
                 badge: verifiedTasks.length || undefined,
               },
-              { value: "COMMITTEE", label: "Committee Tasks", icon: Users },
+              { value: "COMMITTEE", label: "Group Tasks", icon: Users },
             ]}
             activeTab={activeTab}
             onChange={setActiveTab}
@@ -354,7 +415,7 @@ export default function HrVerificationPage() {
               searchTerm={searchQuery}
               setSearchTerm={setSearchQuery}
               statusFilter={statusFilter}
-              setStatusFilter={() => {}} 
+              setStatusFilter={() => {}}
               priorityFilter={priorityFilter}
               setPriorityFilter={setPriorityFilter}
               timeframe={timeframe}
@@ -384,7 +445,8 @@ export default function HrVerificationPage() {
               <div className="flex flex-col gap-4">
                 {(searchQuery || priorityFilter !== "ALL") && (
                   <p className="text-xs font-bold text-muted-foreground px-1">
-                    Showing {filteredTasks.length} of {activeRawData.length} tasks
+                    Showing {filteredTasks.length} of {activeRawData.length}{" "}
+                    tasks
                   </p>
                 )}
                 {paginatedTasks.map((task) => (
@@ -396,12 +458,17 @@ export default function HrVerificationPage() {
                     defaultExpanded={task.id === autoOpenId}
                     onViewDetails={setViewTask}
                     onProcess={(payload) =>
-                      editTaskMutation.mutateAsync({ ...payload, editedBy: user.id })
+                      editTaskMutation.mutateAsync({
+                        ...payload,
+                        editedBy: user.id,
+                      })
                     }
                     appSettings={appSettings}
                     isSelected={selectedTaskIds.includes(task.id)}
                     onToggleSelection={
-                      appSettings?.enable_bulk_approval ? toggleTaskSelection : undefined
+                      appSettings?.enable_bulk_approval
+                        ? toggleTaskSelection
+                        : undefined
                     }
                     isVerifiedTab={activeTab === "VERIFIED"}
                     searchTerm={searchQuery}
@@ -430,7 +497,9 @@ export default function HrVerificationPage() {
                         size="sm"
                         disabled={currentPage === totalPages}
                         onClick={() => {
-                          setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1),
+                          );
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                       >
@@ -450,7 +519,10 @@ export default function HrVerificationPage() {
                 </p>
                 <Button
                   variant="outline"
-                  onClick={() => { setSearchQuery(""); setPriorityFilter("ALL"); }}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setPriorityFilter("ALL");
+                  }}
                   className="mt-6 font-semibold"
                 >
                   Clear filters
@@ -466,7 +538,11 @@ export default function HrVerificationPage() {
                       : "bg-muted text-muted-foreground ring-muted/50"
                   }`}
                 >
-                  {activeTab === "PENDING" ? <ShieldCheck size={32} /> : <History size={32} />}
+                  {activeTab === "PENDING" ? (
+                    <ShieldCheck size={32} />
+                  ) : (
+                    <History size={32} />
+                  )}
                 </div>
                 <p className="text-foreground font-bold text-2xl tracking-tight relative">
                   {activeTab === "PENDING" ? "All Clear!" : "No Verified Tasks"}
@@ -486,7 +562,9 @@ export default function HrVerificationPage() {
         isOpen={!!viewTask}
         onClose={() => setViewTask(null)}
         task={viewTask}
-        onUpdateTask={(updatedTask) => editTaskMutation.mutateAsync(updatedTask)}
+        onUpdateTask={(updatedTask) =>
+          editTaskMutation.mutateAsync(updatedTask)
+        }
         onDeleteTask={(payload) => deleteTaskMutation.mutateAsync(payload)}
       />
 
