@@ -122,7 +122,7 @@ export default function CommitteeRoleManagerModal({ isOpen, onClose }) {
               className="text-muted-foreground/50 rotate-[-90deg]"
             />
             <span className="font-medium text-muted-foreground/80">
-              Manage Committee Roles
+              Manage Group Roles
             </span>
           </div>
           <button
@@ -137,10 +137,10 @@ export default function CommitteeRoleManagerModal({ isOpen, onClose }) {
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col bg-muted/10">
           <div className="p-5 flex-1">
             <h3 className="text-sm font-bold text-foreground mb-1">
-              Committee Roles
+              Group Roles
             </h3>
             <p className="text-xs text-muted-foreground mb-4">
-              Add or modify standard roles for committee assignments. Changes
+              Add or modify standard roles for group task assignments. Changes
               apply globally.
             </p>
 

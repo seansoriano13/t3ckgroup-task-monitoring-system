@@ -107,7 +107,7 @@ export default function CommitteeTasksPage() {
     mutationFn: (id) => committeeTaskService.cancelCommitteeTask(id, user.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
-      toast.success("Committee Task deleted.");
+      toast.success("Group Task deleted.");
       setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
@@ -170,7 +170,7 @@ export default function CommitteeTasksPage() {
       committeeTaskService.verifyCommitteeTask(id, user.id, remarks),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
-      toast.success("Committee Task verified!");
+      toast.success("Group Task verified!");
       setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
@@ -181,7 +181,7 @@ export default function CommitteeTasksPage() {
       committeeTaskService.rejectCommitteeTask(id, user.id, remarks),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
-      toast.success("Committee Task rejected and sent back.");
+      toast.success("Group Task rejected and sent back.");
       setSelectedTaskId(null);
     },
     onError: (err) => toast.error(err.message),
@@ -192,7 +192,7 @@ export default function CommitteeTasksPage() {
       <div className="py-20 flex flex-col items-center justify-center text-muted-foreground h-[60vh]">
         <Spinner size="md" />
         <p className="font-bold animate-pulse tracking-wider uppercase text-sm">
-          Loading Committees...
+          Loading Group Tasks...
         </p>
       </div>
     );
@@ -201,11 +201,11 @@ export default function CommitteeTasksPage() {
   return (
     <PageContainer maxWidth="7xl" className="pt-4">
       <PageHeader
-        title="Committee Tasks"
+        title="Group Tasks"
         description={
           canManage
-            ? "Create and manage group committee assignments."
-            : "View your committee assignments and update progress."
+            ? "Create and manage group task assignments."
+            : "View your group task assignments and update progress."
         }
       />
 
@@ -242,12 +242,12 @@ export default function CommitteeTasksPage() {
         <div className="py-20 text-center bg-card border border-border border-dashed rounded-2xl">
           <Users size={32} className="mx-auto text-muted-foreground/50 mb-3" />
           <h3 className="text-lg font-bold text-foreground">
-            No Committee Tasks Found
+            No Group Tasks Found
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
             {searchTerm
               ? "Try adjusting your search criteria."
-              : "There are no active committee tasks at the moment."}
+              : "There are no active group tasks at the moment."}
           </p>
         </div>
       )}

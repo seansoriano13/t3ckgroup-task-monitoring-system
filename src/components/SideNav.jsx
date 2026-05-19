@@ -99,7 +99,7 @@ export default function SideNav() {
     mutationFn: (payload) => committeeTaskService.createCommitteeTask(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasks"] });
-      toast.success("Committee Task created!");
+      toast.success("Group Task created!");
       setIsCreateCommitteeOpen(false);
     },
     onError: (err) => toast.error(err.message),
@@ -120,7 +120,7 @@ export default function SideNav() {
     groups.main.links = [
       { label: "Dashboard", link: "/", icon: LayoutList },
       { label: "Tasks", link: "/tasks", icon: ListCheck },
-      { label: "Committee Tasks", link: "/committee", icon: UsersRound },
+      { label: "Group Tasks", link: "/committee", icon: UsersRound },
     ];
     groups.approvals.links = [
       { label: "Task Approval", link: "/approvals/tasks", icon: ShieldCheck },
@@ -150,7 +150,7 @@ export default function SideNav() {
     if (hasTask) {
       groups.main.links.push(
         { label: "Tasks", link: "/tasks", icon: ListCheck },
-        { label: "Committee Tasks", link: "/committee", icon: UsersRound },
+        { label: "Group Tasks", link: "/committee", icon: UsersRound },
       );
     }
 
@@ -418,7 +418,7 @@ export default function SideNav() {
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
                     >
                       <UsersRound size={14} />
-                      <span>Committee Task</span>
+                      <span>Group Task</span>
                     </button>
                   </div>
                 )}
