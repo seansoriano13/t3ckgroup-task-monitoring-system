@@ -298,7 +298,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
             )}
 
             {/* Always-visible first 2 items */}
-            <div className="space-y-1.5 relative z-10">
+            <div className="space-y-1.5">
               {previewItems.map((item, i) => (
                 <div
                   key={i}
