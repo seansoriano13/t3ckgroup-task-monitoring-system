@@ -28,7 +28,7 @@ export default function CommitteeApprovalSection() {
     mutationFn: ({ id, remarks }) => committeeTaskService.verifyCommitteeTask(id, user.id, remarks),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasksForHR"] });
-      toast.success("Group Task Verified!");
+      toast.success("Committee (Group) Task Verified!");
     },
     onError: (err) => toast.error(err.message)
   });
@@ -37,7 +37,7 @@ export default function CommitteeApprovalSection() {
     mutationFn: ({ id, remarks }) => committeeTaskService.rejectCommitteeTask(id, user.id, remarks),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["committeeTasksForHR"] });
-      toast.success("Group Task Rejected back to Head!");
+      toast.success("Committee (Group) Task Rejected back to Head!");
     },
     onError: (err) => toast.error(err.message)
   });
@@ -45,7 +45,7 @@ export default function CommitteeApprovalSection() {
   const [actionRemarks, setActionRemarks] = useState({});
 
   if (isLoading) {
-    return <div className="py-20 text-center font-bold text-muted-foreground">Loading Group Task Approvals...</div>;
+    return <div className="py-20 text-center font-bold text-muted-foreground">Loading Committee (Group) Task Approvals...</div>;
   }
 
   if (pendingHrTasks.length === 0) {
@@ -54,8 +54,8 @@ export default function CommitteeApprovalSection() {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 bg-muted text-muted-foreground ring-4 ring-muted/50">
           <Users size={32} />
         </div>
-        <p className="text-foreground font-bold text-2xl tracking-tight">No Group Tasks Pending</p>
-        <p className="text-muted-foreground mt-2 font-medium">There are no group tasks awaiting HR verification right now.</p>
+        <p className="text-foreground font-bold text-2xl tracking-tight">No Committee (Group) Tasks Pending</p>
+        <p className="text-muted-foreground mt-2 font-medium">There are no committee (group) tasks awaiting HR verification right now.</p>
       </div>
     );
   }

@@ -140,7 +140,7 @@ export default function CommitteeRoleManagerModal({ isOpen, onClose }) {
               Group Roles
             </h3>
             <p className="text-xs text-muted-foreground mb-4">
-              Add or modify standard roles for group task assignments. Changes
+              Add or modify standard roles for committee (group) task assignments. Changes
               apply globally.
             </p>
 
