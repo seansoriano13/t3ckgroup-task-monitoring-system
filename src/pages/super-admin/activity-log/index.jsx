@@ -34,7 +34,7 @@ const PAGE_SIZE = 50;
 const TABS = [
   { id: "TASKS", label: "Task Logs" },
   { id: "SALES", label: "Sales Logs" },
-  { id: "COMMITTEE", label: "Committee Logs" },
+  { id: "COMMITTEE", label: "Group Task Logs" },
   { id: "REVENUE", label: "Revenue Logs" },
   { id: "SYSTEM", label: "System Logs" },
 ];
@@ -77,7 +77,7 @@ function tryParseChecklist(str) {
       return parsed;
     }
     // eslint-disable-next-line no-empty, no-unused-vars
-  } catch (e) {}
+  } catch (e) { }
   return null;
 }
 
@@ -414,11 +414,10 @@ export default function SuperAdminActivityLogPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                    activeTab === tab.id
+                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === tab.id
                       ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                       : "text-muted-foreground hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -546,11 +545,10 @@ export default function SuperAdminActivityLogPage() {
                   type="button"
                   onClick={() => handleEntryClick(e)}
                   disabled={!isClickable}
-                  className={`w-full text-left bg-card border border-border rounded-xl p-4 transition-all duration-150 animate-content-in group ${
-                    isClickable
+                  className={`w-full text-left bg-card border border-border rounded-xl p-4 transition-all duration-150 animate-content-in group ${isClickable
                       ? "hover:border-mauve-6 hover:bg-muted/40 cursor-pointer"
                       : "cursor-default"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
