@@ -398,7 +398,7 @@ export default function HrVerificationPage() {
                 icon: History,
                 badge: verifiedTasks.length || undefined,
               },
-              { value: "COMMITTEE", label: "Group Tasks", icon: Users },
+              { value: "COMMITTEE", label: "Committee (Group) Tasks", icon: Users },
             ]}
             activeTab={activeTab}
             onChange={setActiveTab}

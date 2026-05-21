@@ -31,6 +31,7 @@ import Avatar from "./Avatar";
 import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
 import Dot from "./ui/Dot";
 import { handleNotificationRoute } from "../utils/notificationRouter";
+import { showNotificationPopup } from "../utils/notificationPopup";
 
 // ─── Relative Timestamp ───────────────────────────────────────────────────────
 function getRelativeTime(dateStr) {
@@ -148,12 +149,15 @@ export default function NotificationDrawer({ isOpen, onClose }) {
           newNotif,
           ...old,
         ]);
+        
+        const avatarUrl = avatarMap.get(newNotif.sender_id || newNotif.sender?.id);
+        showNotificationPopup(newNotif, navigate, user, avatarUrl);
       },
     );
     return () => {
       if (subscription) supabase.removeChannel(subscription);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, navigate, avatarMap]);
 
   // ── Mutations ─────────────────────────────────────────────────────────────
   const markReadMutation = useMutation({

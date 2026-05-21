@@ -156,7 +156,7 @@ export default function CreateCommitteeTaskModal({
             </div>
             <ChevronDown size={11} className="text-mauve-6 rotate-[-90deg]" />
             <span className="font-medium text-muted-foreground/80">
-              New Group Task
+              New Committee (Group) Task
             </span>
           </div>
           <div className="flex items-center gap-1">
@@ -190,7 +190,7 @@ export default function CreateCommitteeTaskModal({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Group Task Title"
+              placeholder="Committee (Group) Task Title"
               className="w-full text-xl font-semibold text-foreground bg-transparent outline-none placeholder:text-mauve-6 border-none pb-1 mb-3"
               autoComplete="off"
             />
@@ -200,7 +200,7 @@ export default function CreateCommitteeTaskModal({
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide an overview of the group task objective..."
+              placeholder="Provide an overview of the committee (group) task objective..."
               className={`w-full bg-transparent border-none outline-none transition-all resize-y text-[13px] text-foreground placeholder:text-mauve-6 ${
                 isExpanded ? "h-32" : "h-16"
               }`}
@@ -484,7 +484,7 @@ export default function CreateCommitteeTaskModal({
               ) : (
                 <>
                   <Check size={16} strokeWidth={3} className="mr-1.5" />
-                  <span>Create Group Task</span>
+                  <span>Create Committee (Group) Task</span>
                 </>
               )}
             </Button>

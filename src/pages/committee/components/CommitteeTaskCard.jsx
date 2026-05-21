@@ -44,8 +44,8 @@ export default function CommitteeTaskCard({
       onClick={onView}
       className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer relative"
     >
-      <div className="flex justify-between items-start gap-4 mb-3">
-        <h3 className="font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+      <div className="flex justify-between items-start gap-4 mb-3 w-full">
+        <h3 className="font-bold text-foreground line-clamp-2 break-words min-w-0 flex-1 leading-snug group-hover:text-primary transition-colors">
           <HighlightText text={task.title} search={searchTerm} />
         </h3>
 
@@ -69,7 +69,7 @@ export default function CommitteeTaskCard({
         </div>
       </div>
 
-      <p className="text-[11px] font-bold text-muted-foreground line-clamp-2 mb-4 flex-1 uppercase tracking-wider opacity-60">
+      <p className="text-[11px] font-bold text-muted-foreground line-clamp-2 break-words mb-4 flex-1 uppercase tracking-wider opacity-60 w-full">
         <HighlightText text={task.description || "No description provided."} search={searchTerm} />
       </p>
 
@@ -94,11 +94,11 @@ export default function CommitteeTaskCard({
 
       {/* My Assigned Task (Visible to Members) */}
       {myMember && !isCreator && !isSuperAdmin && (
-        <div className="mb-4 bg-muted/30 p-3.5 rounded-xl border border-border/40 hover:border-border/80 transition-colors">
-          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em] mb-1">
+        <div className="mb-4 bg-muted/30 p-3.5 rounded-xl border border-border/40 hover:border-border/80 transition-colors w-full min-w-0">
+          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em] mb-1 truncate">
             My Task
           </div>
-          <p className="text-sm font-bold text-foreground line-clamp-2 mb-3 leading-tight">
+          <p className="text-sm font-bold text-foreground line-clamp-2 break-words mb-3 leading-tight">
             <HighlightText text={formatChecklistToString(myMember.task_description)} search={searchTerm} />
           </p>
 

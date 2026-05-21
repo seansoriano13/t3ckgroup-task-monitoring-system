@@ -194,8 +194,8 @@ export default function CommitteeTaskDetailModal({
 
   const handleDelete = () => {
     confirmDeleteToast(
-      "Delete Group Task",
-      "Are you sure you want to delete this group task? This action cannot be undone.",
+      "Delete Committee (Group) Task",
+      "Are you sure you want to delete this committee (group) task? This action cannot be undone.",
       () => {
         onDelete();
       },

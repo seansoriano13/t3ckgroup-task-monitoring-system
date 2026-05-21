@@ -55,7 +55,7 @@ export default function CommitteeTasksList({ selectedRange }) {
     <section className="space-y-6 mt-8 w-full min-w-0">
       <SectionHeader
         icon={Users}
-        title="Group Tasks"
+        title="Committee (Group) Tasks"
         description="Active group assignments"
         rangeLabel={selectedRange?.label || "This Range"}
       >
@@ -133,7 +133,7 @@ export default function CommitteeTasksList({ selectedRange }) {
                 className={`${
                   layoutMode === "grid"
                     ? "w-full min-w-0"
-                    : "min-w-[300px] sm:min-w-[340px] snap-start flex-shrink-0"
+                    : "w-[300px] sm:w-[340px] max-w-[85vw] snap-start flex-shrink-0"
                 }`}
               >
                 <CommitteeTaskCard
