@@ -78,6 +78,8 @@ export function ApprovalRow({
       return;
     }
 
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
     if (!isHr) {
       const keyMap = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
       if (keyMap[e.key]) {

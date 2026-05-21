@@ -412,6 +412,9 @@ export default function TaskDetails({
       if (e.key !== "Enter") return;
     }
 
+    // Ignore keyboard shortcuts if a modifier key is pressed (e.g. Ctrl+V for paste)
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
     if (isFinalized || !canEvaluate) return;
 
     if (!isHr) {
