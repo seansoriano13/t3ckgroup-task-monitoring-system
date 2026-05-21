@@ -145,9 +145,8 @@ export default function LogSalesPage() {
 
         <form
           onSubmit={handleSubmit}
-          className={`max-w-3xl mx-auto bg-card rounded-2xl shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col overflow-hidden border transition-colors duration-300 ${
-            isOrder ? "border-green-5/60" : "border-mauve-5/60"
-          }`}
+          className={`max-w-3xl mx-auto bg-card rounded-2xl shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col overflow-hidden border transition-colors duration-300 ${isOrder ? "border-green-5/60" : "border-mauve-5/60"
+            }`}
         >
           <div className="p-6 sm:p-7 flex-1 space-y-6">
             {/* Record Type Toggle */}
@@ -156,7 +155,7 @@ export default function LogSalesPage() {
                 Select Record Type
               </label>
               <TabGroup
-                variant={isOrder ? "success" : "primary"}
+                variant={isOrder ? "success" : "violet"}
                 tabs={[
                   {
                     value: RECORD_TYPE.SALES_ORDER,
@@ -167,9 +166,6 @@ export default function LogSalesPage() {
                     value: RECORD_TYPE.SALES_QUOTATION,
                     label: "Sales Quotation",
                     icon: FileText,
-                    activeClass: !isOrder
-                      ? "bg-violet-9 text-white shadow-md shadow-violet-9/20 rounded-lg"
-                      : undefined,
                   },
                 ]}
                 activeTab={formData.record_type}
@@ -186,11 +182,10 @@ export default function LogSalesPage() {
                   Date
                 </label>
                 <div
-                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${
-                    isOrder
-                      ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
-                      : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
-                  }`}
+                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${isOrder
+                    ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
+                    : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
+                    }`}
                 >
                   <Calendar
                     size={14}
@@ -223,22 +218,17 @@ export default function LogSalesPage() {
                   Status
                 </label>
                 <TabGroup
-                  variant={isOrder ? "success" : "primary"}
+                  variant={isOrder ? "success" : "violet"}
                   tabs={[
                     {
                       value: REVENUE_STATUS.COMPLETED,
                       label: isOrder ? "COMPLETED" : "SUBMITTED",
-                      variant: "success",
-                      activeClass: !isOrder
-                        ? "bg-violet-9 text-white shadow-md shadow-violet-9/20 rounded-lg"
-                        : undefined,
+                      variant: isOrder ? "success" : "violet",
                     },
                     {
                       value: REVENUE_STATUS.LOST,
                       label: "LOST",
-                      variant: "destructive",
-                      activeClass:
-                        "bg-red-9 text-white shadow-md shadow-violet-9/20 rounded-lg",
+                      variant: "red",
                     },
                   ]}
                   activeTab={formData.status}
@@ -254,11 +244,10 @@ export default function LogSalesPage() {
                   Account / Client Name
                 </label>
                 <div
-                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${
-                    isOrder
-                      ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
-                      : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
-                  }`}
+                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${isOrder
+                    ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
+                    : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
+                    }`}
                 >
                   <Building2
                     size={14}
@@ -285,11 +274,10 @@ export default function LogSalesPage() {
                   Product / Item
                 </label>
                 <div
-                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${
-                    isOrder
-                      ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
-                      : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
-                  }`}
+                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${isOrder
+                    ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
+                    : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
+                    }`}
                 >
                   <Package
                     size={14}
@@ -322,11 +310,10 @@ export default function LogSalesPage() {
                   </span>
                 </label>
                 <div
-                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${
-                    isOrder
-                      ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
-                      : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
-                  }`}
+                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${isOrder
+                    ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
+                    : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
+                    }`}
                 >
                   <Hash
                     size={14}
@@ -366,11 +353,10 @@ export default function LogSalesPage() {
                   </span>
                 </label>
                 <div
-                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${
-                    isOrder
-                      ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
-                      : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
-                  }`}
+                  className={`flex items-center gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${isOrder
+                    ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
+                    : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
+                    }`}
                 >
                   <FileText
                     size={14}
@@ -396,23 +382,20 @@ export default function LogSalesPage() {
               {/* Amount */}
               <div className="space-y-1.5 sm:col-span-2">
                 <label
-                  className={`block text-[11px] font-bold uppercase tracking-widest ${
-                    isOrder ? "text-green-10" : "text-violet-10"
-                  }`}
+                  className={`block text-[11px] font-bold uppercase tracking-widest ${isOrder ? "text-green-10" : "text-violet-10"
+                    }`}
                 >
                   {isOrder ? "Revenue Amount (PHP)" : "Quotation Amount (PHP)"}
                 </label>
                 <div
-                  className={`flex items-center gap-2.5 px-4 py-3 bg-muted border rounded-xl transition-all shadow-inner ${
-                    isOrder
-                      ? "border-green-4 focus-within:border-green-6 focus-within:bg-green-1/30"
-                      : "border-violet-4 focus-within:border-violet-6 focus-within:bg-violet-1/30"
-                  }`}
+                  className={`flex items-center gap-2.5 px-4 py-3 bg-muted border rounded-xl transition-all shadow-inner ${isOrder
+                    ? "border-green-4 focus-within:border-green-6 focus-within:bg-green-1/30"
+                    : "border-violet-4 focus-within:border-violet-6 focus-within:bg-violet-1/30"
+                    }`}
                 >
                   <span
-                    className={`font-black text-lg ${
-                      isOrder ? "text-green-10" : "text-violet-10"
-                    }`}
+                    className={`font-black text-lg ${isOrder ? "text-green-10" : "text-violet-10"
+                      }`}
                   >
                     ₱
                   </span>
@@ -428,9 +411,8 @@ export default function LogSalesPage() {
                         revenue_amount: e.target.value,
                       })
                     }
-                    className={`flex-1 bg-transparent border-none outline-none font-black text-2xl placeholder:text-mauve-5 w-full ${
-                      isOrder ? "text-green-10" : "text-violet-10"
-                    }`}
+                    className={`flex-1 bg-transparent border-none outline-none font-black text-2xl placeholder:text-mauve-5 w-full ${isOrder ? "text-green-10" : "text-violet-10"
+                      }`}
                   />
                 </div>
               </div>
@@ -444,17 +426,15 @@ export default function LogSalesPage() {
                   </span>
                 </label>
                 <div
-                  className={`flex gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${
-                    isOrder
-                      ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
-                      : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
-                  }`}
+                  className={`flex gap-2.5 px-3 py-2 bg-muted border rounded-lg transition-colors ${isOrder
+                    ? "border-green-3 focus-within:border-green-6 focus-within:bg-green-1/30"
+                    : "border-mauve-3 focus-within:border-violet-5 focus-within:bg-violet-2/20"
+                    }`}
                 >
                   <AlignLeft
                     size={14}
-                    className={`mt-0.5 shrink-0 ${
-                      isOrder ? "text-green-7" : "text-mauve-7"
-                    }`}
+                    className={`mt-0.5 shrink-0 ${isOrder ? "text-green-7" : "text-mauve-7"
+                      }`}
                   />
                   <textarea
                     placeholder="Any additional notes?"
@@ -473,11 +453,10 @@ export default function LogSalesPage() {
             <button
               disabled={mutation.isPending}
               type="submit"
-              className={`h-10 px-6 rounded-xl shadow-lg flex items-center gap-2 text-sm font-bold text-white transition-all ${
-                isOrder
-                  ? "bg-green-10 hover:bg-green-800 shadow-green-900/20 disabled:bg-green-10/50"
-                  : "bg-violet-9 hover:bg-violet-10 shadow-violet-9/20 disabled:bg-violet-9/50"
-              }`}
+              className={`h-10 px-6 rounded-xl shadow-lg flex items-center gap-2 text-sm font-bold text-white transition-all ${isOrder
+                ? "bg-green-10 hover:bg-green-800 shadow-green-900/20 disabled:bg-green-10/50"
+                : "bg-violet-9 hover:bg-violet-10 shadow-violet-9/20 disabled:bg-violet-9/50"
+                }`}
             >
               {mutation.isPending ? (
                 <>

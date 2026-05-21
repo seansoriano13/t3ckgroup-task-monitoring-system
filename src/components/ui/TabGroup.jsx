@@ -43,8 +43,10 @@ export default function TabGroup({
     variant === "pill" && "bg-muted p-1 rounded-xl w-fit",
     (variant === "primary" ||
       variant === "success" ||
+      variant === "violet" ||
+      variant === "red" ||
       variant === "destructive") &&
-      "bg-card border border-border p-1 rounded-xl shadow-sm",
+    "bg-card border border-border p-1 rounded-xl shadow-sm",
     variant === "underline" && "gap-6 border-b border-border",
     fullWidth && "w-full",
     className,
@@ -62,6 +64,8 @@ export default function TabGroup({
     pill: "text-foreground",
     primary: "text-primary-foreground",
     success: "text-white",
+    violet: "text-white",
+    red: "text-white",
     destructive: "text-destructive-foreground",
     underline: "border-b-2 border-mauve-10 text-foreground -mb-px",
   };
@@ -71,6 +75,10 @@ export default function TabGroup({
     primary:
       "text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg",
     success:
+      "text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg",
+    violet:
+      "text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg",
+    red:
       "text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg",
     destructive:
       "text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg",
@@ -83,6 +91,8 @@ export default function TabGroup({
     pill: "bg-card shadow-sm rounded-lg",
     primary: "bg-primary shadow-md shadow-primary/15 rounded-lg",
     success: "bg-green-10 shadow-md shadow-green-9/20 rounded-lg",
+    violet: "bg-violet-9 shadow-md shadow-violet-9/20 rounded-lg",
+    red: "bg-red-9 shadow-md shadow-red-9/20 rounded-lg",
     destructive: "bg-destructive shadow-md shadow-destructive/15 rounded-lg",
     underline: "", // Handle underline separately if needed, but underline uses border
   };

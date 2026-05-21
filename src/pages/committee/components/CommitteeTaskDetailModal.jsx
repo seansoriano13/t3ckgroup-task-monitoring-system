@@ -325,7 +325,7 @@ export default function CommitteeTaskDetailModal({
               <div className="animate-content-in stagger-2 flex-1">
                 <div className="flex items-center justify-between mb-4 pl-1">
                   <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                    Group Members ({members.length})
+                    Committee (Group) Members ({members.length})
                   </label>
                 </div>
 
@@ -521,9 +521,8 @@ export default function CommitteeTaskDetailModal({
                                 </span>
                               </div>
 
-                              {/* Head/Admin Controls */}
-                              {(isCreator || isSuperAdmin) &&
-                                task.status === "ACTIVE" && (
+                              {/* Head/Admin Controls (Temporarily Accessible to All) */}
+                              {task.status === "ACTIVE" && (
                                   <div className="flex items-center gap-1">
                                     <button
                                       type="button"
@@ -629,9 +628,8 @@ export default function CommitteeTaskDetailModal({
                                   </button>
                                 )}
 
-                              {/* Undo action for Heads/Admins */}
-                              {(isCreator || isSuperAdmin) &&
-                                member.status === "DONE" &&
+                              {/* Undo action for Heads/Admins (Temporarily Accessible to All) */}
+                              {member.status === "DONE" &&
                                 task.status === "ACTIVE" && (
                                   <button
                                     onClick={() => onRevertDone(member.id)}
@@ -650,8 +648,8 @@ export default function CommitteeTaskDetailModal({
                 </div>
               </div>
 
-              {/* ADD MEMBER FORM */}
-              {(isCreator || isSuperAdmin) && task.status === "ACTIVE" && (
+              {/* ADD MEMBER FORM (Temporarily Accessible to All) */}
+              {task.status === "ACTIVE" && (
                 <div className="mt-4 pt-4 border-t border-border/50">
                   {!showAddMember ? (
                     <button
