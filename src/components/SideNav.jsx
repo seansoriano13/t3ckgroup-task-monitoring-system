@@ -284,9 +284,8 @@ export default function SideNav() {
               className="flex-1 min-w-0"
               trigger={({ isOpen }) => (
                 <div
-                  className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg transition-all ${
-                    isOpen ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/50"
-                  }`}
+                  className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg transition-all ${isOpen ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/50"
+                    }`}
                 >
                   <div className="flex items-center gap-2.5 overflow-hidden w-full group cursor-pointer transition-opacity">
                     <Avatar
@@ -301,9 +300,8 @@ export default function SideNav() {
                   </div>
                   <ChevronDown
                     size={14}
-                    className={`text-sidebar-foreground/60 transition-transform duration-200 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
+                    className={`text-sidebar-foreground/60 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </div>
               )}
@@ -385,11 +383,10 @@ export default function SideNav() {
                 usePortal={true}
                 trigger={({ isOpen }) => (
                   <button
-                    className={`relative flex-1 flex items-center justify-center py-2 px-3 rounded-lg border transition-all ${
-                      isOpen
-                        ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/10 shadow-sm"
-                        : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"
-                    }`}
+                    className={`relative flex-1 flex items-center justify-center py-2 px-3 rounded-lg border transition-all ${isOpen
+                      ? "bg-sidebar-accent text-sidebar-primary border-sidebar-primary/10 shadow-sm"
+                      : "border-sidebar-border bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-accent"
+                      }`}
                     title="Create new..."
                   >
                     <Plus size={15} strokeWidth={2.5} />
@@ -418,7 +415,7 @@ export default function SideNav() {
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors text-left"
                     >
                       <UsersRound size={14} />
-                      <span>Committee (Group) Task</span>
+                      <span>Group Task</span>
                     </button>
                   </div>
                 )}
@@ -452,15 +449,13 @@ export default function SideNav() {
                   </span>
                   <ChevronDown
                     size={14}
-                    className={`transition-transform duration-200 ${
-                      expandedGroups[key] ? "rotate-180" : ""
-                    }`}
+                    className={`transition-transform duration-200 ${expandedGroups[key] ? "rotate-180" : ""
+                      }`}
                   />
                 </div>
                 <div
-                  className={`flex flex-col gap-1 overflow-hidden transition-all duration-300 ${
-                    expandedGroups[key] ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-                  }`}
+                  className={`flex flex-col gap-1 overflow-hidden transition-all duration-300 ${expandedGroups[key] ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                    }`}
                 >
                   {group.links.map((navLink) => {
                     const Icon = navLink.icon;
@@ -476,10 +471,9 @@ export default function SideNav() {
                         }
                         onClick={() => setIsMobileOpen(false)}
                         className={({ isActive }) =>
-                          `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${
-                            isActive
-                              ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
-                              : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
+                          `flex gap-3.5 items-center px-3 py-2.5 rounded-md transition-colors ${isActive
+                            ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
+                            : "hover:text-sidebar-foreground hover:bg-sidebar-accent/50 text-sidebar-foreground/80"
                           }`
                         }
                       >
@@ -488,14 +482,12 @@ export default function SideNav() {
                             <Icon
                               size={15}
                               strokeWidth={2.2}
-                              className={`transition-colors ${
-                                isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"
-                              }`}
+                              className={`transition-colors ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                                }`}
                             />
                             <span
-                              className={`truncate text-[13.5px] mt-[1px] transition-all ${
-                                isActive ? "font-bold text-sidebar-primary" : "font-medium"
-                              }`}
+                              className={`truncate text-[13.5px] mt-[1px] transition-all ${isActive ? "font-bold text-sidebar-primary" : "font-medium"
+                                }`}
                             >
                               {navLink.label}
                             </span>
