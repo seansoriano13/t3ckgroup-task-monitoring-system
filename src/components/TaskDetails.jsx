@@ -57,6 +57,7 @@ export default function TaskDetails({
 
   const [approvalGrade, setApprovalGrade] = useState(null);
   const [editGrade, setEditGrade] = useState(null);
+  const [approvalRemarks, setApprovalRemarks] = useState("");
   const [descriptionType, setDescriptionType] = useState("description");
 
   // 🔥 FULL TASK FETCH: Fetch complete details ONLY when drawer is open
@@ -114,6 +115,7 @@ export default function TaskDetails({
       queueMicrotask(() => {
         setApprovalGrade(null);
         setEditGrade(activeTask?.grade ? Number(activeTask.grade) : null);
+        setApprovalRemarks("");
         timelineMessageRef.current = "";
 
         let initialDescriptionType = "description";
@@ -797,6 +799,28 @@ export default function TaskDetails({
                   canEvaluate={canEvaluate && !isFinalized}
                   finalized={isFinalized}
                 />
+
+                {/* --- APPROVAL REMARKS (only shown to evaluators before finalization) --- */}
+                {canEvaluate && !isFinalized && (
+                  <div className="flex flex-col gap-1.5 mt-4">
+                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                      <MessageCircle size={11} />
+                      Remarks
+                      <span className="font-normal normal-case tracking-normal text-muted-foreground/60">
+                        (required to reject)
+                      </span>
+                    </label>
+                    <Textarea
+                      value={approvalRemarks}
+                      onChange={(e) => {
+                        setApprovalRemarks(e.target.value);
+                        timelineMessageRef.current = e.target.value;
+                      }}
+                      placeholder="Leave feedback for the employee..."
+                      className="w-full bg-card border border-border text-foreground rounded-xl p-3 outline-none transition-all h-20 resize-none text-[13px] shadow-sm"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
