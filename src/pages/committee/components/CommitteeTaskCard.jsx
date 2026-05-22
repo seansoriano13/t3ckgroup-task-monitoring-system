@@ -85,8 +85,11 @@ export default function CommitteeTaskCard({
           </div>
           <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${progressPercent === 100 ? "bg-green-9" : "bg-primary"}`}
-              style={{ width: `${progressPercent}%` }}
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${progressPercent}%`,
+                background: `hsl(${progressPercent * 1.2}, 80%, 45%)`,
+              }}
             />
           </div>
         </div>
