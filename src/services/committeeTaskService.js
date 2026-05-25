@@ -417,10 +417,13 @@ export const committeeTaskService = {
       .eq("committee_task_id", id);
 
     if (members && members.length > 0) {
-      await supabase
-        .from("committee_task_members")
-        .update({ status: "PENDING", grade: null, grade_remarks: null, rated_at: null, rated_by: null })
-        .eq("committee_task_id", id);
+      // Update each member individually to avoid RLS policies blocking bulk updates
+      for (const member of members) {
+        await supabase
+          .from("committee_task_members")
+          .update({ status: "PENDING", grade: null, grade_remarks: null, rated_at: null, rated_by: null })
+          .eq("id", member.id);
+      }
     }
 
     const { error } = await supabase
