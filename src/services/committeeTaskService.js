@@ -219,7 +219,7 @@ export const committeeTaskService = {
   async markCommitteeTaskComplete(committeeTaskId, actorId) {
     const { data, error } = await supabase
       .from("committee_tasks")
-      .update({ status: "COMPLETED" })
+      .update({ status: "COMPLETED", hr_remarks: null })
       .eq("id", committeeTaskId)
       .select()
       .single();
