@@ -1,4 +1,4 @@
-import { CheckCircle2, Calendar, Clock } from "lucide-react";
+import { CheckCircle2, Calendar, Clock, AlertTriangle } from "lucide-react";
 import StatusBadge from "../../../components/StatusBadge";
 import { formatChecklistToString } from "../../../utils/taskFormatters";
 import GradeSelector from "../../../components/GradeSelector";
@@ -73,8 +73,15 @@ export default function CommitteeTaskCard({
         <HighlightText text={task.description || "No description provided."} search={searchTerm} />
       </p>
 
+      {/* HR Rejected Banner */}
+      {task.status === "ACTIVE" && task.hr_remarks && (
+        <div className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 bg-destructive/10 border border-red-500/20 rounded-lg text-[10px] font-bold text-destructive uppercase tracking-wider">
+          <AlertTriangle size={11} />
+          HR Rejected — Resubmit Required
+        </div>
+      )}
 
-      {/* Progress Bar (Visible to Heads or Admins) */}
+
       {(isCreator || isSuperAdmin) && task.status !== "CANCELLED" && (
         <div className="mb-4">
           <div className="flex justify-between text-xs mb-1.5 font-medium">
@@ -98,8 +105,15 @@ export default function CommitteeTaskCard({
       {/* My Assigned Task (Visible to Members) */}
       {myMember && !isCreator && !isSuperAdmin && (
         <div className="mb-4 bg-muted/30 p-3.5 rounded-xl border border-border/40 hover:border-border/80 transition-colors w-full min-w-0">
-          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em] mb-1 truncate">
-            My Task
+          <div className="flex items-center gap-2 mb-1">
+            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.1em] truncate">
+              My Task
+            </div>
+            {myMember.role && (
+              <span className="text-[9px] font-bold bg-mauve-4 text-mauve-11 dark:text-muted-foreground px-2 py-0.5 rounded uppercase tracking-wider border border-mauve-5 shrink-0">
+                {myMember.custom_role || myMember.role}
+              </span>
+            )}
           </div>
           <p className="text-sm font-bold text-foreground line-clamp-2 break-words mb-3 leading-tight">
             <HighlightText text={formatChecklistToString(myMember.task_description)} search={searchTerm} />

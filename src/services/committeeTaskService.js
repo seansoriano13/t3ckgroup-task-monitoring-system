@@ -128,7 +128,7 @@ export const committeeTaskService = {
         *,
         creator:employees!committee_tasks_created_by_fkey(name, department, sub_department, avatar_path),
         members:committee_task_members(
-          id, employee_id, task_description, status, grade, grade_remarks, rated_at, rated_by,
+          id, employee_id, task_description, status, grade, grade_remarks, rated_at, rated_by, role, custom_role,
           employee:employees!committee_task_members_employee_id_fkey(name, avatar_path)
         )
       `)
@@ -254,10 +254,10 @@ export const committeeTaskService = {
         .eq("id", r.memberId);
     }
 
-    // Once rated, move the committee task to HR_PENDING
+    // Once rated, move the committee task to HR_PENDING (clear any previous HR rejection remarks)
     const { error } = await supabase
       .from("committee_tasks")
-      .update({ status: "HR_PENDING" })
+      .update({ status: "HR_PENDING", hr_remarks: null })
       .eq("id", committeeTaskId);
 
     if (error) throw error;
@@ -410,10 +410,23 @@ export const committeeTaskService = {
   },
 
   async rejectCommitteeTask(id, actorId, remarks) {
+    // Reset member statuses to PENDING so they can resubmit
+    const { data: members } = await supabase
+      .from("committee_task_members")
+      .select("id")
+      .eq("committee_task_id", id);
+
+    if (members && members.length > 0) {
+      await supabase
+        .from("committee_task_members")
+        .update({ status: "PENDING", grade: null, grade_remarks: null, rated_at: null, rated_by: null })
+        .eq("committee_task_id", id);
+    }
+
     const { error } = await supabase
       .from("committee_tasks")
       .update({
-        status: "COMPLETED", // Goes back to completed for head to fix
+        status: "ACTIVE", // Goes back to ACTIVE so members can resubmit
         hr_remarks: remarks,
       })
       .eq("id", id);
