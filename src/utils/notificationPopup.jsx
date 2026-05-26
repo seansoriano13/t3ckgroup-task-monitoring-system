@@ -38,6 +38,7 @@ const TYPE_ICONS = {
   COMMITTEE_ASSIGNED: <Briefcase size={18} className="text-violet-9" />,
   COMMITTEE_TASK_COMMENT: <MessageCircle size={18} className="text-violet-9" />,
   COMMITTEE_TASK_READY_FOR_HR: <CheckCircle2 size={18} className="text-violet-10" />,
+  COMMITTEE_MEMBER_DONE: <CheckCircle2 size={18} className="text-green-500" />,
   SALES_QUOTA_PUBLISHED: <Target size={18} className="text-green-9" />,
   PLAN_AMENDMENT_REQUESTED: <Clock size={18} className="text-amber-500" />,
 };

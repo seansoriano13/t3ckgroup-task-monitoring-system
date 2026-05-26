@@ -199,6 +199,27 @@ export const committeeTaskService = {
       { event: status === "DONE" ? "MEMBER_DONE" : "MEMBER_PENDING", memberId },
     ).catch(console.error);
 
+    // Notify creator when a member marks DONE (only if the actor is not the creator)
+    if (status === "DONE") {
+      const creatorId = member.committee_tasks?.created_by;
+      if (creatorId && creatorId !== userId) {
+        const { data: employee } = await supabase
+          .from("employees")
+          .select("name")
+          .eq("id", userId)
+          .single();
+
+        notificationService.createNotification({
+          recipient_id: creatorId,
+          sender_id: userId,
+          type: "COMMITTEE_MEMBER_DONE",
+          title: "Member Completed Their Task",
+          message: `${employee?.name || "A member"} marked their assignment as done: "${member.task_description || "assignment"}" in committee task "${member.committee_tasks?.title || "a committee task"}".`,
+          reference_id: member.committee_task_id,
+        });
+      }
+    }
+
     // Check if ALL members are done to auto-complete
     if (status === "DONE") {
       const { data: allMembers } = await supabase

@@ -25,7 +25,8 @@ export function handleNotificationRoute(notif, user, navigate, onClose) {
     );
   } else if (
     notif.type === "COMMITTEE_ASSIGNED" ||
-    notif.type === "COMMITTEE_TASK_READY_FOR_HR"
+    notif.type === "COMMITTEE_TASK_READY_FOR_HR" ||
+    notif.type === "COMMITTEE_MEMBER_DONE"
   ) {
     navigate("/committee");
     window.dispatchEvent(
