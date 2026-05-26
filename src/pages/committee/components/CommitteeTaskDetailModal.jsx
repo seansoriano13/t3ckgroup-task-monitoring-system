@@ -933,7 +933,11 @@ export default function CommitteeTaskDetailModal({
                   className="h-9 px-6 rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
                 >
                   <Star size={16} fill="currentColor" />
-                  <span className="font-bold">Rate & Complete</span>
+                  <span className="font-bold">
+                    {task.status === "ACTIVE" && task.hr_remarks
+                      ? "Resubmit"
+                      : "Rate & Complete"}
+                  </span>
                 </Button>
               )}
 

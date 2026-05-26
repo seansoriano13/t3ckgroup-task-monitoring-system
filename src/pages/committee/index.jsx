@@ -22,6 +22,36 @@ export default function CommitteeTasksPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // --- Demo: animate first card's progress bar 0→100 for showcase ---
+  // const [demoProgress, setDemoProgress] = useState(0);
+  // useEffect(() => {
+  //   let val = 0;
+  //   let pausing = false;
+  //   let pauseTimeout = null;
+
+  //   const tick = setInterval(() => {
+  //     if (pausing) return;
+  //     val += 1;
+  //     if (val >= 100) {
+  //       val = 100;
+  //       setDemoProgress(100);
+  //       pausing = true;
+  //       pauseTimeout = setTimeout(() => {
+  //         val = 0;
+  //         pausing = false;
+  //         setDemoProgress(0);
+  //       }, 1200); // pause at full green for 1.2s
+  //       return;
+  //     }
+  //     setDemoProgress(val);
+  //   }, 80); // ~8s to fill, slow enough for transition to keep up
+
+  //   return () => {
+  //     clearInterval(tick);
+  //     if (pauseTimeout) clearTimeout(pauseTimeout);
+  //   };
+  // }, []);
+
   const isSuperAdmin =
     user?.is_super_admin === true || user?.isSuperAdmin === true;
   const isHead = user?.is_head === true || user?.isHead === true;
@@ -227,7 +257,7 @@ export default function CommitteeTasksPage() {
       {/* GRID */}
       {filteredTasks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredTasks.map((task) => (
+          {filteredTasks.map((task, index) => (
             <CommitteeTaskCard
               key={task.id}
               task={task}
@@ -235,6 +265,7 @@ export default function CommitteeTasksPage() {
               isSuperAdmin={isSuperAdmin}
               onView={() => setSelectedTaskId(task.id)}
               searchTerm={searchTerm}
+              // demoProgress={index === 0 ? demoProgress : undefined}
             />
           ))}
         </div>

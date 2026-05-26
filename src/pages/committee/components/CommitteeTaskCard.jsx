@@ -15,6 +15,7 @@ export default function CommitteeTaskCard({
   currentUserId,
   isSuperAdmin,
   searchTerm,
+  demoProgress,
 }) {
 
   const members = task.members || [];
@@ -94,8 +95,8 @@ export default function CommitteeTaskCard({
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
-                width: `${progressPercent}%`,
-                background: `hsl(${progressPercent * 1.2}, 80%, 45%)`,
+                width: `${demoProgress ?? progressPercent}%`,
+                background: `hsl(${(demoProgress ?? progressPercent) * 1.2}, 80%, 45%)`,
               }}
             />
           </div>
