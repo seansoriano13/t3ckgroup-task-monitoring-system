@@ -9,7 +9,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ErrorBoundary } from "react-error-boundary"
 import { useTheme } from "./hooks/useTheme"
 import { CustomToast } from "./components/ui/CustomToast"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,7 +54,6 @@ function ThemeApplier({ children }) {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <SpeedInsights />
     <ErrorBoundary FallbackComponent={GlobalErrorFallback}>
       <QueryClientProvider client={queryClient}>
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
