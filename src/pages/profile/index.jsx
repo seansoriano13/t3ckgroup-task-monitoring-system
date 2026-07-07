@@ -269,7 +269,9 @@ export default function ProfilePage() {
         dashboardBannerPath = bannerUrlInput.trim();
       }
 
-      const dashboardQuote = removeQuote ? "" : customQuote.trim().slice(0, 100);
+      const dashboardQuote = removeQuote
+        ? ""
+        : customQuote.trim().slice(0, 100);
 
       const updated = await employeeService.updateSelfPreferences(user.id, {
         avatarPath,
@@ -328,9 +330,8 @@ export default function ProfilePage() {
   const isUsingDefaultQuote = removeQuote || quoteLength === 0;
 
   const initialQuote = (user?.dashboardQuote || "").trim();
-  const initialBannerUrl = (isHttpUrl(user?.dashboardBannerPath)
-    ? user.dashboardBannerPath
-    : ""
+  const initialBannerUrl = (
+    isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : ""
   ).trim();
 
   const hasChanges =
@@ -527,17 +528,6 @@ export default function ProfilePage() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <img
-                  src={avatarPreviewUrl || "/default-avatar.png"}
-                  alt="Avatar preview"
-                  className="w-10 h-10 rounded-full object-cover border border-border shadow-sm"
-                />
-                <span className="text-xs text-muted-foreground font-medium">
-                  Profile photo preview (
-                  {isUsingDefaultAvatar ? "Default" : "Custom"})
-                </span>
-              </div>
             </div>
           </div>
 
@@ -572,6 +562,18 @@ export default function ProfilePage() {
                     Reset
                   </button>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <img
+                  src={avatarPreviewUrl || "/default-avatar.png"}
+                  alt="Avatar preview"
+                  className="w-10 h-10 rounded-full object-cover border border-border shadow-sm"
+                />
+                <span className="text-xs text-muted-foreground font-medium">
+                  Profile photo preview (
+                  {isUsingDefaultAvatar ? "Default" : "Custom"})
+                </span>
               </div>
               <input
                 ref={avatarInputRef}
@@ -613,7 +615,9 @@ export default function ProfilePage() {
                     onClick={() => {
                       const randomBanner =
                         UNSPLASH_BANNER_POOL[
-                          Math.floor(Math.random() * UNSPLASH_BANNER_POOL.length)
+                          Math.floor(
+                            Math.random() * UNSPLASH_BANNER_POOL.length,
+                          )
                         ];
                       setBannerUrlInput(randomBanner);
                       setBannerFile(null);
@@ -673,7 +677,9 @@ export default function ProfilePage() {
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[11px] text-mauve-8 mr-1 font-semibold">{quoteLength}/100</span>
+                <span className="text-[11px] text-mauve-8 mr-1 font-semibold">
+                  {quoteLength}/100
+                </span>
                 <button
                   type="button"
                   onClick={() => generateQuoteMutation.mutate()}
