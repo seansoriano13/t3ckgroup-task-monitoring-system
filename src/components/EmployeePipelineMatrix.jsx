@@ -316,7 +316,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                   >
                     {emp.draft > 0 && (
                       <div
-                        className="bg-orange-a7 hover:opacity-80 cursor-pointer"
+                        className="bg-amber-a7 hover:opacity-80 cursor-pointer"
                         style={{ width: `${(emp.draft / emp.total) * 100}%` }}
                         title={`${emp.draft} Incomplete`}
                         onClick={(e) =>
@@ -338,7 +338,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                     )}
                     {emp.eval > 0 && (
                       <div
-                        className="bg-violet-a7 hover:opacity-80 cursor-pointer"
+                        className="bg-blue-a7 hover:opacity-80 cursor-pointer"
                         style={{ width: `${(emp.eval / emp.total) * 100}%` }}
                         title={`${emp.eval} Awaiting Approval`}
                         onClick={(e) =>
@@ -387,7 +387,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                         handleDeepLink(e, TASK_STATUS.INCOMPLETE, emp.id)
                       }
                     >
-                      <span className="w-1.5 h-1.5 rounded-full inline-block bg-orange-a7" />
+                      <span className="w-1.5 h-1.5 rounded-full inline-block bg-amber-a7" />
                       {emp.draft} <span>Inc</span>
                     </span>
                     {emp.rejected > 0 && (
@@ -414,7 +414,7 @@ export default function EmployeePipelineMatrix({ selectedRange }) {
                           )
                         }
                       >
-                        <span className="w-1.5 h-1.5 rounded-full inline-block bg-violet-a7" />
+                        <span className="w-1.5 h-1.5 rounded-full inline-block bg-blue-a7" />
                         {emp.eval} <span>Eval</span>
                       </span>
                     )}

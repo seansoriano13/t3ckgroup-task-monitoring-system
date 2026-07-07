@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { taskService } from "../services/taskService";
@@ -31,9 +31,17 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
   const [isExpanded, setIsExpanded] = useState(false);
   const [createMore, setCreateMore] = useState(false);
 
+  // Backup ref: preserves plain-text description when switching to Checklist tab
+  const plainTextBackupRef = useRef("");
+  // Track previous isOpen to only reset on false→true transition (not on refetches)
+  const wasOpenRef = useRef(false);
+
   // ── Reset form when modal opens ───────────────────────────
   useEffect(() => {
-    if (isOpen) {
+    const justOpened = isOpen && !wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+
+    if (justOpened) {
       setFormData({
         loggedById: user?.id || "",
         categoryId: "",
@@ -51,6 +59,7 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
       setCategorySearch("");
       setSelectedHead("");
       setIsExpanded(false);
+      plainTextBackupRef.current = "";
       setHrDeptFilter(isHr && !isSuperAdmin ? user.department || "ADMIN" : "");
       setHrSubDeptFilter(isHr && !isSuperAdmin ? user.sub_department || user.subDepartment || "HR" : "");
     }
@@ -148,6 +157,32 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Switch between description/checklist tabs without losing data.
+   * When going description → checklist: saves current text to backup ref.
+   * When going checklist → description: restores backup ref into formData.
+   */
+  const handleDescriptionTypeChange = (newType) => {
+    if (newType === "checklist") {
+      // Save current plain text before switching to checklist
+      const currentDesc = formData.taskDescription;
+      const isJson =
+        typeof currentDesc === "string" &&
+        (currentDesc.trim().startsWith("[") ||
+          currentDesc.trim().startsWith("{"));
+      if (!isJson) {
+        plainTextBackupRef.current = currentDesc;
+      }
+    } else if (newType === "description") {
+      // Restore backed-up plain text when switching back
+      setFormData((prev) => ({
+        ...prev,
+        taskDescription: plainTextBackupRef.current,
+      }));
+    }
+    setDescriptionType(newType);
+  };
+
   const handleTogglePopover = (name) => {
     setOpenPopover((prev) => {
       if (prev === name) return null;
@@ -215,6 +250,7 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
     createMore,
     setCreateMore,
     handleChange,
+    handleDescriptionTypeChange,
     handleTogglePopover,
     handleSubmit,
     isSubmitting: addTaskMutation.isPending,

@@ -1,4 +1,4 @@
-﻿import { Receipt } from "lucide-react";
+import { Receipt } from "lucide-react";
 import ChecklistTaskInput from "../ChecklistTaskInput";
 
 export default function LogTaskDetailsSection({
@@ -7,7 +7,7 @@ export default function LogTaskDetailsSection({
   titleRef,
   selectedEmployeeInfo,
   descriptionType,
-  setDescriptionType,
+  onDescriptionTypeChange,
   isExpanded,
 }) {
   return (
@@ -48,7 +48,7 @@ export default function LogTaskDetailsSection({
         <div className="flex gap-0.5 mb-2 bg-muted rounded-lg border border-mauve-3 p-0.5 w-fit">
           <button
             type="button"
-            onClick={() => setDescriptionType("description")}
+            onClick={() => onDescriptionTypeChange("description")}
             className={`text-[11px] px-2.5 py-1 rounded-md font-semibold transition-all ${
               descriptionType === "description"
                 ? "bg-card text-foreground shadow-sm"
@@ -59,7 +59,7 @@ export default function LogTaskDetailsSection({
           </button>
           <button
             type="button"
-            onClick={() => setDescriptionType("checklist")}
+            onClick={() => onDescriptionTypeChange("checklist")}
             className={`text-[11px] px-2.5 py-1 rounded-md font-semibold transition-all ${
               descriptionType === "checklist"
                 ? "bg-card text-foreground shadow-sm"

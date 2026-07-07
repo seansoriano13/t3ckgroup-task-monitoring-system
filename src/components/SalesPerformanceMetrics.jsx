@@ -51,6 +51,18 @@ export default function SalesPerformanceMetrics({ globalRange }) {
   const [layoutMode, setLayoutMode] = useState("stack"); // "list" | "stack" | "grid"
   const avatarMap = useEmployeeAvatarMap();
 
+  const handleDeepLink = (e, statusFilter, empId) => {
+    e.stopPropagation();
+    navigate("/sales/records", {
+      state: {
+        filterEmployeeId: empId,
+        statusFilter,
+        timeframe: globalRange?.mode,
+        dateFilter: globalRange?.startDate,
+      },
+    });
+  };
+
   // Real-world reference for "Due" logic
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const todayMonthKey = today.slice(0, 7); // YYYY-MM
@@ -529,47 +541,52 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                       >
                         {stat.backlog > 0 && (
                           <div
-                            className="bg-orange-a7"
+                            className="bg-orange-a7 cursor-pointer hover:opacity-80 transition-opacity"
                             style={{
                               width: `${(stat.backlog / stat.total) * 100}%`,
                             }}
                             title={`${stat.backlog} Backlog`}
+                            onClick={(e) => handleDeepLink(e, "backlog", stat.id)}
                           />
                         )}
                         {stat.late > 0 && (
                           <div
-                            className="bg-red-a7"
+                            className="bg-red-a7 cursor-pointer hover:opacity-80 transition-opacity"
                             style={{
                               width: `${(stat.late / stat.total) * 100}%`,
                             }}
                             title={`${stat.late} Late`}
+                            onClick={(e) => handleDeepLink(e, "late", stat.id)}
                           />
                         )}
                         {stat.onTime > 0 && (
                           <div
-                            className="bg-green-a7"
+                            className="bg-green-a7 cursor-pointer hover:opacity-80 transition-opacity"
                             style={{
                               width: `${(stat.onTime / stat.total) * 100}%`,
                             }}
                             title={`${stat.onTime} On-Time`}
+                            onClick={(e) => handleDeepLink(e, "onTime", stat.id)}
                           />
                         )}
                         {stat.unplanned > 0 && (
                           <div
-                            className="bg-blue-a7"
+                            className="bg-blue-a7 cursor-pointer hover:opacity-80 transition-opacity"
                             style={{
                               width: `${(stat.unplanned / stat.total) * 100}%`,
                             }}
                             title={`${stat.unplanned} Unplanned`}
+                            onClick={(e) => handleDeepLink(e, "unplanned", stat.id)}
                           />
                         )}
                         {stat.pending > 0 && (
                           <div
-                            className="bg-mauve-a6"
+                            className="bg-mauve-a6 cursor-pointer hover:opacity-80 transition-opacity"
                             style={{
                               width: `${(stat.pending / stat.total) * 100}%`,
                             }}
                             title={`${stat.pending} Future`}
+                            onClick={(e) => handleDeepLink(e, "pending", stat.id)}
                           />
                         )}
                       </div>
@@ -578,26 +595,41 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                         className="flex flex-wrap items-center gap-3"
                         style={{ paddingTop: "8px" }}
                       >
-                        <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                        <span
+                          className="flex items-center gap-1 text-[12px] text-[#6B7280] cursor-pointer hover:text-foreground transition-colors"
+                          onClick={(e) => handleDeepLink(e, "backlog", stat.id)}
+                        >
                           <span className="w-1.5 h-1.5 rounded-full inline-block bg-orange-a7" />
                           {stat.backlog} <span>Back</span>
                         </span>
                         {stat.late > 0 && (
-                          <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                          <span
+                            className="flex items-center gap-1 text-[12px] text-[#6B7280] cursor-pointer hover:text-foreground transition-colors"
+                            onClick={(e) => handleDeepLink(e, "late", stat.id)}
+                          >
                             <span className="w-1.5 h-1.5 rounded-full inline-block bg-red-a7" />
                             {stat.late} <span>Late</span>
                           </span>
                         )}
-                        <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                        <span
+                          className="flex items-center gap-1 text-[12px] text-[#6B7280] cursor-pointer hover:text-foreground transition-colors"
+                          onClick={(e) => handleDeepLink(e, "onTime", stat.id)}
+                        >
                           <span className="w-1.5 h-1.5 rounded-full inline-block bg-green-a7" />
                           {stat.onTime} <span>Done</span>
                         </span>
-                        <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                        <span
+                          className="flex items-center gap-1 text-[12px] text-[#6B7280] cursor-pointer hover:text-foreground transition-colors"
+                          onClick={(e) => handleDeepLink(e, "unplanned", stat.id)}
+                        >
                           <span className="w-1.5 h-1.5 rounded-full inline-block bg-blue-a7" />
                           {stat.unplanned} <span>Extra</span>
                         </span>
                         {stat.pending > 0 && (
-                          <span className="flex items-center gap-1 text-[12px] text-[#6B7280]">
+                          <span
+                            className="flex items-center gap-1 text-[12px] text-[#6B7280] cursor-pointer hover:text-foreground transition-colors"
+                            onClick={(e) => handleDeepLink(e, "pending", stat.id)}
+                          >
                             <span className="w-1.5 h-1.5 rounded-full inline-block bg-mauve-a6" />
                             {stat.pending} <span>Fut</span>
                           </span>
@@ -724,47 +756,52 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                     <div className="w-full h-[7px] rounded-sm bg-[#F3F4F6] overflow-hidden flex">
                       {stat.backlog > 0 && (
                         <div
-                          className="bg-orange-a7"
+                          className="bg-orange-a7 cursor-pointer hover:opacity-80 transition-opacity"
                           style={{
                             width: `${(stat.backlog / stat.total) * 100}%`,
                           }}
                           title={`${stat.backlog} Backlog`}
+                          onClick={(e) => handleDeepLink(e, "backlog", stat.id)}
                         />
                       )}
                       {stat.late > 0 && (
                         <div
-                          className="bg-red-a7"
+                          className="bg-red-a7 cursor-pointer hover:opacity-80 transition-opacity"
                           style={{
                             width: `${(stat.late / stat.total) * 100}%`,
                           }}
                           title={`${stat.late} Late`}
+                          onClick={(e) => handleDeepLink(e, "late", stat.id)}
                         />
                       )}
                       {stat.onTime > 0 && (
                         <div
-                          className="bg-green-a7"
+                          className="bg-green-a7 cursor-pointer hover:opacity-80 transition-opacity"
                           style={{
                             width: `${(stat.onTime / stat.total) * 100}%`,
                           }}
                           title={`${stat.onTime} On-Time`}
+                          onClick={(e) => handleDeepLink(e, "onTime", stat.id)}
                         />
                       )}
                       {stat.unplanned > 0 && (
                         <div
-                          className="bg-blue-a7"
+                          className="bg-blue-a7 cursor-pointer hover:opacity-80 transition-opacity"
                           style={{
                             width: `${(stat.unplanned / stat.total) * 100}%`,
                           }}
                           title={`${stat.unplanned} Unplanned`}
+                          onClick={(e) => handleDeepLink(e, "unplanned", stat.id)}
                         />
                       )}
                       {stat.pending > 0 && (
                         <div
-                          className="bg-mauve-a6"
+                          className="bg-mauve-a6 cursor-pointer hover:opacity-80 transition-opacity"
                           style={{
                             width: `${(stat.pending / stat.total) * 100}%`,
                           }}
                           title={`${stat.pending} Future`}
+                          onClick={(e) => handleDeepLink(e, "pending", stat.id)}
                         />
                       )}
                     </div>
@@ -775,29 +812,34 @@ export default function SalesPerformanceMetrics({ globalRange }) {
                         colorClass="bg-orange-a7"
                         count={stat.backlog}
                         label="Back"
+                        onClick={(e) => handleDeepLink(e, "backlog", stat.id)}
                       />
                       {stat.late > 0 && (
                         <LegendItem
                           colorClass="bg-red-a7"
                           count={stat.late}
                           label="Late"
+                          onClick={(e) => handleDeepLink(e, "late", stat.id)}
                         />
                       )}
                       <LegendItem
                         colorClass="bg-green-a7"
                         count={stat.onTime}
                         label="Done"
+                        onClick={(e) => handleDeepLink(e, "onTime", stat.id)}
                       />
                       <LegendItem
                         colorClass="bg-blue-a7"
                         count={stat.unplanned}
                         label="Extra"
+                        onClick={(e) => handleDeepLink(e, "unplanned", stat.id)}
                       />
                       {stat.pending > 0 && (
                         <LegendItem
                           colorClass="bg-mauve-a6"
                           count={stat.pending}
                           label="Fut"
+                          onClick={(e) => handleDeepLink(e, "pending", stat.id)}
                         />
                       )}
                     </div>
@@ -1075,9 +1117,12 @@ export default function SalesPerformanceMetrics({ globalRange }) {
   );
 }
 
-function LegendItem({ colorClass, count, label }) {
+function LegendItem({ colorClass, count, label, onClick }) {
   return (
-    <span className="flex items-center gap-1 text-[11px] text-[#6B7280]">
+    <span
+      className={`flex items-center gap-1 text-[11px] text-[#6B7280] ${onClick ? "cursor-pointer hover:text-foreground transition-colors" : ""}`}
+      onClick={onClick}
+    >
       <Dot size="w-1.5 h-1.5" color={colorClass} />
       <span className="font-bold text-[#374151]">{count}</span>
       <span>{label}</span>

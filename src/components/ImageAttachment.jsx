@@ -209,7 +209,7 @@ export default function ImageAttachment({
       {/* Fullscreen Lightbox */}
       {fullscreenImage && (
          <div 
-           className="fixed inset-0 z-[99999] bg-black/90 flex-center p-4 backdrop-blur-sm"
+           className="fixed inset-0 z-[9999999] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
            onClick={() => setFullscreenImage(null)}
          >
            <button 

@@ -64,6 +64,24 @@ function getFullDate(dateStr) {
   });
 }
 
+// Safely renders notification message — handles cases where message is stored as JSON string
+function safeRenderMessage(msg) {
+  if (!msg) return "";
+  if (typeof msg !== "string") return String(msg);
+  const trimmed = msg.trim();
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === "object") {
+        return parsed.text || parsed.message || parsed.body || parsed.content || msg;
+      }
+    } catch {
+      // Not valid JSON — return as-is
+    }
+  }
+  return msg;
+}
+
 // ─── Icon Map ─────────────────────────────────────────────────────────────────
 const TYPE_ICONS = {
   TASK_GRADED: <CheckCircle2 size={18} className="text-green-500" />,
@@ -377,7 +395,7 @@ function NotifItem({
             </h4>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed font-normal">
-            {notif.message}
+            {safeRenderMessage(notif.message)}
           </p>
           <div className="mt-1.5 text-[12px] text-muted-foreground flex items-center gap-1.5">
             <span title={getFullDate(notif.created_at)} className="cursor-default">

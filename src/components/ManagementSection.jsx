@@ -117,7 +117,7 @@ const ManagementSection = ({
             <Dropdown
               usePortal
               className="w-full"
-              disabled={!canEditAssignee || (!formData.subDepartment && isHr)}
+              disabled={!canEditAssignee || (isHr && !formData.department && !formData.subDepartment)}
               trigger={({ isOpen, disabled }) => (
                 <FilterTrigger
                   label={

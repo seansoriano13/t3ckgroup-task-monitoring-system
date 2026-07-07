@@ -49,6 +49,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
     createMore,
     setCreateMore,
     handleChange,
+    handleDescriptionTypeChange,
     handleTogglePopover,
     handleSubmit,
     isSubmitting,
@@ -232,7 +233,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
             titleRef={titleRef}
             selectedEmployeeInfo={selectedEmployeeInfo}
             descriptionType={descriptionType}
-            setDescriptionType={setDescriptionType}
+            onDescriptionTypeChange={handleDescriptionTypeChange}
             isExpanded={isExpanded}
           />
 

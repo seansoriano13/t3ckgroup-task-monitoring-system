@@ -3,6 +3,29 @@ import { notificationService } from "../notificationService";
 import { taskActivityService } from "./taskActivityService";
 import { TASK_STATUS } from "../../constants/status";
 
+/**
+ * Extracts a readable plain-text snippet from a task description.
+ * Handles both plain text and JSON checklist format (e.g. [{"text":"...","checked":true}]).
+ */
+function formatTaskDescription(desc, maxLen = 30) {
+  if (!desc) return "(no description)";
+  const trimmed = String(desc).trim();
+  let text = trimmed;
+  if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        text = parsed.map((item) => item.text || "").filter(Boolean).join(", ");
+      } else if (parsed?.text) {
+        text = parsed.text;
+      }
+    } catch {
+      // Not valid JSON — use as-is
+    }
+  }
+  return text.length > maxLen ? text.substring(0, maxLen) + "..." : text;
+}
+
 export const taskMutationService = {
   // 3. CREATE
   async createTask(payload) {
@@ -827,7 +850,7 @@ export const taskMutationService = {
 
     // NOTIFICATION TRIGGERS
     if (current && payload.editedBy) {
-      const taskNameSnippet = `"${current.task_description?.substring(0, 30)}${current.task_description?.length > 30 ? "..." : ""}"`;
+      const taskNameSnippet = `"${formatTaskDescription(current.task_description)}"`;
 
       const isEmployeeSelfComplete =
         payload?.status === TASK_STATUS.AWAITING_APPROVAL &&

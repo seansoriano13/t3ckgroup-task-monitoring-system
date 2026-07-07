@@ -170,7 +170,7 @@ function MessageBubble({ entry, currentUserId }) {
       />
       <div
         className={cn(
-          "max-w-[80%] min-w-0 flex flex-col",
+          "max-w-[80%] min-w-0 flex flex-col overflow-hidden",
           isMe ? "items-end" : "items-start",
         )}
       >
@@ -196,7 +196,7 @@ function MessageBubble({ entry, currentUserId }) {
         </div>
         <div
           className={cn(
-            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all whitespace-pre-wrap break-all",
+            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all whitespace-pre-wrap break-words overflow-hidden",
             isMe
               ? "bg-primary text-primary-foreground rounded-tr-none"
               : "bg-card border border-border rounded-tl-none",

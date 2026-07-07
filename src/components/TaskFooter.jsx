@@ -79,32 +79,35 @@ const TaskFooter = ({ actions, permissions, state }) => {
           </Button>
         ) : (
           <>
-            {/* --- RESUBMIT (HR-rejected tasks — owner only) --- */}
-            {isOwner && isHrRejected && (
-              <Button
-                variant="ghost"
-                onClick={onResubmit}
-                disabled={isSubmitting || state.hasUncheckedItems}
-                className="h-9 rounded-xl px-5 text-[13px] font-bold border border-violet-6 bg-violet-3 text-violet-11 hover:bg-violet-4 hover:text-violet-11 shadow-sm gap-1.5"
-                title={
-                  state.hasUncheckedItems
-                    ? "Check all items first"
-                    : "Reset this task back to the Needs Approval queue"
-                }
-              >
-                {isSubmitting ? <Spinner size="sm" /> : <RefreshCw size={15} />}
-                Resubmit for Review
-              </Button>
-            )}
-
-            {/* --- AUTHOR ACTION --- */}
+            {/* --- AUTHOR ACTION (Edit / Resubmit) --- */}
             {canEdit && (
               <Button
                 variant="ghost"
-                onClick={onToggleEdit}
-                className="h-9 rounded-xl px-4 text-[13px] font-bold border border-mauve-6 bg-mauve-3 text-mauve-11 hover:bg-mauve-4 hover:text-mauve-12 shadow-sm gap-1.5"
+                onClick={isOwner && isHrRejected ? onResubmit : onToggleEdit}
+                disabled={isSubmitting && isOwner && isHrRejected}
+                className={`h-9 rounded-xl px-4 text-[13px] font-bold shadow-sm gap-1.5 ${
+                  isOwner && isHrRejected
+                    ? "border border-violet-6 bg-violet-3 text-violet-11 hover:bg-violet-4 hover:text-violet-11"
+                    : "border border-mauve-6 bg-mauve-3 text-mauve-11 hover:bg-mauve-4 hover:text-mauve-12"
+                }`}
+                title={
+                  isOwner && isHrRejected
+                    ? state.hasUncheckedItems
+                      ? "Check all items first"
+                      : "Reset this task back to the Needs Approval queue"
+                    : undefined
+                }
               >
-                <Edit3 size={15} /> Edit
+                {isOwner && isHrRejected ? (
+                  <>
+                    {isSubmitting ? <Spinner size="sm" /> : <RefreshCw size={15} />}
+                    Resubmit for Review
+                  </>
+                ) : (
+                  <>
+                    <Edit3 size={15} /> Edit
+                  </>
+                )}
               </Button>
             )}
 
