@@ -14,6 +14,7 @@ export default function LogTaskDetailsSection({
   onDescriptionTypeChange,
   isExpanded,
   onAttachmentsChange,
+  projectTitles = [],
 }) {
   const [isUploading, setIsUploading] = useState(false)
   const [fullscreenImage, setFullscreenImage] = useState(null)
@@ -84,7 +85,7 @@ export default function LogTaskDetailsSection({
   return (
     <>
       {/* 1. PROJECT / CAMPAIGN TITLE */}
-      <div className="animate-content-in stagger-1">
+      <div className="animate-content-in stagger-1 relative">
         <input
           ref={titleRef}
           type="text"
@@ -93,8 +94,14 @@ export default function LogTaskDetailsSection({
           onChange={handleChange}
           placeholder="Project / Campaign Title"
           className="w-full text-lg font-semibold text-foreground bg-transparent outline-none placeholder:text-mauve-6 border-none pb-1 mb-1"
-          autoComplete="off"
+          autoComplete="on"
+          list="project-titles-list"
         />
+        <datalist id="project-titles-list">
+          {projectTitles.map((title) => (
+            <option key={title} value={title} />
+          ))}
+        </datalist>
       </div>
 
       {/* Payment Voucher (ADMIN dept) */}

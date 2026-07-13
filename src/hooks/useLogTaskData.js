@@ -76,3 +76,4 @@ export function useLogTaskData(isOpen, user) {
     roles: { isHr, isHead, isSuperAdmin }
   };
 }
+

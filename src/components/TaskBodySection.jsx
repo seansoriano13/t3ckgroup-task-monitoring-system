@@ -1,4 +1,3 @@
-import React from "react"
 import { FolderKanban, Receipt } from "lucide-react"
 import Dot from "./ui/Dot"
 import { Input } from "@/components/ui/input"
@@ -7,6 +6,7 @@ import ChecklistTaskInput from "./ChecklistTaskInput"
 import ChecklistTaskRenderer from "./ChecklistTaskRenderer"
 import HighlightText from "./HighlightText"
 import ImageAttachment from "./ImageAttachment"
+import { useProjectTitles } from "../hooks/useProjectTitles"
 
 export default function TaskBodySection({
   isEditing,
@@ -25,6 +25,8 @@ export default function TaskBodySection({
   task,
   user,
 }) {
+  const projectTitles = useProjectTitles(task?.loggedById || task?.logged_by || user?.id, isEditing);
+
   return (
     <>
       {/* --- PROJECT / CAMPAIGN TITLE --- */}
@@ -39,14 +41,23 @@ export default function TaskBodySection({
             )}
           </label>
           {isEditing ? (
-            <Input
-              type="text"
-              name="projectTitle"
-              value={formData.projectTitle}
-              onChange={handleChange}
-              placeholder="e.g. Q2 Brand Awareness Campaign"
-              className="h-11 shadow-sm"
-            />
+            <div className="relative">
+              <Input
+                type="text"
+                name="projectTitle"
+                value={formData.projectTitle}
+                onChange={handleChange}
+                placeholder="e.g. Q2 Brand Awareness Campaign"
+                className="h-11 shadow-sm"
+                autoComplete="on"
+                list="project-titles-list"
+              />
+              <datalist id="project-titles-list">
+                {projectTitles.map((title) => (
+                  <option key={title} value={title} />
+                ))}
+              </datalist>
+            </div>
           ) : (
             <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-violet-10 flex items-center gap-2 shadow-sm">
               <FolderKanban size={14} />
