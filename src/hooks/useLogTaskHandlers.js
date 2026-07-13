@@ -18,6 +18,7 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
     endAt: "",
     priority: "LOW",
     paymentVoucher: "",
+    attachments: [],
   });
 
   const [selectedHead, setSelectedHead] = useState("");
@@ -51,6 +52,7 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
         endAt: "",
         priority: "LOW",
         paymentVoucher: "",
+        attachments: [],
       });
       setCommitteeRole("");
       setOthersRemarks("");
@@ -140,6 +142,7 @@ export function useLogTaskHandlers({ isOpen, onClose, user, categories, employee
           endAt: "",
           priority: "LOW",
           paymentVoucher: "",
+          attachments: [],
         }));
         setCommitteeRole("");
         setOthersRemarks("");

@@ -1,5 +1,9 @@
-import { Receipt } from "lucide-react";
-import ChecklistTaskInput from "../ChecklistTaskInput";
+import { Receipt, ImagePlus, X, Maximize2, ClipboardPaste } from "lucide-react"
+import { useState, useRef, useCallback, useEffect } from "react"
+import ChecklistTaskInput from "../ChecklistTaskInput"
+import Spinner from "@/components/ui/Spinner"
+import { storageService } from "../../services/storageService"
+import toast from "react-hot-toast"
 
 export default function LogTaskDetailsSection({
   formData,
@@ -9,7 +13,74 @@ export default function LogTaskDetailsSection({
   descriptionType,
   onDescriptionTypeChange,
   isExpanded,
+  onAttachmentsChange,
 }) {
+  const [isUploading, setIsUploading] = useState(false)
+  const [fullscreenImage, setFullscreenImage] = useState(null)
+  const fileInputRef = useRef(null)
+  const attachmentsRef = useRef(formData.attachments || [])
+  useEffect(() => {
+    attachmentsRef.current = formData.attachments || []
+  }, [formData.attachments])
+
+  const uploadFiles = useCallback(
+    async (files) => {
+      if (!files || files.length === 0) return
+      const current = attachmentsRef.current
+      if (current.length + files.length > 5) {
+        toast.error("Maximum 5 images allowed per task.")
+        return
+      }
+      setIsUploading(true)
+      try {
+        const uploads = files
+          .filter((f) => {
+            if (!f.type.startsWith("image/")) {
+              toast.error(`${f.name} is not an image.`)
+              return false
+            }
+            if (f.size > 5 * 1024 * 1024) {
+              toast.error(`${f.name} exceeds 5 MB.`)
+              return false
+            }
+            return true
+          })
+          .map((f) => storageService.uploadToCloudinary(f))
+        const urls = await Promise.all(uploads)
+        onAttachmentsChange([...current, ...urls])
+      } catch (err) {
+        toast.error("Upload failed: " + err.message)
+      } finally {
+        setIsUploading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ""
+      }
+    },
+    [onAttachmentsChange],
+  )
+
+  const handleFileChange = (e) => uploadFiles(Array.from(e.target.files))
+  const handleRemove = (url) =>
+    onAttachmentsChange((formData.attachments || []).filter((u) => u !== url))
+
+  // Ctrl+V paste support
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const items = Array.from(e.clipboardData?.items || [])
+      const imageItems = items.filter((item) => item.type.startsWith("image/"))
+      if (imageItems.length === 0) return
+      e.preventDefault()
+      toast("Screenshot detected — uploading...", { icon: "📋" })
+      const files = imageItems.map((item) => {
+        const blob = item.getAsFile()
+        return new File([blob], `paste_${Date.now()}.png`, { type: blob.type })
+      })
+      uploadFiles(files)
+    }
+    document.addEventListener("paste", handlePaste)
+    return () => document.removeEventListener("paste", handlePaste)
+  }, [uploadFiles])
+
+  const attachments = formData.attachments || []
   return (
     <>
       {/* 1. PROJECT / CAMPAIGN TITLE */}
@@ -96,6 +167,110 @@ export default function LogTaskDetailsSection({
           />
         )}
       </div>
+      {/* 3. IMAGE ATTACHMENTS */}
+      <div className="mb-3 animate-content-in stagger-3">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          className="hidden"
+        />
+
+        {/* Upload zone */}
+        <div className="border-2 border-dashed border-mauve-12/20 rounded-xl hover:border-mauve-12/40 hover:bg-mauve-3 transition-all">
+          {/* Thumbnail strip (inside zone) */}
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-3 pt-3">
+              {attachments.map((url, i) => (
+                <div
+                  key={url}
+                  className="relative group w-14 h-14 rounded-lg overflow-hidden border border-mauve-4 bg-mauve-2 shrink-0"
+                >
+                  <img
+                    src={url}
+                    alt={`Attachment ${i + 1}`}
+                    className="object-cover w-full h-full cursor-pointer"
+                    onClick={() => setFullscreenImage(url)}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => setFullscreenImage(url)}
+                      className="p-1 text-white"
+                    >
+                      <Maximize2 size={11} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRemove(url)
+                      }}
+                      className="p-1 text-white"
+                    >
+                      <X size={11} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Button row */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading || attachments.length >= 5}
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 text-[11px] font-semibold text-mauve-12/70 hover:text-mauve-12 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isUploading ? (
+              <>
+                <Spinner size="sm" />
+                <span>Uploading…</span>
+              </>
+            ) : attachments.length >= 5 ? (
+              <span className="text-muted-foreground">
+                5 / 5 images attached
+              </span>
+            ) : (
+              <>
+                <ImagePlus size={14} />
+                <span>
+                  {attachments.length > 0
+                    ? `Add more images (${attachments.length}/5)`
+                    : "Attach images"}
+                </span>
+                <span className="flex items-center gap-1 text-muted-foreground/60 font-normal ml-1">
+                  <ClipboardPaste size={12} /> or paste
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Fullscreen lightbox */}
+        {fullscreenImage && (
+          <div
+            className="fixed inset-0 z-[9999999] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+            onClick={() => setFullscreenImage(null)}
+          >
+            <button
+              className="absolute top-6 right-6 text-white hover:text-destructive transition-colors bg-black/50 p-2 rounded-full"
+              onClick={() => setFullscreenImage(null)}
+            >
+              <X size={24} />
+            </button>
+            <img
+              src={fullscreenImage}
+              alt="Fullscreen Attachment"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
+      </div>
     </>
-  );
+  )
 }

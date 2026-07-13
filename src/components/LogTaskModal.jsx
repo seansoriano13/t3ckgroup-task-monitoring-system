@@ -235,6 +235,9 @@ export default function LogTaskModal({ isOpen, onClose }) {
             descriptionType={descriptionType}
             onDescriptionTypeChange={handleDescriptionTypeChange}
             isExpanded={isExpanded}
+            onAttachmentsChange={(urls) =>
+              setFormData((prev) => ({ ...prev, attachments: urls }))
+            }
           />
 
           <LogTaskPropertyBar
