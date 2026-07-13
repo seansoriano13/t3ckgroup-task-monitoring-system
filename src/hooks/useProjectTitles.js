@@ -1,18 +1,20 @@
-import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useProjectTitles(employeeId = null, enabled = true) {
-  const [projectTitles, setProjectTitles] = useState([]);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!enabled) return;
-
-    let isMounted = true;
-    const fetchTitles = async () => {
+  const { data: projectTitles = [] } = useQuery({
+    queryKey: ["projectTitles", employeeId],
+    queryFn: async () => {
       try {
-        const cachedTasks = queryClient.getQueryData(["dashboardTasks"]) || [];
+        const rawCached = queryClient.getQueryData(["dashboardTasks"]);
+        const cachedTasks = Array.isArray(rawCached)
+          ? rawCached
+          : Array.isArray(rawCached?.tasks)
+          ? rawCached.tasks
+          : [];
+
         const cachedTitles = cachedTasks
           .filter((t) => !employeeId || t.loggedById === employeeId || t.logged_by === employeeId)
           .map((t) => t.projectTitle || t.project_title)
@@ -24,15 +26,17 @@ export function useProjectTitles(employeeId = null, enabled = true) {
           .not("project_title", "is", null)
           .neq("project_title", "");
 
-        if (employeeId) {
+        if (employeeId && typeof employeeId === "string" && employeeId.trim() !== "") {
           query = query.eq("logged_by", employeeId);
         }
 
-        const { data: tasksData } = await query
+        const { data: tasksData, error } = await query
           .order("created_at", { ascending: false })
           .limit(300);
 
-        if (!isMounted) return;
+        if (error) {
+          console.error("Supabase query error for project titles:", error.message || error);
+        }
 
         const seen = new Set();
         const uniqueTitles = [];
@@ -45,12 +49,9 @@ export function useProjectTitles(employeeId = null, enabled = true) {
           }
         }
 
-        if (tasksData) {
+        if (tasksData && Array.isArray(tasksData)) {
           for (const item of tasksData) {
-            const title =
-              typeof item.project_title === "string"
-                ? item.project_title.trim()
-                : "";
+            const title = typeof item.project_title === "string" ? item.project_title.trim() : "";
             if (title && !seen.has(title.toLowerCase())) {
               seen.add(title.toLowerCase());
               uniqueTitles.push(title);
@@ -59,19 +60,17 @@ export function useProjectTitles(employeeId = null, enabled = true) {
         }
 
         uniqueTitles.sort((a, b) => a.localeCompare(b));
-        setProjectTitles(uniqueTitles);
+        return uniqueTitles;
       } catch (err) {
-        console.error("Error fetching project titles:", err);
+        console.error("Error in fetchProjectTitles query:", err);
+        return [];
       }
-    };
-
-    fetchTitles();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [employeeId, enabled, queryClient]);
+    },
+    enabled: !!enabled,
+    staleTime: 1000 * 60 * 5,
+  });
 
   return projectTitles;
 }
+
 

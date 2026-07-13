@@ -4,6 +4,7 @@ import ChecklistTaskInput from "../ChecklistTaskInput"
 import Spinner from "@/components/ui/Spinner"
 import { storageService } from "../../services/storageService"
 import toast from "react-hot-toast"
+import { useProjectTitles } from "../../hooks/useProjectTitles"
 
 export default function LogTaskDetailsSection({
   formData,
@@ -14,8 +15,8 @@ export default function LogTaskDetailsSection({
   onDescriptionTypeChange,
   isExpanded,
   onAttachmentsChange,
-  projectTitles = [],
 }) {
+  const projectTitles = useProjectTitles(formData?.loggedById || selectedEmployeeInfo?.id, true)
   const [isUploading, setIsUploading] = useState(false)
   const [fullscreenImage, setFullscreenImage] = useState(null)
   const fileInputRef = useRef(null)

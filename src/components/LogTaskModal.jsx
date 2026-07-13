@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 // Hooks
 import { useLogTaskData } from "../hooks/useLogTaskData";
 import { useLogTaskHandlers } from "../hooks/useLogTaskHandlers";
-import { useProjectTitles } from "../hooks/useProjectTitles";
 
 // Components
 import LogTaskHeader from "./log-task/LogTaskHeader";
@@ -69,8 +68,6 @@ export default function LogTaskModal({ isOpen, onClose }) {
     availableHeads,
     roles,
   });
-
-  const projectTitles = useProjectTitles(formData.loggedById || user?.id, isOpen);
 
   // ── Auto-scroll Helper ────────────────────────────────────
   const scrollToElement = (ref, isSelect = false) => {
@@ -241,7 +238,6 @@ export default function LogTaskModal({ isOpen, onClose }) {
             onAttachmentsChange={(urls) =>
               setFormData((prev) => ({ ...prev, attachments: urls }))
             }
-            projectTitles={projectTitles}
           />
 
           <LogTaskPropertyBar
