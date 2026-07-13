@@ -9,6 +9,7 @@ export const salesEmployeeService = {
       .select(
         "id, name, department, sub_department, role, is_super_admin, avatar_path",
       )
+      .neq("is_deleted", true)
       .or(
         "department.ilike.%sales%,sub_department.ilike.%sales%,is_super_admin.eq.true",
       );

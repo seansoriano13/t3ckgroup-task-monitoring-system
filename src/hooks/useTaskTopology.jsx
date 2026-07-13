@@ -14,7 +14,8 @@ export function useTaskTopology(isOpen, formData, taskCategoryId, isEditing) {
         const [empRes, catRes] = await Promise.all([
           supabase
             .from("employees")
-            .select("id, name, department, sub_department"),
+            .select("id, name, department, sub_department")
+            .neq("is_deleted", true),
           supabase
             .from("categories")
             .select("category_id, description, department, sub_department"),

@@ -1,6 +1,45 @@
 import { supabase } from "../lib/supabase";
 import { systemAuditLogService } from "./systemAuditLogService";
 
+async function prepareEmailForSave(email, currentEmployeeId = null) {
+  if (!email) return null;
+  const cleanEmail = email.trim();
+  let query = supabase
+    .from("employees")
+    .select("id, email, is_deleted")
+    .eq("email", cleanEmail);
+
+  if (currentEmployeeId) {
+    query = query.neq("id", currentEmployeeId);
+  }
+
+  const { data: existingRows, error } = await query;
+  if (error || !existingRows || existingRows.length === 0) {
+    return cleanEmail;
+  }
+
+  const activeExisting = existingRows.find((row) => !row.is_deleted);
+  if (activeExisting) {
+    throw new Error(`An active employee with the email "${cleanEmail}" already exists.`);
+  }
+
+  // If we found rows with this exact email that are soft-deleted, archive their email so the new active employee can be created cleanly
+  const deletedExisting = existingRows.filter((row) => row.is_deleted);
+  for (const delEmp of deletedExisting) {
+    const baseEmail = delEmp.email?.split("#deleted_")[0] || delEmp.email;
+    const archivedEmail = `${baseEmail}#deleted_${Date.now()}_${delEmp.id.toString().slice(0, 4)}`;
+    await supabase
+      .from("employees")
+      .update({
+        email: archivedEmail,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", delEmp.id);
+  }
+
+  return cleanEmail;
+}
+
 export const employeeService = {
   async getEmployeeByEmail(email) {
     const { data, error } = await supabase
@@ -146,11 +185,12 @@ export const employeeService = {
   },
 
   async createEmployee(employeeData) {
+    const cleanEmail = await prepareEmailForSave(employeeData.email);
     const { data, error } = await supabase
       .from("employees")
       .insert([
         {
-          email: employeeData.email,
+          email: cleanEmail,
           name: employeeData.name,
           department: employeeData.department,
           sub_department: employeeData.subDepartment,
@@ -179,10 +219,11 @@ export const employeeService = {
   },
 
   async updateEmployee(id, employeeData, actorId = null) {
+    const cleanEmail = await prepareEmailForSave(employeeData.email, id);
     const { data, error } = await supabase
       .from("employees")
       .update({
-        email: employeeData.email,
+        email: cleanEmail,
         name: employeeData.name,
         department: employeeData.department,
         sub_department: employeeData.subDepartment,
@@ -220,9 +261,22 @@ export const employeeService = {
   },
 
   async deleteEmployee(id, actorId = null) {
+    const { data: emp, error: fetchErr } = await supabase
+      .from("employees")
+      .select("email, name")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr) throw fetchErr;
+
+    const currentEmail = emp?.email || "";
+    const baseEmail = currentEmail.split("#deleted_")[0];
+    const archivedEmail = `${baseEmail}#deleted_${Date.now()}`;
+
     const { error } = await supabase
       .from("employees")
       .update({
+        email: archivedEmail,
         is_deleted: true,
         updated_at: new Date().toISOString(),
         updated_by: actorId,
