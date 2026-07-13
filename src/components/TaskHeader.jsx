@@ -1,6 +1,6 @@
 import { ShieldCheck, MessageCircle, X } from "lucide-react";
 
-const TaskHeader = ({ isEditing, isHrVerified, onClose, onOpenChat }) => (
+const TaskHeader = ({ isEditing, isHrVerified, onClose, onOpenChat, extraButtons }) => (
   <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-card shrink-0">
     <div className="flex items-center gap-3">
       <h2 className="text-xl font-extrabold tracking-tight text-foreground">
@@ -22,6 +22,7 @@ const TaskHeader = ({ isEditing, isHrVerified, onClose, onOpenChat }) => (
           <MessageCircle size={18} />
         </button>
       )}
+      {!isEditing && extraButtons}
       <button
         onClick={onClose}
         className="h-9 w-9 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 border border-transparent hover:border-border"

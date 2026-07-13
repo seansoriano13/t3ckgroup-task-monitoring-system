@@ -1,38 +1,26 @@
-import { useState, useEffect, useRef } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useTaskTopology } from "../hooks/useTaskTopology";
-import TaskHeader from "./TaskHeader";
-import ManagementSection from "./ManagementSection";
-import StandardDetailsSection from "./StandardDetailsSection";
-import GradeSelector from "./GradeSelector";
-import TaskActivityTimeline from "./TaskActivityTimeline";
-import { formatDate, toLocalDatetimeString } from "../utils/formatDate";
-import { isCategoryMetadataRemarks } from "../utils/taskFormatters";
-import {
-  PencilLine,
-  FolderKanban,
-  Receipt,
-  AlertTriangle,
-  MessageCircle,
-  Clock,
-} from "lucide-react";
-import TaskFooter from "./TaskFooter.jsx";
-import { TASK_STATUS } from "../constants/status.js";
-import ChecklistTaskInput from "./ChecklistTaskInput";
-import ChecklistTaskRenderer from "./ChecklistTaskRenderer";
-import ImageAttachment from "./ImageAttachment";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "../lib/supabase.js";
-import { toast } from "react-hot-toast";
-import { confirmDeleteToast } from "./ui/CustomToast";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-
-import { activeChatService } from "../services/tasks/activeChatService";
-import { createPortal } from "react-dom";
-import HighlightText from "./HighlightText";
-import Dot from "./ui/Dot";
-import { taskQueryService } from "@/services/tasks/taskQueryService";
+import { useState, useEffect, useRef } from "react"
+import { useAuth } from "../context/AuthContext"
+import { useTaskTopology } from "../hooks/useTaskTopology"
+import TaskHeader from "./TaskHeader"
+import ManagementSection from "./ManagementSection"
+import StandardDetailsSection from "./StandardDetailsSection"
+import TaskBodySection from "./TaskBodySection"
+import TaskEvaluationSection from "./TaskEvaluationSection"
+import InlineTaskChat from "./InlineTaskChat"
+import TaskActivityTimeline from "./TaskActivityTimeline"
+import { formatDate, toLocalDatetimeString } from "../utils/formatDate"
+import { isCategoryMetadataRemarks } from "../utils/taskFormatters"
+import { PencilLine, AlertTriangle, Columns2, Maximize2 } from "lucide-react"
+import TaskFooter from "./TaskFooter.jsx"
+import { TASK_STATUS } from "../constants/status.js"
+import { useQuery } from "@tanstack/react-query"
+import { supabase } from "../lib/supabase.js"
+import { toast } from "react-hot-toast"
+import { confirmDeleteToast } from "./ui/CustomToast"
+import { activeChatService } from "../services/tasks/activeChatService"
+import { taskQueryService } from "@/services/tasks/taskQueryService"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
 
 export default function TaskDetails({
   isOpen,
@@ -42,23 +30,25 @@ export default function TaskDetails({
   onDeleteTask,
   searchTerm,
 }) {
-  const { user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth()
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [isSplitScreen, setIsSplitScreen] = useState(false)
 
   const { data: appSettings } = useQuery({
     queryKey: ["appSettings"],
     queryFn: async () => {
-      const { data } = await supabase.from("app_settings").select("*").single();
-      return data;
+      const { data } = await supabase.from("app_settings").select("*").single()
+      return data
     },
     staleTime: 5 * 60 * 1000, // 5 mins — setting rarely changes
-  });
+  })
 
-  const [approvalGrade, setApprovalGrade] = useState(null);
-  const [editGrade, setEditGrade] = useState(null);
-  const [approvalRemarks, setApprovalRemarks] = useState("");
-  const [descriptionType, setDescriptionType] = useState("description");
+  const [approvalGrade, setApprovalGrade] = useState(null)
+  const [editGrade, setEditGrade] = useState(null)
+  const [approvalRemarks, setApprovalRemarks] = useState("")
+  const [descriptionType, setDescriptionType] = useState("description")
 
   // 🔥 FULL TASK FETCH: Fetch complete details ONLY when drawer is open
   // This allows the main Dashboard/Task list to be lightweight (no attachments/large remarks)
@@ -67,14 +57,14 @@ export default function TaskDetails({
     queryFn: () => taskQueryService.getTaskById(task.id),
     enabled: isOpen && !!task?.id,
     staleTime: 1000 * 60, // Consider fresh for 1 min
-  });
+  })
 
-  const activeTask = fullTask || task; // Fallback to prop while loading
+  const activeTask = fullTask || task // Fallback to prop while loading
 
   // Timeline message ref — used by the approval flow to grab the message
   // from the timeline input box when the head clicks Approve/Reject
-  const timelineMessageRef = useRef("");
-  const modalRef = useRef(null);
+  const timelineMessageRef = useRef("")
+  const modalRef = useRef(null)
 
   const [formData, setFormData] = useState({
     department: "",
@@ -91,46 +81,46 @@ export default function TaskDetails({
     remarks: "",
     attachments: [],
     paymentVoucher: "",
-  });
-  const [initialFormData, setInitialFormData] = useState(null);
+  })
+  const [initialFormData, setInitialFormData] = useState(null)
 
   // Pre-hydrate the form data immediately when the modal opens or fullTask loads
   useEffect(() => {
     if (isOpen && activeTask) {
       if (user?.id) {
-        activeChatService.markAsRead(user.id, "TASK", activeTask.id);
+        activeChatService.markAsRead(user.id, "TASK", activeTask.id)
       }
 
       const taskDept =
         activeTask.creator?.department ||
         activeTask.employees?.department ||
         activeTask.department ||
-        "";
+        ""
       const taskSubDept =
         activeTask.creator?.sub_department ||
         activeTask.employees?.sub_department ||
         activeTask.sub_department ||
-        "";
+        ""
 
       queueMicrotask(() => {
-        setApprovalGrade(null);
-        setEditGrade(activeTask?.grade ? Number(activeTask.grade) : null);
-        setApprovalRemarks("");
-        timelineMessageRef.current = "";
+        setApprovalGrade(null)
+        setEditGrade(activeTask?.grade ? Number(activeTask.grade) : null)
+        setApprovalRemarks("")
+        timelineMessageRef.current = ""
 
-        let initialDescriptionType = "description";
-        const desc = activeTask.taskDescription;
+        let initialDescriptionType = "description"
+        const desc = activeTask.taskDescription
         if (desc) {
-          const trimmed = typeof desc === "string" ? desc.trim() : "";
+          const trimmed = typeof desc === "string" ? desc.trim() : ""
           if (
             (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
             (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
             Array.isArray(desc)
           ) {
-            initialDescriptionType = "checklist";
+            initialDescriptionType = "checklist"
           }
         }
-        setDescriptionType(initialDescriptionType);
+        setDescriptionType(initialDescriptionType)
 
         const newFormData = {
           department: taskDept || user?.department || "",
@@ -152,32 +142,31 @@ export default function TaskDetails({
           remarks: activeTask.remarks || "",
           attachments: activeTask.attachments || [],
           paymentVoucher: activeTask.paymentVoucher || "",
-        };
-        setFormData(newFormData);
-        setInitialFormData(newFormData);
-      });
+        }
+        setFormData(newFormData)
+        setInitialFormData(newFormData)
+      })
     }
-  }, [isOpen, activeTask, user]);
+  }, [isOpen, activeTask, user])
 
   // Role Checks
   const isHr =
     user?.is_hr === true ||
     user?.isHr === true ||
     user?.is_super_admin === true ||
-    user?.isSuperAdmin === true;
-  const isHead = user?.is_head === true || user?.isHead === true;
-  const isManagement = isHr || isHead;
+    user?.isSuperAdmin === true
+  const isHead = user?.is_head === true || user?.isHead === true
+  const isManagement = isHr || isHead
   const isSuperAdmin =
-    user?.is_super_admin === true || user?.isSuperAdmin === true;
-  const canEvaluate = isHead || isSuperAdmin;
+    user?.is_super_admin === true || user?.isSuperAdmin === true
+  const canEvaluate = isHead || isSuperAdmin
 
   // Re-evaluation: head is editing a task already approved but not yet HR-verified.
-  // Note: isComplete is declared after the early return guard, so we inline the check here.
   const canReEvalGrade =
     canEvaluate &&
     task?.status === TASK_STATUS.COMPLETE &&
     !task?.hrVerified &&
-    isEditing;
+    isEditing
 
   // Custom Data Hook
   const topologyData = useTaskTopology(
@@ -185,106 +174,105 @@ export default function TaskDetails({
     formData,
     task?.categoryId,
     isEditing,
-  );
+  )
 
   // Reset states when closed
   useEffect(() => {
     if (!isOpen) {
       setTimeout(() => {
-        setIsEditing(false);
-        setIsSubmitting(false);
-      }, 300);
-    } else {
-      // Focus modal for keyboard shortcuts
-      setTimeout(() => modalRef.current?.focus({ preventScroll: true }), 100);
+        setIsEditing(false)
+        setIsSubmitting(false)
+        setIsExpanded(false)
+        setIsSplitScreen(false)
+      }, 300)
     }
-  }, [isOpen]);
+  }, [isOpen])
 
-  if (!task) return null;
+  if (!task) return null
 
   const isDelayed =
     task?.status === TASK_STATUS.AWAITING_APPROVAL &&
     task?.createdAt &&
-    (new Date() - new Date(task.createdAt)) / (1000 * 60 * 60) >= 48;
+    (new Date() - new Date(task.createdAt)) / (1000 * 60 * 60) >= 48
 
   // Permissions & Handlers
-  const isOwner = user?.id === task.loggedById;
+  const isOwner = user?.id === task.loggedById
   const isHrRejected =
-    task.status === TASK_STATUS.NOT_APPROVED && (task.grade ?? 0) > 0;
+    task.status === TASK_STATUS.NOT_APPROVED && (task.grade ?? 0) > 0
   const canEdit =
     isHr ||
     isHead ||
     (isOwner &&
       task.status !== TASK_STATUS.COMPLETE &&
-      task.status !== TASK_STATUS.AWAITING_APPROVAL);
+      task.status !== TASK_STATUS.AWAITING_APPROVAL)
 
-  let isChecklistFormat = false;
-  let hasUncheckedItems = false;
+  let isChecklistFormat = false
+  let hasUncheckedItems = false
   if (formData.taskDescription) {
     const trimmed =
       typeof formData.taskDescription === "string"
         ? formData.taskDescription.trim()
-        : "";
+        : ""
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
-        const parsed = JSON.parse(trimmed);
+        const parsed = JSON.parse(trimmed)
         if (Array.isArray(parsed)) {
-          isChecklistFormat = true;
+          isChecklistFormat = true
           hasUncheckedItems = parsed.some(
             (item) => item && typeof item === "object" && !item.checked,
-          );
+          )
         }
       } catch (e) {
-        console.error(e);
+        console.error(e)
       }
     } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
-        const parsed = JSON.parse(trimmed);
+        const parsed = JSON.parse(trimmed)
         if (parsed && Array.isArray(parsed.items)) {
-          isChecklistFormat = true;
+          isChecklistFormat = true
           hasUncheckedItems = parsed.items.some(
             (item) => item && typeof item === "object" && !item.checked,
-          );
+          )
         }
       } catch (e) {
-        console.error(e);
+        console.error(e)
       }
     } else if (Array.isArray(formData.taskDescription)) {
-      isChecklistFormat = true;
+      isChecklistFormat = true
       hasUncheckedItems = formData.taskDescription.some(
         (item) => item && typeof item === "object" && !item.checked,
-      );
+      )
     }
   }
 
-  const taskDept = formData.department || user?.department;
+  const taskDept = formData.department || user?.department
   const taskSubDept =
-    formData.subDepartment || user?.sub_department || user?.subDepartment;
+    formData.subDepartment || user?.sub_department || user?.subDepartment
   const isMarketing =
     taskSubDept?.toUpperCase() === "MARKETING" ||
     taskDept?.toUpperCase() === "MARKETING" ||
-    task?.categoryDesc?.toUpperCase()?.includes("MARKETING");
+    task?.categoryDesc?.toUpperCase()?.includes("MARKETING")
 
   const selectedCategoryObj = topologyData?.filteredCategories?.find(
     (c) => c.category_id === formData.categoryId,
-  );
+  )
   const isOthersGlobal =
     selectedCategoryObj?.category_id?.toUpperCase().includes("OTHERS") ||
-    selectedCategoryObj?.description?.toUpperCase().includes("OTHERS");
+    selectedCategoryObj?.description?.toUpperCase().includes("OTHERS")
 
-  const isComplete = task.status === TASK_STATUS.COMPLETE;
-  const isNotApproved = task.status === TASK_STATUS.NOT_APPROVED;
-  const isFinalized = isComplete || isNotApproved;
+  const isComplete = task.status === TASK_STATUS.COMPLETE
+  const isNotApproved = task.status === TASK_STATUS.NOT_APPROVED
+  const isFinalized = isComplete || isNotApproved
   const timelineLegacyRemarks = isCategoryMetadataRemarks(task?.remarks)
     ? ""
-    : task?.remarks;
+    : task?.remarks
 
   const handleToggleEdit = () => {
-    setIsEditing(true);
-  };
+    setIsEditing(true)
+  }
 
   const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value })
   const handleDeptChange = (e) =>
     setFormData({
       ...formData,
@@ -292,58 +280,58 @@ export default function TaskDetails({
       subDepartment: "",
       loggedById: "",
       categoryId: "",
-    });
+    })
   const handleSubDeptChange = (e) =>
     setFormData({
       ...formData,
       subDepartment: e.target.value,
       loggedById: "",
       categoryId: "",
-    });
+    })
   const handleAssigneeChange = (e) =>
-    setFormData({ ...formData, loggedById: e.target.value, categoryId: "" });
+    setFormData({ ...formData, loggedById: e.target.value, categoryId: "" })
 
   const executeUpdate = async (payload, silent = false) => {
-    if (!silent) setIsSubmitting(true);
-    const toastId = !silent ? toast.loading("Processing...") : undefined;
+    if (!silent) setIsSubmitting(true)
+    const toastId = !silent ? toast.loading("Processing...") : undefined
     try {
-      await onUpdateTask(payload);
+      await onUpdateTask(payload)
       if (!silent) {
-        toast.success("Task updated!", { id: toastId });
-        onClose();
+        toast.success("Task updated!", { id: toastId })
+        onClose()
       }
     } catch {
       if (!silent) {
-        toast.error("Failed to process task", { id: toastId });
-        setIsSubmitting(false);
+        toast.error("Failed to process task", { id: toastId })
+        setIsSubmitting(false)
       }
     }
-  };
+  }
 
   const handleSaveEdit = () => {
     // eslint-disable-next-line no-unused-vars
-    const { department, subDepartment, status, grade, ...dbPayload } = formData;
+    const { department, subDepartment, status, grade, ...dbPayload } = formData
 
-    const payload = { id: task.id, ...dbPayload, editedBy: user.id };
+    const payload = { id: task.id, ...dbPayload, editedBy: user.id }
 
     // If re-evaluating a COMPLETE, non-HR-verified task, include grade fields
     if (canReEvalGrade && editGrade !== null) {
-      payload.grade = editGrade;
-      payload.evaluatedBy = user.id;
-      payload.status = TASK_STATUS.COMPLETE;
+      payload.grade = editGrade
+      payload.evaluatedBy = user.id
+      payload.status = TASK_STATUS.COMPLETE
     }
 
-    executeUpdate(payload);
-  };
+    executeUpdate(payload)
+  }
 
   const handleApprove = () => {
     if (approvalGrade === null) {
-      toast.error("Select a grade (1-5) before pressing Enter to approve");
-      return;
+      toast.error("Select a grade (1-5) before pressing Enter to approve")
+      return
     }
     if (hasUncheckedItems) {
-      toast.error("Checklist items must be complete before approval");
-      return;
+      toast.error("Checklist items must be complete before approval")
+      return
     }
     executeUpdate({
       id: task.id,
@@ -356,13 +344,13 @@ export default function TaskDetails({
       editedBy: user.id,
       hrVerified: false,
       hrRemarks: "",
-    });
-  };
+    })
+  }
 
   const handleReject = () => {
     if (!timelineMessageRef.current) {
-      toast.error("Remarks required to reject task in timeline");
-      return;
+      toast.error("Remarks required to reject task in timeline")
+      return
     }
     executeUpdate({
       id: task.id,
@@ -375,23 +363,23 @@ export default function TaskDetails({
       editedBy: user.id,
       hrVerified: false,
       hrRemarks: "",
-    });
-  };
+    })
+  }
 
   const handleResubmit = () => {
     executeUpdate({
       id: task.id,
       status: TASK_STATUS.INCOMPLETE,
       editedBy: user.id,
-    });
-  };
+    })
+  }
 
   const handleVerify = () => {
     if (task.status !== TASK_STATUS.COMPLETE) {
       toast.error(
         "Security policy limits verification exclusively to fully COMPLETE entries.",
-      );
-      return;
+      )
+      return
     }
     executeUpdate({
       id: task.id,
@@ -400,44 +388,44 @@ export default function TaskDetails({
       hrVerifiedAt: new Date().toISOString(),
       editedBy: user.id,
       activityMessage: timelineMessageRef.current || "",
-    });
-  };
+    })
+  }
 
   const handleKeyDown = (e) => {
-    if (!isOpen || isSubmitting || isEditing) return;
+    if (!isOpen || isSubmitting || isEditing) return
 
     if (
       e.target.tagName === "INPUT" ||
       e.target.tagName === "TEXTAREA" ||
       e.target.tagName === "SELECT"
     ) {
-      if (e.key !== "Enter") return;
+      if (e.key !== "Enter") return
     }
 
     // Ignore keyboard shortcuts if a modifier key is pressed (e.g. Ctrl+V for paste)
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return
 
-    if (isFinalized || !canEvaluate) return;
+    if (isFinalized || !canEvaluate) return
 
     if (!isHr) {
-      const keyMap = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+      const keyMap = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
       if (
         keyMap[e.key] &&
         e.target.tagName !== "INPUT" &&
         e.target.tagName !== "TEXTAREA"
       ) {
-        e.preventDefault();
-        setApprovalGrade(keyMap[e.key]);
+        e.preventDefault()
+        setApprovalGrade(keyMap[e.key])
       } else if (e.key === "Enter") {
-        e.preventDefault();
-        handleApprove();
+        e.preventDefault()
+        handleApprove()
       } else if (
         e.key.toLowerCase() === "x" &&
         e.target.tagName !== "INPUT" &&
         e.target.tagName !== "TEXTAREA"
       ) {
-        e.preventDefault();
-        handleReject();
+        e.preventDefault()
+        handleReject()
       }
     } else {
       if (
@@ -448,535 +436,365 @@ export default function TaskDetails({
           e.target.tagName !== "INPUT" &&
           e.target.tagName !== "TEXTAREA")
       ) {
-        e.preventDefault();
-        handleVerify();
+        e.preventDefault()
+        handleVerify()
       } else if (
         e.key.toLowerCase() === "x" &&
         e.target.tagName !== "INPUT" &&
         e.target.tagName !== "TEXTAREA"
       ) {
-        e.preventDefault();
-        handleReject();
+        e.preventDefault()
+        handleReject()
       }
     }
-  };
+  }
 
   const handleDelete = () => {
     confirmDeleteToast(
       "Delete Task?",
       "This will permanently remove the task from all active queues and history.",
       async () => {
-        setIsSubmitting(true);
-        const loadingToast = toast.loading("Purging task from system...");
+        setIsSubmitting(true)
+        const loadingToast = toast.loading("Purging task from system...")
         try {
-          await onDeleteTask({ id: task.id, userId: user.id });
-          toast.success("Task deleted successfully.", { id: loadingToast });
-          onClose();
+          await onDeleteTask({ id: task.id, userId: user.id })
+          toast.success("Task deleted successfully.", { id: loadingToast })
+          onClose()
         } catch {
-          toast.error("Failed to delete task.", { id: loadingToast });
-          setIsSubmitting(false);
+          toast.error("Failed to delete task.", { id: loadingToast })
+          setIsSubmitting(false)
         }
       },
-    );
-  };
+    )
+  }
 
-  return createPortal(
-    <>
-      <div
-        className={`dropdown-backdrop z-[9998] transition-all duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
-        onClick={onClose}
-      />
-
-      <div
-        ref={modalRef}
-        tabIndex={0}
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        showCloseButton={false}
         onKeyDown={handleKeyDown}
-        className={`fixed top-0 right-0 h-full w-full max-w-[720px] bg-card border-l border-border shadow-2xl z-[9999] transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col outline-none ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={cn(
+          "p-0 gap-0 z-[70] shadow-2xl flex flex-col transition-all duration-300 overflow-hidden outline-none",
+          isExpanded
+            ? "!w-screen !h-screen !max-w-none !max-h-none !rounded-none !top-0 !left-0 !right-0 !bottom-0 !translate-x-0 !translate-y-0 !border-0 m-0"
+            : isSplitScreen
+              ? "top-4 bottom-4 !translate-y-0 h-[calc(100vh-2rem)] max-h-none sm:max-w-none w-[95vw] xl:w-[1400px] rounded-2xl"
+              : "max-h-[90vh] sm:max-w-none w-[960px] max-w-[95vw] rounded-2xl",
+        )}
       >
-        <TaskHeader
-          isEditing={isEditing}
-          isHrVerified={task.hrVerified}
-          onClose={onClose}
-          onOpenChat={() => {
-            window.dispatchEvent(
-              new CustomEvent("OPEN_CHAT_MODAL", {
-                detail: { entityId: task.id, entityType: "TASK" },
-              }),
-            );
-          }}
-        />
-
-        <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-card">
-          {task.status === "DELETED" && (
-            <div className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center gap-3 text-destructive shadow-sm mt-0 -mb-4">
-              <div className="bg-red-100 p-2 rounded-lg">
-                <AlertTriangle size={20} className="text-destructive" />
-              </div>
-              <div>
-                <p className="text-sm font-black uppercase tracking-tight">
-                  Task Deleted
-                </p>
-                <p className="text-xs font-bold opacity-80">
-                  This task has been soft-deleted and is hidden from regular
-                  views.
-                </p>
-              </div>
-            </div>
+        {/* CONTENT WRAPPER */}
+        <div
+          className={cn(
+            "flex flex-1 overflow-hidden",
+            isSplitScreen ? "flex-row" : "flex-col",
           )}
-
-          <div className="space-y-4">
-            <ManagementSection
+        >
+          {/* TASK PANEL */}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <TaskHeader
               isEditing={isEditing}
-              isHr={isHr}
-              isHead={isHead}
-              task={task}
-              formData={formData}
-              taskLoggedByName={task.loggedByName}
-              reportedToName={task.reportedToName}
-              topologyData={topologyData}
-              handlers={{
-                handleDeptChange,
-                handleSubDeptChange,
-                handleAssigneeChange,
-              }}
+              isHrVerified={task.hrVerified}
+              onClose={onClose}
+              onOpenChat={
+                !isSplitScreen
+                  ? () => {
+                      window.dispatchEvent(
+                        new CustomEvent("OPEN_CHAT_MODAL", {
+                          detail: { entityId: task.id, entityType: "TASK" },
+                        }),
+                      )
+                    }
+                  : null
+              }
+              extraButtons={
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSplitScreen((prev) => !prev)
+                    }}
+                    title={
+                      isSplitScreen
+                        ? "Exit Split Screen"
+                        : "Split Screen (Task + Chat)"
+                    }
+                    className={cn(
+                      "h-9 w-9 flex items-center justify-center rounded-xl transition-all active:scale-95 border",
+                      isSplitScreen
+                        ? "text-primary bg-primary/10 border-primary/20 hover:bg-primary/20"
+                        : "text-muted-foreground border-transparent hover:bg-muted hover:border-border",
+                    )}
+                  >
+                    <Columns2 size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsExpanded((prev) => !prev)
+                    }}
+                    title={isExpanded ? "Collapse" : "Expand"}
+                    className="h-9 w-9 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 border border-transparent hover:border-border"
+                  >
+                    <Maximize2 size={16} />
+                  </button>
+                </>
+              }
             />
-            <StandardDetailsSection
-              isEditing={isEditing}
-              isManagement={isManagement}
-              formData={formData}
-              handleChange={handleChange}
-              topologyData={topologyData}
-              task={task}
-            />
 
-            {/* --- PROJECT / CAMPAIGN TITLE --- */}
-            {(isEditing || formData.projectTitle) && (
-              <div className="flex flex-col gap-1.5 pt-2">
-                <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
-                  <FolderKanban size={12} /> Project / Campaign Title
-                  {isEditing && (
-                    <span className="font-normal text-muted-foreground normal-case tracking-normal">
-                      (optional)
-                    </span>
-                  )}
-                </label>
-                {isEditing ? (
-                  <Input
-                    type="text"
-                    name="projectTitle"
-                    value={formData.projectTitle}
-                    onChange={handleChange}
-                    placeholder="e.g. Q2 Brand Awareness Campaign"
-                    className="h-11 shadow-sm"
-                  />
-                ) : (
-                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-violet-10 flex items-center gap-2 shadow-sm">
-                    <FolderKanban size={14} />
-                    {formData.projectTitle}
+            <div className="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-card">
+              {task.status === "DELETED" && (
+                <div className="bg-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-center gap-3 text-destructive shadow-sm mt-0 -mb-4">
+                  <div className="bg-red-100 p-2 rounded-lg">
+                    <AlertTriangle size={20} className="text-destructive" />
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* --- PAYMENT VOUCHER --- */}
-            {((isEditing && taskDept?.toUpperCase() === "ADMIN") ||
-              formData.paymentVoucher) && (
-              <div className="flex flex-col gap-1.5 pt-2">
-                <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
-                  <Receipt size={12} /> Payment Voucher
-                  {isEditing && (
-                    <span className="font-normal text-muted-foreground normal-case tracking-normal">
-                      (optional)
-                    </span>
-                  )}
-                </label>
-                {isEditing ? (
-                  <Input
-                    type="text"
-                    name="paymentVoucher"
-                    value={formData.paymentVoucher || ""}
-                    onChange={handleChange}
-                    placeholder="e.g. PV-2026-001"
-                    className="h-11 shadow-sm"
-                  />
-                ) : (
-                  <div className="bg-muted px-4 py-3 rounded-xl border border-border/50 text-sm font-bold text-foreground flex items-center gap-2 shadow-sm">
-                    <Receipt size={14} />
-                    {formData.paymentVoucher}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* --- OTHERS DETAILS --- */}
-            {isEditing && isOthersGlobal && (
-              <div className="flex flex-col gap-1.5 pt-2 animate-slide-down">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
-                  Others Details
-                </label>
-                <Textarea
-                  name="remarks"
-                  value={formData.remarks || ""}
-                  onChange={handleChange}
-                  placeholder="Specify details..."
-                  className="w-full bg-card border border-border text-foreground rounded-xl p-3 outline-none transition-all h-20 resize-none text-[13px] shadow-sm"
-                />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-1.5 pt-2">
-              {isEditing ? (
-                <div className="flex items-center justify-between pl-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Task Details
-                  </label>
-                  <div className="flex gap-1 bg-muted/50 p-0.5 rounded-lg border border-border">
-                    <button
-                      type="button"
-                      onClick={() => setDescriptionType("description")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
-                        descriptionType === "description"
-                          ? "bg-card text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-muted-foreground/80"
-                      }`}
-                    >
-                      Description
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDescriptionType("checklist")}
-                      className={`text-[10px] px-3 py-1 rounded-md font-bold transition-all ${
-                        descriptionType === "checklist"
-                          ? "bg-card text-muted-foreground00 shadow-sm"
-                          : "text-muted-foreground hover:text-slate-50000"
-                      }`}
-                    >
-                      Checklist
-                    </button>
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-tight">
+                      Task Deleted
+                    </p>
+                    <p className="text-xs font-bold opacity-80">
+                      This task has been soft-deleted and is hidden from regular
+                      views.
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] pl-1 flex items-center gap-2">
-                  <Dot />
-                  Description
-                </label>
               )}
 
-              {isEditing ? (
-                descriptionType === "checklist" ? (
-                  <ChecklistTaskInput
-                    value={formData.taskDescription}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  <Textarea
-                    name="taskDescription"
-                    value={
-                      typeof formData.taskDescription === "string" &&
-                      (formData.taskDescription.trim().startsWith("[") ||
-                        formData.taskDescription.trim().startsWith("{"))
-                        ? ""
-                        : formData.taskDescription
-                    }
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-card border border-border text-foreground rounded-xl p-4 outline-none transition-all h-32 resize-none text-[14px] shadow-sm"
-                  />
-                )
-              ) : isChecklistFormat ? (
-                <ChecklistTaskRenderer
-                  description={task.taskDescription}
-                  isOwner={isOwner}
-                  disabled={!canEdit || !isOwner}
-                  searchTerm={searchTerm}
-                  onInlineCheck={(newDesc) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      taskDescription: newDesc,
-                    }));
-                    executeUpdate(
-                      {
-                        id: task.id,
-                        taskDescription: newDesc,
-                        editedBy: user.id,
-                      },
-                      true,
-                    );
+              <div className="space-y-4">
+                <ManagementSection
+                  isEditing={isEditing}
+                  isHr={isHr}
+                  isHead={isHead}
+                  task={task}
+                  formData={formData}
+                  taskLoggedByName={task.loggedByName}
+                  reportedToName={task.reportedToName}
+                  topologyData={topologyData}
+                  handlers={{
+                    handleDeptChange,
+                    handleSubDeptChange,
+                    handleAssigneeChange,
                   }}
                 />
-              ) : (
-                <div className="bg-muted/30 p-6 rounded-2xl border border-border text-foreground leading-relaxed text-[15px] whitespace-pre-wrap shadow-sm">
-                  <HighlightText
-                    text={task.taskDescription}
-                    search={searchTerm}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* --- ATTACHMENTS (all tasks, owner only) --- */}
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-border mt-2">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
-                Attachments
-              </label>
-              <ImageAttachment
-                taskId={task.id}
-                userId={user.id}
-                attachments={formData.attachments || []}
-                onChange={(newAttachments) => {
-                  setFormData({ ...formData, attachments: newAttachments });
-                  executeUpdate(
-                    {
-                      id: task.id,
-                      attachments: newAttachments,
-                      editedBy: user.id,
-                    },
-                    true,
-                  );
-                }}
-                readOnly={!canEdit || !isOwner}
-              />
-            </div>
-
-            {/* --- GRADE EDIT (Re-evaluation during edit mode) --- */}
-            {canReEvalGrade && (
-              <div className="flex flex-col gap-1.5 pt-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-1.5">
-                  Performance Grade
-                  <span className="font-normal normal-case tracking-normal text-muted-foreground/70">
-                    (editing)
-                  </span>
-                </label>
-                <GradeSelector
-                  grade={editGrade}
-                  onSelect={setEditGrade}
-                  canEvaluate={true}
-                  finalized={false}
-                />
-              </div>
-            )}
-
-            {/* --- GRADE SELECTOR (for evaluation) --- */}
-            {!isEditing && (
-              <div
-                className={`p-4 rounded-xl border ${
-                  isComplete
-                    ? "bg-muted/50/50 border-border"
-                    : isNotApproved
-                      ? "bg-destructive/10 border-destructive/20"
-                      : "border-mauve-8"
-                }`}
-              >
-                <div className="grid gap-1 mb-3">
-                  <div className="text-xs font-bold uppercase tracking-wider">
-                    {isFinalized
-                      ? "Performance Grade"
-                      : canEvaluate
-                        ? "Performance Grade (Required for Approval)"
-                        : "Evaluation Status (Not Yet Evaluated)"}
-                  </div>
-
-                  {isFinalized && task.evaluatedByName && (
-                    <div className="text-[11px] text-muted-foreground flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        Evaluated by:{" "}
-                        <span className="font-bold text-muted-foreground">
-                          {task.evaluatedByName}
-                        </span>
-                      </div>
-                      {task.evaluatedById === task.loggedById && (
-                        <span className="px-2 py-0.5 rounded-full bg-purple-900/20 text-plum-9 text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
-                          Self-Verified
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <GradeSelector
-                  grade={isFinalized ? activeTask?.grade : approvalGrade}
-                  onSelect={setApprovalGrade}
-                  canEvaluate={canEvaluate && !isFinalized}
-                  finalized={isFinalized}
+                <StandardDetailsSection
+                  isEditing={isEditing}
+                  isManagement={isManagement}
+                  formData={formData}
+                  handleChange={handleChange}
+                  topologyData={topologyData}
+                  task={task}
                 />
 
-                {/* --- APPROVAL REMARKS (only shown to evaluators before finalization) --- */}
-                {canEvaluate && !isFinalized && (
-                  <div className="flex flex-col gap-1.5 mt-4">
-                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                      <MessageCircle size={11} />
-                      Remarks
-                      <span className="font-normal normal-case tracking-normal text-muted-foreground/60">
-                        (required to reject)
-                      </span>
-                    </label>
-                    <Textarea
-                      value={approvalRemarks}
-                      onChange={(e) => {
-                        setApprovalRemarks(e.target.value);
-                        timelineMessageRef.current = e.target.value;
-                      }}
-                      placeholder="Leave feedback for the employee..."
-                      className="w-full bg-card border border-border text-foreground rounded-xl p-3 outline-none transition-all h-20 resize-none text-[13px] shadow-sm"
+                <TaskBodySection
+                  isEditing={isEditing}
+                  formData={formData}
+                  handleChange={handleChange}
+                  descriptionType={descriptionType}
+                  setDescriptionType={setDescriptionType}
+                  isChecklistFormat={isChecklistFormat}
+                  isOthersGlobal={isOthersGlobal}
+                  taskDept={taskDept}
+                  isOwner={isOwner}
+                  canEdit={canEdit}
+                  searchTerm={searchTerm}
+                  setFormData={setFormData}
+                  executeUpdate={executeUpdate}
+                  task={task}
+                  user={user}
+                />
+
+                <TaskEvaluationSection
+                  isEditing={isEditing}
+                  canReEvalGrade={canReEvalGrade}
+                  editGrade={editGrade}
+                  setEditGrade={setEditGrade}
+                  isComplete={isComplete}
+                  isNotApproved={isNotApproved}
+                  isFinalized={isFinalized}
+                  canEvaluate={canEvaluate}
+                  task={task}
+                  activeTask={activeTask}
+                  approvalGrade={approvalGrade}
+                  setApprovalGrade={setApprovalGrade}
+                  approvalRemarks={approvalRemarks}
+                  setApprovalRemarks={setApprovalRemarks}
+                  timelineMessageRef={timelineMessageRef}
+                />
+
+                {/* --- UNIFIED ACTIVITY TIMELINE --- */}
+                {!isEditing && !isSplitScreen && (
+                  <div className="pt-2 border-t border-border mt-2">
+                    <TaskActivityTimeline
+                      taskId={task.id}
+                      legacyRemarks={timelineLegacyRemarks}
+                      legacyHrRemarks={task.hrRemarks}
+                      evaluatedByName={task.evaluatedByName}
+                      grade={task.grade}
+                      disabled={task.status === TASK_STATUS.DELETED}
                     />
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* --- UNIFIED ACTIVITY TIMELINE --- */}
-            {!isEditing && (
-              <div className="pt-2 border-t border-border mt-2">
-                <TaskActivityTimeline
-                  taskId={task.id}
-                  legacyRemarks={timelineLegacyRemarks}
-                  legacyHrRemarks={task.hrRemarks}
-                  evaluatedByName={task.evaluatedByName}
-                  grade={task.grade}
-                  disabled={task.status === TASK_STATUS.DELETED}
-                />
-              </div>
-            )}
+                {!isEditing && task.editedById && (
+                  <div className="pt-4 border-t border-border flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <p className="flex items-center gap-1.5">
+                      <PencilLine size={12} /> Last Modified By{" "}
+                      <span className="text-muted-foreground/80">
+                        {task.editedByName}
+                      </span>
+                    </p>
+                    <p>{formatDate(task.editedAt)}</p>
+                  </div>
+                )}
 
-            {!isEditing && task.editedById && (
-              <div className="pt-4 border-t border-border flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                <p className="flex items-center gap-1.5">
-                  <PencilLine size={12} /> Last Modified By{" "}
-                  <span className="text-muted-foreground/80">
-                    {task.editedByName}
-                  </span>
-                </p>
-                <p>{formatDate(task.editedAt)}</p>
+                {/* KEYBOARD SHORTCUTS HINT */}
+                {!isFinalized && !isEditing && canEvaluate && (
+                  <div className="pt-2 flex justify-center opacity-70 mb-4 pb-4">
+                    <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase flex items-center gap-2">
+                      Shortcuts:
+                      {!isHr ? (
+                        <>
+                          <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">
+                            1-5
+                          </span>{" "}
+                          Select Grade
+                          <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                            Enter
+                          </span>{" "}
+                          Approve
+                          <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                            X
+                          </span>{" "}
+                          Reject
+                        </>
+                      ) : (
+                        <>
+                          <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">
+                            V / Enter
+                          </span>{" "}
+                          Verify
+                          <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
+                            X
+                          </span>{" "}
+                          Reject
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+            {/* end task scrollable content */}
 
-            {/* KEYBOARD SHORTCUTS HINT */}
-            {!isFinalized && !isEditing && canEvaluate && (
-              <div className="pt-2 flex justify-center opacity-70 mb-4 pb-4">
-                <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase flex items-center gap-2">
-                  Shortcuts:
-                  {!isHr ? (
-                    <>
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">
-                        1-5
-                      </span>{" "}
-                      Select Grade
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
-                        Enter
-                      </span>{" "}
-                      Approve
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
-                        X
-                      </span>{" "}
-                      Reject
-                    </>
-                  ) : (
-                    <>
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border">
-                        V / Enter
-                      </span>{" "}
-                      Verify
-                      <span className="bg-muted/50 text-foreground px-1.5 py-0.5 rounded border border-border ml-2">
-                        X
-                      </span>{" "}
-                      Reject
-                    </>
-                  )}
-                </p>
-              </div>
-            )}
+            <TaskFooter
+              actions={{
+                onCancel: () => setIsEditing(false),
+                onClose,
+                onSave: handleSaveEdit,
+                onToggleEdit: handleToggleEdit,
+                onDelete: handleDelete,
+                onHeadReject: handleReject,
+                onSubmitApproval: () => {
+                  const payload = {
+                    id: task.id,
+                    status: TASK_STATUS.AWAITING_APPROVAL,
+                    editedBy: user.id,
+                  }
+                  if (isMarketing) {
+                    payload.endAt = task.endAt || new Date().toISOString()
+                  }
+                  return executeUpdate(payload)
+                },
+                onMarkComplete: handleApprove,
+                onUndoVerify: () =>
+                  executeUpdate({
+                    id: task.id,
+                    status: TASK_STATUS.COMPLETE,
+                    hrVerified: false,
+                    hrRemarks: "",
+                    editedBy: user.id,
+                  }),
+
+                onHrVerify: handleVerify,
+
+                onSelfVerify: () =>
+                  executeUpdate({
+                    id: task.id,
+                    status: TASK_STATUS.COMPLETE,
+                    endAt: new Date().toISOString(),
+                    grade: 3,
+                    remarks: "Self-Verified (System Bypass)",
+                    evaluatedBy: user.id,
+                    editedBy: user.id,
+                    hrVerified: false,
+                    hrRemarks: "",
+                  }),
+
+                onRecallTask: () =>
+                  executeUpdate({
+                    id: task.id,
+                    status: TASK_STATUS.INCOMPLETE,
+                    editedBy: user.id,
+                  }),
+
+                onResubmit: handleResubmit,
+
+                setTimelineMessage: (msg) => {
+                  timelineMessageRef.current = msg
+                },
+              }}
+              permissions={{
+                canEdit,
+                canEvaluate,
+                isHr,
+                isManagement,
+                isOwner,
+              }}
+              state={{
+                isEditing,
+                isSubmitting,
+                task,
+                formIsValid:
+                  !isSubmitting &&
+                  !topologyData.isLoadingTop &&
+                  !(isManagement && !formData.loggedById) &&
+                  !!formData.categoryId &&
+                  (initialFormData
+                    ? JSON.stringify(formData) !==
+                        JSON.stringify(initialFormData) ||
+                      (canReEvalGrade &&
+                        editGrade !==
+                          (activeTask?.grade
+                            ? Number(activeTask.grade)
+                            : null))
+                    : false),
+                canApprove: approvalGrade !== null && !hasUncheckedItems,
+                isMarketing,
+                universalTaskSubmission:
+                  appSettings?.universal_task_submission === true,
+                hasAttachments:
+                  formData.attachments && formData.attachments.length > 0,
+                hasUncheckedItems,
+                isHrRejected,
+                isDelayed,
+                enableSelfVerification:
+                  appSettings?.enable_self_verification === true,
+                enableVisualShaming:
+                  appSettings?.enable_visual_shaming === true,
+              }}
+            />
           </div>
+          {/* end task panel */}
+
+          {/* INLINE CHAT PANEL */}
+          {isSplitScreen && (
+            <InlineTaskChat
+              task={task}
+              isOpen={isOpen}
+              isSplitScreen={isSplitScreen}
+            />
+          )}
         </div>
-
-        <TaskFooter
-          actions={{
-            onCancel: () => setIsEditing(false),
-            onClose,
-            onSave: handleSaveEdit,
-            onToggleEdit: handleToggleEdit,
-            onDelete: handleDelete,
-            onHeadReject: handleReject,
-            onSubmitApproval: () => {
-              const payload = {
-                id: task.id,
-                status: TASK_STATUS.AWAITING_APPROVAL,
-                editedBy: user.id,
-              };
-              if (isMarketing) {
-                payload.endAt = task.endAt || new Date().toISOString();
-              }
-              return executeUpdate(payload);
-            },
-            onMarkComplete: handleApprove,
-            onUndoVerify: () =>
-              executeUpdate({
-                id: task.id,
-                status: TASK_STATUS.COMPLETE,
-                hrVerified: false,
-                hrRemarks: "",
-                editedBy: user.id,
-              }),
-
-            onHrVerify: handleVerify,
-
-            onSelfVerify: () =>
-              executeUpdate({
-                id: task.id,
-                status: TASK_STATUS.COMPLETE,
-                endAt: new Date().toISOString(),
-                grade: 3,
-                remarks: "Self-Verified (System Bypass)",
-                evaluatedBy: user.id,
-                editedBy: user.id,
-                hrVerified: false,
-                hrRemarks: "",
-              }),
-
-            onRecallTask: () =>
-              executeUpdate({
-                id: task.id,
-                status: TASK_STATUS.INCOMPLETE,
-                editedBy: user.id,
-              }),
-
-            onResubmit: handleResubmit,
-
-            setTimelineMessage: (msg) => {
-              timelineMessageRef.current = msg;
-            },
-          }}
-          permissions={{ canEdit, canEvaluate, isHr, isManagement, isOwner }}
-          state={{
-            isEditing,
-            isSubmitting,
-            task,
-            formIsValid:
-              !isSubmitting &&
-              !topologyData.isLoadingTop &&
-              !(isManagement && !formData.loggedById) &&
-              !!formData.categoryId &&
-              (initialFormData
-                ? JSON.stringify(formData) !== JSON.stringify(initialFormData) ||
-                  (canReEvalGrade &&
-                    editGrade !==
-                      (activeTask?.grade ? Number(activeTask.grade) : null))
-                : false),
-            canApprove: approvalGrade !== null && !hasUncheckedItems,
-            isMarketing,
-            universalTaskSubmission:
-              appSettings?.universal_task_submission === true,
-            hasAttachments:
-              formData.attachments && formData.attachments.length > 0,
-            hasUncheckedItems,
-            isHrRejected,
-            isDelayed,
-            enableSelfVerification:
-              appSettings?.enable_self_verification === true,
-            enableVisualShaming: appSettings?.enable_visual_shaming === true,
-          }}
-        />
-      </div>
-    </>,
-    document.body,
-  );
+      </DialogContent>
+    </Dialog>
+  )
 }
