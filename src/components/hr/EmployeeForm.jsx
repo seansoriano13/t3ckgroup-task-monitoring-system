@@ -28,6 +28,19 @@ export default function EmployeeForm({
   useEffect(() => {
     if (initialData) {
       setFormData((prev) => ({ ...prev, ...initialData }));
+    } else {
+      setFormData({
+        name: "",
+        email: "",
+        department: "",
+        subDepartment: "",
+        role: "",
+        isHead: false,
+        isHr: false,
+        isSuperAdmin: false,
+        has_sales_flow: false,
+        has_task_flow: true,
+      });
     }
   }, [initialData]);
 
@@ -227,7 +240,10 @@ function AccessSwitch({
   iconStrokeWidth = 2,
 }) {
   return (
-    <label className="flex items-center justify-between p-3 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 cursor-pointer transition-colors group">
+    <div
+      onClick={() => onChange(!checked)}
+      className="flex items-center justify-between p-3 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 cursor-pointer transition-colors group select-none"
+    >
       <div className="flex items-center gap-3">
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${checked ? activeColor : `bg-muted text-muted-foreground ${hoverColor}`}`}
@@ -241,11 +257,13 @@ function AccessSwitch({
           </p>
         </div>
       </div>
-      <Switch
-        className="data-checked:bg-foreground data-checked:text-background"
-        checked={checked}
-        onCheckedChange={onChange}
-      />
-    </label>
+      <div onClick={(e) => e.stopPropagation()}>
+        <Switch
+          className="data-checked:bg-foreground data-checked:text-background"
+          checked={checked}
+          onCheckedChange={onChange}
+        />
+      </div>
+    </div>
   );
 }

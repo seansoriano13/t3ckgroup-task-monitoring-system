@@ -386,6 +386,7 @@ function EmployeeFormModal({ isOpen, employee, onClose }) {
       submitLabel={isEditing ? "Update Employee" : "Add Employee"}
     >
       <EmployeeForm
+        key={employee ? employee.id : "new-employee"}
         initialData={employee}
         onSubmit={(data) => mutation.mutate(data)}
         rawCategories={rawCategories}
