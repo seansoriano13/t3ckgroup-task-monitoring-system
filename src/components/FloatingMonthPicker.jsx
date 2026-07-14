@@ -222,7 +222,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
   };
 
   const content = (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[49] pointer-events-none">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100000] pointer-events-none">
       <Draggable
         handle=".drag-handle"
         nodeRef={panelRef}
@@ -456,6 +456,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                         }}
                         dateFormat="MMM d, yyyy"
                         portalId="root"
+                        popperClassName="!z-[100001]"
                         className="w-full bg-background border border-border rounded-md px-3 py-2 text-[13px] text-foreground font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-[38px] cursor-pointer"
                       />
                     </div>
@@ -477,6 +478,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                         }}
                         dateFormat="MMM d, yyyy"
                         portalId="root"
+                        popperClassName="!z-[100001]"
                         className="w-full bg-background border border-border rounded-md px-3 py-2 text-[13px] text-foreground font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-[38px] cursor-pointer"
                       />
                     </div>
