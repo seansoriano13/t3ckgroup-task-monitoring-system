@@ -1,6 +1,5 @@
 import { useState, memo } from "react";
 import {
-  FolderKanban,
   Clock,
   CheckCircle2,
   TriangleAlert,
@@ -171,11 +170,23 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
   const previewItems = checklistItems.slice(0, 2);
   const hiddenItems = checklistItems.slice(2);
 
-  if (!isChecklistFormat) {
+  if (task.projectTitle) {
+    displayTitle = task.projectTitle;
+    if (!isChecklistFormat) {
+      displaySnippet =
+        typeof task.taskDescription === "string"
+          ? task.taskDescription.trim()
+          : "";
+    }
+  } else if (isChecklistFormat && checklistTitle) {
+    displayTitle = checklistTitle;
+  } else if (!isChecklistFormat) {
     const text = task.taskDescription || "";
     const parts = text.split("\n");
-    displayTitle = parts[0];
+    displayTitle = parts[0] || "";
     displaySnippet = parts.slice(1).join("\n").trim();
+  } else {
+    displayTitle = checklistTitle || "";
   }
 
   return (
@@ -190,47 +201,6 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
       {/* Row 1: The Eyebrow (Context) */}
       <div className="flex justify-between items-center gap-3 mb-3">
         <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
-          {task.projectTitle && (
-            <>
-              <div
-                className={`flex items-center gap-1 text-muted-foreground min-w-0 shrink ${
-                  searchTerm &&
-                  task.projectTitle
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase())
-                    ? "relative z-10"
-                    : ""
-                }`}
-                title={task.projectTitle}
-              >
-                <FolderKanban size={11} className="shrink-0" />
-                <span
-                  className={`text-[10px] font-bold uppercase tracking-wider ${
-                    searchTerm &&
-                    task.projectTitle
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase())
-                      ? "absolute left-[15px] top-1/2 -translate-y-1/2 bg-card/95 backdrop-blur-sm py-0.5 px-1.5 whitespace-nowrap rounded-md shadow-sm border border-border/50 text-foreground"
-                      : "truncate"
-                  }`}
-                >
-                  <HighlightText text={task.projectTitle} search={searchTerm} />
-                </span>
-
-                {/* Invisible spacer to maintain some layout structure when absolute */}
-                {searchTerm &&
-                  task.projectTitle
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()) && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-0 pointer-events-none select-none truncate max-w-[40px]">
-                      {task.projectTitle}
-                    </span>
-                  )}
-              </div>
-              <span className="text-mauve-7 text-[10px] shrink-0">•</span>
-            </>
-          )}
-
           <div
             className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold shrink min-w-0 truncate"
             title={
@@ -277,11 +247,17 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         {/* Plain-text task title */}
         {!isChecklistFormat && (
           <>
-            <h3 className="font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-              <HighlightText text={displayTitle} search={searchTerm} />
-            </h3>
+            {displayTitle && (
+              <h3 className="font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                <HighlightText text={displayTitle} search={searchTerm} />
+              </h3>
+            )}
             {displaySnippet && (
-              <p className="text-[13px] text-muted-foreground mt-1 line-clamp-2">
+              <p
+                className={`text-[13px] text-muted-foreground line-clamp-2 ${
+                  displayTitle ? "mt-1" : ""
+                }`}
+              >
                 <HighlightText text={displaySnippet} search={searchTerm} />
               </p>
             )}
@@ -291,9 +267,9 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         {/* Checklist task — always show title + preview items */}
         {isChecklistFormat && (
           <div onClick={(e) => e.stopPropagation()}>
-            {checklistTitle && (
+            {displayTitle && (
               <h3 className="font-bold text-foreground leading-snug group-hover:text-primary transition-colors mb-2">
-                <HighlightText text={checklistTitle} search={searchTerm} />
+                <HighlightText text={displayTitle} search={searchTerm} />
               </h3>
             )}
 

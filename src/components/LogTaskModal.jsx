@@ -52,6 +52,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
     handleDescriptionTypeChange,
     handleTogglePopover,
     handleSubmit,
+    handleClose,
     isSubmitting,
     hrDeptFilter,
     setHrDeptFilter,
@@ -114,7 +115,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
       }
       if (e.key === "Escape") {
         if (openPopover) setOpenPopover(null);
-        else onClose();
+        else handleClose();
       }
     };
     window.addEventListener("keydown", handler);
@@ -205,7 +206,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent
         showCloseButton={false}
         className={`p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col transition-all duration-300 w-[680px] sm:max-w-none max-w-[95vw] rounded-2xl ${
@@ -218,7 +219,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
           user={user}
           isExpanded={isExpanded}
           onToggleExpand={() => setIsExpanded(!isExpanded)}
-          onClose={onClose}
+          onClose={handleClose}
         />
 
         <form
@@ -337,7 +338,7 @@ export default function LogTaskModal({ isOpen, onClose }) {
           createMore={createMore}
           setCreateMore={setCreateMore}
           isSubmitting={isSubmitting}
-          onClose={onClose}
+          onClose={handleClose}
         />
       </DialogContent>
     </Dialog>
