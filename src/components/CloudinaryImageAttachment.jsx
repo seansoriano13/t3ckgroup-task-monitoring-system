@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { X, ImagePlus, Maximize2, ClipboardPaste } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import { storageService } from "../services/storageService";
@@ -171,25 +172,28 @@ export default function CloudinaryImageAttachment({
       )}
 
       {/* Fullscreen Lightbox */}
-      {fullscreenImage && (
-         <div 
-           className="fixed inset-0 z-[99999] bg-black/90 flex-center p-4 backdrop-blur-sm"
-           onClick={() => setFullscreenImage(null)}
-         >
-           <button 
-             className="absolute top-6 right-6 text-primary-foreground hover:text-destructive transition-colors bg-black/50 p-2 rounded-full"
-             onClick={() => setFullscreenImage(null)}
-           >
-             <X size={24} />
-           </button>
-           <img 
-             src={fullscreenImage} 
-             alt="Fullscreen Attachment" 
-             className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" 
-             onClick={(e) => e.stopPropagation()} 
-           />
-         </div>
-      )}
+      {fullscreenImage &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div 
+            className="fixed inset-0 z-[9999999] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+            onClick={() => setFullscreenImage(null)}
+          >
+            <button 
+              className="absolute top-6 right-6 text-primary-foreground hover:text-destructive transition-colors bg-black/50 p-2 rounded-full"
+              onClick={() => setFullscreenImage(null)}
+            >
+              <X size={24} />
+            </button>
+            <img 
+              src={fullscreenImage} 
+              alt="Fullscreen Attachment" 
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" 
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

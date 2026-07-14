@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import { employeeService } from "../services/employeeService";
@@ -34,6 +35,52 @@ export default function RoleSwitcher() {
   const [isMounted, setIsMounted] = useState(false);
   const [deptSubDeptPairs, setDeptSubDeptPairs] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+
+  const [coords, setCoords] = useState(null);
+  const triggerRef = useRef(null);
+  const popoverRef = useRef(null);
+
+  const updateCoords = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setCoords({
+      left: rect.left,
+      bottom: window.innerHeight - rect.top + 12,
+      width: Math.max(rect.width, 260),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener("resize", updateCoords);
+      const handleScroll = (e) => {
+        if (e.target?.closest && e.target.closest(".role-switcher-popover")) return;
+        updateCoords();
+      };
+      window.addEventListener("scroll", handleScroll, true);
+      return () => {
+        window.removeEventListener("resize", updateCoords);
+        window.removeEventListener("scroll", handleScroll, true);
+      };
+    }
+  }, [isOpen, updateCoords]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!isOpen || switching) return;
+      if (triggerRef.current && triggerRef.current.contains(event.target)) return;
+      if (popoverRef.current && popoverRef.current.contains(event.target)) return;
+      setIsOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isOpen, switching]);
 
   // Form state
   const [formState, setFormState] = useState({
@@ -184,145 +231,166 @@ export default function RoleSwitcher() {
 
   return (
     <div className="w-full relative z-[100] mt-auto">
-      {isOpen && (
-        <div className="absolute bottom-full left-0 mb-3 bg-card border border-border rounded-xl shadow-2xl w-[260px] animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-visible z-[101]">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-mauve-3 rounded-t-xl">
-            <div className="flex items-center gap-2">
-              <FlaskConical size={14} className="text-foreground" />
-              <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
-                Role Simulator
-              </h3>
-            </div>
-            <button
-              onClick={handleReset}
-              className="text-[10px] text-muted-foreground hover:text-foreground font-bold transition-colors uppercase border border-mauve-4 px-2 py-1 rounded-md hover:border-mauve-12"
-            >
-              Reset
-            </button>
-          </div>
-
-          <div className="p-5 space-y-6">
-            {/* Field Sets */}
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest pl-1">
-                  Department
-                </label>
-                <div className="relative">
-                  <Select
-                    instanceId="role-switcher-dept"
-                    options={deptOptions}
-                    value={
-                      deptOptions.find(
-                        (o) => o.value === formState.department,
-                      ) || deptOptions[0]
-                    }
-                    onChange={(opt) => {
-                      setFormState({
-                        ...formState,
-                        department: opt.value,
-                        sub_department: "ALL",
-                      });
-                    }}
-                    styles={defaultSelectStyles}
-                    isSearchable={false}
-                    menuPlacement="auto"
-                    isLoading={loadingData}
-                  />
-                </div>
+      {isOpen &&
+        coords &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{
+              position: "fixed",
+              left: `${coords.left}px`,
+              bottom: `${coords.bottom}px`,
+              width: "260px",
+              zIndex: 100002,
+            }}
+            className="role-switcher-popover bg-card border border-border rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-visible"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 bg-card border-b border-mauve-3 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <FlaskConical size={14} className="text-foreground" />
+                <h3 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
+                  Role Simulator
+                </h3>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest pl-1">
-                  Sub-Department
-                </label>
-                <div className="relative">
-                  <Select
-                    instanceId="role-switcher-subdept"
-                    options={subDeptOptions}
-                    value={
-                      subDeptOptions.find(
-                        (o) => o.value === (formState.sub_department || "ALL"),
-                      ) || subDeptOptions[0]
-                    }
-                    onChange={(opt) =>
-                      setFormState({ ...formState, sub_department: opt.value })
-                    }
-                    styles={defaultSelectStyles}
-                    isSearchable={true}
-                    menuPlacement="auto"
-                    placeholder="Select Sub-Dept"
-                    isLoading={loadingData}
-                  />
-                </div>
-              </div>
+              <button
+                onClick={handleReset}
+                className="text-[10px] text-muted-foreground hover:text-foreground font-bold transition-colors uppercase border border-mauve-4 px-2 py-1 rounded-md hover:border-mauve-12"
+              >
+                Reset
+              </button>
             </div>
 
-            <div className="h-px bg-mauve-2" />
-
-            {/* Toggles */}
-            <div className="space-y-4">
-              {[
-                {
-                  id: "is_head",
-                  label: "is_head",
-                  desc: "Grants approval authority",
-                },
-                {
-                  id: "is_hr",
-                  label: "is_hr",
-                  desc: "Access to HR management tools",
-                },
-                {
-                  id: "is_super_admin",
-                  label: "is_super_admin",
-                  desc: "Full root-level system access",
-                },
-              ].map((flag) => (
-                <div
-                  key={`toggle-${flag.id}`}
-                  className="flex items-center justify-between group px-1"
-                >
-                  <div>
-                    <p className="text-[13px] text-foreground font-bold leading-tight group-hover:text-black">
-                      {flag.label}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
-                      {flag.desc}
-                    </p>
+            <div className="p-5 space-y-6">
+              {/* Field Sets */}
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest pl-1">
+                    Department
+                  </label>
+                  <div className="relative">
+                    <Select
+                      instanceId="role-switcher-dept"
+                      options={deptOptions}
+                      value={
+                        deptOptions.find(
+                          (o) => o.value === formState.department,
+                        ) || deptOptions[0]
+                      }
+                      onChange={(opt) => {
+                        setFormState({
+                          ...formState,
+                          department: opt.value,
+                          sub_department: "ALL",
+                        });
+                      }}
+                      styles={defaultSelectStyles}
+                      isSearchable={false}
+                      menuPlacement="auto"
+                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                      isLoading={loadingData}
+                    />
                   </div>
-                  <Toggle
-                    checked={formState[flag.id]}
-                    onChange={(v) =>
-                      setFormState({ ...formState, [flag.id]: v })
-                    }
-                  />
                 </div>
-              ))}
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest pl-1">
+                    Sub-Department
+                  </label>
+                  <div className="relative">
+                    <Select
+                      instanceId="role-switcher-subdept"
+                      options={subDeptOptions}
+                      value={
+                        subDeptOptions.find(
+                          (o) => o.value === (formState.sub_department || "ALL"),
+                        ) || subDeptOptions[0]
+                      }
+                      onChange={(opt) =>
+                        setFormState({ ...formState, sub_department: opt.value })
+                      }
+                      styles={defaultSelectStyles}
+                      isSearchable={true}
+                      menuPlacement="auto"
+                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                      placeholder="Select Sub-Dept"
+                      isLoading={loadingData}
+                    />
+                  </div>
+                </div>
+              </div>
 
-            {/* Action */}
-            <button
-              onClick={() => handleApply()}
-              disabled={switching}
-              className="w-full h-11 bg-[#111827] flex items-center justify-center gap-2 hover:bg-mauve-12 text-primary-foreground text-[13px] font-bold rounded-lg transition-all shadow-lg active:scale-[0.97] disabled:opacity-50"
-            >
-              {switching ? (
-                <Spinner size="sm" />
-              ) : (
-                <>
-                  <FlaskConical size={16} />
-                  <span>Update Configuration</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="h-px bg-mauve-2" />
+
+              {/* Toggles */}
+              <div className="space-y-4">
+                {[
+                  {
+                    id: "is_head",
+                    label: "is_head",
+                    desc: "Grants approval authority",
+                  },
+                  {
+                    id: "is_hr",
+                    label: "is_hr",
+                    desc: "Access to HR management tools",
+                  },
+                  {
+                    id: "is_super_admin",
+                    label: "is_super_admin",
+                    desc: "Full root-level system access",
+                  },
+                ].map((flag) => (
+                  <div
+                    key={`toggle-${flag.id}`}
+                    className="flex items-center justify-between group px-1"
+                  >
+                    <div>
+                      <p className="text-[13px] text-foreground font-bold leading-tight group-hover:text-black">
+                        {flag.label}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                        {flag.desc}
+                      </p>
+                    </div>
+                    <Toggle
+                      checked={formState[flag.id]}
+                      onChange={(v) =>
+                        setFormState({ ...formState, [flag.id]: v })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Action */}
+              <button
+                onClick={() => handleApply()}
+                disabled={switching}
+                className="w-full h-11 bg-[#111827] flex items-center justify-center gap-2 hover:bg-mauve-12 text-primary-foreground text-[13px] font-bold rounded-lg transition-all shadow-lg active:scale-[0.97] disabled:opacity-50"
+              >
+                {switching ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <>
+                    <FlaskConical size={16} />
+                    <span>Update Configuration</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Trigger */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={triggerRef}
+        onClick={() => {
+          if (!isOpen) {
+            updateCoords();
+          }
+          setIsOpen(!isOpen);
+        }}
         disabled={switching}
         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl shadow-sm transition-all active:scale-95 bg-[#111827] hover:bg-mauve-12 text-primary-foreground border border-white/5 group"
       >
