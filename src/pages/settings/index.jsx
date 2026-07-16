@@ -45,7 +45,7 @@ export default function SettingsPage() {
   const queryClient = useQueryClient();
   const [showFAQ, setShowFAQ] = useState(false);
 
-  const isHr = user?.is_hr === true || user?.isHr === true;
+  // const isHr = user?.is_hr === true || user?.isHr === true;
   const isSuperAdmin = user?.isSuperAdmin;
 
   const { data: appSettings, isLoading: loadingSettings } = useQuery({

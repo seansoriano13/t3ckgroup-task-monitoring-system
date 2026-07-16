@@ -52,7 +52,7 @@ export default function TaskDetails({
 
   // 🔥 FULL TASK FETCH: Fetch complete details ONLY when drawer is open
   // This allows the main Dashboard/Task list to be lightweight (no attachments/large remarks)
-  const { data: fullTask, isLoading: isFetchingTask } = useQuery({
+  const { data: fullTask } = useQuery({
     queryKey: ["taskDetails", task?.id],
     queryFn: () => taskQueryService.getTaskById(task.id),
     enabled: isOpen && !!task?.id,
@@ -64,7 +64,7 @@ export default function TaskDetails({
   // Timeline message ref — used by the approval flow to grab the message
   // from the timeline input box when the head clicks Approve/Reject
   const timelineMessageRef = useRef("")
-  const modalRef = useRef(null)
+  // const modalRef = useRef(null)
 
   const [formData, setFormData] = useState({
     department: "",

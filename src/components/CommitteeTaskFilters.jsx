@@ -58,7 +58,7 @@ export default function CommitteeTaskFilters({
     <div className="bg-card border border-border p-3 md:p-4 rounded-xl shadow-sm relative z-30">
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3">
         {/* Search */}
-        <div className="relative flex-[2] min-w-0">
+        <div className="relative flex-2 min-w-0">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             size={18}
@@ -73,7 +73,7 @@ export default function CommitteeTaskFilters({
         </div>
 
         {/* Filters Group */}
-        <div className="flex flex-wrap items-center gap-2 flex-[3]">
+        <div className="flex flex-wrap items-center gap-2 flex-3">
           {/* Status Dropdown */}
           <Dropdown
             className="flex-1 min-w-[140px]"

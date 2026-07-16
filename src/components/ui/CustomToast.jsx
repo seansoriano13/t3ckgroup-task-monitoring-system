@@ -124,6 +124,7 @@ export function CustomToast({
 }
 
 // Global utility for triggering delete confirmations
+// eslint-disable-next-line react-refresh/only-export-components
 export const confirmDeleteToast = (title, description, onConfirm) => {
   toast.custom(
     (t) => (

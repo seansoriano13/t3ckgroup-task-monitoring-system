@@ -7,7 +7,7 @@ export default function LogTaskHeader({ user, isExpanded, onToggleExpand, onClos
         <div className="w-[18px] h-[18px] rounded flex items-center justify-center bg-primary text-primary-foreground font-bold text-[9px] shrink-0">
           {user?.department?.charAt(0)?.toUpperCase() || "T"}
         </div>
-        <ChevronDown size={11} className="text-mauve-6 rotate-[-90deg]" />
+        <ChevronDown size={11} className="text-mauve-6 -rotate-90deg" />
         <span className="font-medium text-muted-foreground/80">New Task</span>
       </div>
       <div className="flex items-center gap-1">

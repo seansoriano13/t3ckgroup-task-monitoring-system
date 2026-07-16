@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,21 +14,31 @@ export default function BulkGradeModal({
 }) {
   const [grade, setGrade] = useState(3);
   const [remarks, setRemarks] = useState("Bulk approved via system bypass");
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const titleRef = useRef(null);
+
+  // Reset form state during render when modal transitions from closed to open.
+  // This avoids calling setState inside useEffect, which would cause cascading re-renders.
+  if (isOpen && !prevIsOpen) {
+    setPrevIsOpen(true);
+    setGrade(3);
+    setRemarks("Bulk approved via system bypass");
+  } else if (!isOpen && prevIsOpen) {
+    setPrevIsOpen(false);
+  }
 
   useEffect(() => {
     if (isOpen) {
-      setGrade(3);
-      setRemarks("Bulk approved via system bypass");
-      setTimeout(() => titleRef.current?.focus(), 150);
+      const timer = setTimeout(() => titleRef.current?.focus(), 150);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     if (e?.preventDefault) e.preventDefault();
     if (grade === null || grade < 1 || grade > 5) return;
     onConfirm({ grade, remarks });
-  };
+  }, [grade, remarks, onConfirm]);
 
   // Keyboard shortcut Ctrl+Enter to submit
   useEffect(() => {
@@ -41,7 +51,7 @@ export default function BulkGradeModal({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isOpen, grade, remarks]);
+  }, [isOpen, handleSubmit]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

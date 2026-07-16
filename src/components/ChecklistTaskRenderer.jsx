@@ -1,6 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 import HighlightText from "./HighlightText";
+
+function parseDescriptionData(desc) {
+  if (!desc) {
+    return { description: desc, items: [], title: "", isJson: false, isObjectFormat: false };
+  }
+
+  try {
+    const trimmed = desc.trim();
+    if (trimmed.startsWith("[")) {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return { description: desc, items: parsed, title: "", isJson: true, isObjectFormat: false };
+      }
+    } else if (trimmed.startsWith("{")) {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && Array.isArray(parsed.items)) {
+        return {
+          description: desc,
+          items: parsed.items,
+          title: parsed.title || "",
+          isJson: true,
+          isObjectFormat: true,
+        };
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  return { description: desc, items: [], title: "", isJson: false, isObjectFormat: false };
+}
 
 export default function ChecklistTaskRenderer({
   description,
@@ -9,44 +40,15 @@ export default function ChecklistTaskRenderer({
   disabled,
   searchTerm,
 }) {
-  const [title, setTitle] = useState("");
-  const [items, setItems] = useState([]);
-  const [isJson, setIsJson] = useState(false);
-  const [isObjectFormat, setIsObjectFormat] = useState(false);
+  const [taskState, setTaskState] = useState(() => parseDescriptionData(description));
 
-  useEffect(() => {
-    if (!description) {
-      setItems([]);
-      setTitle("");
-      return;
-    }
+  let currentTaskState = taskState;
+  if (description !== taskState.description) {
+    currentTaskState = parseDescriptionData(description);
+    setTaskState(currentTaskState);
+  }
 
-    try {
-      const trimmed = description.trim();
-      if (trimmed.startsWith("[")) {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          setItems(parsed);
-          setIsJson(true);
-          setIsObjectFormat(false);
-          return;
-        }
-      } else if (trimmed.startsWith("{")) {
-        const parsed = JSON.parse(trimmed);
-        if (parsed && Array.isArray(parsed.items)) {
-          setTitle(parsed.title || "");
-          setItems(parsed.items);
-          setIsJson(true);
-          setIsObjectFormat(true);
-          return;
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    setIsJson(false);
-  }, [description]);
+  const { title, items, isJson, isObjectFormat } = currentTaskState;
 
   const handleCheck = (indexToToggle) => {
     if (disabled || !isOwner) return;
@@ -59,7 +61,7 @@ export default function ChecklistTaskRenderer({
       return item;
     });
 
-    setItems(newItems); // Optimistic UI update
+    setTaskState((prev) => ({ ...prev, items: newItems })); // Optimistic UI update
 
     // Save backwards compatible to the format they originally used
     if (isObjectFormat) {

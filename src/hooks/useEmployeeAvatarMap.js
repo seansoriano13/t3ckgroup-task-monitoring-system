@@ -39,7 +39,7 @@ export function useEmployeeAvatarMap() {
       resolved.forEach(({ id, url }) => map.set(id, url));
       return map;
     },
-    staleTime: 1000 * 60 * 50, // 50 min — just under Supabase signed URL's 1-hour expiry
+    staleTime: 1000 * 60 * 50, // 50 min cache — Cloudinary URLs never expire
     gcTime: 1000 * 60 * 60,    // keep in memory for 1 hour
   });
 

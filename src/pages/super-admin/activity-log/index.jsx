@@ -110,7 +110,7 @@ function ContentDisplay({ content, search }) {
               />
             )}
             <span
-              className={`${item.checked ? "line-through opacity-60" : ""} break-words leading-snug line-clamp-2`}
+              className={`${item.checked ? "line-through opacity-60" : ""} wrap-break-word leading-snug line-clamp-2`}
             >
               <HighlightText text={item.text} search={search} />
             </span>

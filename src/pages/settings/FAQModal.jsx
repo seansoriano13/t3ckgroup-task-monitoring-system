@@ -133,7 +133,15 @@ export default function FAQModal({ isOpen, onClose }) {
   const [activeCategory, setActiveCategory] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isOpen);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (isOpen && !prevIsOpen) {
+    setPrevIsOpen(true);
+    setLoading(true);
+  } else if (!isOpen && prevIsOpen) {
+    setPrevIsOpen(false);
+  }
 
   const canEditFAQ =
     user?.name?.toLowerCase() === "geane mateo" ||
@@ -145,7 +153,6 @@ export default function FAQModal({ isOpen, onClose }) {
     if (!isOpen) return;
 
     let cancelled = false;
-    setLoading(true);
 
     loadFAQFromDB()
       .then((fresh) => {

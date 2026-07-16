@@ -268,7 +268,7 @@ export default function DayManagementModal({
                   <button 
                     disabled={!wipeReason.trim() || requestWipeMutation.isPending}
                     onClick={() => requestWipeMutation.mutate()}
-                    className="flex-[2] h-14 rounded-2xl bg-destructive text-primary-foreground text-[11px] font-black uppercase tracking-widest shadow-xl shadow-red-500/20 hover:bg-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="flex-2 h-14 rounded-2xl bg-destructive text-primary-foreground text-[11px] font-black uppercase tracking-widest shadow-xl shadow-red-500/20 hover:bg-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     {requestWipeMutation.isPending ? "Submitting..." : "Send Request to Management"}
                   </button>

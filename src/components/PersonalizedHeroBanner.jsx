@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { aiService } from "../services/aiService";
 
@@ -6,30 +6,31 @@ const DEFAULT_QUOTE = "Begin each day with a Grateful Heart.";
 
 export default function PersonalizedHeroBanner() {
   const { user } = useAuth();
-  const [displayQuote, setDisplayQuote] = useState(DEFAULT_QUOTE);
+  const [aiQuote, setAiQuote] = useState(DEFAULT_QUOTE);
+
+  const preferredQuote = (user?.dashboardQuote || "").trim();
+  const displayQuote = preferredQuote ? preferredQuote.slice(0, 72) : aiQuote;
 
   useEffect(() => {
     let alive = true;
-    const preferredQuote = (user?.dashboardQuote || "").trim();
 
     if (preferredQuote) {
-      setDisplayQuote(preferredQuote.slice(0, 72));
       return undefined;
     }
 
     aiService
       .getRandomMotivationalQuote(user?.name?.split(" ")?.[0] || "Team")
       .then((quote) => {
-        if (alive) setDisplayQuote(quote || DEFAULT_QUOTE);
+        if (alive) setAiQuote(quote || DEFAULT_QUOTE);
       })
       .catch(() => {
-        if (alive) setDisplayQuote(DEFAULT_QUOTE);
+        if (alive) setAiQuote(DEFAULT_QUOTE);
       });
 
     return () => {
       alive = false;
     };
-  }, [user?.dashboardQuote, user?.name]);
+  }, [preferredQuote, user?.name]);
 
   return (
     <div

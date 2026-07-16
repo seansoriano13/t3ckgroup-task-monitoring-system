@@ -1,6 +1,6 @@
-import { Users, ClipboardList, Building2 } from "lucide-react";
-import Dropdown from "../ui/Dropdown";
-import { FilterTrigger, FilterOptionList } from "../ui/FilterDropdown";
+import { Users, ClipboardList, Building2 } from "lucide-react"
+import Dropdown from "../ui/Dropdown"
+import { FilterTrigger, FilterOptionList } from "../ui/FilterDropdown"
 
 const FieldBox = ({ label, children }) => (
   <div className="flex flex-col gap-1.5">
@@ -11,13 +11,13 @@ const FieldBox = ({ label, children }) => (
       {children}
     </div>
   </div>
-);
+)
 
 export default function LogTaskAssignmentBar({
   formData,
   setFormData,
   roles,
-  employees,
+  // employees,
   availableHeads,
   hrDeptFilter,
   setHrDeptFilter,
@@ -29,17 +29,17 @@ export default function LogTaskAssignmentBar({
   selectedHead,
   setSelectedHead,
   assignmentRef,
-  onScroll,
+  // onScroll,
   user,
   openPopover,
   onTogglePopover,
 }) {
-  const { isHr, isHead, isSuperAdmin } = roles;
-  const canAssignOthers = isHr || isHead;
+  const { isHr, isHead } = roles // isSuperAdmin
+  const canAssignOthers = isHr || isHead
 
   return (
     <div
-      className="flex flex-col gap-4 py-4 border-t border-mauve-3/40 animate-content-in stagger-4 relative z-[10]"
+      className="flex flex-col gap-4 py-4 border-t border-mauve-3/40 animate-content-in stagger-4 relative z-10"
       ref={assignmentRef}
     >
       {/* ORGANIZATION SECTION (HR only) */}
@@ -73,10 +73,10 @@ export default function LogTaskAssignmentBar({
                     options={uniqueDepts.map((d) => ({ value: d, label: d }))}
                     value={hrDeptFilter}
                     onChange={(val) => {
-                      setHrDeptFilter(val);
-                      setHrSubDeptFilter("");
-                      setFormData((p) => ({ ...p, loggedById: "" }));
-                      close();
+                      setHrDeptFilter(val)
+                      setHrSubDeptFilter("")
+                      setFormData((p) => ({ ...p, loggedById: "" }))
+                      close()
                     }}
                     close={close}
                   />
@@ -112,9 +112,9 @@ export default function LogTaskAssignmentBar({
                     }))}
                     value={hrSubDeptFilter}
                     onChange={(val) => {
-                      setHrSubDeptFilter(val);
-                      setFormData((p) => ({ ...p, loggedById: "" }));
-                      close();
+                      setHrSubDeptFilter(val)
+                      setFormData((p) => ({ ...p, loggedById: "" }))
+                      close()
                     }}
                     close={close}
                   />
@@ -167,8 +167,8 @@ export default function LogTaskAssignmentBar({
                 }))}
                 value={formData.loggedById}
                 onChange={(val) => {
-                  setFormData((p) => ({ ...p, loggedById: val }));
-                  close();
+                  setFormData((p) => ({ ...p, loggedById: val }))
+                  close()
                 }}
                 close={close}
               />
@@ -209,8 +209,8 @@ export default function LogTaskAssignmentBar({
               }))}
               value={selectedHead}
               onChange={(val) => {
-                setSelectedHead(val);
-                close();
+                setSelectedHead(val)
+                close()
               }}
               close={close}
             />
@@ -218,5 +218,5 @@ export default function LogTaskAssignmentBar({
         </Dropdown>
       </div>
     </div>
-  );
+  )
 }

@@ -1,9 +1,10 @@
-import React from "react";
 import Dropdown from "../ui/Dropdown";
-import { ChevronDown, Flag } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Dot from "../ui/Dot";
 import { PRIORITY_OPTIONS } from "../../constants/task";
-import { FilterTrigger } from "../ui/FilterDropdown";export default function PriorityDropdown({
+import { FilterTrigger } from "../ui/FilterDropdown";
+
+export default function PriorityDropdown({
   value,
   onChange,
   disabled = false,

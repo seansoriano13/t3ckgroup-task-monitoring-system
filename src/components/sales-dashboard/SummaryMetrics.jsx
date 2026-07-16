@@ -66,7 +66,7 @@ function StatCard({ title, value, subtitle, icon, color }) {
   return (
     <Card className="p-5 relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group border-border shadow-sm">
       <div
-        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
+        className={`absolute top-0 right-0 w-32 h-32 bg-linear-to-br ${colorMap[color] || "from-slate-500/10 to-transparent"} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
       />
 
       <div className="flex justify-between items-start mb-3 relative z-10">

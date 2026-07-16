@@ -29,7 +29,7 @@ import { FilterTrigger } from "../ui/FilterDropdown";export default function Cat
       disabled={disabled}
       usePortal={usePortal}
       onClose={onClose}
-      className={`z-[100] ${className}`}
+      className={`z-100 ${className}`}
       /* popoverClassName="absolute top-full left-0 mt-1.5 bg-muted border border-border rounded-xl shadow-2xl z-[110] w-[280px] popover-enter" */
       trigger={({ isOpen, disabled }) => 
         triggerClassName ? (
@@ -66,7 +66,7 @@ import { FilterTrigger } from "../ui/FilterDropdown";export default function Cat
             <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted/50 rounded-md border border-border focus-within:border-mauve-4 focus-within:ring-1 focus-within:ring-mauve-4 transition-all">
               <Search
                 size={14}
-                className="text-muted-foreground flex-shrink-0"
+                className="text-muted-foreground shrink-0"
               />
               <input
                 type="text"
@@ -114,7 +114,7 @@ import { FilterTrigger } from "../ui/FilterDropdown";export default function Cat
                   {value === cat.category_id && (
                     <Check
                       size={14}
-                      className="text-muted-foreground/80 flex-shrink-0"
+                      className="text-muted-foreground/80 shrink-0"
                     />
                   )}
                 </button>

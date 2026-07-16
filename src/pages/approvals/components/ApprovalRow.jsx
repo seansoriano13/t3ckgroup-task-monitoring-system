@@ -44,16 +44,21 @@ export function ApprovalRow({
   const rowRef = useRef(null);
   const avatarMap = useEmployeeAvatarMap();
 
-  // Keep grade in sync if the task prop refreshes from React Query
-  useEffect(() => {
+  // Adjust grade and expanded states directly during render if props change
+  // (Prevents cascading re-renders and avoids calling setState inside useEffect)
+  const [prevTaskGrade, setPrevTaskGrade] = useState(task.grade);
+  if (task.grade !== prevTaskGrade) {
+    setPrevTaskGrade(task.grade);
     setGrade(task.grade ? Number(task.grade) : null);
-  }, [task.grade]);
+  }
 
-  useEffect(() => {
+  const [prevDefaultExpanded, setPrevDefaultExpanded] = useState(defaultExpanded);
+  if (defaultExpanded !== prevDefaultExpanded) {
+    setPrevDefaultExpanded(defaultExpanded);
     if (defaultExpanded) {
-      queueMicrotask(() => setExpanded(true));
+      setExpanded(true);
     }
-  }, [defaultExpanded]);
+  }
 
   useEffect(() => {
     if (expanded && rowRef.current) {

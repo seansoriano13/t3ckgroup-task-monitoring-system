@@ -144,7 +144,7 @@ export default function DayDeletionApprovalQueue({ initialHighlightDate }) {
 
               <div className="flex-1 min-w-0 space-y-4">
                 <div className="bg-mauve-1 border border-mauve-4 rounded-xl p-4 shadow-inner">
-                  <label className="text-[10px] font-black text-destructive uppercase tracking-widest block mb-2 flex items-center gap-1.5">
+                  <label className="text-[10px] font-black text-destructive uppercase tracking-widest mb-2 flex items-center gap-1.5">
                     <AlertCircle size={14} /> Reason for Wipe
                   </label>
                   <p className="text-sm text-foreground font-medium leading-relaxed italic">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { systemUpdateService } from "../services/systemUpdateService";
 import {
@@ -52,12 +52,9 @@ export default function SystemUpdateBanner() {
 }
 
 function BannerItem({ update }) {
-  const [isMinimized, setIsMinimized] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(`banner_collapsed_${update.id}`);
-    if (saved === "true") setIsMinimized(true);
-  }, [update.id]);
+  const [isMinimized, setIsMinimized] = useState(() => {
+    return localStorage.getItem(`banner_collapsed_${update.id}`) === "true";
+  });
 
   const handleToggle = () => {
     const next = !isMinimized;

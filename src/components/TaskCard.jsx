@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo } from "react"
 import {
   Clock,
   CheckCircle2,
@@ -7,66 +7,66 @@ import {
   ChevronDown,
   ChevronUp,
   Circle,
-} from "lucide-react";
-import Dot from "./ui/Dot";
-import StatusBadge from "./StatusBadge";
-import { useAuth } from "../context/AuthContext";
-import { TASK_STATUS } from "../constants/status";
-import Avatar from "./Avatar";
-import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap";
-import HighlightText from "./HighlightText";
+} from "lucide-react"
+import Dot from "./ui/Dot"
+import StatusBadge from "./StatusBadge"
+import { useAuth } from "../context/AuthContext"
+import { TASK_STATUS } from "../constants/status"
+import Avatar from "./Avatar"
+import { useEmployeeAvatarMap } from "../hooks/useEmployeeAvatarMap"
+import HighlightText from "./HighlightText"
 
 const getRelativeTime = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - date) / 1000);
+  if (!dateString) return ""
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInSeconds = Math.floor((now - date) / 1000)
 
-  if (diffInSeconds < 60) return "just now";
+  if (diffInSeconds < 60) return "just now"
 
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  const diffInMinutes = Math.floor(diffInSeconds / 60)
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`
 
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  if (diffInHours < 24) return `${diffInHours}h ago`
 
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays}d ago`;
+  const diffInDays = Math.floor(diffInHours / 24)
+  if (diffInDays < 7) return `${diffInDays}d ago`
 
-  const diffInWeeks = Math.floor(diffInDays / 7);
-  if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
+  const diffInWeeks = Math.floor(diffInDays / 7)
+  if (diffInWeeks < 4) return `${diffInWeeks}w ago`
 
   if (date.getFullYear() === now.getFullYear()) {
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   }
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
-  });
-};
+  })
+}
 
 const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
-  const { user } = useAuth();
-  const avatarMap = useEmployeeAvatarMap();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { user } = useAuth()
+  const avatarMap = useEmployeeAvatarMap()
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const isHr =
     user?.is_hr === true ||
     user?.isHr === true ||
     user?.is_super_admin === true ||
-    user?.isSuperAdmin === true;
-  const isHead = user?.is_head === true || user?.isHead === true;
-  const isManagement = isHr || isHead;
+    user?.isSuperAdmin === true
+  const isHead = user?.is_head === true || user?.isHead === true
+  const isManagement = isHr || isHead
 
-  const isOwner = user?.id === task.loggedById;
+  const isOwner = user?.id === task.loggedById
   const canEdit =
     isHr ||
     isHead ||
     (isOwner &&
       task.status !== TASK_STATUS.COMPLETE &&
-      task.status !== TASK_STATUS.AWAITING_APPROVAL);
-  const isDisabled = !canEdit || !isOwner;
+      task.status !== TASK_STATUS.AWAITING_APPROVAL)
+  const isDisabled = !canEdit || !isOwner
 
   // Overdue nudge: INCOMPLETE task whose deadline has passed, shown only to owner
   const isOwnerOverdue =
@@ -74,51 +74,53 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
     task.status === TASK_STATUS.INCOMPLETE &&
     task.endAt &&
     new Date(task.endAt) < new Date() &&
-    isOwner;
+    isOwner
 
-  let isChecklistFormat = false;
-  let totalItems = 0;
-  let checkedItems = 0;
-  let parsedDesc = null;
+  let isChecklistFormat = false
+  let totalItems = 0
+  let checkedItems = 0
+  let parsedDesc = null
 
   if (task.taskDescription) {
     const trimmed =
       typeof task.taskDescription === "string"
         ? task.taskDescription.trim()
-        : "";
+        : ""
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
-        parsedDesc = JSON.parse(trimmed);
+        parsedDesc = JSON.parse(trimmed)
         if (Array.isArray(parsedDesc)) {
-          isChecklistFormat = true;
-          totalItems = parsedDesc.length;
+          isChecklistFormat = true
+          totalItems = parsedDesc.length
           checkedItems = parsedDesc.filter(
             (item) => item && typeof item === "object" && item.checked,
-          ).length;
+          ).length
         }
-      } catch (e) {}
+        // eslint-disable-next-line no-unused-vars
+      } catch (e) {
+        /* empty */
+      }
     } else if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
       try {
-        parsedDesc = JSON.parse(trimmed);
+        parsedDesc = JSON.parse(trimmed)
         if (parsedDesc && Array.isArray(parsedDesc.items)) {
-          isChecklistFormat = true;
-          totalItems = parsedDesc.items.length;
+          isChecklistFormat = true
+          totalItems = parsedDesc.items.length
           checkedItems = parsedDesc.items.filter(
             (item) => item && typeof item === "object" && item.checked,
-          ).length;
+          ).length
         }
-      } catch (e) {}
+        // eslint-disable-next-line no-unused-vars
+      } catch (e) { /* empty */ }
     } else if (Array.isArray(task.taskDescription)) {
-      isChecklistFormat = true;
-      parsedDesc = task.taskDescription;
-      totalItems = task.taskDescription.length;
+      isChecklistFormat = true
+      parsedDesc = task.taskDescription
+      totalItems = task.taskDescription.length
       checkedItems = task.taskDescription.filter(
         (item) => item && typeof item === "object" && item.checked,
-      ).length;
+      ).length
     }
   }
-
-
 
   const handleInlineCheck = (newDesc) => {
     if (onSilentUpdate) {
@@ -126,67 +128,67 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         id: task.id,
         taskDescription: newDesc,
         editedBy: user?.id,
-      });
+      })
     }
-  };
+  }
 
   const handleItemClick = (e, index) => {
-    e.stopPropagation();
-    if (!onSilentUpdate || isDisabled) return;
+    e.stopPropagation()
+    if (!onSilentUpdate || isDisabled) return
 
-    let newDesc;
+    let newDesc
     if (Array.isArray(parsedDesc)) {
       newDesc = parsedDesc.map((item, i) =>
-        i === index ? { ...item, checked: !item.checked } : item
-      );
+        i === index ? { ...item, checked: !item.checked } : item,
+      )
     } else if (parsedDesc && Array.isArray(parsedDesc.items)) {
       newDesc = {
         ...parsedDesc,
         items: parsedDesc.items.map((item, i) =>
-          i === index ? { ...item, checked: !item.checked } : item
+          i === index ? { ...item, checked: !item.checked } : item,
         ),
-      };
+      }
     } else {
-      return;
+      return
     }
 
     const payloadDesc =
       typeof task.taskDescription === "string"
         ? JSON.stringify(newDesc)
-        : newDesc;
-    handleInlineCheck(payloadDesc);
-  };
+        : newDesc
+    handleInlineCheck(payloadDesc)
+  }
 
-  let displayTitle = "";
-  let displaySnippet = "";
+  let displayTitle = ""
+  let displaySnippet = ""
 
   // For checklist format, gather actual items list
   const checklistItems = isChecklistFormat
     ? Array.isArray(parsedDesc)
       ? parsedDesc
       : parsedDesc?.items || []
-    : [];
-  const checklistTitle = isChecklistFormat ? parsedDesc?.title || null : null;
-  const previewItems = checklistItems.slice(0, 2);
-  const hiddenItems = checklistItems.slice(2);
+    : []
+  const checklistTitle = isChecklistFormat ? parsedDesc?.title || null : null
+  const previewItems = checklistItems.slice(0, 2)
+  const hiddenItems = checklistItems.slice(2)
 
   if (task.projectTitle) {
-    displayTitle = task.projectTitle;
+    displayTitle = task.projectTitle
     if (!isChecklistFormat) {
       displaySnippet =
         typeof task.taskDescription === "string"
           ? task.taskDescription.trim()
-          : "";
+          : ""
     }
   } else if (isChecklistFormat && checklistTitle) {
-    displayTitle = checklistTitle;
+    displayTitle = checklistTitle
   } else if (!isChecklistFormat) {
-    const text = task.taskDescription || "";
-    const parts = text.split("\n");
-    displayTitle = parts[0] || "";
-    displaySnippet = parts.slice(1).join("\n").trim();
+    const text = task.taskDescription || ""
+    const parts = text.split("\n")
+    displayTitle = parts[0] || ""
+    displaySnippet = parts.slice(1).join("\n").trim()
   } else {
-    displayTitle = checklistTitle || "";
+    displayTitle = checklistTitle || ""
   }
 
   return (
@@ -280,7 +282,9 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
                   key={i}
                   onClick={(e) => handleItemClick(e, i)}
                   className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] ${
-                    isDisabled ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
+                    isDisabled
+                      ? "cursor-not-allowed"
+                      : "cursor-pointer hover:opacity-80"
                   } ${
                     item.checked
                       ? "bg-muted/20 border-transparent"
@@ -328,7 +332,9 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
                       key={i + 2}
                       onClick={(e) => handleItemClick(e, i + 2)}
                       className={`flex items-center gap-2.5 py-1.5 px-3 rounded-xl transition-all duration-300 border text-[12px] ${
-                        isDisabled ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
+                        isDisabled
+                          ? "cursor-not-allowed"
+                          : "cursor-pointer hover:opacity-80"
                       } ${
                         item.checked
                           ? "bg-muted/20 border-transparent"
@@ -369,8 +375,8 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
               {hiddenItems.length > 0 && (
                 <button
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExpanded(!isExpanded);
+                    e.stopPropagation()
+                    setIsExpanded(!isExpanded)
                   }}
                   className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-foreground transition-all duration-300 uppercase tracking-wider shrink-0"
                 >
@@ -501,7 +507,7 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         </div>
       )}
     </div>
-  );
-});
+  )
+})
 
-export default TaskCard;
+export default TaskCard

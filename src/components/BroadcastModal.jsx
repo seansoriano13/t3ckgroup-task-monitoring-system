@@ -205,13 +205,13 @@ export default function BroadcastModal({ isOpen, onClose }) {
 
   const isPosting = createMutation.isPending || editMutation.isPending;
 
-  const selectedType = TYPE_OPTIONS.find((t) => t.value === type);
+  // const selectedType = TYPE_OPTIONS.find((t) => t.value === type);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="p-0 gap-0 z-[70] shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col w-[620px] sm:max-w-none max-w-[95vw] max-h-[90vh] rounded-2xl overflow-hidden"
+        className="p-0 gap-0 z-70 shadow-[0_10px_40px_-10px_rgba(79,70,229,0.15)] flex flex-col w-[620px] sm:max-w-none max-w-[95vw] max-h-[90vh] rounded-2xl overflow-hidden"
       >
         {/* ── Header ──────────────────────────────────────── */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/60 shrink-0">
@@ -223,7 +223,7 @@ export default function BroadcastModal({ isOpen, onClose }) {
             />
             <ChevronDown
               size={11}
-              className="text-muted-foreground/50 rotate-[-90deg]"
+              className="text-muted-foreground/50 -rotate-90deg"
             />
             <span className="font-medium text-muted-foreground/80">
               Broadcast

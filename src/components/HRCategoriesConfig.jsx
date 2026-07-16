@@ -1,16 +1,16 @@
-import { useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { Plus, Edit, Trash2, XSquare } from "lucide-react";
-import Spinner from "@/components/ui/Spinner";
-import { employeeService } from "../services/employeeService";
-import { useAuth } from "../context/AuthContext";
-import { confirmDeleteToast } from "./ui/CustomToast";
-import HRFormModal from "./hr/HRFormModal";
-import CategoryForm from "./hr/CategoryForm";
+import { useMemo, useState } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import toast from "react-hot-toast"
+import { Plus, Edit, Trash2, XSquare } from "lucide-react"
+import Spinner from "@/components/ui/Spinner"
+import { employeeService } from "../services/employeeService"
+import { useAuth } from "../context/AuthContext"
+import { confirmDeleteToast } from "./ui/CustomToast"
+import HRFormModal from "./hr/HRFormModal"
+import CategoryForm from "./hr/CategoryForm"
 
 export default function HRCategoriesConfig() {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const {
     data: categories = [],
@@ -19,43 +19,43 @@ export default function HRCategoriesConfig() {
   } = useQuery({
     queryKey: ["allCategories"],
     queryFn: () => employeeService.getAllCategories(),
-  });
+  })
 
   const { data: employees = [] } = useQuery({
     queryKey: ["allEmployees"],
     queryFn: () => employeeService.getAllEmployees(),
-  });
+  })
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState(null)
+  const [searchTerm, setSearchTerm] = useState("")
 
   const openAdd = () => {
-    setEditingCategory(null);
-    setIsModalOpen(true);
-  };
+    setEditingCategory(null)
+    setIsModalOpen(true)
+  }
 
   const openEdit = (cat) => {
-    setEditingCategory(cat);
-    setIsModalOpen(true);
-  };
+    setEditingCategory(cat)
+    setIsModalOpen(true)
+  }
 
   const deleteMutation = useMutation({
     mutationFn: async (cat) => {
-      const inUse = await employeeService.isCategoryInUse(cat.categoryId);
+      const inUse = await employeeService.isCategoryInUse(cat.categoryId)
       if (inUse) {
         throw new Error(
           "This category is already used by existing tasks. Delete is blocked to prevent breaking task mappings.",
-        );
+        )
       }
-      return employeeService.deleteCategory(cat.id);
+      return employeeService.deleteCategory(cat.id)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["allCategories"] });
-      toast.success("Category deleted.");
+      queryClient.invalidateQueries({ queryKey: ["allCategories"] })
+      toast.success("Category deleted.")
     },
     onError: (err) => toast.error(err?.message || "Failed to delete category."),
-  });
+  })
 
   const filteredCategories = useMemo(() => {
     return categories.filter(
@@ -64,8 +64,8 @@ export default function HRCategoriesConfig() {
         cat.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cat.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cat.subDepartment?.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [categories, searchTerm]);
+    )
+  }, [categories, searchTerm])
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -165,9 +165,9 @@ export default function HRCategoriesConfig() {
                             `Delete Category?`,
                             `"${cat.categoryId}" will be permanently removed. This cannot be undone.`,
                             () => deleteMutation.mutate(cat),
-                          );
+                          )
                         }}
-                        className="p-2 bg-red-900/20 hover:bg-red-900/40 text-destructive rounded-lg transition-colors inline-block"
+                        className="p-2 bg-red-3 hover:bg-red-6 text-destructive rounded-lg transition-colors inline-block"
                         title="Delete Category"
                         disabled={deleteMutation.isPending}
                       >
@@ -199,7 +199,7 @@ export default function HRCategoriesConfig() {
         rawEmployees={employees}
       />
     </div>
-  );
+  )
 }
 
 function CategoryFormModal({
@@ -209,26 +209,26 @@ function CategoryFormModal({
   rawCategories,
   rawEmployees,
 }) {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const isEditing = !!category;
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const isEditing = !!category
 
   const upsertMutation = useMutation({
     mutationFn: async (data) => {
-      const actorId = user?.id || null;
+      const actorId = user?.id || null
       if (isEditing)
-        return employeeService.updateCategory(category.id, data, actorId);
-      return employeeService.createCategory({ ...data, updatedBy: actorId });
+        return employeeService.updateCategory(category.id, data, actorId)
+      return employeeService.createCategory({ ...data, updatedBy: actorId })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["allCategories"] });
-      toast.success(isEditing ? "Category updated!" : "Category added!");
-      onClose();
+      queryClient.invalidateQueries({ queryKey: ["allCategories"] })
+      toast.success(isEditing ? "Category updated!" : "Category added!")
+      onClose()
     },
     onError: (err) => {
-      toast.error(err?.message || "Failed to save category.");
+      toast.error(err?.message || "Failed to save category.")
     },
-  });
+  })
 
   return (
     <HRFormModal
@@ -253,5 +253,5 @@ function CategoryFormModal({
         onSubmit={(data) => upsertMutation.mutate(data)}
       />
     </HRFormModal>
-  );
+  )
 }

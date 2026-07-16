@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, XSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,11 +22,11 @@ export default function BulkDeclineModal({
     }
   }, [isOpen]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     if (e?.preventDefault) e.preventDefault();
     if (!remarks.trim()) return; // Require remarks for decline
     onConfirm({ remarks });
-  };
+  }, [remarks, onConfirm]);
 
   // Keyboard shortcut Ctrl+Enter to submit
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function BulkDeclineModal({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isOpen, remarks]);
+  }, [isOpen, handleSubmit]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

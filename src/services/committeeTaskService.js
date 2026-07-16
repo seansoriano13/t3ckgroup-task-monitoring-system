@@ -1,6 +1,5 @@
 import { supabase } from "../lib/supabase";
 import { notificationService } from "./notificationService";
-import { taskActivityService } from "./tasks/taskActivityService";
 import { committeeTaskActivityService } from "./committeeTaskActivityService";
 
 const logCommitteeTaskActivity = async (committeeTaskId, action, details = {}, actorId = null) => {

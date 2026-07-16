@@ -10,7 +10,7 @@ export function useLogTaskHandlers({
   isOpen,
   onClose,
   user,
-  categories,
+  // categories,
   employees,
   availableHeads,
   roles,
@@ -65,10 +65,12 @@ export function useLogTaskHandlers({
       attachmentsPersistRef.current.length > 0
     ) {
       restoringAttachmentsRef.current = true
-      setFormData((prev) => ({
-        ...prev,
-        attachments: attachmentsPersistRef.current,
-      }))
+      queueMicrotask(() => {
+        setFormData((prev) => ({
+          ...prev,
+          attachments: attachmentsPersistRef.current,
+        }))
+      })
     }
   })
 
@@ -78,95 +80,97 @@ export function useLogTaskHandlers({
     wasOpenRef.current = isOpen
 
     if (justOpened) {
-      // Restore draft if one exists
-      const savedDraft = (() => {
-        try {
-          const raw = localStorage.getItem(DRAFT_KEY)
-          if (!raw) return null
-          const parsed = JSON.parse(raw)
-          // Only restore if it belongs to the current user
-          if (parsed?.loggedById !== user?.id) return null
-          return parsed
-        } catch {
-          return null
+      queueMicrotask(() => {
+        // Restore draft if one exists
+        const savedDraft = (() => {
+          try {
+            const raw = localStorage.getItem(DRAFT_KEY)
+            if (!raw) return null
+            const parsed = JSON.parse(raw)
+            // Only restore if it belongs to the current user
+            if (parsed?.loggedById !== user?.id) return null
+            return parsed
+          } catch {
+            return null
+          }
+        })()
+
+        if (savedDraft) {
+          const hasMeaningfulContent =
+            savedDraft.projectTitle?.trim() ||
+            (typeof savedDraft.taskDescription === "string" &&
+              savedDraft.taskDescription?.trim()) ||
+            savedDraft.categoryId ||
+            savedDraft.attachments?.length > 0
+
+          if (hasMeaningfulContent) {
+            setFormData({
+              loggedById: user?.id || "",
+              categoryId: savedDraft.categoryId || "",
+              projectTitle: savedDraft.projectTitle || "",
+              taskDescription: savedDraft.taskDescription || "",
+              startAt: getCurrentLocalTime(),
+              endAt: savedDraft.endAt || "",
+              priority: savedDraft.priority || "LOW",
+              paymentVoucher: savedDraft.paymentVoucher || "",
+              attachments: savedDraft.attachments || [],
+            })
+            attachmentsPersistRef.current = savedDraft.attachments || []
+            if (savedDraft.committeeRole)
+              setCommitteeRole(savedDraft.committeeRole)
+            if (savedDraft.othersRemarks)
+              setOthersRemarks(savedDraft.othersRemarks)
+            if (savedDraft.descriptionType)
+              setDescriptionType(savedDraft.descriptionType)
+            localStorage.removeItem(DRAFT_KEY)
+            toast("Draft restored", {
+              duration: 3000,
+            })
+            setHrDeptFilter(
+              isHr && !isSuperAdmin ? user.department || "ADMIN" : "",
+            )
+            setHrSubDeptFilter(
+              isHr && !isSuperAdmin
+                ? user.sub_department || user.subDepartment || "HR"
+                : "",
+            )
+            plainTextBackupRef.current = ""
+            setOpenPopover(null)
+            setCategorySearch("")
+            setSelectedHead("")
+            setIsExpanded(false)
+            return
+          }
         }
-      })()
 
-      if (savedDraft) {
-        const hasMeaningfulContent =
-          savedDraft.projectTitle?.trim() ||
-          (typeof savedDraft.taskDescription === "string" &&
-            savedDraft.taskDescription?.trim()) ||
-          savedDraft.categoryId ||
-          savedDraft.attachments?.length > 0
-
-        if (hasMeaningfulContent) {
-          setFormData({
-            loggedById: user?.id || "",
-            categoryId: savedDraft.categoryId || "",
-            projectTitle: savedDraft.projectTitle || "",
-            taskDescription: savedDraft.taskDescription || "",
-            startAt: getCurrentLocalTime(),
-            endAt: savedDraft.endAt || "",
-            priority: savedDraft.priority || "LOW",
-            paymentVoucher: savedDraft.paymentVoucher || "",
-            attachments: savedDraft.attachments || [],
-          })
-          attachmentsPersistRef.current = savedDraft.attachments || []
-          if (savedDraft.committeeRole)
-            setCommitteeRole(savedDraft.committeeRole)
-          if (savedDraft.othersRemarks)
-            setOthersRemarks(savedDraft.othersRemarks)
-          if (savedDraft.descriptionType)
-            setDescriptionType(savedDraft.descriptionType)
-          localStorage.removeItem(DRAFT_KEY)
-          toast("Draft restored", {
-            duration: 3000,
-          })
-          setHrDeptFilter(
-            isHr && !isSuperAdmin ? user.department || "ADMIN" : "",
-          )
-          setHrSubDeptFilter(
-            isHr && !isSuperAdmin
-              ? user.sub_department || user.subDepartment || "HR"
-              : "",
-          )
-          plainTextBackupRef.current = ""
-          setOpenPopover(null)
-          setCategorySearch("")
-          setSelectedHead("")
-          setIsExpanded(false)
-          return
-        }
-      }
-
-      // No draft — fresh form
-      attachmentsPersistRef.current = []
-      setFormData({
-        loggedById: user?.id || "",
-        categoryId: "",
-        projectTitle: "",
-        taskDescription: "",
-        startAt: getCurrentLocalTime(),
-        endAt: "",
-        priority: "LOW",
-        paymentVoucher: "",
-        attachments: [],
+        // No draft — fresh form
+        attachmentsPersistRef.current = []
+        setFormData({
+          loggedById: user?.id || "",
+          categoryId: "",
+          projectTitle: "",
+          taskDescription: "",
+          startAt: getCurrentLocalTime(),
+          endAt: "",
+          priority: "LOW",
+          paymentVoucher: "",
+          attachments: [],
+        })
+        setCommitteeRole("")
+        setOthersRemarks("")
+        setDescriptionType("description")
+        setOpenPopover(null)
+        setCategorySearch("")
+        setSelectedHead("")
+        setIsExpanded(false)
+        plainTextBackupRef.current = ""
+        setHrDeptFilter(isHr && !isSuperAdmin ? user.department || "ADMIN" : "")
+        setHrSubDeptFilter(
+          isHr && !isSuperAdmin
+            ? user.sub_department || user.subDepartment || "HR"
+            : "",
+        )
       })
-      setCommitteeRole("")
-      setOthersRemarks("")
-      setDescriptionType("description")
-      setOpenPopover(null)
-      setCategorySearch("")
-      setSelectedHead("")
-      setIsExpanded(false)
-      plainTextBackupRef.current = ""
-      setHrDeptFilter(isHr && !isSuperAdmin ? user.department || "ADMIN" : "")
-      setHrSubDeptFilter(
-        isHr && !isSuperAdmin
-          ? user.sub_department || user.subDepartment || "HR"
-          : "",
-      )
     }
   }, [isOpen, user, isHr, isSuperAdmin])
 
@@ -174,7 +178,7 @@ export function useLogTaskHandlers({
   useEffect(() => {
     if (!formData.loggedById || !availableHeads.length) return
     if (isHead && !isHr && !isSuperAdmin) {
-      setSelectedHead(user.id)
+      queueMicrotask(() => setSelectedHead(user.id))
       return
     }
 
@@ -203,16 +207,20 @@ export function useLogTaskHandlers({
       return false
     })
 
-    if (directHeads.length > 0) setSelectedHead(directHeads[0].id)
-    else {
+    if (directHeads.length > 0) {
+      queueMicrotask(() => setSelectedHead(directHeads[0].id))
+    } else {
       const adminHeads = availableHeads.filter(
         (h) =>
           h.is_super_admin ||
           h.sub_department?.trim().toUpperCase() === "ALL" ||
           h.department?.trim().toUpperCase() === "SUPER ADMIN",
       )
-      if (adminHeads.length > 0) setSelectedHead(adminHeads[0].id)
-      else setSelectedHead("")
+      if (adminHeads.length > 0) {
+        queueMicrotask(() => setSelectedHead(adminHeads[0].id))
+      } else {
+        queueMicrotask(() => setSelectedHead(""))
+      }
     }
   }, [
     formData.loggedById,

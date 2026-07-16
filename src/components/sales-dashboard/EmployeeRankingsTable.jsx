@@ -173,7 +173,7 @@ export function EmployeeRankingsTable({
                   <td className="p-4 text-center">
                     {showQuota ? (
                       <div className="flex items-center justify-center gap-2 w-max mx-auto">
-                        <div className="w-20 h-1 bg-mauve-4 rounded-full overflow-hidden flex-shrink-0">
+                        <div className="w-20 h-1 bg-mauve-4 rounded-full overflow-hidden shrink-0">
                           <div
                             className={`h-full ${
                               pct >= 100

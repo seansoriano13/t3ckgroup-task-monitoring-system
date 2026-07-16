@@ -196,7 +196,7 @@ function MessageBubble({ entry, currentUserId }) {
         </div>
         <div
           className={cn(
-            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all whitespace-pre-wrap break-words overflow-hidden",
+            "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all whitespace-pre-wrap wrap-break-word overflow-hidden",
             isMe
               ? "bg-primary text-primary-foreground rounded-tr-none"
               : "bg-card border border-border rounded-tl-none",
@@ -513,7 +513,7 @@ export default function ComprehensiveChatModal({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, internalOpen]);
+  }, [user?.id, internalOpen, queryClient]);
 
   // Real-time listener for current thread
   useEffect(() => {
@@ -569,7 +569,7 @@ export default function ComprehensiveChatModal({
         committeeTaskActivityService.unsubscribeFromActivity(channel);
       else salesActivityLogService.unsubscribeFromActivity(channel);
     };
-  }, [selectedChat, internalOpen]);
+  }, [selectedChat, internalOpen, queryClient]);
 
   // Auto-scroll
   useEffect(() => {

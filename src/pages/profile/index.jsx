@@ -12,7 +12,7 @@ import Spinner from "@/components/ui/Spinner";
 import { useAuth } from "../../context/AuthContext";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { storageService } from "../../services/storageService";
 import { employeeService } from "../../services/employeeService";
@@ -39,67 +39,76 @@ export default function ProfilePage() {
   const { user, updateUserPreferences } = useAuth();
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
-  const [customQuote, setCustomQuote] = useState(user?.dashboardQuote || "");
+
+  const isHttpUrl = (value) => /^https?:\/\//i.test(value || "");
+
+  const [customQuote, setCustomQuote] = useState(() => user?.dashboardQuote || "");
+  const [prevDashboardQuote, setPrevDashboardQuote] = useState(
+    user?.dashboardQuote,
+  );
+  if (user?.dashboardQuote !== prevDashboardQuote) {
+    setPrevDashboardQuote(user?.dashboardQuote);
+    setCustomQuote(user?.dashboardQuote || "");
+  }
+
   const [avatarFile, setAvatarFile] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
-  const [bannerUrlInput, setBannerUrlInput] = useState("");
+
+  const [bannerUrlInput, setBannerUrlInput] = useState(() =>
+    isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "",
+  );
+  const [prevDashboardBannerPath, setPrevDashboardBannerPath] = useState(
+    user?.dashboardBannerPath,
+  );
+  if (user?.dashboardBannerPath !== prevDashboardBannerPath) {
+    setPrevDashboardBannerPath(user?.dashboardBannerPath);
+    setBannerUrlInput(
+      isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "",
+    );
+  }
+
   const [removeAvatar, setRemoveAvatar] = useState(false);
   const [removeBanner, setRemoveBanner] = useState(false);
   const [removeQuote, setRemoveQuote] = useState(false);
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
-  const [bannerPreviewUrl, setBannerPreviewUrl] = useState("");
   // Crop modal
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
 
-  const isHttpUrl = (value) => /^https?:\/\//i.test(value || "");
+  const avatarFileObjectUrl = useMemo(() => {
+    if (!avatarFile) return null;
+    return URL.createObjectURL(avatarFile);
+  }, [avatarFile]);
 
   useEffect(() => {
-    setCustomQuote(user?.dashboardQuote || "");
-  }, [user?.dashboardQuote]);
+    if (avatarFileObjectUrl) {
+      return () => URL.revokeObjectURL(avatarFileObjectUrl);
+    }
+  }, [avatarFileObjectUrl]);
+
+  const avatarPreviewUrl = avatarFileObjectUrl
+    ? avatarFileObjectUrl
+    : removeAvatar
+      ? "/default-avatar.png"
+      : user?.picture || "/default-avatar.png";
+
+  const bannerFileObjectUrl = useMemo(() => {
+    if (!bannerFile) return null;
+    return URL.createObjectURL(bannerFile);
+  }, [bannerFile]);
 
   useEffect(() => {
-    setBannerUrlInput(
-      isHttpUrl(user?.dashboardBannerPath) ? user.dashboardBannerPath : "",
-    );
-  }, [user?.dashboardBannerPath]);
-
-  useEffect(() => {
-    if (avatarFile) {
-      const objectUrl = URL.createObjectURL(avatarFile);
-      setAvatarPreviewUrl(objectUrl);
-      return () => URL.revokeObjectURL(objectUrl);
+    if (bannerFileObjectUrl) {
+      return () => URL.revokeObjectURL(bannerFileObjectUrl);
     }
+  }, [bannerFileObjectUrl]);
 
-    if (removeAvatar) {
-      setAvatarPreviewUrl("/default-avatar.png");
-      return undefined;
-    }
-
-    setAvatarPreviewUrl(user?.picture || "/default-avatar.png");
-    return undefined;
-  }, [avatarFile, removeAvatar, user?.picture]);
-
-  useEffect(() => {
-    if (bannerFile) {
-      const objectUrl = URL.createObjectURL(bannerFile);
-      setBannerPreviewUrl(objectUrl);
-      return () => URL.revokeObjectURL(objectUrl);
-    }
-
-    if (removeBanner) {
-      setBannerPreviewUrl("/leaf-background.jpg");
-      return undefined;
-    }
-
-    if ((bannerUrlInput || "").trim()) {
-      setBannerPreviewUrl(bannerUrlInput.trim());
-      return undefined;
-    }
-
-    setBannerPreviewUrl(user?.dashboardBannerUrl || "/leaf-background.jpg");
-    return undefined;
-  }, [bannerFile, removeBanner, bannerUrlInput, user?.dashboardBannerUrl]);
+  const bannerPreviewUrl = bannerFileObjectUrl
+    ? bannerFileObjectUrl
+    : removeBanner
+      ? "/leaf-background.jpg"
+      : (bannerUrlInput || "").trim()
+        ? bannerUrlInput.trim()
+        : user?.dashboardBannerUrl || "/leaf-background.jpg";
 
   const { data: stats, isLoading: isStatsLoading } = useQuery({
     queryKey: ["profileStats", user?.id],

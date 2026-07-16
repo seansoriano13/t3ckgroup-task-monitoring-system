@@ -408,7 +408,7 @@ export default function TaskFilters({
                     <div
                       className={`w-2 h-2 shrink-0 rounded-full ${currentPriority.dot}`}
                     />
-                    <span className="text-[13px] text-foreground font-[500] truncate block w-full text-left">
+                    <span className="text-[13px] text-foreground font-500 truncate block w-full text-left">
                       {currentPriority.value === "ALL"
                         ? "All"
                         : currentPriority.label}

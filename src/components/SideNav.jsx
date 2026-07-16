@@ -29,7 +29,7 @@ import NotificationDrawer from "./NotificationDrawer";
 import ComprehensiveChatModal from "./ComprehensiveChatModal";
 
 import GlobalDetailManager from "./GlobalDetailManager";
-import { useLocation, Link, useNavigate, NavLink } from "react-router";
+import { Link, useNavigate, NavLink } from "react-router";
 import Avatar from "./Avatar";
 import { useState } from "react";
 import LogTaskModal from "./LogTaskModal";
@@ -242,7 +242,7 @@ export default function SideNav() {
       <div className="md:hidden fixed top-3 left-3 z-40">
         <button
           onClick={() => setIsMobileOpen(true)}
-          className="text-sidebar-foreground/80 hover:text-sidebar-foreground bg-sidebar border-r border-sidebar-border/80 backdrop-blur-md border border-sidebar-border p-1.5 rounded-lg shadow-sm transition-colors"
+          className="text-sidebar-foreground/80 hover:text-sidebar-foreground bg-sidebar border-r border-sidebar-border backdrop-blur-md border p-1.5 rounded-lg shadow-sm transition-colors"
         >
           <PanelRight size={18} strokeWidth={2} />
         </button>

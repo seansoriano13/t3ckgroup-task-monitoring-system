@@ -3,6 +3,7 @@
  * Wraps search term matches in a styled span.
  * Based on src/pages/super-admin/activity-log/index.jsx
  */
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
 export default function HighlightText({ text, search }) {

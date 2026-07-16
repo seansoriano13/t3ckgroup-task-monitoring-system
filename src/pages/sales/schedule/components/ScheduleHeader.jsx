@@ -42,7 +42,7 @@ export function ScheduleHeader({
   compactMode,
   setCompactMode,
   weekSummary,
-  dayProgress,
+  // dayProgress,
   unplannedRatio,
 }) {
   const totalDaysRequired =

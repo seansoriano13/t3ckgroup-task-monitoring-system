@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, forwardRef } from "react";
+import React, { useState, useRef, useEffect, useCallback, forwardRef } from "react";
 import { createPortal } from "react-dom";
 
 const Dropdown = forwardRef(
@@ -26,7 +26,7 @@ const Dropdown = forwardRef(
     const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
 
     // Compute coords from the trigger element
-    const computeCoords = () => {
+    const computeCoords = useCallback(() => {
       if (!dropdownRef.current) return null;
       const rect = dropdownRef.current.getBoundingClientRect();
       return {
@@ -37,7 +37,26 @@ const Dropdown = forwardRef(
         right: window.innerWidth - rect.right,
         windowHeight: window.innerHeight,
       };
-    };
+    }, []);
+
+    const updateCoords = useCallback(() => {
+      const next = computeCoords();
+      if (!next) return;
+      setCoords((prev) => {
+        if (
+          prev &&
+          prev.left === next.left &&
+          prev.top === next.top &&
+          prev.rectTop === next.rectTop &&
+          prev.width === next.width &&
+          prev.right === next.right &&
+          prev.windowHeight === next.windowHeight
+        ) {
+          return prev;
+        }
+        return next;
+      });
+    }, [computeCoords]);
 
     const handleToggle = (e) => {
       if (disabled) return;
@@ -47,7 +66,7 @@ const Dropdown = forwardRef(
 
       // Pre-compute coords before opening so portal positions correctly on first paint
       if (!isOpen && usePortal) {
-        setCoords(computeCoords());
+        updateCoords();
       }
 
       if (isControlled) {
@@ -60,25 +79,27 @@ const Dropdown = forwardRef(
 
     useEffect(() => {
       if (isOpen && usePortal) {
-        // Also update coords when controlled isOpen changes from outside
-        setCoords(computeCoords());
+        // Also update coords when controlled isOpen changes from outside.
+        // Using requestAnimationFrame avoids calling setState synchronously within the effect body
+        // and prevents cascading renders on mount/update.
+        const frameId = requestAnimationFrame(updateCoords);
         // Reposition on window resize
-        const handleResize = () => setCoords(computeCoords());
-        window.addEventListener("resize", handleResize);
+        window.addEventListener("resize", updateCoords);
         // Optional: hide or reposition on scroll
         const handleScroll = (e) => {
           // If clicking inside the popover causes scroll, ignore it
           if (e.target.closest?.(".popover-enter")) return;
-          setCoords(computeCoords());
+          updateCoords();
         };
         // use capture phase to catch scrolls on inner elements like overflow-x-auto
         window.addEventListener("scroll", handleScroll, true);
         return () => {
-          window.removeEventListener("resize", handleResize);
+          cancelAnimationFrame(frameId);
+          window.removeEventListener("resize", updateCoords);
           window.removeEventListener("scroll", handleScroll, true);
         };
       }
-    }, [isOpen, usePortal]);
+    }, [isOpen, usePortal, updateCoords]);
 
     useEffect(() => {
       const handleClickOutside = (event) => {

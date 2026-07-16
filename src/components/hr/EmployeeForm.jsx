@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { Shield, Users, Briefcase, ListCheck } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import DeptSubDeptSelector from "./DeptSubDeptSelector";
-import { useMemo } from "react";
+import { useState } from "react"
+import { Shield, Users, Briefcase, ListCheck } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import DeptSubDeptSelector from "./DeptSubDeptSelector"
+import { useMemo } from "react"
 
 export default function EmployeeForm({
   initialData,
@@ -23,40 +23,21 @@ export default function EmployeeForm({
     has_sales_flow: false,
     has_task_flow: true,
     ...initialData,
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData((prev) => ({ ...prev, ...initialData }));
-    } else {
-      setFormData({
-        name: "",
-        email: "",
-        department: "",
-        subDepartment: "",
-        role: "",
-        isHead: false,
-        isHr: false,
-        isSuperAdmin: false,
-        has_sales_flow: false,
-        has_task_flow: true,
-      });
-    }
-  }, [initialData]);
+  })
 
   const uniqueDepts = useMemo(() => {
     const fromCategories = [
       ...new Set(rawCategories.map((c) => c.department).filter(Boolean)),
-    ].sort();
+    ].sort()
     if (!fromCategories.includes("SALES")) {
-      fromCategories.push("SALES");
+      fromCategories.push("SALES")
     }
-    return fromCategories;
-  }, [rawCategories]);
+    return fromCategories
+  }, [rawCategories])
 
   const uniqueSubDepts = useMemo(() => {
-    const dept = formData.department;
-    if (!dept) return [];
+    const dept = formData.department
+    if (!dept) return []
 
     let subDepts = [
       ...new Set(
@@ -65,31 +46,31 @@ export default function EmployeeForm({
           .map((c) => c.subDepartment)
           .filter(Boolean),
       ),
-    ];
+    ]
 
     // Manual injections for specific departments
     if (dept === "SALES") {
-      ["GOV", "NGO", "SALES"].forEach((s) => {
-        if (!subDepts.includes(s)) subDepts.push(s);
-      });
+      ;["GOV", "NGO", "SALES"].forEach((s) => {
+        if (!subDepts.includes(s)) subDepts.push(s)
+      })
     }
     if (dept === "OPERATIONS") {
-      if (!subDepts.includes("MARKETING")) subDepts.push("MARKETING");
+      if (!subDepts.includes("MARKETING")) subDepts.push("MARKETING")
     }
 
     // Also include sub-depts already assigned to employees in this dept
     const fromEmps = rawEmployees
       .filter((e) => e.department === dept)
       .map((e) => e.subDepartment)
-      .filter(Boolean);
+      .filter(Boolean)
 
-    return [...new Set([...subDepts, ...fromEmps])].sort();
-  }, [rawCategories, rawEmployees, formData.department]);
+    return [...new Set([...subDepts, ...fromEmps])].sort()
+  }, [rawCategories, rawEmployees, formData.department])
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+    e.preventDefault()
+    onSubmit(formData)
+  }
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-5">
@@ -226,7 +207,7 @@ export default function EmployeeForm({
         </div>
       </div>
     </form>
-  );
+  )
 }
 
 function AccessSwitch({
@@ -265,5 +246,5 @@ function AccessSwitch({
         />
       </div>
     </div>
-  );
+  )
 }

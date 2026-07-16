@@ -131,10 +131,10 @@ export default function ChecklistTaskInput({
             onDrop={(e) => handleDrop(e, index)}
             className={`flex items-center gap-3 group transition-all rounded-xl p-2.5 bg-muted/30 border border-transparent hover:border-border hover:bg-muted/50 ${draggedIndex === index ? "opacity-50" : ""}`}
           >
-            <span className="text-muted-foreground cursor-grab active:cursor-grabbing opacity-50 group-hover:opacity-100 flex-shrink-0 p-1 hover:bg-muted rounded-md transition-all">
+            <span className="text-muted-foreground cursor-grab active:cursor-grabbing opacity-50 group-hover:opacity-100 shrink-0 p-1 hover:bg-muted rounded-md transition-all">
               <GripVertical size={16} />
             </span>
-            <div className="w-5 h-5 border border-border rounded-md flex-shrink-0 bg-card shadow-sm" />
+            <div className="w-5 h-5 border border-border rounded-md shrink-0 bg-card shadow-sm" />
             <input
               type="text"
               value={item.text}
@@ -177,7 +177,7 @@ export default function ChecklistTaskInput({
             <button
               type="button"
               onClick={() => removeItem(index)}
-              className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 p-1.5 rounded-lg hover:bg-destructive/10"
+              className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all shrink-0 p-1.5 rounded-lg hover:bg-destructive/10"
             >
               <X size={16} />
             </button>

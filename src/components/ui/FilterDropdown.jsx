@@ -28,7 +28,7 @@ export function FilterTrigger({
             className={`shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`}
           />
         )}
-        <span className="text-[13px] text-foreground font-[500] truncate block w-full text-left">
+        <span className="text-[13px] text-foreground font-500 truncate block w-full text-left">
           {label}
         </span>
       </div>

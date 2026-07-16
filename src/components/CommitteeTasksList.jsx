@@ -133,7 +133,7 @@ export default function CommitteeTasksList({ selectedRange }) {
                 className={`${
                   layoutMode === "grid"
                     ? "w-full min-w-0"
-                    : "w-[300px] sm:w-[340px] max-w-[85vw] snap-start flex-shrink-0"
+                    : "w-[300px] sm:w-[340px] max-w-[85vw] snap-start shrink-0"
                 }`}
               >
                 <CommitteeTaskCard

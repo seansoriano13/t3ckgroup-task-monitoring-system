@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, useMemo } from "react";
-import Dot from "./ui/Dot";
-import { createPortal } from "react-dom";
-import Draggable from "react-draggable";
+import { useState, useRef, useEffect, useMemo } from "react"
+import Dot from "./ui/Dot"
+import { createPortal } from "react-dom"
+import Draggable from "react-draggable"
 import {
   Calendar,
   ChevronLeft,
@@ -10,9 +10,9 @@ import {
   TrendingUp,
   LayoutGrid,
   GripVertical,
-} from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+} from "lucide-react"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
 import {
   getMonthBoundaries,
   getQuarterBoundaries,
@@ -20,15 +20,15 @@ import {
   getQuarterFromMonth,
   getMonthKeysInRange,
   formatDateToYMD,
-} from "../utils/dateUtils";
+} from "../utils/dateUtils"
 
-const MODES = ["MONTHLY", "QUARTERLY", "YEARLY", "CUSTOM"];
+const MODES = ["MONTHLY", "QUARTERLY", "YEARLY", "CUSTOM"]
 const MODE_LABELS = {
   MONTHLY: "Monthly",
   QUARTERLY: "Quarterly",
   YEARLY: "Yearly",
   CUSTOM: "Custom",
-};
+}
 
 /**
  * GlobalRangePicker (formerly FloatingMonthPicker)
@@ -36,83 +36,117 @@ const MODE_LABELS = {
  * Used globally to sync all dashboard modules.
  */
 export default function FloatingMonthPicker({ selectedRange, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [dropUp, setDropUp] = useState(false);
-  const panelRef = useRef(null);
-  const isInternalChange = useRef(false);
-  const now = new Date();
-
+  const [open, setOpen] = useState(false)
+  const [dropUp, setDropUp] = useState(false)
+  const panelRef = useRef(null)
+  // const isInternalChange = useRef(false);
+  const now = new Date()
 
   // Internal state for selection
-  const [mode, setMode] = useState(selectedRange?.mode || "MONTHLY");
+  const [mode, setMode] = useState(selectedRange?.mode || "MONTHLY")
   const [month, setMonth] = useState(
     selectedRange?.mode === "MONTHLY"
       ? selectedRange.startDate.slice(0, 7)
       : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
-  );
+  )
   const [quarter, setQuarter] = useState(
     selectedRange?.mode === "QUARTERLY"
       ? getQuarterFromMonth(selectedRange.startDate)
       : getQuarterFromMonth(month),
-  );
+  )
   const [year, setYear] = useState(
     selectedRange?.startDate
       ? new Date(selectedRange.startDate).getFullYear()
       : now.getFullYear(),
-  );
+  )
   const [customStart, setCustomStart] = useState(
     selectedRange?.mode === "CUSTOM"
       ? selectedRange.startDate
       : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`,
-  );
+  )
   const [customEnd, setCustomEnd] = useState(
     selectedRange?.mode === "CUSTOM"
       ? selectedRange.endDate
       : formatDateToYMD(now),
-  );
+  )
 
   // Helper to parse YYYY-MM-DD as local date (prevents timezone shifts)
   const parseYMD = (s) => {
-    if (!s) return null;
-    const [y, m, d] = s.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  };
+    if (!s) return null
+    const [y, m, d] = s.split("-").map(Number)
+    return new Date(y, m - 1, d)
+  }
+
+  // Sync internal state with external prop changes during render right before computing rangeData
+  // This avoids calling setState within useEffect which causes cascading re-renders
+  const [prevSelectedRange, setPrevSelectedRange] = useState(selectedRange)
+
+  if (selectedRange && selectedRange !== prevSelectedRange) {
+    setPrevSelectedRange(selectedRange)
+
+    if (selectedRange.mode !== mode) {
+      setMode(selectedRange.mode)
+    }
+
+    if (selectedRange.mode === "MONTHLY") {
+      const m = selectedRange.startDate?.slice(0, 7)
+      if (m && m !== month) setMonth(m)
+    } else if (selectedRange.mode === "QUARTERLY") {
+      const y = new Date(selectedRange.startDate).getFullYear()
+      const q = getQuarterFromMonth(selectedRange.startDate)
+      if (y !== year) setYear(y)
+      if (q !== quarter) setQuarter(q)
+    } else if (selectedRange.mode === "YEARLY") {
+      const y = new Date(selectedRange.startDate).getFullYear()
+      if (y !== year) setYear(y)
+    } else if (selectedRange.mode === "CUSTOM") {
+      if (selectedRange.startDate !== customStart) {
+        setCustomStart(selectedRange.startDate)
+      }
+      const d = parseYMD(selectedRange.endDate)
+      if (d) {
+        d.setDate(d.getDate() - 1)
+        const inclusiveEnd = formatDateToYMD(d)
+        if (inclusiveEnd !== customEnd) setCustomEnd(inclusiveEnd)
+      }
+    }
+  }
 
   // Compute boundaries based on internal state
   const rangeData = useMemo(() => {
-    let startDate, endDate, label;
+    let startDate, endDate, label
 
     if (mode === "MONTHLY") {
-      const b = getMonthBoundaries(month);
-      startDate = b.startDate;
-      endDate = b.endDate;
+      const b = getMonthBoundaries(month)
+      startDate = b.startDate
+      endDate = b.endDate
       label = new Date(month + "-01").toLocaleString("default", {
         month: "short",
         year: "numeric",
         timeZone: "UTC",
-      });
+      })
     } else if (mode === "QUARTERLY") {
-      const b = getQuarterBoundaries(year, quarter);
-      startDate = b.startDate;
-      endDate = b.endDate;
-      label = `Q${quarter} ${year}`;
+      const b = getQuarterBoundaries(year, quarter)
+      startDate = b.startDate
+      endDate = b.endDate
+      label = `Q${quarter} ${year}`
     } else if (mode === "YEARLY") {
-      const b = getYearBoundaries(year);
-      startDate = b.startDate;
-      endDate = b.endDate;
-      label = String(year);
+      const b = getYearBoundaries(year)
+      startDate = b.startDate
+      endDate = b.endDate
+      label = String(year)
     } else {
-      startDate = customStart;
+      startDate = customStart
       // Make custom endDate exclusive (next day) to match Monthly/Quarterly/Yearly conventions
-      const nextDay = new Date(parseYMD(customEnd));
-      nextDay.setDate(nextDay.getDate() + 1);
-      endDate = formatDateToYMD(nextDay);
-      label = `Custom Range`; // Simplified for the FAB label
+      const nextDay = new Date(parseYMD(customEnd))
+      nextDay.setDate(nextDay.getDate() + 1)
+      endDate = formatDateToYMD(nextDay)
+      label = `Custom Range` // Simplified for the FAB label
     }
 
-    const monthKeys = getMonthKeysInRange(startDate, endDate);
-    return { startDate, endDate, label, mode, monthKeys };
-  }, [mode, month, quarter, year, customStart, customEnd]);
+    const monthKeys = getMonthKeysInRange(startDate, endDate)
+    return { startDate, endDate, label, mode, monthKeys }
+  }, [mode, month, quarter, year, customStart, customEnd])
 
   // Sync back to parent
   useEffect(() => {
@@ -122,120 +156,88 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
       rangeData.endDate !== selectedRange?.endDate ||
       rangeData.mode !== selectedRange?.mode
     ) {
-      onChange?.(rangeData);
+      onChange?.(rangeData)
     }
-  }, [rangeData, onChange, selectedRange]);
-
-  // Sync internal state with external prop changes
-  useEffect(() => {
-    if (!selectedRange) return;
-
-    setMode((prev) =>
-      prev !== selectedRange.mode ? selectedRange.mode : prev,
-    );
-
-    if (selectedRange.mode === "MONTHLY") {
-      const m = selectedRange.startDate.slice(0, 7);
-      setMonth((prev) => (prev !== m ? m : prev));
-    } else if (selectedRange.mode === "QUARTERLY") {
-      const y = new Date(selectedRange.startDate).getFullYear();
-      const q = getQuarterFromMonth(selectedRange.startDate);
-      setYear((prev) => (prev !== y ? y : prev));
-      setQuarter((prev) => (prev !== q ? q : prev));
-    } else if (selectedRange.mode === "YEARLY") {
-      const y = new Date(selectedRange.startDate).getFullYear();
-      setYear((prev) => (prev !== y ? y : prev));
-    } else if (selectedRange.mode === "CUSTOM") {
-      setCustomStart((prev) =>
-        prev !== selectedRange.startDate ? selectedRange.startDate : prev,
-      );
-      const d = parseYMD(selectedRange.endDate);
-      if (d) {
-        d.setDate(d.getDate() - 1);
-        const inclusiveEnd = formatDateToYMD(d);
-        setCustomEnd((prev) => (prev !== inclusiveEnd ? inclusiveEnd : prev));
-      }
-    }
-  }, [selectedRange]);
+  }, [rangeData, onChange, selectedRange])
 
   // Close on outside click
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
     const handler = (e) => {
       if (
         panelRef.current &&
         !panelRef.current.contains(e.target) &&
         !e.target.closest(".react-datepicker-popper")
       ) {
-        setOpen(false);
+        setOpen(false)
       }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [open])
 
   useEffect(() => {
     if (open && panelRef.current) {
-      const rect = panelRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      setDropUp(rect.top > windowHeight / 2);
+      const rect = panelRef.current.getBoundingClientRect()
+      const windowHeight = window.innerHeight
+      setDropUp(rect.top > windowHeight / 2)
     }
-  }, [open]);
+  }, [open])
 
   const navPrev = () => {
     if (mode === "MONTHLY") {
-      const [y, m] = month.split("-").map(Number);
+      const [y, m] = month.split("-").map(Number)
       const prev =
-        m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
-      setMonth(prev);
+        m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`
+      setMonth(prev)
     } else if (mode === "QUARTERLY") {
       if (quarter === 1) {
-        setQuarter(4);
-        setYear(year - 1);
-      } else setQuarter(quarter - 1);
+        setQuarter(4)
+        setYear(year - 1)
+      } else setQuarter(quarter - 1)
     } else if (mode === "YEARLY") {
-      setYear(year - 1);
+      setYear(year - 1)
     }
-  };
+  }
 
   const navNext = () => {
     if (mode === "MONTHLY") {
-      const [y, m] = month.split("-").map(Number);
+      const [y, m] = month.split("-").map(Number)
       const next =
-        m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
-      setMonth(next);
+        m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`
+      setMonth(next)
     } else if (mode === "QUARTERLY") {
       if (quarter === 4) {
-        setQuarter(1);
-        setYear(year + 1);
-      } else setQuarter(quarter + 1);
+        setQuarter(1)
+        setYear(year + 1)
+      } else setQuarter(quarter + 1)
     } else if (mode === "YEARLY") {
-      setYear(year + 1);
+      setYear(year + 1)
     }
-  };
+  }
 
   const goToday = () => {
-    setMode("MONTHLY");
+    setMode("MONTHLY")
     setMonth(
       `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
-    );
-  };
+    )
+  }
 
   const content = (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100000] pointer-events-none">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-100000 pointer-events-none">
       <Draggable
         handle=".drag-handle"
         nodeRef={panelRef}
         onDrag={() => {
           if (panelRef.current) {
-            const rect = panelRef.current.getBoundingClientRect();
-            setDropUp(rect.top > window.innerHeight / 2);
+            const rect = panelRef.current.getBoundingClientRect()
+            setDropUp(rect.top > window.innerHeight / 2)
           }
         }}
         onStop={() => {
           if (panelRef.current) {
-            const rect = panelRef.current.getBoundingClientRect();
-            setDropUp(rect.top > window.innerHeight / 2);
+            const rect = panelRef.current.getBoundingClientRect()
+            setDropUp(rect.top > window.innerHeight / 2)
           }
         }}
       >
@@ -366,14 +368,14 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                       <div className="grid grid-cols-4 gap-1 flex-1">
                         {Array.from({ length: 12 }, (_, i) => {
                           const isSelected =
-                            i + 1 === Number(month.split("-")[1]);
+                            i + 1 === Number(month.split("-")[1])
                           const isNow =
                             i === now.getMonth() &&
-                            Number(month.split("-")[0]) === now.getFullYear();
+                            Number(month.split("-")[0]) === now.getFullYear()
                           const mLabel = new Date(2000, i, 1).toLocaleString(
                             "default",
                             { month: "short" },
-                          );
+                          )
                           return (
                             <button
                               key={i}
@@ -399,7 +401,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                                 />
                               )}
                             </button>
-                          );
+                          )
                         })}
                       </div>
                     )}
@@ -445,14 +447,11 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                       <DatePicker
                         selected={parseYMD(customStart)}
                         onChange={(date) => {
-                          if (!date) return;
-                          const y = date.getFullYear();
-                          const m = String(date.getMonth() + 1).padStart(
-                            2,
-                            "0",
-                          );
-                          const d = String(date.getDate()).padStart(2, "0");
-                          setCustomStart(`${y}-${m}-${d}`);
+                          if (!date) return
+                          const y = date.getFullYear()
+                          const m = String(date.getMonth() + 1).padStart(2, "0")
+                          const d = String(date.getDate()).padStart(2, "0")
+                          setCustomStart(`${y}-${m}-${d}`)
                         }}
                         dateFormat="MMM d, yyyy"
                         portalId="root"
@@ -467,14 +466,11 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
                       <DatePicker
                         selected={parseYMD(customEnd)}
                         onChange={(date) => {
-                          if (!date) return;
-                          const y = date.getFullYear();
-                          const m = String(date.getMonth() + 1).padStart(
-                            2,
-                            "0",
-                          );
-                          const d = String(date.getDate()).padStart(2, "0");
-                          setCustomEnd(`${y}-${m}-${d}`);
+                          if (!date) return
+                          const y = date.getFullYear()
+                          const m = String(date.getMonth() + 1).padStart(2, "0")
+                          const d = String(date.getDate()).padStart(2, "0")
+                          setCustomEnd(`${y}-${m}-${d}`)
                         }}
                         dateFormat="MMM d, yyyy"
                         portalId="root"
@@ -497,7 +493,7 @@ export default function FloatingMonthPicker({ selectedRange, onChange }) {
         </div>
       </Draggable>
     </div>
-  );
+  )
 
-  return createPortal(content, document.body);
+  return createPortal(content, document.body)
 }

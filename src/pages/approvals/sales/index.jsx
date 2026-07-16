@@ -97,10 +97,12 @@ export default function SalesHeadApprovalsPage() {
     }
   };
 
-  // Clear selections on tab change
-  useEffect(() => {
-    handleDeselectAll();
-  }, [activeTab]);
+  const handleTabChange = (newTab) => {
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+      handleDeselectAll();
+    }
+  };
 
   // ── Pending activities query ──
   const { data: rawPending = [], isLoading } = useQuery({
@@ -522,7 +524,7 @@ export default function SalesHeadApprovalsPage() {
               { value: "REQUESTS", label: "Requests", icon: MessageSquare, badge: totalRequestsCount || undefined },
             ]}
             activeTab={activeTab}
-            onChange={setActiveTab}
+            onChange={handleTabChange}
             size="md"
           />
 

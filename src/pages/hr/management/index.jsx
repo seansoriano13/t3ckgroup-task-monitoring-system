@@ -4,7 +4,6 @@ import { employeeService } from "../../../services/employeeService";
 import ProtectedRoute from "../../../components/ProtectedRoute.jsx";
 import toast from "react-hot-toast";
 import { useAuth } from "../../../context/AuthContext";
-import { storageService } from "../../../services/storageService";
 import HRCategoriesConfig from "../../../components/HRCategoriesConfig.jsx";
 import { UserPlus, Edit, Trash2, Shield } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";

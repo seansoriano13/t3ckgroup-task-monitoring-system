@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notificationService } from "../services/notificationService";
 import { useAuth } from "../context/AuthContext";
@@ -149,6 +149,11 @@ export default function NotificationDrawer({ isOpen, onClose }) {
   const navigate = useNavigate();
   const avatarMap = useEmployeeAvatarMap();
 
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
   const [activeTab, setActiveTab] = useState("ALL");
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -170,7 +175,7 @@ export default function NotificationDrawer({ isOpen, onClose }) {
         ]);
         
         const avatarUrl = avatarMap.get(newNotif.sender_id || newNotif.sender?.id);
-        showNotificationPopup(newNotif, navigate, user, avatarUrl);
+        showNotificationPopup(newNotif, navigate, userRef.current, avatarUrl);
       },
     );
     return () => {

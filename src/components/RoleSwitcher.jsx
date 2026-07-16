@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
-import { employeeService } from "../services/employeeService";
-import { FlaskConical, ChevronUp, ChevronDown } from "lucide-react";
+import { FlaskConical, ChevronUp } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 import Select from "react-select";
@@ -32,7 +31,7 @@ export default function RoleSwitcher() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [, setIsMounted] = useState(false);
   const [deptSubDeptPairs, setDeptSubDeptPairs] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -230,7 +229,7 @@ export default function RoleSwitcher() {
   };
 
   return (
-    <div className="w-full relative z-[100] mt-auto">
+    <div className="w-full relative z-100 mt-auto">
       {isOpen &&
         coords &&
         createPortal(

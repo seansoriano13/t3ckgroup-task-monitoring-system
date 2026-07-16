@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { TASK_STATUS } from "../../constants/status.js";
 import TaskDetails from "../../components/TaskDetails.jsx";
@@ -545,7 +545,7 @@ export default function TasksPage() {
                           }}
                           className={`w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition-all border ${
                             p === currentGroupPage
-                              ? "bg-primary border-primary text-primary-foreground text-primary-foreground border-primary"
+                              ? "bg-primary text-primary-foreground border-primary"
                               : p === "..."
                                 ? "bg-transparent text-muted-foreground/80 border-transparent cursor-default"
                                 : "bg-muted/50 text-muted-foreground/80 border-border hover:border-mauve-5"

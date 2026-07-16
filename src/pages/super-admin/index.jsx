@@ -1,17 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { salesService } from "../../services/salesService";
 import ProtectedRoute from "../../components/ProtectedRoute.jsx";
 import { useAuth } from "../../context/AuthContext";
 
 import Spinner from "@/components/ui/Spinner";
-import { storageService } from "../../services/storageService";
-import EmployeePipelineMatrix from "../../components/EmployeePipelineMatrix.jsx";
 import ExpenseApprovalQueue from "../../components/ExpenseApprovalQueue.jsx";
 import FloatingMonthPicker from "../../components/FloatingMonthPicker.jsx";
 import SystemUpdateBanner from "../../components/SystemUpdateBanner.jsx";
 import SystemUpdateManager from "../../components/SystemUpdateManager.jsx";
-import SalesPerformanceMetrics from "../../components/SalesPerformanceMetrics.jsx";
 import QuotaManagementModule from "../../components/quota-management/QuotaManagementModule.jsx";
 import PageHeader from "../../components/ui/PageHeader";
 import PageContainer from "../../components/ui/PageContainer";

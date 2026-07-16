@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import DeptSubDeptSelector from "./DeptSubDeptSelector";
-import { useMemo } from "react";
+import { useState, useMemo } from "react"
+import DeptSubDeptSelector from "./DeptSubDeptSelector"
 
 export default function CategoryForm({
   initialData,
@@ -16,43 +15,37 @@ export default function CategoryForm({
     department: "",
     subDepartment: "",
     ...initialData,
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData((prev) => ({ ...prev, ...initialData }));
-    }
-  }, [initialData]);
+  })
 
   const uniqueDepts = useMemo(() => {
-    const fromCategories = rawCategories.map((c) => c.department);
-    const fromEmployees = rawEmployees.map((e) => e.department);
+    const fromCategories = rawCategories.map((c) => c.department)
+    const fromEmployees = rawEmployees.map((e) => e.department)
     return [...new Set([...fromCategories, ...fromEmployees])]
       .filter((d) => typeof d === "string" && d.trim())
-      .sort();
-  }, [rawCategories, rawEmployees]);
+      .sort()
+  }, [rawCategories, rawEmployees])
 
   const uniqueSubDepts = useMemo(() => {
-    const dept = formData.department;
-    if (!dept) return [];
+    const dept = formData.department
+    if (!dept) return []
 
     const fromEmployees = rawEmployees
       .filter((e) => e.department === dept)
-      .map((e) => e.subDepartment);
+      .map((e) => e.subDepartment)
 
     const fromCategories = rawCategories
       .filter((c) => c.department === dept)
-      .map((c) => c.subDepartment);
+      .map((c) => c.subDepartment)
 
     return [...new Set([...fromEmployees, ...fromCategories])]
       .filter((s) => typeof s === "string" && s.trim())
-      .sort();
-  }, [rawEmployees, rawCategories, formData.department]);
+      .sort()
+  }, [rawEmployees, rawCategories, formData.department])
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+    e.preventDefault()
+    onSubmit(formData)
+  }
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-5">
@@ -102,5 +95,5 @@ export default function CategoryForm({
         uniqueSubDepts={uniqueSubDepts}
       />
     </form>
-  );
+  )
 }

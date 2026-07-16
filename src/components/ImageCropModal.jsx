@@ -52,14 +52,26 @@ export default function ImageCropModal({ file, isOpen, onConfirm, onCancel }) {
   const [isCropping, setIsCropping] = useState(false);
 
   // Derived sizes – set once the image is loaded
-  const [imgNaturalSize, setImgNaturalSize] = useState({ w: 1, h: 1 });
+  const [, setImgNaturalSize] = useState({ w: 1, h: 1 });
+  // imgNaturalSize
+
+  // Sync internal state during render when props change to avoid calling setState synchronously within useEffect
+  const [prevFile, setPrevFile] = useState(file);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (file !== prevFile || isOpen !== prevIsOpen) {
+    setPrevFile(file);
+    setPrevIsOpen(isOpen);
+    if (file && isOpen) {
+      setImgLoaded(false);
+      setZoom(1);
+      setOffset({ x: 0, y: 0 });
+    }
+  }
 
   // ── Load image ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!file || !isOpen) return;
-    setImgLoaded(false);
-    setZoom(1);
-    setOffset({ x: 0, y: 0 });
 
     const url = URL.createObjectURL(file);
     const img = new Image();

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,19 +12,29 @@ export default function BulkVerifyModal({
   isSubmitting,
 }) {
   const [notes, setNotes] = useState("");
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const titleRef = useRef(null);
+
+  // Reset form state during render when modal transitions from closed to open.
+  // This avoids calling setState inside useEffect, which triggers cascading re-renders.
+  if (isOpen && !prevIsOpen) {
+    setPrevIsOpen(true);
+    setNotes("");
+  } else if (!isOpen && prevIsOpen) {
+    setPrevIsOpen(false);
+  }
 
   useEffect(() => {
     if (isOpen) {
-      setNotes("");
-      setTimeout(() => titleRef.current?.focus(), 150);
+      const timer = setTimeout(() => titleRef.current?.focus(), 150);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     if (e?.preventDefault) e.preventDefault();
     onConfirm({ notes });
-  };
+  }, [notes, onConfirm]);
 
   // Keyboard shortcut Ctrl+Enter to submit
   useEffect(() => {
@@ -37,7 +47,7 @@ export default function BulkVerifyModal({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isOpen, notes]);
+  }, [isOpen, handleSubmit]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
