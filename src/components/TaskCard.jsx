@@ -250,7 +250,13 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         {!isChecklistFormat && (
           <>
             {displayTitle && (
-              <h3 className="font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+              <h3 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (onView) onView(e)
+                }}
+                className="font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary hover:underline cursor-pointer transition-colors"
+              >
                 <HighlightText text={displayTitle} search={searchTerm} />
               </h3>
             )}
@@ -270,7 +276,13 @@ const TaskCard = memo(({ task, onView, onSilentUpdate, searchTerm }) => {
         {isChecklistFormat && (
           <div onClick={(e) => e.stopPropagation()}>
             {displayTitle && (
-              <h3 className="font-bold text-foreground leading-snug group-hover:text-primary transition-colors mb-2">
+              <h3 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (onView) onView(e)
+                }}
+                className="font-bold text-foreground leading-snug group-hover:text-primary hover:underline cursor-pointer transition-colors mb-2"
+              >
                 <HighlightText text={displayTitle} search={searchTerm} />
               </h3>
             )}
